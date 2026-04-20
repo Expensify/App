@@ -77,6 +77,7 @@ describe('libs/NextStepUtils', () => {
         beforeEach(() => {
             report.ownerAccountID = currentUserAccountID;
             report.managerID = currentUserAccountID;
+            report.transactionCount = 1;
             optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
             optimisticNextStep.message = [];
 

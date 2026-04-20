@@ -38,6 +38,7 @@ import type {
     GroupedItem,
     QueryFilters,
     SearchAction,
+    SearchAmountFilterKeys,
     SearchColumnType,
     SearchCustomColumnIds,
     SearchDateFilterKeys,
@@ -77,31 +78,46 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchMerchantGroup,
+    SearchMonthGroup,
+    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
+import {startMoneyRequest} from './actions/IOU';
+import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
+import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyApprover, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isPolicyApprover,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -127,18 +143,20 @@ import {
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
-    hasAnyViolations,
     hasHeldExpenses,
     hasInvoiceReports,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportReportUtil,
     isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isProcessingReport,
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -148,15 +166,21 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchQueryJSON,
+    getDateRangeDisplayValueFromFormValue,
+    isAmountFilterKey,
     isFilterSupported,
     isSearchDatePreset,
+    sortOptionsWithEmptyValue,
 } from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    getAmount,
+    getAttendees,
     getCategory,
     getDescription,
     getExchangeRate,
+    getExpenseTypeTranslationKey,
     getOriginalAmountForDisplay,
     getTag,
     getTaxAmount,
@@ -168,9 +192,10 @@ import {
     isPending,
     isScanning,
     isViolationDismissed,
+    shouldShowAttendees as shouldShowAttendeesUtils,
+    shouldShowViolation,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
-import ViolationsUtils from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -225,7 +250,7 @@ type GetTransactionSectionsParams = {
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
-    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    policyForMovingExpenses?: OnyxTypes.Policy;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -506,6 +531,28 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
 
+/** Return shape of `getSections`: row array, total row count, and whether any transaction is deleted (wide action column). */
+type GetSectionsResult = [
+    (
+        | ReportActionListItemType[]
+        | TaskListItemType[]
+        | TransactionListItemType[]
+        | TransactionGroupListItemType[]
+        | TransactionMemberGroupListItemType[]
+        | TransactionCardGroupListItemType[]
+        | TransactionWithdrawalIDGroupListItemType[]
+        | TransactionCategoryGroupListItemType[]
+        | TransactionMerchantGroupListItemType[]
+        | TransactionTagGroupListItemType[]
+        | TransactionMonthGroupListItemType[]
+        | TransactionWeekGroupListItemType[]
+        | TransactionYearGroupListItemType[]
+        | TransactionQuarterGroupListItemType[]
+    ),
+    number,
+    boolean,
+];
+
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
@@ -529,6 +576,7 @@ type GetSectionsParams = {
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
     conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
+    policyForMovingExpenses?: OnyxTypes.Policy;
 };
 
 /**
@@ -1143,7 +1191,8 @@ function getTransactionItemCommonFormattedProperties(
     }
 
     const formattedTo = formatPhoneNumber(toName);
-    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
+    const isDeleted = isDeletedTransaction(transactionItem);
+    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport, false, isDeleted);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
@@ -1195,20 +1244,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
-}
-
-/**
- * Determines whether to display the merchant field based on the transactions in the search results.
- */
-function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
-    return Object.keys(data).some((key) => {
-        if (isTransactionEntry(key)) {
-            const item = data[key];
-            const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
-            return !isInvalidMerchantValue(merchant) || isScanning(item);
-        }
-        return false;
-    });
 }
 
 /**
@@ -1377,12 +1412,35 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     };
 }
 
+function hasDeletedTransactionInData(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): boolean {
+    if (Array.isArray(data)) {
+        return data.some((item) => {
+            if (isTransactionGroupListItemType(item)) {
+                return item.transactions.some((transaction) => transaction.reportID === CONST.REPORT.TRASH_REPORT_ID);
+            }
+            if (isTransactionListItemType(item)) {
+                return item.reportID === CONST.REPORT.TRASH_REPORT_ID;
+            }
+            return false;
+        });
+    }
+
+    return Object.keys(data).some((key) => {
+        if (isTransactionEntry(key)) {
+            const item = data[key];
+            return item?.reportID === CONST.REPORT.TRASH_REPORT_ID;
+        }
+        return false;
+    });
+}
+
 type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
+    shouldShowYearWithdrawn: boolean;
 };
 
 /**
@@ -1429,6 +1487,7 @@ function shouldShowYear(
     data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'],
     checkOnlyReports = false,
     precomputedLastExportedMap?: Map<string, OnyxTypes.ReportAction>,
+    skipReportCreatedDate = false,
 ): ShouldShowYearResult {
     const result: ShouldShowYearResult = {
         shouldShowYearCreated: false,
@@ -1436,6 +1495,7 @@ function shouldShowYear(
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
+        shouldShowYearWithdrawn: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -1524,7 +1584,7 @@ function shouldShowYear(
         } else if (isReportEntry(key)) {
             const item = data[key];
 
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            if (!skipReportCreatedDate && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
             if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
@@ -1538,31 +1598,27 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
+        } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
+            const group = data[key];
+            if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
+                result.shouldShowYearWithdrawn = true;
+            }
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted && result.shouldShowYearExported) {
+        if (
+            result.shouldShowYearCreated &&
+            result.shouldShowYearSubmitted &&
+            result.shouldShowYearApproved &&
+            result.shouldShowYearPosted &&
+            result.shouldShowYearExported &&
+            result.shouldShowYearWithdrawn
+        ) {
             return result;
         }
     }
 
     return result;
-}
-
-/**
- * @private
- * Extracts all transaction violations from the search data.
- */
-function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
-    const violations: OnyxCollection<OnyxTypes.TransactionViolation[]> = {};
-
-    for (const key in data) {
-        if (isViolationEntry(key)) {
-            violations[key] = data[key];
-        }
-    }
-
-    return violations;
 }
 
 /**
@@ -1687,6 +1743,313 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
+function getTransactionPendingAction(transactionItem: OnyxTypes.Transaction): OnyxTypes.Transaction['pendingAction'] {
+    return transactionItem.pendingAction ?? (transactionItem.pendingFields ? Object.values(transactionItem.pendingFields).find(Boolean) : undefined);
+}
+
+type PreprocessingContext = {
+    transactionKeys: TransactionKey[];
+    reportKeys: ReportKey[];
+    violations: Record<string, OnyxTypes.TransactionViolation[] | undefined>;
+    shouldShowMerchant: boolean;
+    lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
+    moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
+    holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
+    allHoldReportActions: Map<string, OnyxTypes.ReportAction>;
+    transactionsByReportID: Map<string, OnyxTypes.Transaction[]>;
+    shouldShowYearCreated: boolean;
+    shouldShowYearSubmitted: boolean;
+    shouldShowYearApproved: boolean;
+    shouldShowYearPosted: boolean;
+    shouldShowYearExported: boolean;
+    shouldShowYearCreatedReport: boolean;
+    shouldShowYearSubmittedReport: boolean;
+    shouldShowYearApprovedReport: boolean;
+    shouldShowYearExportedReport: boolean;
+    shouldShowAmountInWideColumn: boolean;
+    shouldShowTaxAmountInWideColumn: boolean;
+    hasDeletedTransaction: boolean;
+    currentYear: number;
+};
+
+function createPreprocessingContext(): PreprocessingContext {
+    return {
+        transactionKeys: [],
+        reportKeys: [],
+        violations: {},
+        shouldShowMerchant: false,
+        lastExportedActionByReportID: new Map(),
+        moneyRequestReportActionsByTransactionID: new Map(),
+        holdReportActionsByTransactionID: new Map(),
+        allHoldReportActions: new Map(),
+        transactionsByReportID: new Map(),
+        shouldShowYearCreated: false,
+        shouldShowYearSubmitted: false,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+        shouldShowYearExported: false,
+        shouldShowYearCreatedReport: false,
+        shouldShowYearSubmittedReport: false,
+        shouldShowYearApprovedReport: false,
+        shouldShowYearExportedReport: false,
+        shouldShowAmountInWideColumn: false,
+        shouldShowTaxAmountInWideColumn: false,
+        hasDeletedTransaction: false,
+        currentYear: new Date().getFullYear(),
+    };
+}
+
+/**
+ * Indexes report actions by building the latest-export map, money-request lookup,
+ * hold-action lookup, and year-created flag from action dates.
+ */
+function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>): void {
+    const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+
+    let latestExportTime = -Infinity;
+    let latestExportAction: OnyxTypes.ReportAction | undefined;
+
+    for (const action of Object.values(actions)) {
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime > latestExportTime) {
+                latestExportTime = currentTime;
+                latestExportAction = action;
+            }
+        }
+
+        if (isMoneyRequestAction(action)) {
+            const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
+            const transactionID = originalMessage?.IOUTransactionID;
+            if (transactionID) {
+                ctx.moneyRequestReportActionsByTransactionID.set(transactionID, action);
+            }
+        } else if (isHoldAction(action)) {
+            ctx.allHoldReportActions.set(action.reportActionID, action);
+        }
+
+        if (!ctx.shouldShowYearCreated && DateUtils.doesDateBelongToAPastYear(action.created)) {
+            ctx.shouldShowYearCreated = true;
+        }
+    }
+
+    if (latestExportAction) {
+        ctx.lastExportedActionByReportID.set(reportID, latestExportAction);
+    }
+}
+
+/**
+ * Accumulates report-level and shared year flags from report date fields.
+ */
+function processReportEntry(ctx: PreprocessingContext, report: OnyxTypes.Report): void {
+    if (!ctx.shouldShowYearCreatedReport && report.created && DateUtils.doesDateBelongToAPastYear(report.created)) {
+        ctx.shouldShowYearCreatedReport = true;
+    }
+    if (!ctx.shouldShowYearSubmittedReport && report.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
+        ctx.shouldShowYearSubmittedReport = true;
+    }
+    if (!ctx.shouldShowYearApprovedReport && report.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
+        ctx.shouldShowYearApprovedReport = true;
+    }
+
+    if (!ctx.shouldShowYearSubmitted && report.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
+        ctx.shouldShowYearSubmitted = true;
+    }
+    if (!ctx.shouldShowYearApproved && report.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
+        ctx.shouldShowYearApproved = true;
+    }
+}
+
+/**
+ * Accumulates merchant visibility, wide-amount indicators, year flags,
+ * transaction-by-report grouping, and hold-action matching from a transaction.
+ */
+function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTypes.Transaction, data: OnyxTypes.SearchResults['data']): void {
+    if (!ctx.shouldShowMerchant) {
+        const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
+        if (!isInvalidMerchantValue(merchant) || isScanning(transaction)) {
+            ctx.shouldShowMerchant = true;
+        }
+    }
+
+    if (!ctx.shouldShowAmountInWideColumn) {
+        ctx.shouldShowAmountInWideColumn = isTransactionAmountTooLong(transaction);
+    }
+    if (!ctx.shouldShowTaxAmountInWideColumn) {
+        ctx.shouldShowTaxAmountInWideColumn = isTransactionTaxAmountTooLong(transaction);
+    }
+    if (!ctx.hasDeletedTransaction) {
+        ctx.hasDeletedTransaction = transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
+    }
+
+    if (!ctx.shouldShowYearCreated) {
+        const transactionCreated = getTransactionCreatedDate(transaction);
+        if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
+            ctx.shouldShowYearCreated = true;
+        }
+    }
+
+    const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+    if (!ctx.shouldShowYearSubmitted && report?.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
+        ctx.shouldShowYearSubmitted = true;
+    }
+    if (!ctx.shouldShowYearApproved && report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
+        ctx.shouldShowYearApproved = true;
+    }
+
+    if (!ctx.shouldShowYearPosted && transaction?.posted) {
+        const postedYear = parseInt(transaction.posted.slice(0, 4), 10);
+        if (postedYear !== ctx.currentYear) {
+            ctx.shouldShowYearPosted = true;
+        }
+    }
+
+    // Optimistic: works when report-action keys precede transaction keys (common case).
+    // resolveExportedYearFlags() re-checks after the export map is fully built.
+    if (!ctx.shouldShowYearExported) {
+        const exportedAction = transaction.reportID ? ctx.lastExportedActionByReportID.get(transaction.reportID) : undefined;
+        if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+            ctx.shouldShowYearExported = true;
+        }
+    }
+
+    if (transaction.reportID) {
+        const existing = ctx.transactionsByReportID.get(transaction.reportID);
+        if (existing) {
+            existing.push(transaction);
+        } else {
+            ctx.transactionsByReportID.set(transaction.reportID, [transaction]);
+        }
+    }
+
+    if (ctx.allHoldReportActions.size > ctx.holdReportActionsByTransactionID.size) {
+        const holdReportActionID = transaction?.comment?.hold;
+        if (holdReportActionID) {
+            const action = ctx.allHoldReportActions.get(holdReportActionID);
+            if (action) {
+                ctx.holdReportActionsByTransactionID.set(transaction.transactionID, action);
+            }
+        }
+    }
+}
+
+/**
+ * The export-action map is built inline during processReportActionEntry, but report
+ * and transaction entries may have been iterated before the map was complete.
+ * This post-loop pass re-checks both against the now-complete map.
+ */
+function resolveExportedYearFlags(ctx: PreprocessingContext, data: OnyxTypes.SearchResults['data']): void {
+    if (ctx.shouldShowYearExported && ctx.shouldShowYearExportedReport) {
+        return;
+    }
+
+    for (const key of ctx.reportKeys) {
+        if (ctx.shouldShowYearExported && ctx.shouldShowYearExportedReport) {
+            return;
+        }
+        const item = data[key];
+        const exportedAction = ctx.lastExportedActionByReportID.get(item.reportID);
+        if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+            ctx.shouldShowYearExported = true;
+            ctx.shouldShowYearExportedReport = true;
+        }
+    }
+
+    if (!ctx.shouldShowYearExported) {
+        for (const key of ctx.transactionKeys) {
+            const transaction = data[key];
+            const exportedAction = transaction.reportID ? ctx.lastExportedActionByReportID.get(transaction.reportID) : undefined;
+            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                ctx.shouldShowYearExported = true;
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * Single-pass preprocessing over Object.keys(data) that builds all derived structures
+ * (key classification, violations, export/action maps, year flags, column indicators)
+ * needed by getTransactionsSections and getReportSections.
+ */
+function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions' | 'currentYear'> {
+    const ctx = createPreprocessingContext();
+
+    for (const key of Object.keys(data)) {
+        if (isReportActionEntry(key)) {
+            processReportActionEntry(ctx, key, data[key]);
+        } else if (isReportEntry(key)) {
+            ctx.reportKeys.push(key);
+            processReportEntry(ctx, data[key]);
+        } else if (isTransactionEntry(key)) {
+            ctx.transactionKeys.push(key);
+            processTransactionEntry(ctx, data[key], data);
+        } else if (isViolationEntry(key)) {
+            ctx.violations[key] = data[key];
+        }
+    }
+
+    resolveExportedYearFlags(ctx, data);
+
+    return ctx;
+}
+
+/**
+ * Checks whether any non-dismissed, actionable violations are visible to the current user.
+ * A violation is "visible" only when it is both actionable (type VIOLATION, or NOTICE/WARNING
+ * with showInReview) AND passes shouldShowViolation for the user's role.
+ */
+function hasVisibleViolations(
+    report: OnyxEntry<OnyxTypes.Report>,
+    allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    transactions: OnyxTypes.Transaction[],
+    policy: OnyxEntry<OnyxTypes.Policy>,
+): boolean {
+    if (!report || !allViolations || !transactions) {
+        return false;
+    }
+
+    let hasActionable = false;
+    let hasUserVisible = false;
+
+    for (const transaction of transactions) {
+        if (!transaction) {
+            continue;
+        }
+
+        const tvs = allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        if (!tvs) {
+            continue;
+        }
+
+        for (const violation of tvs) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy)) {
+                continue;
+            }
+
+            if (!hasActionable) {
+                const type = violation.type;
+                const showInReview = violation.showInReview ?? false;
+                if (type === CONST.VIOLATION_TYPES.VIOLATION || ((type === CONST.VIOLATION_TYPES.NOTICE || type === CONST.VIOLATION_TYPES.WARNING) && showInReview)) {
+                    hasActionable = true;
+                }
+            }
+
+            if (!hasUserVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)) {
+                hasUserVisible = true;
+            }
+
+            if (hasActionable && hasUserVisible) {
+                return true;
+            }
+        }
+    }
+
+    return hasActionable && hasUserVisible;
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
@@ -1704,25 +2067,30 @@ function getTransactionsSections({
     allReportMetadata,
     reportActions = {},
     queryJSON,
-    cardFeeds,
-}: GetTransactionSectionsParams): [TransactionListItemType[], number] {
-    const shouldShowMerchant = getShouldShowMerchant(data);
-    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data, false, lastExportedActionByReportID);
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
+    policyForMovingExpenses,
+}: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
+    const {
+        transactionKeys,
+        violations: allViolations,
+        shouldShowMerchant,
+        lastExportedActionByReportID,
+        moneyRequestReportActionsByTransactionID,
+        holdReportActionsByTransactionID,
+        shouldShowYearCreated,
+        shouldShowYearSubmitted,
+        shouldShowYearApproved,
+        shouldShowYearPosted,
+        shouldShowYearExported,
+        shouldShowAmountInWideColumn,
+        shouldShowTaxAmountInWideColumn,
+        hasDeletedTransaction,
+    } = classifyAndPreprocess(data);
 
-    // Pre-filter transaction keys to avoid repeated checks
-    const transactionKeys = Object.keys(data).filter(isTransactionEntry);
-    // Get violations - optimize by using a Map for faster lookups
-    const allViolations = getViolations(data);
-
-    // Use Map for faster lookups of personal details and reportActions
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
-    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
+    const currentUserPersonalDetails = personalDetailsMap.get(currentAccountID.toString()) ?? emptyPersonalDetails;
 
     const transactionsSections: TransactionListItemType[] = [];
 
-    // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
 
     for (const key of transactionKeys) {
@@ -1759,8 +2127,6 @@ function getTransactionsSections({
             const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
-            // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !!transactionItem.bank && !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -1773,10 +2139,24 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+            const transactionPendingAction = getTransactionPendingAction(transactionItem);
+            const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
+            const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
+                ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
+                ...(transactionAttendees.length > 0
+                    ? {
+                          comment: {
+                              ...transactionItem.comment,
+                              attendees: shouldShowAttendees ? transactionAttendees : [],
+                          },
+                      }
+                    : {}),
                 keyForList: transactionItem.transactionID,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 policy,
@@ -1788,7 +2168,6 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
-                isCardFeedDeleted,
                 date,
                 submitted,
                 approved,
@@ -1802,6 +2181,7 @@ function getTransactionsSections({
                 shouldShowYearExported,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+                isActionColumnWide: hasDeletedTransaction,
                 violations: transactionViolations,
                 category: isIOUReport ? '' : transactionItem?.category,
                 errors: undefined,
@@ -1810,7 +2190,7 @@ function getTransactionsSections({
             transactionsSections.push(transactionSection);
         }
     }
-    return [transactionsSections, transactionsSections.length];
+    return [transactionsSections, transactionsSections.length, hasDeletedTransaction];
 }
 
 /**
@@ -1999,7 +2379,8 @@ function getActions(
 
     const chatReport = getChatReport(data, report);
     const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const canOnlyBePaidElsewhere = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
     if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
@@ -2037,11 +2418,25 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report) && isApprovalEnabled) {
+        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
+    }
+
     if (reportNVP?.exportFailedTime) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+}
+
+/**
+ * @private
+ * Returns the primary action to show in the Action column for a given transaction or report
+ */
+function getAction(allActions: SearchTransactionAction[]) {
+    // Do not set CHANGE_APPROVER as the primary action as it is less frequently used than VIEW
+    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
@@ -2267,67 +2662,32 @@ function getReportSections({
     allReportMetadata,
     queryJSON,
     onyxPersonalDetailsList,
-}: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
-    const shouldShowMerchant = getShouldShowMerchant(data);
-    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
-
+}: GetReportSectionsParams): [TransactionGroupListItemType[], number, boolean] {
     const {
-        shouldShowYearCreated: shouldShowYearCreatedTransaction,
-        shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
-        shouldShowYearApproved: shouldShowYearApprovedTransaction,
+        transactionKeys,
+        reportKeys,
+        violations: allViolations,
+        shouldShowMerchant,
+        lastExportedActionByReportID,
+        moneyRequestReportActionsByTransactionID,
+        holdReportActionsByTransactionID,
+        transactionsByReportID,
+        shouldShowYearCreated,
+        shouldShowYearSubmitted,
+        shouldShowYearApproved,
         shouldShowYearPosted: shouldShowYearPostedTransaction,
-        shouldShowYearExported: shouldShowYearExportedTransaction,
-    } = shouldShowYear(data, false, lastExportedActionByReportID);
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
-    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
-
-    // Get violations - optimize by using a Map for faster lookups
-    const allViolations = getViolations(data);
+        shouldShowYearExported,
+        shouldShowYearCreatedReport,
+        shouldShowYearSubmittedReport,
+        shouldShowYearApprovedReport,
+        shouldShowYearExportedReport,
+        shouldShowAmountInWideColumn,
+        shouldShowTaxAmountInWideColumn,
+        hasDeletedTransaction,
+    } = classifyAndPreprocess(data);
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
-
-    // Build transactionsByReportID map and compute report-level year flags in a single pass for performance reasons.
-    const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
-    let shouldShowYearCreatedReport = false;
-    let shouldShowYearSubmittedReport = false;
-    let shouldShowYearApprovedReport = false;
-    let shouldShowYearExportedReport = false;
-
-    const {reportKeys, transactionKeys} = Object.keys(data).reduce(
-        (acc, key) => {
-            if (isReportEntry(key)) {
-                acc.reportKeys.push(key);
-                const item = data[key];
-                if (!shouldShowYearCreatedReport && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
-                    shouldShowYearCreatedReport = true;
-                }
-                if (!shouldShowYearSubmittedReport && item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
-                    shouldShowYearSubmittedReport = true;
-                }
-                if (!shouldShowYearApprovedReport && item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
-                    shouldShowYearApprovedReport = true;
-                }
-                const exportedAction = lastExportedActionByReportID.get(item.reportID);
-                if (!shouldShowYearExportedReport && exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
-                    shouldShowYearExportedReport = true;
-                }
-            } else if (isTransactionEntry(key)) {
-                acc.transactionKeys.push(key);
-                const transaction = data[key];
-                if (transaction.reportID) {
-                    const existing = transactionsByReportID.get(transaction.reportID);
-                    if (existing) {
-                        existing.push(transaction);
-                    } else {
-                        transactionsByReportID.set(transaction.reportID, [transaction]);
-                    }
-                }
-            }
-            return acc;
-        },
-        {reportKeys: [] as string[], transactionKeys: [] as string[]},
-    );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
     const mergedPersonalDetails = {...(onyxPersonalDetailsList ?? {}), ...(data.personalDetailsList ?? {})};
@@ -2379,25 +2739,14 @@ function getReportSections({
 
                 const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
-                const hasAnyViolationsForReport = hasAnyViolations(
-                    reportItem.reportID,
-                    allTransactionViolations ?? allViolations,
-                    currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserEmail,
-                    allReportTransactions,
+                const hasVisibleViolationsForReport = hasVisibleViolations(
                     reportItem,
+                    allTransactionViolations ?? allViolations,
+                    currentUserEmail,
+                    currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    allReportTransactions,
                     policy,
                 );
-                const hasVisibleViolationsForReport =
-                    hasAnyViolationsForReport &&
-                    ViolationsUtils.hasVisibleViolationsForUser(
-                        reportItem,
-                        allTransactionViolations ?? allViolations,
-                        currentUserEmail,
-                        currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                        policy,
-                        allReportTransactions,
-                    );
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
@@ -2410,7 +2759,7 @@ function getReportSections({
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                    action: getAction(allActions),
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2432,6 +2781,8 @@ function getReportSections({
                     totalDisplaySpend,
                     nonReimbursableSpend,
                     reimbursableSpend,
+                    isAmountColumnWide: shouldShowAmountInWideColumn,
+                    isActionColumnWide: hasDeletedTransaction,
                     isAllScanning: false,
                     ...avatarProps,
                 };
@@ -2464,9 +2815,11 @@ function getReportSections({
 
             const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
+            const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transaction = {
                 ...transactionItem,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
+                action: getAction(allActions),
                 allActions,
                 report,
                 reportAction,
@@ -2481,15 +2834,16 @@ function getReportSections({
                 date,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 shouldShowMerchant,
-                shouldShowYear: shouldShowYearCreatedTransaction,
-                shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
-                shouldShowYearApproved: shouldShowYearApprovedTransaction,
+                shouldShowYear: shouldShowYearCreated || shouldShowYearCreatedReport,
+                shouldShowYearSubmitted,
+                shouldShowYearApproved,
                 shouldShowYearPosted: shouldShowYearPostedTransaction,
-                shouldShowYearExported: shouldShowYearExportedTransaction,
+                shouldShowYearExported,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+                isActionColumnWide: hasDeletedTransaction,
                 category: isIOUReport ? '' : transactionItem?.category,
                 errors: undefined,
             };
@@ -2504,7 +2858,7 @@ function getReportSections({
     }
 
     const reportIDToTransactionsValues = Object.values(reportIDToTransactions);
-    return [reportIDToTransactionsValues, reportIDToTransactionsValues.length];
+    return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
@@ -2512,6 +2866,115 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+}
+
+function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: SearchQueryJSON | undefined): number[] {
+    if (!data || !queryJSON?.groupBy) {
+        return [];
+    }
+
+    const searchHashes = new Set<number>();
+
+    for (const [key, group] of Object.entries(data)) {
+        if (!group || !isGroupEntry(key)) {
+            continue;
+        }
+
+        let transactionsQueryJSON: SearchQueryJSON | undefined;
+
+        switch (queryJSON.groupBy) {
+            case CONST.SEARCH.GROUP_BY.FROM: {
+                const memberGroup = group as SearchMemberGroup;
+                if (memberGroup.accountID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.CARD: {
+                const cardGroup = group as SearchCardGroup;
+                if (cardGroup.cardID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID: {
+                const withdrawalIDGroup = group as SearchWithdrawalIDGroup;
+                if (withdrawalIDGroup.entryID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.CATEGORY: {
+                const categoryGroup = group as SearchCategoryGroup;
+                if (categoryGroup.category !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                        !categoryGroup.category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : categoryGroup.category,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.MERCHANT: {
+                const merchantGroup = group as SearchMerchantGroup;
+                if (merchantGroup.merchant !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                        merchantGroup.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchantGroup.merchant,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.TAG: {
+                const tagGroup = group as SearchTagGroup;
+                if (tagGroup.tag !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.MONTH: {
+                const monthGroup = group as SearchMonthGroup;
+                if (monthGroup.year && monthGroup.month) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.WEEK: {
+                const weekGroup = group as SearchWeekGroup;
+                if (weekGroup.week) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getWeekDateRange(weekGroup.week))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.YEAR: {
+                const yearGroup = group as SearchYearGroup;
+                if (typeof yearGroup.year === 'number') {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.QUARTER: {
+                const quarterGroup = group as SearchQuarterGroup;
+                if (typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number') {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        if (transactionsQueryJSON?.hash !== undefined && transactionsQueryJSON.hash >= 0) {
+            searchHashes.add(transactionsQueryJSON.hash);
+        }
+    }
+
+    return Array.from(searchHashes);
 }
 
 function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start: string; end: string}): {transactionsQueryJSON: SearchQueryJSON | undefined; start: string; end: string} {
@@ -2540,7 +3003,7 @@ function getMemberSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): [TransactionMemberGroupListItemType[], number] {
+): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
     for (const key in data) {
@@ -2563,7 +3026,7 @@ function getMemberSections(
     }
 
     const memberSectionsValues = Object.values(memberSections);
-    return [memberSectionsValues, memberSectionsValues.length];
+    return [memberSectionsValues, memberSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
@@ -2582,7 +3045,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
-): [TransactionCardGroupListItemType[], number] {
+): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
 
@@ -2609,6 +3072,7 @@ function getCardSections(
                             cardName: cardGroup.cardName,
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
+                        translate,
                         personalDetails?.displayName,
                     );
                     cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
@@ -2631,7 +3095,7 @@ function getCardSections(
     }
 
     const cardSectionsValues = Object.values(cardSections);
-    return [cardSectionsValues, cardSectionsValues.length];
+    return [cardSectionsValues, cardSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -2640,7 +3104,8 @@ function getCardSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWithdrawalIDGroupListItemType[], number] {
+function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWithdrawalIDGroupListItemType[], number, boolean] {
+    const {shouldShowYearWithdrawn} = shouldShowYear(data);
     const withdrawalIDSections: Record<string, TransactionWithdrawalIDGroupListItemType> = {};
 
     for (const key in data) {
@@ -2658,6 +3123,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 transactions: [],
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
+                shouldShowYearWithdrawn,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
                 keyForList: key,
             };
@@ -2665,7 +3131,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
     }
 
     const withdrawalIDSectionsValues = Object.values(withdrawalIDSections);
-    return [withdrawalIDSectionsValues, withdrawalIDSectionsValues.length];
+    return [withdrawalIDSectionsValues, withdrawalIDSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -2674,7 +3140,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionCategoryGroupListItemType[], number] {
+function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionCategoryGroupListItemType[], number, boolean] {
     const categorySections: Record<string, TransactionCategoryGroupListItemType> = {};
 
     for (const key in data) {
@@ -2702,7 +3168,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
     }
 
     const categorySectionsValues = Object.values(categorySections);
-    return [categorySectionsValues, categorySectionsValues.length];
+    return [categorySectionsValues, categorySectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -2711,7 +3177,11 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMerchantGroupListItemType[], number] {
+function getMerchantSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
+): [TransactionMerchantGroupListItemType[], number, boolean] {
     const merchantSections: Record<string, TransactionMerchantGroupListItemType> = {};
 
     for (const key in data) {
@@ -2747,7 +3217,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
     }
 
     const merchantSectionsValues = Object.values(merchantSections);
-    return [merchantSectionsValues, merchantSectionsValues.length];
+    return [merchantSectionsValues, merchantSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -2756,7 +3226,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionTagGroupListItemType[], number] {
+function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionTagGroupListItemType[], number, boolean] {
     const tagSections: Record<string, TransactionTagGroupListItemType> = {};
 
     for (const key in data) {
@@ -2789,7 +3259,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
     }
 
     const tagSectionsValues = Object.values(tagSections);
-    return [tagSectionsValues, tagSectionsValues.length];
+    return [tagSectionsValues, tagSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -2798,7 +3268,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2826,14 +3296,14 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
     }
 
     const monthSectionsValues = Object.values(monthSections);
-    return [monthSectionsValues, monthSectionsValues.length];
+    return [monthSectionsValues, monthSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
  * Returns sections for week-grouped search results.
  * Do not use directly, use only via `getSections()` facade.
  */
-function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number] {
+function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number, boolean] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2858,14 +3328,14 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
     }
 
     const weekSectionsValues = Object.values(weekSections);
-    return [weekSectionsValues, weekSectionsValues.length];
+    return [weekSectionsValues, weekSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
  * Returns sections for year-grouped search results.
  * Do not use directly, use only via `getSections()` facade.
  */
-function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number] {
+function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number, boolean] {
     const yearSections: Record<string, TransactionYearGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2890,10 +3360,10 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
     }
 
     const yearSectionsValues = Object.values(yearSections);
-    return [yearSectionsValues, yearSectionsValues.length];
+    return [yearSectionsValues, yearSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
-function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number] {
+function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2920,7 +3390,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
     }
 
     const quarterSectionsValues = Object.values(quarterSections);
-    return [quarterSectionsValues, quarterSectionsValues.length];
+    return [quarterSectionsValues, quarterSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -2968,12 +3438,13 @@ function getSections({
     allReportMetadata,
     conciergeReportID,
     onyxPersonalDetailsList,
-}: GetSectionsParams) {
+    policyForMovingExpenses,
+}: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data, visibleReportActionsData);
+        return [...getReportActionsSections(data, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList);
+        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -3034,7 +3505,7 @@ function getSections({
         allReportMetadata,
         reportActions,
         queryJSON,
-        cardFeeds,
+        policyForMovingExpenses,
     });
 }
 
@@ -3269,6 +3740,31 @@ function getSortedTransactionData(
             const aValue = getOriginalAmountForDisplay(a, a.report?.type === CONST.REPORT.TYPE.EXPENSE);
             const bValue = getOriginalAmountForDisplay(b, b.report?.type === CONST.REPORT.TYPE.EXPENSE);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
+        return data.sort((a, b) => {
+            const aValue = a.comment?.attendees?.length ?? 0;
+            const bValue = b.comment?.attendees?.length ?? 0;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+        const getTotalPerAttendee = (t: TransactionListItemType) => {
+            const attendeesCount = t.comment?.attendees?.length ?? 0;
+            if (!attendeesCount) {
+                return 0;
+            }
+            const totalAmount = getAmount(t, t.report?.type === CONST.REPORT.TYPE.EXPENSE);
+            return totalAmount / attendeesCount;
+        };
+
+        return data.sort((a, b) => {
+            const aValue = getTotalPerAttendee(a);
+            const bValue = getTotalPerAttendee(b);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
@@ -3583,6 +4079,10 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.to';
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+            return 'iou.attendees';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+            return 'iou.totalPerAttendee';
         case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
             return 'common.receipt';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
@@ -3995,7 +4495,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
         ? searchResults?.search?.status?.split(',').sort().join(',')
         : searchResults?.search?.status?.sort().join(',');
     const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
-    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
+    const isDataLoaded =
+        (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 
     return isDataLoaded;
 }
@@ -4068,6 +4569,10 @@ function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTrans
     return sortableColumns;
 }
 
+function getSortOrderOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.SORT_ORDER).map<SingleSelectItem<SortOrder>>((value) => ({text: translate(`search.filters.sortOrder.${value}`), value}));
+}
+
 function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
     const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
         text: translate(`search.filters.groupBy.${groupBy}`),
@@ -4096,7 +4601,7 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
-function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
+function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
@@ -4281,160 +4786,368 @@ type SearchFilter = {
     value: string | string[] | null;
 };
 
+type FilterGroupConfig = {
+    label: TranslationPaths;
+    syntax: SearchDateFilterKeys | SearchAmountFilterKeys;
+};
+
+const FILTER_GROUP_MAP: Partial<Record<SearchAdvancedFiltersKey, FilterGroupConfig>> = {
+    [FILTER_KEYS.DATE_ON]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+    [FILTER_KEYS.DATE_AFTER]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+    [FILTER_KEYS.DATE_BEFORE]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+    [FILTER_KEYS.DATE_RANGE]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+
+    [FILTER_KEYS.SUBMITTED_ON]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+    [FILTER_KEYS.SUBMITTED_AFTER]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+    [FILTER_KEYS.SUBMITTED_BEFORE]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+    [FILTER_KEYS.SUBMITTED_RANGE]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+
+    [FILTER_KEYS.APPROVED_ON]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+    [FILTER_KEYS.APPROVED_AFTER]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+    [FILTER_KEYS.APPROVED_BEFORE]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+    [FILTER_KEYS.APPROVED_RANGE]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+
+    [FILTER_KEYS.PAID_ON]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+    [FILTER_KEYS.PAID_AFTER]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+    [FILTER_KEYS.PAID_BEFORE]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+    [FILTER_KEYS.PAID_RANGE]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+
+    [FILTER_KEYS.EXPORTED_ON]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+    [FILTER_KEYS.EXPORTED_AFTER]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+    [FILTER_KEYS.EXPORTED_BEFORE]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+    [FILTER_KEYS.EXPORTED_RANGE]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+
+    [FILTER_KEYS.POSTED_ON]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+    [FILTER_KEYS.POSTED_AFTER]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+    [FILTER_KEYS.POSTED_BEFORE]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+    [FILTER_KEYS.POSTED_RANGE]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+
+    [FILTER_KEYS.WITHDRAWN_ON]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
+    [FILTER_KEYS.WITHDRAWN_AFTER]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
+    [FILTER_KEYS.WITHDRAWN_BEFORE]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
+    [FILTER_KEYS.WITHDRAWN_RANGE]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
+
+    [FILTER_KEYS.AMOUNT_EQUAL_TO]: {label: 'iou.amount', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT},
+    [FILTER_KEYS.AMOUNT_LESS_THAN]: {label: 'iou.amount', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT},
+    [FILTER_KEYS.AMOUNT_GREATER_THAN]: {label: 'iou.amount', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT},
+
+    [FILTER_KEYS.TOTAL_EQUAL_TO]: {label: 'common.total', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL},
+    [FILTER_KEYS.TOTAL_LESS_THAN]: {label: 'common.total', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL},
+    [FILTER_KEYS.TOTAL_GREATER_THAN]: {label: 'common.total', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL},
+
+    [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: {label: 'common.purchaseAmount', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT},
+    [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: {label: 'common.purchaseAmount', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT},
+    [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: {label: 'common.purchaseAmount', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT},
+};
+
+const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPaths>> = {
+    [FILTER_KEYS.ASSIGNEE]: 'task.assignee',
+    [FILTER_KEYS.ATTENDEE]: 'iou.attendees',
+    [FILTER_KEYS.BILLABLE]: 'search.filters.billable',
+    [FILTER_KEYS.CARD_ID]: 'common.card',
+    [FILTER_KEYS.CATEGORY]: 'common.category',
+    [FILTER_KEYS.CURRENCY]: 'common.currency',
+    [FILTER_KEYS.DESCRIPTION]: 'common.description',
+    [FILTER_KEYS.EXPENSE_TYPE]: 'search.expenseType',
+    [FILTER_KEYS.EXPORTED_TO]: 'search.exportedTo',
+    [FILTER_KEYS.FEED]: 'search.filters.feed',
+    [FILTER_KEYS.FROM]: 'common.from',
+    [FILTER_KEYS.GROUP_CURRENCY]: 'common.groupCurrency',
+    [FILTER_KEYS.HAS]: 'search.has',
+    [FILTER_KEYS.IN]: 'common.in',
+    [FILTER_KEYS.IS]: 'search.filters.is',
+    [FILTER_KEYS.KEYWORD]: 'search.filters.keyword',
+    [FILTER_KEYS.MERCHANT]: 'common.merchant',
+    [FILTER_KEYS.POLICY_ID]: 'workspace.common.workspace',
+    [FILTER_KEYS.PURCHASE_CURRENCY]: 'search.filters.purchaseCurrency',
+    [FILTER_KEYS.REIMBURSABLE]: 'common.reimbursable',
+    [FILTER_KEYS.REPORT_ID]: 'common.reportID',
+    [FILTER_KEYS.STATUS]: 'common.status',
+    [FILTER_KEYS.TAG]: 'common.tag',
+    [FILTER_KEYS.TAX_RATE]: 'workspace.taxes.taxRate',
+    [FILTER_KEYS.TYPE]: 'common.type',
+    [FILTER_KEYS.TO]: 'common.to',
+    [FILTER_KEYS.TITLE]: 'common.title',
+    [FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
+    [FILTER_KEYS.WITHDRAWAL_TYPE]: 'search.withdrawalType',
+};
+
+function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
+    const on = form[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
+    const after = form[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
+    const before = form[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
+    const range = form[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`];
+    const parts: string[] = [];
+
+    if (on) {
+        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on)}`);
+    }
+
+    if (after) {
+        parts.push(`${translate('common.after')} ${DateUtils.formatToReadableString(after)}`);
+    }
+
+    if (before) {
+        parts.push(`${translate('common.before')} ${DateUtils.formatToReadableString(before)}`);
+    }
+
+    if (range) {
+        const rangeDisplay = getDateRangeDisplayValueFromFormValue(range, undefined, undefined, true);
+        if (rangeDisplay) {
+            parts.push(rangeDisplay);
+        }
+    }
+
+    return parts.join(', ');
+}
+
+function getAmountDisplayValue(syntaxKey: SearchAmountFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string | undefined {
+    const lessThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
+    const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
+
+    const formatAmount = (val: string) => convertToDisplayStringWithoutCurrency(Number(val));
+
+    if (equalTo) {
+        return translate('search.filters.amount.equalTo', formatAmount(equalTo));
+    }
+    if (lessThan && greaterThan) {
+        return translate('search.filters.amount.between', formatAmount(greaterThan), formatAmount(lessThan));
+    }
+    if (lessThan) {
+        return translate('search.filters.amount.lessThan', formatAmount(lessThan));
+    }
+    if (greaterThan) {
+        return translate('search.filters.amount.greaterThan', formatAmount(greaterThan));
+    }
+    return undefined;
+}
+
+function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
+    const values: string[] = [];
+
+    for (const [fieldKey, fieldValue] of Object.entries(form)) {
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+            continue;
+        }
+
+        const fieldName = fieldKey
+            .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
+            .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
+            .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
+            .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
+            .split('-')
+            .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+            .join(' ');
+
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
+            const dateString = isSearchDatePreset(fieldValue as string)
+                ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
+                : translate('search.filters.date.on', fieldValue as string);
+
+            values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+        }
+
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+            const dateString = translate('search.filters.date.after', fieldValue as string).toLowerCase();
+            values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+        }
+
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+            const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
+            values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+        }
+
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+            const valueString = translate('search.filters.reportField', fieldName, fieldValue as string);
+            values.push(valueString);
+        }
+    }
+
+    return values.join(', ');
+}
+
+function getDisplayValue(
+    key: SearchAdvancedFiltersKey,
+    form: Partial<SearchAdvancedFiltersForm>,
+    type: SearchDataTypes,
+    policyIDQuery: string[] | undefined,
+    translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
+) {
+    if (key === FILTER_KEYS.TYPE) {
+        const filterValue = form[key];
+        if (filterValue === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            return translate('common.expenseReport');
+        }
+        return filterValue ? translate(`common.${filterValue}`) : undefined;
+    }
+
+    if (key === FILTER_KEYS.TAG || key === FILTER_KEYS.CATEGORY) {
+        const mapFn =
+            key === FILTER_KEYS.TAG
+                ? (value: string) => (value === CONST.SEARCH.TAG_EMPTY_VALUE ? translate('search.noTag') : getCleanedTagName(value))
+                : (value: string) => (value === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? translate('search.noCategory') : value);
+
+        return form[key]
+            ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
+            .map(mapFn)
+            .join(', ');
+    }
+
+    if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY) {
+        return form[key]?.sort(localeCompare).join(', ');
+    }
+
+    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE) {
+        const formValue = form[key];
+        return formValue ? translate(`common.${formValue}`) : undefined;
+    }
+
+    if (key === FILTER_KEYS.WITHDRAWAL_TYPE) {
+        const withdrawalType = form[key];
+        return withdrawalType ? translate(`search.filters.withdrawalType.${withdrawalType}`) : undefined;
+    }
+
+    if (key === FILTER_KEYS.STATUS) {
+        const status = form[key];
+        if (!status?.length) {
+            return;
+        }
+        const statusOptions = getStatusOptions(translate, type);
+        return statusOptions
+            .filter((option) => status.includes(option.value))
+            .map((option) => option.text)
+            .join(', ');
+    }
+
+    if (key === FILTER_KEYS.IS || key === FILTER_KEYS.HAS) {
+        const formValue = form[key];
+        return formValue?.map((option) => translate(`common.${option}`)).join(', ');
+    }
+
+    if (key === FILTER_KEYS.FROM || key === FILTER_KEYS.TO || key === FILTER_KEYS.ATTENDEE || key === FILTER_KEYS.ASSIGNEE || key === FILTER_KEYS.TAX_RATE || key === FILTER_KEYS.IN) {
+        return form[key];
+    }
+
+    if (key === FILTER_KEYS.POLICY_ID) {
+        const policyID = form[key];
+        const policyIDs = policyID ?? policyIDQuery;
+        if (policyIDs) {
+            return Array.isArray(policyIDs) ? policyIDs : [policyIDs];
+        }
+        return undefined;
+    }
+
+    if (key === FILTER_KEYS.EXPENSE_TYPE) {
+        return form[key]?.map((expenseType) => translate(getExpenseTypeTranslationKey(expenseType))).join(', ');
+    }
+
+    const formValue = form[key];
+    return Array.isArray(formValue) ? formValue.join(', ') : formValue;
+}
+
+function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
+    return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
+}
+
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     policyIDQuery: string[] | undefined,
+    skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
 ): Array<SearchFilter & T> {
     const filters: Array<SearchFilter & T> = [];
-    const hasAddedFilter = {
-        posted: false,
-        withdrawn: false,
-        date: false,
-    };
-
+    const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string}): string => {
-        const displayText: string[] = [];
-        if (filterValues.on) {
-            displayText.push(
-                isSearchDatePreset(filterValues.on)
-                    ? translate(`search.filters.date.presets.${filterValues.on}`)
-                    : `${translate('common.on')} ${DateUtils.formatToReadableString(filterValues.on)}`,
-            );
-        }
-        if (filterValues.after) {
-            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(filterValues.after)}`);
-        }
-        if (filterValues.before) {
-            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(filterValues.before)}`);
-        }
-
-        return displayText.join(', ');
-    };
 
     for (const filterKey of Object.keys(searchAdvancedFiltersForm)) {
         const key = filterKey as SearchAdvancedFiltersKey;
-        if (key === FILTER_KEYS.TYPE || !isFilterSupported(key, type)) {
+        if (!shouldShowFilter(skipFilters, key, searchAdvancedFiltersForm[key], type)) {
             continue;
         }
-        const extra = mapper?.(key) ?? ({} as T);
-        switch (key) {
-            case FILTER_KEYS.GROUP_CURRENCY: {
-                const groupCurrency = searchAdvancedFiltersForm[key];
-                filters.push({key, label: translate('common.groupCurrency'), value: groupCurrency ?? null, ...extra});
-                break;
-            }
-            case FILTER_KEYS.FEED: {
-                const feedFilterValues = searchAdvancedFiltersForm[key];
-                filters.push({key, label: translate('search.filters.feed'), value: feedFilterValues ?? null, ...extra});
-                break;
-            }
-            case FILTER_KEYS.POSTED_ON:
-            case FILTER_KEYS.POSTED_AFTER:
-            case FILTER_KEYS.POSTED_BEFORE: {
-                if (hasAddedFilter.posted) {
-                    continue;
-                }
-                const displayPosted = createDateDisplayValue({
-                    on: searchAdvancedFiltersForm.postedOn,
-                    after: searchAdvancedFiltersForm.postedAfter,
-                    before: searchAdvancedFiltersForm.postedBefore,
-                });
-                filters.push({key, label: translate('search.filters.posted'), value: displayPosted, ...extra});
-                hasAddedFilter.posted = true;
-                break;
-            }
-            case FILTER_KEYS.WITHDRAWAL_TYPE: {
-                const withdrawalType = searchAdvancedFiltersForm[key];
-                if (!withdrawalType) {
-                    continue;
-                }
-                filters.push({key, label: translate('search.withdrawalType'), value: translate(`search.filters.withdrawalType.${withdrawalType}`), ...extra});
-                break;
-            }
-            case FILTER_KEYS.WITHDRAWN_ON:
-            case FILTER_KEYS.WITHDRAWN_AFTER:
-            case FILTER_KEYS.WITHDRAWN_BEFORE: {
-                if (hasAddedFilter.withdrawn) {
-                    continue;
-                }
-                const displayWithdrawn = createDateDisplayValue({
-                    on: searchAdvancedFiltersForm.withdrawnOn,
-                    after: searchAdvancedFiltersForm.withdrawnAfter,
-                    before: searchAdvancedFiltersForm.withdrawnBefore,
-                });
-                filters.push({key, label: translate('search.filters.withdrawn'), value: displayWithdrawn, ...extra});
-                hasAddedFilter.withdrawn = true;
-                break;
-            }
-            case FILTER_KEYS.STATUS: {
-                const status = searchAdvancedFiltersForm[key];
-                if (!status?.length) {
-                    continue;
-                }
 
-                const statusOptions = type ? getStatusOptions(translate, type) : [];
-                const statusValue = statusOptions.filter((option) => status?.includes(option.value));
-                filters.push({key, label: translate('common.status'), value: statusValue.map((option) => option.text).join(', '), ...extra});
-                break;
+        const extra = mapper?.(key) ?? ({} as T);
+
+        // Handle grouped filters (date, amount) - only add once per group
+        const groupConfig = FILTER_GROUP_MAP[key];
+        if (groupConfig) {
+            if (addedGroups.has(groupConfig.syntax)) {
+                continue;
             }
-            case FILTER_KEYS.HAS: {
-                const hasFilterValues = searchAdvancedFiltersForm[key];
-                if (!hasFilterValues?.length) {
-                    continue;
-                }
-                filters.push({key, label: translate('search.has'), value: hasFilterValues.map((option) => translate(`common.${option}`)).join(', '), ...extra});
-                break;
+
+            const displayValue = isAmountFilterKey(groupConfig.syntax)
+                ? getAmountDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate)
+                : getDateDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate);
+
+            if (displayValue) {
+                addedGroups.add(groupConfig.syntax);
+                filters.push({key, label: translate(groupConfig.label), value: displayValue, ...extra});
             }
-            case FILTER_KEYS.IS: {
-                const isFilterValues = searchAdvancedFiltersForm[key];
-                if (!isFilterValues?.length) {
-                    continue;
-                }
-                filters.push({key, label: translate('search.filters.is'), value: isFilterValues.map((option) => translate(`common.${option}`)).join(', '), ...extra});
-                break;
+            continue;
+        }
+
+        // Handle report field filters - only add once
+        if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+            if (addedGroups.has(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                continue;
             }
-            case FILTER_KEYS.DATE_ON:
-            case FILTER_KEYS.DATE_AFTER:
-            case FILTER_KEYS.DATE_BEFORE: {
-                if (hasAddedFilter.date) {
-                    continue;
-                }
-                const displayDate = createDateDisplayValue({
-                    on: searchAdvancedFiltersForm.dateOn,
-                    after: searchAdvancedFiltersForm.dateAfter,
-                    before: searchAdvancedFiltersForm.dateBefore,
-                });
-                filters.push({key, label: translate('common.date'), value: displayDate, ...extra});
-                hasAddedFilter.date = true;
-                break;
+
+            const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate);
+            if (value) {
+                addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
+                filters.push({key, label: translate('workspace.common.reportField'), value, ...extra});
             }
-            case FILTER_KEYS.FROM: {
-                const from = searchAdvancedFiltersForm[key];
-                filters.push({key, label: translate('common.from'), value: from ?? null, ...extra});
-                break;
-            }
-            case FILTER_KEYS.POLICY_ID: {
-                const policyID = searchAdvancedFiltersForm[key];
-                const selectedPolicyIDs = (() => {
-                    const policyIDs = policyID ?? policyIDQuery;
-                    if (!policyIDs) {
-                        return [];
-                    }
-                    return Array.isArray(policyIDs) ? policyIDs : [policyIDs];
-                })();
-                filters.push({key, label: translate('workspace.common.workspace'), value: selectedPolicyIDs, ...extra});
-                break;
-            }
-            default:
-                break;
+            continue;
+        }
+
+        // Handle regular filters
+        const label = FILTER_LABEL_MAP[key];
+        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, policyIDQuery, translate, localeCompare);
+
+        if (label && value && !(Array.isArray(value) && value.length === 0)) {
+            filters.push({key, label: translate(label), value, ...extra});
         }
     }
 
     return filters;
+}
+
+function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
+    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE) {
+        return Object.values(CONST.SEARCH.BOOLEAN).map((value) => ({value, text: translate(`common.${value}`)}));
+    }
+
+    if (filterKey === FILTER_KEYS.WITHDRAWAL_TYPE) {
+        return getWithdrawalTypeOptions(translate);
+    }
+
+    return [];
+}
+
+function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate) {
+    if (filterKey === FILTER_KEYS.HAS) {
+        return getHasOptions(translate, type);
+    }
+
+    if (filterKey === FILTER_KEYS.IS) {
+        return Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
+    }
+
+    if (filterKey === FILTER_KEYS.EXPENSE_TYPE) {
+        return Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((expenseType) => {
+            const expenseTypeName = translate(getExpenseTypeTranslationKey(expenseType));
+            return {text: expenseTypeName, value: expenseType};
+        });
+    }
+
+    if (filterKey === FILTER_KEYS.STATUS) {
+        return type ? getStatusOptions(translate, type) : [];
+    }
+
+    return [];
 }
 
 function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
@@ -4472,8 +5185,8 @@ function getColumnsToShow({
     isExpenseReportViewFromIOUReport?: boolean;
     shouldShowBillableColumn?: boolean;
     shouldShowReimbursableColumn?: boolean;
-    reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
+    reportCurrency?: string;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -4818,6 +5531,8 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
             CONST.SEARCH.TABLE_COLUMNS.TITLE,
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
+            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
@@ -4831,6 +5546,7 @@ function getColumnsToShow({
  * State mapping confirmed by backend team (@JS00001):
  * - 5, 6, 7: Failed
  * - 8: Cleared (succeeded and complete)
+ * - 9: Cleared (settled, pending batch processing)
  * - All others: Pending (processing)
  */
 const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>([
@@ -4838,6 +5554,7 @@ const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEME
     [6, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [7, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [8, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+    [9, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
 ]);
 
 function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS> | undefined {
@@ -4935,23 +5652,33 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[]) {
+function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
     for (const column of columns) {
-        if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT || column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
             minWidth += 36;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
+            minWidth += 28;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.AVATAR) {
-            minWidth += 40;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS || column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += 28;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
             minWidth += 80;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED || column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+        } else if (
+            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.POSTED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN ||
+            column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN
+        ) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
-            minWidth += 20;
+            minWidth += 16;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
             minWidth += 80;
         } else {
@@ -5131,7 +5858,6 @@ export {
     getListItem,
     getSections,
     getSuggestedSearchesVisibility,
-    getShouldShowMerchant,
     getSortedSections,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
@@ -5167,11 +5893,13 @@ export {
     getTypeOptions,
     getGroupByOptions,
     getSortByOptions,
+    getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
-    getGroupCurrencyOptions,
+    getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
+    hasDeletedTransactionInData,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
@@ -5195,12 +5923,29 @@ export {
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
     isTodoSearch,
+    getActiveGroupSearchHashes,
     adjustTimeRangeToDateFilters,
+    shouldShowFilter,
     mapFiltersFormToLabelValueList,
+    getSingleSelectFilterOptions,
+    getMultiSelectFilterOptions,
     isEligibleForApproveSuggestion,
     applySelectionToItem,
     GENERIC_SEARCH_KEYS,
+    FILTER_GROUP_MAP,
+    FILTER_LABEL_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection, SearchFilter};
+export type {
+    SavedSearchMenuItem,
+    SearchTypeMenuSection,
+    SearchTypeMenuItem,
+    SearchDateModifier,
+    SearchDateModifierLower,
+    SearchKey,
+    ArchivedReportsIDSet,
+    GroupBySection,
+    SearchFilter,
+    GetSectionsResult,
+};

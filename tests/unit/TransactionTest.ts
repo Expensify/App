@@ -127,8 +127,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -177,8 +175,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -241,8 +237,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -307,8 +301,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -361,8 +353,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -374,7 +364,7 @@ describe('Transaction', () => {
             const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
 
             expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toBeUndefined();
+            expect(nextStepFailureData?.value).toBeNull();
 
             mockAPIWrite.mockRestore();
         });
@@ -427,8 +417,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -485,8 +473,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -540,8 +526,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -601,8 +585,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -662,8 +644,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -730,8 +710,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -797,8 +775,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -857,8 +833,6 @@ describe('Transaction', () => {
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -919,8 +893,6 @@ describe('Transaction', () => {
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -975,8 +947,6 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 policyCategories,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
 
             await waitForBatchedUpdates();
@@ -986,6 +956,59 @@ describe('Transaction', () => {
             const nextStepMessage = nextStep?.message?.map((part) => part.text).join('');
 
             expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
+        });
+
+        it('should decrement source and increment destination transactionCount on cross-currency move', async () => {
+            const sourceReportID = '901';
+            const destinationReportID = '902';
+            const transaction = generateTransaction({reportID: sourceReportID, currency: 'CAD'});
+
+            const sourceReport: Report = {
+                ...createExpenseReport(Number(sourceReportID)),
+                reportID: sourceReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+                transactionCount: 1,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const destinationReport: Report = {
+                ...createExpenseReport(Number(destinationReportID)),
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'EUR',
+                transactionCount: 0,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@gmail.com',
+                newReport: destinationReport,
+                policy: undefined,
+                reportNextStep: undefined,
+                policyCategories: undefined,
+                allTransactions,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedSourceReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`);
+            const updatedDestinationReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+
+            expect(updatedSourceReport?.transactionCount).toBe(0);
+            expect(updatedDestinationReport?.transactionCount).toBe(1);
         });
     });
 

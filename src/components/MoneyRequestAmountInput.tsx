@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -23,7 +23,7 @@ type MoneyRequestAmountInputProps = {
     amount?: number;
 
     /** A callback to format the amount number */
-    onFormatAmount?: (amount: number, currency?: string) => string;
+    onFormatAmount: (amount: number, currency?: string) => string;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
@@ -139,8 +139,6 @@ type Selection = {
     end: number;
 };
 
-const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
-
 /**
  * Specialized money amount input with currency and money amount formatting.
  */
@@ -154,7 +152,7 @@ function MoneyRequestAmountInput({
     hideCurrencySymbol = false,
     moneyRequestAmountInputRef,
     disableKeyboard = true,
-    onFormatAmount = defaultOnFormatAmount,
+    onFormatAmount,
     formatAmountOnBlur,
     maxLength,
     hideFocusedState = true,

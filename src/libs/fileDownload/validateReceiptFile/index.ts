@@ -1,4 +1,4 @@
-import {checkIfScanFileCanBeRead} from '@libs/actions/IOU';
+import {checkIfScanFileCanBeRead} from '@libs/actions/IOU/Receipt';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 /**

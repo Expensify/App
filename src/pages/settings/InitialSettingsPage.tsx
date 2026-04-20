@@ -24,6 +24,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,11 +41,11 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -67,6 +68,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
@@ -99,6 +101,7 @@ type MenuData = WithSentryLabel & {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons([
         'Gear',
         'Profile',
@@ -154,9 +157,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
-    const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
+    const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
@@ -254,7 +258,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             brickRoadIndicator: walletBrickRoadIndicator,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
             action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
         },
         {
             translationKey: 'expenseRulesPage.title',
@@ -313,7 +317,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     };
 
     let classicRedirectMenuItem: MenuData | null = null;
-    if (!tryNewDot?.classicRedirect?.isLockedToNewDot) {
+    if (!shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP)) {
         const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
 
         classicRedirectMenuItem = {
@@ -567,7 +571,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldDisplayHelpButton
                 />
             )}
-            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
@@ -575,6 +578,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >
+                {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}
             </ScrollView>

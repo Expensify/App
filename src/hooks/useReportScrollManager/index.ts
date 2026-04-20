@@ -1,8 +1,8 @@
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
-function useReportScrollManager(isInverted = true): ReportScrollManagerData {
+function useReportScrollManager(): ReportScrollManagerData {
     const {flatListRef} = useContext(ActionListContext);
 
     /**
@@ -17,20 +17,16 @@ function useReportScrollManager(isInverted = true): ReportScrollManagerData {
     };
 
     /**
-     * Scroll to the visual bottom of the list.
+     * Scroll to the bottom of the inverted FlatList.
+     * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = useCallback(() => {
+    const scrollToBottom = () => {
         if (!flatListRef?.current) {
             return;
         }
 
-        if (isInverted) {
-            flatListRef.current.scrollToOffset({animated: false, offset: 0});
-            return;
-        }
-
-        flatListRef.current.scrollToEnd({animated: false});
-    }, [flatListRef, isInverted]);
+        flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    };
 
     /**
      * Scroll to the end of the FlatList.

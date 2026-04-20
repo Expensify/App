@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -28,18 +27,17 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
 
     return (
         <View style={styles.flexRow}>
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.previous')}
+                accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={isPrevButtonDisabled}
-                sentryLabel={CONST.SENTRY_LABEL.HEADER.PREVIOUS_BUTTON}
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
+                sentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.PREV_BUTTON}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
@@ -53,11 +51,11 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
             <PressableWithFeedback
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.next')}
+                accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={isNextButtonDisabled}
-                sentryLabel={CONST.SENTRY_LABEL.HEADER.NEXT_BUTTON}
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}
+                sentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.NEXT_BUTTON}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon

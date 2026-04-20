@@ -26,7 +26,7 @@ function usePasskeys(): UseBiometricsReturn {
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
-    const doesDeviceSupportAuthenticationMethod = () => isWebAuthnSupported();
+    const doesDeviceSupportAuthenticationMethod = async () => isWebAuthnSupported();
 
     const getLocalCredentialID = async (): Promise<string | undefined> => {
         return (localPasskeyCredentials ?? []).at(0)?.id;
@@ -56,9 +56,11 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             credential = await createPasskeyCredential(publicKeyOptions);
         } catch (error) {
+            const {reason, message} = decodeWebAuthnError(error);
             await onResult({
                 success: false,
-                reason: decodeWebAuthnError(error),
+                reason,
+                message,
             });
             return;
         }
@@ -105,10 +107,6 @@ function usePasskeys(): UseBiometricsReturn {
                     attestationObject,
                 },
             },
-            authenticationMethod: {
-                name: PASSKEY_AUTH_TYPE.NAME,
-                marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
-            },
         });
     };
 
@@ -137,9 +135,11 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             assertion = await authenticateWithPasskey(publicKeyOptions);
         } catch (error) {
+            const {reason, message} = decodeWebAuthnError(error);
             await onResult({
                 success: false,
-                reason: decodeWebAuthnError(error),
+                reason,
+                message,
             });
             return;
         }

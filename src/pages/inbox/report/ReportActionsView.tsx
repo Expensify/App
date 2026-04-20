@@ -30,7 +30,6 @@ import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
@@ -271,8 +270,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID],
     );
 
-    const mostRecentIOUReportActionID = getMostRecentIOURequestActionID(reportActions);
-
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
     const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
@@ -366,7 +363,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
-    // AutoScroll is disabled when we do linking to a specific reportAction
     return (
         <>
             <ReportActionsList
@@ -377,7 +373,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={conciergeSidePanelFilteredReportActions}
                 sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}

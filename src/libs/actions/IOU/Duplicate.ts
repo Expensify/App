@@ -8,6 +8,7 @@ import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/par
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -17,6 +18,7 @@ import {
     buildOptimisticHoldReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     buildTransactionThread,
+    generateReportID,
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -39,22 +41,22 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
     getAllReports,
     getAllTransactions,
     getAllTransactionViolations,
-    getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,
-    requestMoney,
-    trackExpense,
 } from '.';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
+import type {CreateTrackExpenseParams} from './TrackExpense';
+import {requestMoney, trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
@@ -79,6 +81,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const currentUserEmail = getCurrentUserEmail();
+    const currentUserAccountID = getUserAccountID();
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
@@ -221,6 +224,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             reportAction: iouAction,
             updatedReportPreviewAction,
             shouldAddUpdatedReportPreviewActionToOnyxData: Number(index) === iouActionsToDelete.length - 1,
+            currentUserAccountID,
         });
         cleanUpTransactionThreadReportsOptimisticData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.optimisticData);
         cleanUpTransactionThreadReportsSuccessData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.successData);
@@ -654,6 +658,10 @@ type DuplicateExpenseTransactionParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    shouldPlaySound?: boolean;
+    shouldDeferAutoSubmit?: boolean;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    optimisticReportPreviewActionID?: string;
 };
 
 function duplicateExpenseTransaction({
@@ -676,6 +684,10 @@ function duplicateExpenseTransaction({
     personalDetails,
     recentWaypoints,
     targetPolicyTags,
+    shouldPlaySound = true,
+    shouldDeferAutoSubmit = false,
+    existingIOUReport,
+    optimisticReportPreviewActionID: externalReportPreviewActionID,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -690,10 +702,11 @@ function duplicateExpenseTransaction({
 
     const params: RequestMoneyInformation = {
         report: targetReport,
+        existingIOUReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID: NumberUtils.rand64(),
         optimisticIOUReportID,
-        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        optimisticReportPreviewActionID: externalReportPreviewActionID ?? NumberUtils.rand64(),
         participantParams: {
             payeeAccountID: userAccountID,
             payeeEmail: currentUserEmail,
@@ -703,6 +716,7 @@ function duplicateExpenseTransaction({
         action: CONST.IOU.ACTION.CREATE,
         transactionParams,
         shouldHandleNavigation: false,
+        shouldPlaySound,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam: userAccountID,
@@ -715,6 +729,7 @@ function duplicateExpenseTransaction({
         isSelfTourViewed,
         betas,
         personalDetails,
+        shouldDeferAutoSubmit,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -926,5 +941,113 @@ function duplicateReport({
     playSound(SOUNDS.DONE);
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, duplicateReport};
-export type {DuplicateExpenseTransactionParams, DuplicateReportParams};
+type BulkDuplicateExpensesParams = {
+    transactionIDs: string[];
+    allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
+    sourcePolicyIDMap: Record<string, string | undefined>;
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>;
+    targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    targetReport: OnyxEntry<OnyxTypes.Report>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isASAPSubmitBetaEnabled: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    isSelfTourViewed: boolean;
+    transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
+    draftTransactionIDs: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
+function bulkDuplicateExpenses({
+    transactionIDs,
+    allTransactions,
+    sourcePolicyIDMap,
+    targetPolicy,
+    targetPolicyCategories,
+    targetPolicyTags,
+    targetReport,
+    personalDetails,
+    isASAPSubmitBetaEnabled,
+    introSelected,
+    activePolicyID,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    isSelfTourViewed,
+    transactionDrafts,
+    draftTransactionIDs,
+    betas,
+    recentWaypoints,
+}: BulkDuplicateExpensesParams) {
+    const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
+
+    if (transactionsToDuplicate.length === 0) {
+        return;
+    }
+
+    const optimisticChatReportID = generateReportID();
+    const optimisticIOUReportID = generateReportID();
+    const sharedReportPreviewActionID = NumberUtils.rand64();
+
+    // After the first iteration creates a new optimistic IOU report, subsequent
+    // iterations must know its ID so getMoneyRequestInformation can find and
+    // MERGE into it instead of SET-overwriting it.  We carry a local copy of
+    // targetReport whose iouReportID is patched after the first pass.
+    // We also pass the optimistic IOU report object directly via existingIOUReport
+    // to avoid a stale-state race: Onyx subscriber callbacks are deferred, so the
+    // module-level allReports in IOU/index.ts is not yet updated when iteration 2 runs.
+    let currentTargetReport = targetReport;
+    let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
+
+    for (let i = 0; i < transactionsToDuplicate.length; i++) {
+        const item = transactionsToDuplicate.at(i);
+        if (!item) {
+            continue;
+        }
+        const isLastExpense = i === transactionsToDuplicate.length - 1;
+        const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+        const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+
+        const result = duplicateExpenseTransaction({
+            transaction: item,
+            optimisticChatReportID,
+            optimisticIOUReportID,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            isSelfTourViewed,
+            customUnitPolicyID: (isDistanceRequest(item) ? sourcePolicyIDMap[item.transactionID] : undefined) ?? targetPolicy?.id,
+            targetPolicy: targetPolicy ?? undefined,
+            targetPolicyCategories: targetPolicyCategories ?? {},
+            targetReport: currentTargetReport,
+            existingTransactionDraft,
+            draftTransactionIDs,
+            betas,
+            personalDetails,
+            recentWaypoints,
+            targetPolicyTags,
+            shouldPlaySound: false,
+            shouldDeferAutoSubmit: !isLastExpense,
+            existingIOUReport: optimisticIOUReport,
+            optimisticReportPreviewActionID: sharedReportPreviewActionID,
+        });
+
+        if (result?.iouReport) {
+            optimisticIOUReport = result.iouReport;
+        }
+
+        if (currentTargetReport && !currentTargetReport.iouReportID) {
+            currentTargetReport = {...currentTargetReport, iouReportID: optimisticIOUReportID};
+        }
+    }
+
+    playSound(SOUNDS.DONE);
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport};
+export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams};

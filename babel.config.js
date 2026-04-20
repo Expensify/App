@@ -1,10 +1,9 @@
 require('dotenv').config();
 
+const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
+
 const ReactCompilerConfig = {
-    target: '19',
-    environment: {
-        enableTreatRefLikeIdentifiersAsRefs: true,
-    },
+    ...BaseReactCompilerConfig,
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 

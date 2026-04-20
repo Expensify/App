@@ -73,6 +73,14 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
     return {[errorKey ?? DateUtils.getMicroseconds()]: error};
 }
 
+/**
+ * Extracts a string message from an unknown error value.
+ * Use this in catch blocks where the caught value has type `unknown`.
+ */
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
 // We can assume that if error is a string, it has already been translated because it is server error
 function getErrorMessageWithTranslationData(error: string | null): string {
     return error ?? '';
@@ -231,6 +239,7 @@ export {
     addErrorMessage,
     getAuthenticateErrorMessage,
     getEarliestErrorField,
+    getErrorMessage,
     getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
     getLatestErrorField,

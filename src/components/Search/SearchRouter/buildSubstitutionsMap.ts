@@ -35,7 +35,7 @@ function buildSubstitutionsMap(
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
