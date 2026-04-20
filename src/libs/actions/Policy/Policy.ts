@@ -121,6 +121,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
@@ -3935,7 +3936,7 @@ function createWorkspaceFromIOUPayment(
     currentUserAccountID: number,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
-    conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     currentUserLocalCurrency: string,
     lastWorkspaceNumber: number | undefined,
     localeTranslate: LocalizedTranslate,
@@ -4316,7 +4317,7 @@ function createWorkspaceFromIOUPayment(
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, conciergeReportID, null, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, reportAttributes, null, false, false, newWorkspace),
                         },
                     ],
                     created: DateUtils.getDBTime(),

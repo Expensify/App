@@ -96,7 +96,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
             formatPhoneNumber,
             bankAccountList: undefined,
             allReportMetadata: undefined,
-            conciergeReportID: undefined,
+            reportAttributes: undefined,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
