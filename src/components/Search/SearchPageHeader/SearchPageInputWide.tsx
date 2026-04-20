@@ -26,12 +26,8 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
 
     const {
-        allFeeds,
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        personalAndWorkspaceCards,
-        personalDetails,
-        reports,
         searchQueryItem,
         selection,
         textInputRef,
@@ -97,7 +93,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     onKeyPress={handleKeyPress}
                 />
                 {isAutocompleteListVisible && (
-                    <View style={[styles.mh65vh]}>
+                    <View style={[styles.mh65vh, styles.mt3]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
                             handleSearch={handleSearchAction}
@@ -105,10 +101,6 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                             onListItemPress={onListItemPress}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                            personalDetails={personalDetails}
-                            reports={reports}
-                            allCards={personalAndWorkspaceCards}
-                            allFeeds={allFeeds}
                             textInputRef={textInputRef}
                         />
                     </View>

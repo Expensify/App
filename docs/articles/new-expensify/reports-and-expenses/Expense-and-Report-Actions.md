@@ -52,6 +52,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
 | **Print** | Any report state | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
+| **Reject** | On Outstanding reports | Assigned approver | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |

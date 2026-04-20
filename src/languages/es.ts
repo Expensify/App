@@ -33,6 +33,7 @@ const translations: TranslationDeepObject<typeof en> = {
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
+        spend: 'Gastos',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -968,6 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Primeros pasos',
             createWorkspace: 'Crear un espacio de trabajo',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar con ${integrationName}`,
+            connectAccountingDefault: 'Conectar a contabilidad',
             customizeCategories: 'Personalizar categorías contables',
             linkCompanyCards: 'Vincular tarjetas corporativas',
             setupRules: 'Configurar reglas de gasto',
@@ -1598,6 +1600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
         cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
+        bulkDuplicateLimit: `Solo puedes duplicar hasta ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} gastos a la vez. Por favor, selecciona menos gastos e inténtalo de nuevo.`,
         taxDisabledAlert: {
             title: 'Impuesto deshabilitado',
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
@@ -2484,6 +2487,9 @@ ${amount} para ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Gastos de',
         header: 'Cuando los siguientes miembros presenten gastos:',
+        memberAlreadyInWorkflowTitle: 'Miembro ya está en un flujo de trabajo',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} ya está en un flujo de trabajo de aprobación que envía a ${approverName}. Agregarlo aquí lo moverá a este flujo de trabajo.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -2786,6 +2792,8 @@ ${amount} para ${merchant} - ${date}`,
         },
         employees: {
             title: '¿Cuántos empleados tienes?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 empleados',
@@ -4074,6 +4082,7 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            hr: 'HR',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -5372,6 +5381,8 @@ ${amount} para ${merchant} - ${date}`,
                             monthlySpendLimitDescription: 'El monto máximo que cada miembro puede gastar en viajes por mes.',
                             reduceLimitTitle: '¿Reducir el límite de gasto en viajes?',
                             reduceLimitWarning: 'Si reduces el límite, los miembros que ya hayan gastado más de este monto no podrán hacer nuevas reservas de viaje hasta el próximo mes.',
+                            provisioningError:
+                                'No pudimos aprovisionar a algunos de los miembros de tu espacio de trabajo para la facturación centralizada. Por favor, inténtalo de nuevo más tarde o contacta con Concierge para obtener ayuda.',
                         },
                     },
                     disableModal: {
@@ -6162,6 +6173,36 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
 
+        hr: {
+            title: 'HR',
+            subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
+            settingsTitle: 'Configuración de Gusto',
+            syncStageName: ({stage}) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importando datos desde Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Cargando datos de la empresa desde Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importando empleados';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Creando cadenas de aprobación';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizando la sincronización';
+                    case 'jobDone':
+                        return 'Esperando a que se carguen los datos importados';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Modo de aprobación',
+                finalApprover: 'Aprobador final',
+            },
+        },
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:
@@ -9278,6 +9319,7 @@ ${amount} para ${merchant} - ${date}`,
                 removeMember: 'No se pudo eliminar a este usuario. Por favor, inténtalo de nuevo.',
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
                 vacationDelegate: 'No se pudo establecer a este usuario como delegado de vacaciones. Por favor, inténtalo de nuevo.',
+                moveMember: 'No se pudo mover este miembro. Por favor, inténtalo de nuevo.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `No puedes establecer un delegado de vacaciones para ${email} porque actualmente es el delegado de los siguientes miembros:`,
@@ -9286,6 +9328,8 @@ ${amount} para ${merchant} - ${date}`,
                 `¿Estás seguro? Esto bloqueará la cuenta de <strong>${email}</strong>. <br /><br /> Nuestro equipo revisará la cuenta y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberá comunicarse con Concierge.`,
             reportSuspiciousActivityConfirmationPrompt:
                 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
+            moveToGroup: 'Mover al grupo',
+            chooseWhereToMove: ({count}: {count: number}) => `Elige a dónde mover ${count} ${count === 1 ? 'miembro' : 'miembros'}.`,
         },
         common: {
             settings: 'Configuración',

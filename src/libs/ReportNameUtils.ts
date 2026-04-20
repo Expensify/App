@@ -72,6 +72,7 @@ import {
     getRenamedAction,
     getRenamedCardFeedMessage,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
+    getReportActionMessageText,
     getReportActionText,
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
@@ -472,7 +473,7 @@ function computeReportNameBasedOnReportAction(
         });
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return translate('iou.receiptScanningFailed');
+        return getReportActionMessageText(parentReportAction) || translate('iou.receiptScanningFailed');
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {

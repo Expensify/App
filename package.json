@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.60-0",
+  "version": "9.3.60-17",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -370,6 +370,7 @@
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
+    "hermes-compiler": "250829098.0.4",
     "webpack": "^5.104.1",
     "@blakeembrey/template": "1.2.0",
     "body-parser": "1.20.3",

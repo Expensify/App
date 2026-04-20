@@ -58,6 +58,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLastItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    policyForMovingExpenses,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -252,6 +253,7 @@ function TransactionListItem<TItem extends ListItem>({
                             exportedColumnSize={exportedColumnSize}
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
+                            isActionColumnWide={transactionItem.isActionColumnWide}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : isLargeScreenWidth && styles.noBorderRadius]}
@@ -260,6 +262,7 @@ function TransactionListItem<TItem extends ListItem>({
                             isHover={hovered}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
+                            policyForMovingExpenses={policyForMovingExpenses}
                         />
                     </>
                 )}

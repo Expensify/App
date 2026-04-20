@@ -148,7 +148,12 @@ const onboardingInviteTypes = {
 } as const;
 
 const onboardingCompanySize = {
+    MICRO_SMALL: '1-4',
+    MICRO_MEDIUM: '5-10',
+
+    // This range is deprecated in favor of the smaller ranges above, but the constant is kept to compare against saved data for backwards compatibility.
     MICRO: '1-10',
+
     SMALL: '11-50',
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
@@ -875,10 +880,8 @@ const CONST = {
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
-        NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
-        PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         GUSTO: 'gustoNewDot',
         BULK_EDIT: 'bulkEdit',
@@ -2022,6 +2025,7 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
+        ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
@@ -2034,6 +2038,19 @@ const CONST = {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
             NAVIGATE_TO_SEARCH: 'navigate_to_search',
             DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        FAST_PATH_HANDLER: {
+            SEARCH_PRE_INSERT: 'search_pre_insert',
+            REPORT_PRE_INSERT: 'report_pre_insert',
+            DISMISS_MODAL: 'dismiss_modal',
+            REPORT_IN_RHP_DISMISS: 'report_in_rhp_dismiss',
+            SEARCH_DISMISS: 'search_dismiss',
+            DEFAULT: 'default',
+        },
+        SUBMIT_OPTIMIZATION: {
+            PRE_INSERT: 'pre_insert',
+            DISMISS_FIRST: 'dismiss_first',
+            DEFERRED_WRITE: 'deferred_write',
         },
         /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
         SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
@@ -2218,14 +2235,11 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-        RECHECK_INTERVAL_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
         MAX_OPEN_APP_REQUEST_RETRIES: 2,
-        NETWORK_STATUS: {
-            ONLINE: 'online',
-            OFFLINE: 'offline',
-            UNKNOWN: 'unknown',
-        },
+        SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
+        SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
+        RECONNECT_STAMPEDE_JITTER_MS: 5000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
@@ -2233,7 +2247,6 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_NETWORK_DATA: {isOffline: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -3257,6 +3270,9 @@ const CONST = {
             isLoading: false,
             errors: {},
         },
+        // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
+        // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
+        OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
     ONFIDO: {
@@ -3589,6 +3605,7 @@ const CONST = {
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
+            IS_HR_ENABLED: 'isHREnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3718,6 +3735,7 @@ const CONST = {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
                 STARTING_IMPORT_QBD: 'startingImportQBD',
+                STARTING_IMPORT_GUSTO: 'startingImportGusto',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -3783,6 +3801,10 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
                 SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
+                GUSTO_SYNC_LOAD_COMPANY: 'gustoSyncLoadCompany',
+                GUSTO_SYNC_IMPORT_EMPLOYEES: 'gustoSyncImportEmployees',
+                GUSTO_SYNC_BUILD_APPROVAL_CHAINS: 'gustoSyncBuildApprovalChains',
+                GUSTO_SYNC_FINALIZE: 'gustoSyncFinalize',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -3796,6 +3818,15 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
         DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
+        DEFAULT_PROHIBITED_EXPENSES: {
+            alcohol: false,
+            hotelIncidentals: false,
+            gambling: true,
+            tobacco: false,
+            adultEntertainment: true,
+        },
+        DEFAULT_BILLABLE: false,
+        DEFAULT_REIMBURSABLE: true,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -7515,6 +7546,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             UNDELETE: 'undelete',
         },
+        BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',
@@ -7694,8 +7726,6 @@ const CONST = {
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
                     this.TABLE_COLUMNS.CATEGORY,
-                    this.TABLE_COLUMNS.ATTENDEES,
-                    this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
@@ -9233,6 +9263,7 @@ const CONST = {
                 MEMBERS: 'WorkspaceInitial-Members',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
+                HR: 'WorkspaceInitial-HR',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
@@ -9556,6 +9587,7 @@ const CONST = {
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
+                MOVE_TO_GROUP: 'moveToGroup',
             },
         },
     },
@@ -9569,12 +9601,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter spend controls & Concierge anywhere',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-february-2026-product-update',
-                publishedDate: '2026-02-19',
-            },
-            {
                 title: 'More power, right where you need it',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
@@ -9585,6 +9611,12 @@ const CONST = {
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
                 publishedDate: '2026-03-25',
+            },
+            {
+                title: 'Smarter cards, mileage, and approvals',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
+                publishedDate: '2026-04-15',
             },
         ],
     },

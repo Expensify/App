@@ -4,6 +4,7 @@ import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronos
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
+import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -75,7 +76,7 @@ describe('ReportActionsUtils', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         return waitForBatchedUpdates();
     });
 

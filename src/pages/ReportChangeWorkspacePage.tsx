@@ -112,6 +112,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     employeeList,
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
+                    reportNextStep,
                 });
             } else {
                 changeReportPolicy(

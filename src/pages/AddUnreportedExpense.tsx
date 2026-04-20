@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -18,7 +19,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
@@ -43,6 +43,7 @@ import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -179,7 +180,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
             return searchableFields;
         });
-    }, [debouncedSearchValue, shouldShowTextInput, transactions]);
+    }, [convertToDisplayString, debouncedSearchValue, shouldShowTextInput, transactions]);
 
     const unreportedExpenses = useMemo(() => {
         return createUnreportedExpenses(filteredTransactions).map((item) => ({

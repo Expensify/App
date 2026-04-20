@@ -2,23 +2,21 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import {getIsOffline} from '@libs/NetworkState';
 import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {resetSignInFlow} from './HybridApp';
 import {clearAllPolicies} from './Policy/Policy';
 
-let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentCredentialsValidateCode: string | undefined;
 
-// We use connectWithoutView here because we only need to track network state for sign-in redirect logic, which is not connected to any changes on the UI layer
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
-        currentIsOffline = network?.isOffline;
         currentShouldForceOffline = network?.shouldForceOffline;
     },
 });
@@ -61,7 +59,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
-    if (currentIsOffline && !currentShouldForceOffline) {
+    if (getIsOffline() && !currentShouldForceOffline) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
