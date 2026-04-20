@@ -297,7 +297,6 @@ function SubmitDetailsPage({
             draftTransactionIDs,
             transactionID: transaction.transactionID,
             isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-            hasMultipleTransactions: true,
             optimisticChatReportID: reportOrAccountID,
         });
     };

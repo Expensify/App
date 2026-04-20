@@ -158,7 +158,6 @@ function useReceiptScan({
                     draftTransactionIDs,
                     transactionID: lastTransactionID ?? initialTransactionID,
                     isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
-                    hasMultipleTransactions: true,
                     backToReport,
                 });
             },

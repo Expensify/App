@@ -10,7 +10,6 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     draftTransactionIDs: string[] | undefined;
     transactionID: string | undefined;
     isFromGlobalCreate: boolean | undefined;
-    hasMultipleTransactions: boolean;
     backToReport?: string;
     optimisticChatReportID?: string;
     isInvoice?: boolean;
@@ -26,7 +25,6 @@ function cleanupAndNavigateAfterExpenseCreate({
     draftTransactionIDs,
     transactionID,
     isFromGlobalCreate,
-    hasMultipleTransactions,
     backToReport,
     optimisticChatReportID,
     isInvoice,
@@ -38,13 +36,14 @@ function cleanupAndNavigateAfterExpenseCreate({
     const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
     const activeReportID =
         isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID ?? optimisticChatReportID);
+    const finalActiveReportID = backToReport ?? activeReportID;
 
     navigateAfterExpenseCreate({
-        activeReportID: backToReport ?? activeReportID,
+        activeReportID: finalActiveReportID,
         transactionID,
         isFromGlobalCreate,
         isInvoice,
-        hasMultipleTransactions,
+        hasMultipleTransactions: isMoneyRequestReport(getReportOrDraftReport(finalActiveReportID)),
     });
 }
 

@@ -336,7 +336,6 @@ function IOURequestStepAmount({
                     draftTransactionIDs,
                     transactionID,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
-                    hasMultipleTransactions: true,
                     backToReport,
                     optimisticChatReportID,
                 });

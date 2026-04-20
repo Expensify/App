@@ -363,7 +363,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            hasMultipleTransactions: true,
             backToReport,
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
@@ -457,7 +456,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     activeReportID,
                     transactionID: transaction.transactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                    hasMultipleTransactions: true,
+                    hasMultipleTransactions: isMoneyRequestReport(getReportOrDraftReport(activeReportID)),
                 });
             }
         }
@@ -550,7 +549,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            hasMultipleTransactions: true,
             optimisticChatReportID: selfDMReport?.reportID,
         });
     }

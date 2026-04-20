@@ -260,7 +260,6 @@ function IOURequestStepDistanceManual({
                         draftTransactionIDs,
                         transactionID: lastTransactionID,
                         isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
-                        hasMultipleTransactions: true,
                         backToReport,
                     });
                 },

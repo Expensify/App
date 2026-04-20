@@ -38,7 +38,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             draftTransactionIDs: ['txn-1'],
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
-            hasMultipleTransactions: false,
             linkedTrackedExpenseReportAction,
         });
 
@@ -59,7 +58,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             draftTransactionIDs: [],
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
-            hasMultipleTransactions: false,
             backToReport: 'back-to-this-report',
             optimisticChatReportID: 'optimistic-should-be-ignored',
         });
@@ -81,7 +79,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             draftTransactionIDs: [],
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
-            hasMultipleTransactions: false,
         });
 
         expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
@@ -101,7 +98,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             draftTransactionIDs: [],
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
-            hasMultipleTransactions: false,
         });
 
         expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
@@ -119,7 +115,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             draftTransactionIDs: [],
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
-            hasMultipleTransactions: false,
         });
 
         expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
@@ -137,7 +132,6 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             draftTransactionIDs: [],
             transactionID: 'txn-1',
             isFromGlobalCreate: false,
-            hasMultipleTransactions: false,
             optimisticChatReportID: 'self-dm-fallback',
         });
 
@@ -148,13 +142,55 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('passes isInvoice, isFromGlobalCreate, hasMultipleTransactions, and transactionID through to navigateAfterExpenseCreate', () => {
+    it('derives hasMultipleTransactions=true when the resolved activeReportID points to a money-request report', () => {
+        const resolvedFinalReport = {reportID: 'expense-1'} as Report;
+        // First call (for source `report`) → expense; second call (for resolved activeReportID) → expense
+        (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+        (Navigation.getTopmostReportId as jest.Mock).mockReturnValue('expense-1');
+        (getReportOrDraftReport as jest.Mock).mockReturnValue(resolvedFinalReport);
+
+        cleanupAndNavigateAfterExpenseCreate({
+            report: expenseReport,
+            draftTransactionIDs: [],
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+        });
+
+        expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                activeReportID: 'expense-1',
+                hasMultipleTransactions: true,
+            }),
+        );
+    });
+
+    it('derives hasMultipleTransactions=false when the resolved activeReportID points to a chat report (codex P1/P2 fix)', () => {
+        // Source `report` is a chat (isExpenseReport=false); resolved activeReportID is the chat's reportID.
+        // `isMoneyRequestReport(getReportOrDraftReport(chatID))` should return false → hasMultipleTransactions=false.
+        (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
+        (getReportOrDraftReport as jest.Mock).mockReturnValue(chatReport);
+
+        cleanupAndNavigateAfterExpenseCreate({
+            report: chatReport,
+            draftTransactionIDs: [],
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+        });
+
+        expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                activeReportID: 'chat-1',
+                hasMultipleTransactions: false,
+            }),
+        );
+    });
+
+    it('passes isInvoice, isFromGlobalCreate, and transactionID through to navigateAfterExpenseCreate', () => {
         cleanupAndNavigateAfterExpenseCreate({
             report: chatReport,
             draftTransactionIDs: [],
             transactionID: 'txn-42',
             isFromGlobalCreate: true,
-            hasMultipleTransactions: true,
             isInvoice: true,
         });
 
@@ -163,7 +199,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             transactionID: 'txn-42',
             isFromGlobalCreate: true,
             isInvoice: true,
-            hasMultipleTransactions: true,
+            hasMultipleTransactions: false,
         });
     });
 });
