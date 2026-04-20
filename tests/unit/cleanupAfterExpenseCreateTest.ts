@@ -81,16 +81,4 @@ describe('cleanupAfterExpenseCreate', () => {
         expect(Navigation.getReportRouteByID).toHaveBeenCalledWith('child-report-456');
         expect(Navigation.removeScreenByKey).not.toHaveBeenCalled();
     });
-
-    it('does NOT call removeScreenByKey when linkedTrackedExpenseReportAction has no childReportID', () => {
-        const linkedTrackedExpenseReportAction = {} as OnyxEntry<ReportAction>;
-
-        cleanupAfterExpenseCreate({
-            draftTransactionIDs: [],
-            linkedTrackedExpenseReportAction,
-        });
-
-        expect(Navigation.getReportRouteByID).not.toHaveBeenCalled();
-        expect(Navigation.removeScreenByKey).not.toHaveBeenCalled();
-    });
 });

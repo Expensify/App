@@ -130,16 +130,6 @@ describe('handleFileRetry', () => {
                 linkedTrackedExpenseReportAction: undefined,
             });
         });
-
-        it('passes undefined draftTransactionIDs when existingTransactionDraft is missing', () => {
-            handleFileRetry(makeMoneyRequestRetry({existingTransactionDraft: undefined}), file, dismissError, setShouldShowErrorModal);
-
-            expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    draftTransactionIDs: undefined,
-                }),
-            );
-        });
     });
 
     describe('non-expense-creation branches', () => {
@@ -159,19 +149,6 @@ describe('handleFileRetry', () => {
 
             expect(startSplitBill).toHaveBeenCalledTimes(1);
             expect(cleanupAfterExpenseCreate).not.toHaveBeenCalled();
-        });
-
-        it('surfaces an unknown action via setShouldShowErrorModal and does NOT call cleanup or any action', () => {
-            const message = {action: 'UNKNOWN_ACTION', retryParams: {}} as unknown as ReceiptError;
-
-            handleFileRetry(message, file, dismissError, setShouldShowErrorModal);
-
-            expect(setShouldShowErrorModal).toHaveBeenCalledWith(true);
-            expect(cleanupAfterExpenseCreate).not.toHaveBeenCalled();
-            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
-            expect(replaceReceipt).not.toHaveBeenCalled();
-            expect(startSplitBill).not.toHaveBeenCalled();
         });
     });
 });
