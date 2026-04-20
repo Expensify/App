@@ -141,7 +141,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN}
                                 component={OnboardingPrivateDomain}
                             />
                             <Stack.Screen

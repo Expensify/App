@@ -17,7 +17,7 @@ import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -105,7 +105,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining(`/${DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path}`));
         });
 
         unmount();
@@ -137,7 +137,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining(`/${DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path}`));
         });
 
         unmount();

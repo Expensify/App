@@ -289,6 +289,10 @@ const DYNAMIC_ROUTES = {
         path: 'personal-details',
         entryScreens: [SCREENS.ONBOARDING.PURPOSE],
     },
+    ONBOARDING_PRIVATE_DOMAIN: {
+        path: 'private-domain',
+        entryScreens: [SCREENS.ONBOARDING.WORK_EMAIL, SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    },
     KEYBOARD_SHORTCUTS: {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
@@ -3230,12 +3234,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_PRIVATE_DOMAIN: {
-        route: 'onboarding/private-domain',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',

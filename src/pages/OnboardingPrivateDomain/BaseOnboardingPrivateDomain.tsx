@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
@@ -19,13 +20,12 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 const ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path, ROUTES.ONBOARDING_PURPOSE.route);
 
-function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
+function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPrivateDomainProps) {
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -37,7 +37,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN);
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path);
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -61,9 +62,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH;
-        Navigation.goBack(routeToNavigate);
-    }, [route.params?.backTo, onboardingValues]);
+        Navigation.goBack(dynamicBackPath);
+    }, [dynamicBackPath, onboardingValues]);
 
     useEffect(() => {
         if (isValidated) {
@@ -140,15 +140,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(dynamicBackPath));
                                 return;
                             }
 
                             if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(dynamicBackPath));
                                 return;
                             }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(dynamicBackPath));
                         }}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
