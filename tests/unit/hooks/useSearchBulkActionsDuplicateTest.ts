@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import {useEffect} from 'react';
+import {useEffect, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import useBulkDuplicateAction from '@hooks/useBulkDuplicateAction';
@@ -194,8 +194,9 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const actions = useSearchBulkActions({queryJSON});
     const {setDuplicateHandler, allTransactions, allReports, searchData} = actions;
+    const selectedTransactionsKeys = useMemo(() => Object.keys(mockSelectedTransactions), []);
     const handleDuplicate = useBulkDuplicateAction({
-        selectedTransactionsKeys: Object.keys(mockSelectedTransactions),
+        selectedTransactionsKeys,
         allTransactions,
         allReports,
         searchData,

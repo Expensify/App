@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,32 +11,28 @@ function useAllTransactions() {
     const {currentSearchResults} = useSearchStateContext();
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
-    const allTransactions = useMemo(() => {
-        const data = currentSearchResults?.data;
-        if (!data) {
-            return allTransactionsCollection;
+    const data = currentSearchResults?.data;
+    if (!data) {
+        return allTransactionsCollection;
+    }
+
+    // Only allocate a new merged object if the search actually surfaces a transaction that
+    // isn't already in Onyx; otherwise the Onyx collection reference is already the answer.
+    let allTransactions: Record<string, OnyxEntry<Transaction>> | undefined;
+    for (const key in data) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || allTransactionsCollection?.[key]) {
+            continue;
         }
-
-        const filteredSearchTransactions = Object.keys(data)
-            .filter((key): key is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-            .reduce(
-                (acc, key) => {
-                    const value = data?.[key] as OnyxEntry<Transaction> | undefined;
-                    if (value) {
-                        acc[key] = value;
-                    }
-                    return acc;
-                },
-                {} as Record<string, OnyxEntry<Transaction>>,
-            );
-
-        return {
-            ...filteredSearchTransactions,
-            ...allTransactionsCollection,
-        };
-    }, [currentSearchResults?.data, allTransactionsCollection]);
-
-    return allTransactions;
+        const value = data[key as keyof typeof data] as OnyxEntry<Transaction> | undefined;
+        if (!value) {
+            continue;
+        }
+        if (!allTransactions) {
+            allTransactions = {...allTransactionsCollection};
+        }
+        allTransactions[key] = value;
+    }
+    return allTransactions ?? allTransactionsCollection ?? {};
 }
 
 export default useAllTransactions;
