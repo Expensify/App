@@ -1684,7 +1684,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // the skeleton→content transition is in progress. The Search component flushes
     // the registered write from its content onLayout callback.
     // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
-    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
+    // deferral only activates when we navigate to Search (!isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()).
     // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
     let deferredAPIWrite: (() => void) | undefined;
 
