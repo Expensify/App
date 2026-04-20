@@ -1574,13 +1574,13 @@ function changeTransactionsReport({
 
         const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;
         const updatedTransactionCount = updatedReportTransactionCounts[affectedReportID] ?? affectedReport.transactionCount;
-        const shouldApplyInheritedLifecycleState = affectedReportID === destinationReportID && inheritedDestinationStateNum !== undefined && inheritedDestinationStatusNum !== undefined;
+        const isDestinationReportForInheritance = affectedReportID === destinationReportID && inheritedDestinationStateNum !== undefined && inheritedDestinationStatusNum !== undefined;
         const updatedReport = {
             ...affectedReport,
             total: updatedTotal,
             transactionCount: updatedTransactionCount,
             reportID: affectedReport.reportID ?? affectedReportID,
-            ...(shouldApplyInheritedLifecycleState
+            ...(isDestinationReportForInheritance
                 ? {
                       stateNum: inheritedDestinationStateNum,
                       statusNum: inheritedDestinationStatusNum,
@@ -1627,12 +1627,6 @@ function changeTransactionsReport({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
-                ...(shouldApplyInheritedLifecycleState
-                    ? {
-                          stateNum: inheritedDestinationStateNum,
-                          statusNum: inheritedDestinationStatusNum,
-                      }
-                    : {}),
                 nextStep: optimisticNextStepForReport,
                 pendingFields: {
                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1657,16 +1651,33 @@ function changeTransactionsReport({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
-                ...(shouldApplyInheritedLifecycleState
-                    ? {
-                          stateNum: affectedReport.stateNum,
-                          statusNum: affectedReport.statusNum,
-                      }
-                    : {}),
                 nextStep: affectedReport.nextStep ?? null,
                 pendingFields: {
                     nextStep: null,
                 },
+            },
+        });
+    }
+
+    // Inherit lifecycle state (stateNum/statusNum) from the source report when moving expenses
+    // into a newly-created destination report. This is applied as a dedicated update outside the
+    // nextStep loop so it cannot be silently dropped if the destination report is missing from
+    // affectedReport lookups (e.g. allReports not yet updated from CREATE_APP_REPORT optimistic SET).
+    if (shouldInheritLifecycleStateFromSource && destinationReportID && inheritedDestinationStateNum !== undefined && inheritedDestinationStatusNum !== undefined) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
+            value: {
+                stateNum: inheritedDestinationStateNum,
+                statusNum: inheritedDestinationStatusNum,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
+            value: {
+                stateNum: newReport?.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: newReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             },
         });
     }
