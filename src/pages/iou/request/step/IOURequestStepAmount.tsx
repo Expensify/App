@@ -506,7 +506,7 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(chatReportForP2PCheck, currentUserPersonalDetails.accountID).at(0))}
+                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(chatReportForP2PCheck, currentUserPersonalDetails.accountID).at(0), currentUserPersonalDetails.accountID)}
                 isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>
@@ -516,8 +516,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined, currentUserAccountID?: number): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat && (!currentUserAccountID || participant?.accountID !== currentUserAccountID));
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined, currentUserAccountID: number): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && participant?.accountID !== currentUserAccountID);
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables

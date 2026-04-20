@@ -15,17 +15,18 @@ jest.mock('@react-navigation/native', () => ({
 
 describe('IOURequestStepAmount', () => {
     describe('isParticipantP2P', () => {
+        const currentUserAccountID = 789;
         it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
             const participant = {
                 accountID: 123,
                 isPolicyExpenseChat: false,
             };
 
-            expect(isParticipantP2P(participant)).toBe(true);
+            expect(isParticipantP2P(participant, currentUserAccountID)).toBe(true);
         });
 
         it('should return false when participant is undefined', () => {
-            expect(isParticipantP2P(undefined)).toBe(false);
+            expect(isParticipantP2P(undefined, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when participant has no accountID', () => {
@@ -33,7 +34,7 @@ describe('IOURequestStepAmount', () => {
                 isPolicyExpenseChat: false,
             };
 
-            expect(isParticipantP2P(participant)).toBe(false);
+            expect(isParticipantP2P(participant, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when participant is a policy expense chat', () => {
@@ -42,7 +43,7 @@ describe('IOURequestStepAmount', () => {
                 isPolicyExpenseChat: true,
             };
 
-            expect(isParticipantP2P(participant)).toBe(false);
+            expect(isParticipantP2P(participant, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when accountID is 0', () => {
@@ -51,7 +52,7 @@ describe('IOURequestStepAmount', () => {
                 isPolicyExpenseChat: false,
             };
 
-            expect(isParticipantP2P(participant)).toBe(false);
+            expect(isParticipantP2P(participant, currentUserAccountID)).toBe(false);
         });
 
         it('should return true for P2P participant without isPolicyExpenseChat property', () => {
@@ -59,7 +60,7 @@ describe('IOURequestStepAmount', () => {
                 accountID: 456,
             };
 
-            expect(isParticipantP2P(participant)).toBe(true);
+            expect(isParticipantP2P(participant, currentUserAccountID)).toBe(true);
         });
     });
 });
