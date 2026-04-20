@@ -2745,7 +2745,6 @@ type SearchOptionsConfig = {
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
-    conciergeReportID: string | undefined;
 };
 
 /**
@@ -2774,9 +2773,8 @@ function getSearchOptions({
     reportAttributesDerived,
     personalDetails,
     allPolicyTags,
-    conciergeReportID,
 }: SearchOptionsConfig): Options {
-    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, undefined, {
         betas,
         includeRecentReports,
         includeMultipleParticipantReports: true,

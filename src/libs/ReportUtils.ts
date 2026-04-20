@@ -5848,7 +5848,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         reportPolicy,
         parentReport,
         personalDetails as PersonalDetailsList,
-        undefined,
+        attributes,
     );
 
     if (parentReportActionBasedName) {

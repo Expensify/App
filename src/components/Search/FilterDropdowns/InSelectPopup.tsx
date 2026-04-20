@@ -72,7 +72,6 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
@@ -82,7 +81,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const alternateText = getAlternateText(report, {}, {isReportArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID});
+        const alternateText = getAlternateText(report, {}, {isReportArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags});
         return {...report, alternateText};
     });
 
@@ -100,7 +99,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
               currentUserEmail,
               personalDetails,
               policyCollection: allPolicies,
-              conciergeReportID,
+              reportAttributesDerived,
           });
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
