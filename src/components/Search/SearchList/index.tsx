@@ -564,7 +564,7 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                flattenedItemsLength={flattenedItems.length}
+                flattenedItemsLength={data.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
