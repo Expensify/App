@@ -98,7 +98,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
-        'ChatBubbles',
         'MoneyBag',
         'CreditCard',
         'MoneyHourglass',
@@ -109,14 +108,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'Basket',
         'CalendarSolid',
         'Bookmark',
-        'ExpensifyCard',
         'Pencil',
         'Trashcan',
         'Document',
-        'Send',
         'ThumbsUp',
         'CheckCircle',
-    ] as const);
+    ]);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];

@@ -20,7 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -137,7 +137,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         setFeedWithError(undefined);
     };
 
+    const resetCardFlowState = () => {
+        clearIssueNewCardFlow(policyID);
+        clearIssueNewCardFormData();
+    };
+
     const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
+        resetCardFlowState();
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
@@ -165,6 +171,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
+        resetCardFlowState();
         updateSelectedExpensifyCardFeed(feed.value, policyID);
         goBack();
     };

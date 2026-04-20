@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account, SidePanel} from '@src/types/onyx';
+import type {SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
@@ -71,15 +71,6 @@ const SET_UP_2FA_SCREENS = new Set<string>([
 
 const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
 
-let account: OnyxEntry<Account>;
-// We have used `connectWithoutView` here because it is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
-
 let sidePanelNVP: OnyxEntry<SidePanel>;
 // `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
 // Also it is not directly connected to any UI
@@ -96,10 +87,6 @@ function isTwoFactorSetupScreen(screen: string | undefined): boolean {
 
 function isMFAFlowScreen(screen: string | undefined): boolean {
     return screen ? MFA_FLOW_SCREENS.has(screen) : false;
-}
-
-function shouldShowRequire2FAPage() {
-    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -608,11 +595,17 @@ function goBackToHome() {
 
 /**
  * Update route params for the specified route.
+ *
+ * @param targetKey - Optional navigator key to target the dispatch at. When provided,
+ *   the SET_PARAMS action is delivered directly to that navigator, which is required for
+ *   routes nested inside split navigators (where the default dispatch would fail if a
+ *   modal is focused). Can be obtained via `navigation.getState()?.key` in a component.
  */
-function setParams(params: Record<string, unknown>, routeKey = '') {
+function setParams(params: Record<string, unknown>, routeKey = '', targetKey?: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
+        ...(targetKey && {target: targetKey}),
     });
 }
 
@@ -1050,6 +1043,10 @@ function getIsFullscreenPreInsertedUnderRHP() {
     return isFullscreenPreInsertedUnderRHP;
 }
 
+function getPreInsertedFullscreenRouteName() {
+    return preInsertedFullscreenRouteName;
+}
+
 function clearFullscreenPreInsertedFlag() {
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
@@ -1166,6 +1163,7 @@ export default {
     revealRouteBeforeDismissingModal,
     preInsertFullscreenUnderRHP,
     getIsFullscreenPreInsertedUnderRHP,
+    getPreInsertedFullscreenRouteName,
     clearFullscreenPreInsertedFlag,
     removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
@@ -1175,4 +1173,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen};

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,6 +26,7 @@ function EnablePaymentsPage() {
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
     const wasLoadingRef = useRef(false);
+    const [hasFreshData, setHasFreshData] = useState(false);
 
     // Always fetch fresh wallet data on mount
     useEffect(() => {
@@ -52,6 +53,9 @@ function EnablePaymentsPage() {
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- we need to trigger a re-render when fresh data arrives to stop showing the loading indicator
+        setHasFreshData(true);
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
@@ -59,7 +63,7 @@ function EnablePaymentsPage() {
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, userWallet?.isLoading]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
-    if (isUserWalletEmpty || userWallet?.isLoading) {
+    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
             isUserWalletEmpty,

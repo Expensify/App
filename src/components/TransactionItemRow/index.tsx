@@ -144,7 +144,9 @@ type TransactionItemRowProps = {
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
+    policyForMovingExpenses?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
+    isActionColumnWide?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -198,6 +200,8 @@ function TransactionItemRow({
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
     isLargeScreenWidth: isLargeScreenWidthProp,
+    policyForMovingExpenses,
+    isActionColumnWide: isActionColumnWideProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -258,7 +262,9 @@ function TransactionItemRow({
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && transactionAttendees.length > 0;
+
+    const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
@@ -412,7 +418,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
                     >
                         {!!transactionItem.action && (
                             <ActionCell
