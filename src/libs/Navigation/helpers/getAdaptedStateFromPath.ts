@@ -17,7 +17,6 @@ import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
-import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
@@ -346,7 +345,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 // We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    normalizedPath = getRedirectedPath(normalizedPath);
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.

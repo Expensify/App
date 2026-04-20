@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {Activity, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SelectionList from '@components/SelectionList';
@@ -46,6 +46,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
+
+    /** Whether SelectionList of popup should stay mounted when popup is not visible. */
+    shouldShowList?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -59,6 +62,7 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
+    shouldShowList = true,
 }: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -139,17 +143,19 @@ function SingleSelectPopup<T extends string>({
             style={style}
         >
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, shouldShowLabel)]}>
-                <SelectionList
-                    data={options}
-                    shouldSingleExecuteRowSelect
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateSelectedItem}
-                    textInputOptions={textInputOptions}
-                    style={selectionListStyle}
-                    shouldUpdateFocusedIndex={isSearchable}
-                    initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                    shouldShowLoadingPlaceholder={!noResultsFound}
-                />
+                <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
+                    <SelectionList
+                        data={options}
+                        shouldSingleExecuteRowSelect
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={updateSelectedItem}
+                        textInputOptions={textInputOptions}
+                        style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                        shouldUpdateFocusedIndex={isSearchable}
+                        initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
+                        shouldShowLoadingPlaceholder={!noResultsFound}
+                    />
+                </Activity>
             </View>
         </BasePopup>
     );

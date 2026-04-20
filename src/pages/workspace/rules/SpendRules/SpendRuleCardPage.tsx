@@ -6,6 +6,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
@@ -184,7 +185,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         Navigation.goBack(parentRoute);
     };
 
-    const headerMessage = getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false);
+    const hasEligibleCards = eligibleCards.length > 0;
+    const headerMessage = hasEligibleCards ? getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false) : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -214,12 +216,16 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                     />
                     <SelectionList
                         canSelectMultiple
-                        textInputOptions={{
-                            headerMessage,
-                            value: inputValue,
-                            label: translate('common.search'),
-                            onChangeText: setInputValue,
-                        }}
+                        textInputOptions={
+                            hasEligibleCards
+                                ? {
+                                      headerMessage,
+                                      value: inputValue,
+                                      label: translate('common.search'),
+                                      onChangeText: setInputValue,
+                                  }
+                                : undefined
+                        }
                         data={listData}
                         style={{
                             listHeaderWrapperStyle: [styles.pt5, styles.pb2],
@@ -234,19 +240,21 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
-                            <BlockingView
-                                icon={illustrations.HandCard}
-                                iconWidth={variables.iconSection}
-                                iconHeight={variables.iconSection}
-                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
-                                titleStyles={styles.mb2}
-                                subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
-                                subtitleStyle={styles.textSupporting}
-                            />
+                            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                                <BlockingView
+                                    icon={illustrations.HandCard}
+                                    iconWidth={variables.iconSection}
+                                    iconHeight={variables.iconSection}
+                                    title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
+                                    titleStyles={styles.mb2}
+                                    subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
+                                    subtitleStyle={styles.textSupporting}
+                                />
+                            </ScrollView>
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
-                                buttonText={translate('common.save')}
+                                buttonText={hasEligibleCards ? translate('common.save') : translate('common.buttonConfirm')}
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
