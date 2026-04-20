@@ -31,6 +31,9 @@ import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
+// This cycle import is safe because these are pure utility functions that parse report action properties.
+// ReportActionsUtils may import from other modules that eventually import from ReportNameUtils for name computation.
+// eslint-disable-next-line import/no-cycle
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
@@ -423,7 +426,7 @@ function computeReportNameBasedOnReportAction(
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -529,11 +532,11 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, conciergeReportID));
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportAttributes));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, conciergeReportID));
+        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportAttributes));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -886,7 +889,7 @@ function computeReportName({
         reportPolicy,
         parentReport,
         personalDetailsList,
-        conciergeReportID,
+        undefined,
     );
 
     if (parentReportActionBasedName) {

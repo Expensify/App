@@ -5848,7 +5848,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         reportPolicy,
         parentReport,
         personalDetails as PersonalDetailsList,
-        conciergeReportID,
+        undefined,
     );
 
     if (parentReportActionBasedName) {
@@ -6994,20 +6994,13 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
-function getUnreportedTransactionMessage(
-    translate: LocalizedTranslate,
-    action: ReportAction,
-    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
-    conciergeReportID?: string,
-) {
+function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName({report: fromReport, conciergeReportID}) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportNameFromDerived(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 

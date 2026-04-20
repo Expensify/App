@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
@@ -67,7 +68,7 @@ function KYCWall({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -178,7 +179,7 @@ function KYCWall({
                             currentUserAccountID,
                             currentUserEmail,
                             employeeEmail,
-                            conciergeReportID,
+                            reportAttributes,
                             localCurrency,
                             lastWorkspaceNumber,
                             translate,
@@ -237,7 +238,7 @@ function KYCWall({
             lastPaymentMethod,
             isSelfTourViewed,
             betas,
-            conciergeReportID,
+            reportAttributes,
             localCurrency,
         ],
     );

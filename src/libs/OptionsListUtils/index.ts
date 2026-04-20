@@ -440,7 +440,6 @@ type GetAlternateTextConfig = {
     translate?: LocalizedTranslate;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
-    conciergeReportID: string | undefined;
 };
 
 /**
@@ -449,7 +448,7 @@ type GetAlternateTextConfig = {
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID}: GetAlternateTextConfig,
+    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags}: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -469,7 +468,6 @@ function getAlternateText(
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
-            conciergeReportID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -619,7 +617,6 @@ function getLastMessageTextForReport({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
-    conciergeReportID,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -635,8 +632,6 @@ function getLastMessageTextForReport({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
-    // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -698,7 +693,8 @@ function getLastMessageTextForReport({
             default: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.default`);
             }
-        }    } else if (isMoneyRequestAction(lastReportAction)) {
+        }
+    } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, reportAttributesDerived, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
@@ -856,7 +852,7 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, conciergeReportID));
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
@@ -1012,7 +1008,6 @@ function createOption({
     policyTags,
     visibleReportActionsData = {},
     translate,
-    conciergeReportID,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -1095,7 +1090,6 @@ function createOption({
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
-            conciergeReportID,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1111,7 +1105,6 @@ function createOption({
                           translate: translateFn,
                           reportAttributesDerived,
                           policyTags,
-                          conciergeReportID,
                       },
                   );
 
@@ -2322,7 +2315,6 @@ function prepareReportOptionsForDisplay(
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
-                conciergeReportID,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);

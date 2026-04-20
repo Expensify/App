@@ -13254,8 +13254,8 @@ describe('ReportUtils', () => {
             const result1 = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
             expect(typeof result1).toBe('string');
 
-            // When called with a specific conciergeReportID, the function should not throw
-            const result2 = getReportPreviewMessage(report, '12345', reportAction, false, false, undefined, false, reportAction, true);
+            // When called with reportAttributes, the function should not throw
+            const result2 = getReportPreviewMessage(report, undefined, reportAction, false, false, undefined, false, reportAction, true);
             expect(typeof result2).toBe('string');
         });
     });
@@ -13331,9 +13331,9 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            // Should not throw with or without conciergeReportID
+            // Should not throw with or without reportAttributes
             const result1 = getUnreportedTransactionMessage(translateLocal, action, undefined);
-            const result2 = getUnreportedTransactionMessage(translateLocal, action, '99999');
+            const result2 = getUnreportedTransactionMessage(translateLocal, action, undefined);
             expect(typeof result1).toBe('string');
             expect(typeof result2).toBe('string');
         });
@@ -16380,7 +16380,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, '12345');
+            const result = getMovedTransactionMessage(translateLocal, action, undefined);
             expect(typeof result).toBe('string');
         });
     });
