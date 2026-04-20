@@ -169,6 +169,7 @@ import type {
     Beta,
     Onboarding,
     OnyxInputOrEntry,
+    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
@@ -16630,33 +16631,29 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isOptimisticPersonalDetail uses explicit personalDetailsList', () => {
-        it('should use the passed personalDetailsList instead of the module-level variable', () => {
+    describe('isOptimisticPersonalDetail uses explicit personalDetail', () => {
+        it('should use the passed personalDetail instead of the module-level variable', () => {
             const testAccountID = 99999;
-            const personalDetailsList: PersonalDetailsList = {
-                [testAccountID]: {
-                    accountID: testAccountID,
-                    login: 'test@example.com',
-                    displayName: 'Test User',
-                    isOptimisticPersonalDetail: false,
-                },
+            const personalDetail: PersonalDetails = {
+                accountID: testAccountID,
+                login: 'test@example.com',
+                displayName: 'Test User',
+                isOptimisticPersonalDetail: false,
             };
 
-            expect(isOptimisticPersonalDetail(testAccountID, personalDetailsList)).toBe(false);
-            expect(isOptimisticPersonalDetail(testAccountID, {})).toBe(true);
+            expect(isOptimisticPersonalDetail(testAccountID, personalDetail)).toBe(false);
+            expect(isOptimisticPersonalDetail(testAccountID, undefined)).toBe(true);
         });
 
         it('should return true when the account has isOptimisticPersonalDetail flag', () => {
             const testAccountID = 88888;
-            const personalDetailsList: PersonalDetailsList = {
-                [testAccountID]: {
-                    accountID: testAccountID,
-                    login: 'optimistic@example.com',
-                    isOptimisticPersonalDetail: true,
-                },
+            const personalDetail: PersonalDetails = {
+                accountID: testAccountID,
+                login: 'optimistic@example.com',
+                isOptimisticPersonalDetail: true,
             };
 
-            expect(isOptimisticPersonalDetail(testAccountID, personalDetailsList)).toBe(true);
+            expect(isOptimisticPersonalDetail(testAccountID, personalDetail)).toBe(true);
         });
     });
 

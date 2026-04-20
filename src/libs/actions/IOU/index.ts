@@ -3052,12 +3052,12 @@ function createSplitsAndOnyxData({
         // entering code that creates optimistic personal details
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat || isOneOnOneChat(splitChatReport)) {
             oneOnOneChatReport = splitChatReport;
-            // TODO: Pass personalDetailsList in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            // TODO: Pass personalDetail in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && isOptimisticPersonalDetail(accountID, undefined);
         } else {
             const existingChatReport = getChatByParticipants([accountID, currentUserAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
-            // TODO: Pass personalDetailsList in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            // TODO: Pass personalDetail in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && isOptimisticPersonalDetail(accountID, undefined);
             oneOnOneChatReport =
                 existingChatReport ??
@@ -3239,7 +3239,7 @@ function createSplitsAndOnyxData({
         const individualSplit = {
             email,
             accountID,
-            // TODO: Pass personalDetailsList in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            // TODO: Pass personalDetail in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
             isOptimisticAccount: isOptimisticPersonalDetail(accountID, undefined),
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
@@ -3766,7 +3766,7 @@ function getSearchOnyxUpdate({
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
         if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
-            // TODO: Pass personalDetailsList in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            // TODO: Pass personalDetail in PR 26; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
             const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID, undefined);
             const successData = [];
             if (isOptimisticToAccountData) {

@@ -1832,10 +1832,10 @@ function getBankAccountRoute(report: OnyxEntry<Report>): Route {
 /**
  * Check if personal detail of accountID is empty or optimistic data
  */
-function isOptimisticPersonalDetail(accountID: number, personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean {
-    // TODO: Remove fallback once all callers pass personalDetailsList (https://github.com/Expensify/App/issues/66413)
-    const resolvedPersonalDetails = personalDetailsList ?? allPersonalDetails;
-    return isEmptyObject(resolvedPersonalDetails?.[accountID]) || !!resolvedPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
+function isOptimisticPersonalDetail(accountID: number, personalDetail: PersonalDetails | undefined): boolean {
+    // TODO: Remove fallback once all callers pass personalDetail (https://github.com/Expensify/App/issues/66413)
+    const resolvedPersonalDetail = personalDetail ?? allPersonalDetails?.[accountID];
+    return isEmptyObject(resolvedPersonalDetail) || !!resolvedPersonalDetail?.isOptimisticPersonalDetail;
 }
 
 /**
@@ -2202,7 +2202,8 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>, personalDetailsList:
         const participantAccountIDs = Object.keys(report?.participants ?? {})
             .map(Number)
             .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-        return isOptimisticPersonalDetail(participantAccountIDs.at(0) ?? -1, personalDetailsList);
+        const participantAccountID = participantAccountIDs.at(0) ?? -1;
+        return isOptimisticPersonalDetail(participantAccountID, personalDetailsList?.[participantAccountID]);
     }
     return false;
 }
@@ -10536,7 +10537,7 @@ function getTaskAssigneeChatOnyxData(
         );
 
         // If assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
-        // TODO: Pass personalDetailsList in PR 24; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+        // TODO: Pass personalDetail in PR 24; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
         if (isOptimisticPersonalDetail(assigneeAccountID, undefined)) {
             successData.push(
                 {

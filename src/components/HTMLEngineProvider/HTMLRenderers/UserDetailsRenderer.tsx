@@ -10,20 +10,21 @@ import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 
 type UserDetailsRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRendererProps) {
     const styles = useThemeStyles();
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const accountID = tnode.attributes.accountid ? parseInt(tnode.attributes.accountid, 10) : undefined;
+    const accountID = tnode.attributes.accountid ? parseInt(tnode.attributes.accountid, 10) : CONST.DEFAULT_NUMBER_ID;
+    const [personalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(accountID)});
 
     if (!accountID) {
         // Fallback: render without tooltip if no accountID
         return <TNodeChildrenRenderer tnode={tnode} />;
     }
 
-    const isOptimistic = isOptimisticPersonalDetail(accountID, personalDetailsList);
+    const isOptimistic = isOptimisticPersonalDetail(accountID, personalDetail);
 
     return (
         <UserDetailsTooltip accountID={accountID}>

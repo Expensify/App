@@ -136,10 +136,10 @@ function ReportActionItemSingle({
         }
     };
 
+    const optimisticCheckAccountID = action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldDisableDetailPage =
         CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-        (!details.isWorkspaceActor &&
-            isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID), personalDetails));
+        (!details.isWorkspaceActor && isOptimisticPersonalDetail(optimisticCheckAccountID, personalDetails?.[optimisticCheckAccountID]));
 
     const getBackgroundColor = () => {
         if (isActive) {
