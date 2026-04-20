@@ -74,7 +74,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles}: BaseOnboardingEmployee
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, dynamicBackPath));
+                    const onboardingEmployeesPath = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, dynamicBackPath);
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, onboardingEmployeesPath));
                 }}
                 pressOnEnter
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
