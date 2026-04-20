@@ -36,32 +36,56 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SETUP_AS_APP: false
 
-      - name: Update submodule to latest Mobile-Expensify main
-        run: git submodule update --remote
+      - name: Record submodule gitlink and update Mobile-Expensify to latest main
+        id: submoduleRemote
+        run: |
+          RECORDED_SHA=$(git rev-parse HEAD:Mobile-Expensify)
+          echo "Submodule commit recorded on App: $RECORDED_SHA"
+          echo "RECORDED_SHA=$RECORDED_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: Check current versions
+          git submodule update --remote
+
+          ACTUAL_SHA=$(git -C Mobile-Expensify rev-parse HEAD)
+          echo "Mobile-Expensify after remote update: $ACTUAL_SHA"
+          echo "ACTUAL_SHA=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Check sync state (versions + submodule pointer)
         id: checkVersions
         run: |
           APP_VERSION=$(jq -r .version package.json)
           ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
+          RECORDED_SHA="${{ steps.submoduleRemote.outputs.RECORDED_SHA }}"
+          ACTUAL_SHA="${{ steps.submoduleRemote.outputs.ACTUAL_SHA }}"
+
           echo "E/App version: $APP_VERSION"
           echo "Mobile-Expensify version: $ME_VERSION"
           echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_OUTPUT"
           echo "ME_VERSION=$ME_VERSION" >> "$GITHUB_OUTPUT"
-          
-          if [ "$APP_VERSION" == "$ME_VERSION" ]; then
-            echo "::notice::✅ Versions are already in sync: $APP_VERSION"
+
+          if [[ "$RECORDED_SHA" != "$ACTUAL_SHA" ]]; then
+            echo "::warning::⚠️ Submodule pointer is behind Mobile-Expensify main (recorded $RECORDED_SHA, latest $ACTUAL_SHA)"
+          fi
+
+          if [[ "$APP_VERSION" == "$ME_VERSION" && "$RECORDED_SHA" == "$ACTUAL_SHA" ]]; then
+            echo "::notice::✅ Versions and submodule are in sync ($APP_VERSION @ $ACTUAL_SHA)"
             echo "IN_SYNC=true" >> "$GITHUB_OUTPUT"
+            echo "NEED_FULL_VERSION_SYNC=false" >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::⚠️ Versions are out of sync - E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
             echo "IN_SYNC=false" >> "$GITHUB_OUTPUT"
+            if [[ "$APP_VERSION" != "$ME_VERSION" ]]; then
+              echo "::warning::⚠️ Versions are out of sync - E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
+              echo "NEED_FULL_VERSION_SYNC=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::notice::Versions match ($APP_VERSION) but App must record the latest submodule commit"
+              echo "NEED_FULL_VERSION_SYNC=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: Determine target version
-        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        if: steps.checkVersions.outputs.IN_SYNC != 'true' && steps.checkVersions.outputs.NEED_FULL_VERSION_SYNC == 'true'
         id: targetVersion
         run: |
-          if [ -n "${{ inputs.TARGET_VERSION }}" ]; then
+          if [[ -n "${{ inputs.TARGET_VERSION }}" ]]; then
             echo "Using provided target version: ${{ inputs.TARGET_VERSION }}"
             echo "VERSION=${{ inputs.TARGET_VERSION }}" >> "$GITHUB_OUTPUT"
           else
@@ -71,31 +95,31 @@ jobs:
           fi
 
       - name: Setup Node
-        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        if: steps.checkVersions.outputs.IN_SYNC != 'true' && steps.checkVersions.outputs.NEED_FULL_VERSION_SYNC == 'true'
         uses: ./.github/actions/composite/setupNode
 
       - name: Sync E/App to target version
-        if: steps.checkVersions.outputs.IN_SYNC != 'true'
+        if: steps.checkVersions.outputs.IN_SYNC != 'true' && steps.checkVersions.outputs.NEED_FULL_VERSION_SYNC == 'true'
         run: |
           TARGET="${{ steps.targetVersion.outputs.VERSION }}"
           echo "::notice::Syncing E/App to version $TARGET"
-          
+
           # Update version using npm (this updates package.json and package-lock.json)
           npm --no-git-tag-version version "$TARGET"
-          
+
           # Extract version components for native file updates
           SHORT_VERSION="${TARGET%-*}"  # e.g., "9.3.11" from "9.3.11-48"
           BUILD_NUMBER="${TARGET#*-}"   # e.g., "48" from "9.3.11-48"
           CF_VERSION="${SHORT_VERSION}.${BUILD_NUMBER}"  # e.g., "9.3.11.48"
-          
+
           # Pad build number components for Android version code (prefix 10 for E/App)
           IFS='.' read -r MAJOR MINOR PATCH <<< "$SHORT_VERSION"
           ANDROID_VERSION_CODE="10$(printf '%02d' "$MAJOR")$(printf '%02d' "$MINOR")$(printf '%02d' "$PATCH")$(printf '%02d' "$BUILD_NUMBER")"
-          
+
           echo "Updating Android build.gradle with versionName=$TARGET, versionCode=$ANDROID_VERSION_CODE"
           sed -i '' "s/versionName \"[0-9.-]*\"/versionName \"$TARGET\"/" android/app/build.gradle
           sed -i '' "s/versionCode [0-9]*/versionCode $ANDROID_VERSION_CODE/" android/app/build.gradle
-          
+
           echo "Updating iOS plists with CFBundleShortVersionString=$SHORT_VERSION, CFBundleVersion=$CF_VERSION"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_VERSION" ios/NewExpensify/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CF_VERSION" ios/NewExpensify/Info.plist
@@ -103,15 +127,15 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CF_VERSION" ios/NotificationServiceExtension/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_VERSION" ios/ShareViewController/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $CF_VERSION" ios/ShareViewController/Info.plist
-          
+
           # Commit version changes
           git add package.json package-lock.json android/app/build.gradle ios/*/Info.plist
           git commit -m "Update version to $TARGET (sync recovery)"
-          
+
           # Update submodule reference
           git add Mobile-Expensify
           git commit -m "Update Mobile-Expensify submodule version to $TARGET (sync recovery)"
-          
+
           # Push changes
           if ! git push origin main; then
             echo "::warning::Push failed, attempting rebase..."
@@ -119,21 +143,61 @@ jobs:
             git rebase origin/main
             git push origin main
           fi
-          
+
           echo "::notice::✅ Successfully synced E/App to version $TARGET"
 
+      - name: Bump Mobile-Expensify submodule only
+        if: steps.checkVersions.outputs.IN_SYNC != 'true' && steps.checkVersions.outputs.NEED_FULL_VERSION_SYNC != 'true'
+        run: |
+          EXPECTED_SHA="${{ steps.submoduleRemote.outputs.ACTUAL_SHA }}"
+          CURRENT_SHA=$(git -C Mobile-Expensify rev-parse HEAD)
+          if [[ "$CURRENT_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "::error::Mobile-Expensify checkout ($CURRENT_SHA) does not match expected main ($EXPECTED_SHA)"
+            exit 1
+          fi
+
+          echo "::notice::Recording Mobile-Expensify submodule at $CURRENT_SHA (versions already matched ${{ steps.checkVersions.outputs.APP_VERSION }})"
+          git add Mobile-Expensify
+          git commit -m "Bump Mobile-Expensify submodule to latest main ($CURRENT_SHA)"
+
+          if ! git push origin main; then
+            echo "::warning::Push failed, attempting rebase..."
+            git fetch origin main
+            git rebase origin/main
+            git submodule update --remote
+            git add Mobile-Expensify
+            if ! git diff --staged --quiet; then
+              git commit -m "Bump Mobile-Expensify submodule to latest main after rebase ($(git -C Mobile-Expensify rev-parse HEAD))"
+            fi
+            git push origin main
+          fi
+
+          echo "::notice::✅ Submodule pointer updated on App main"
+
       - name: Verify sync completed
+        id: verifySync
         if: steps.checkVersions.outputs.IN_SYNC != 'true'
         run: |
           APP_VERSION=$(jq -r .version package.json)
           ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
-          
-          if [ "$APP_VERSION" != "$ME_VERSION" ]; then
+
+          if [[ "$APP_VERSION" != "$ME_VERSION" ]]; then
             echo "::error::Sync failed! Versions still don't match"
             echo "::error::E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
             exit 1
           fi
-          echo "::notice::✅ Versions verified: $APP_VERSION"
+
+          git -C Mobile-Expensify fetch origin
+
+          RECORDED=$(git rev-parse HEAD:Mobile-Expensify)
+          REMOTE_SHA=$(git -C Mobile-Expensify rev-parse origin/main)
+          if [[ "$RECORDED" != "$REMOTE_SHA" ]]; then
+            echo "::error::Submodule on App main ($RECORDED) still differs from Mobile-Expensify origin/main ($REMOTE_SHA)"
+            exit 1
+          fi
+
+          echo "POST_SYNC_APP_VERSION=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice::✅ Verified versions ($APP_VERSION) and submodule match Mobile-Expensify main ($RECORDED)"
 
       - name: Announce sync in Slack
         if: steps.checkVersions.outputs.IN_SYNC != 'true'
@@ -146,7 +210,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: "good",
-                text: `✅ Version sync completed. E/App and Mobile-Expensify are now both at version ${{ steps.targetVersion.outputs.VERSION }}`
+                text: `✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.verifySync.outputs.POST_SYNC_APP_VERSION }}; submodule matches Mobile-Expensify main.`
               }]
             }
         env:

@@ -53,7 +53,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
 
     const customUnit = getDistanceRateCustomUnit(policy);
@@ -244,7 +244,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 codingRules: selectedItems.includes('codingRules'),
             },
             file: duplicatedWorkspaceAvatar,
-            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
+            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
         });
         Navigation.closeRHPFlow();
     }, [

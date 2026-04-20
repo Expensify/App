@@ -443,10 +443,37 @@ describe('WorkspaceTravelInvoicingSection', () => {
             }
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID);
+            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID, 5000);
         });
 
-        it('should hide Pay Balance button and show queued message when payment is queued', async () => {
+        it('should hide Pay Balance button and show queued message when settlement is pending', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 15000,
+                        pendingSettlementAmount: 10000,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Pay balance button should not be visible when settlement is pending
+            expect(screen.queryByText('Pay balance')).toBeNull();
+
+            // Current spend should show real balance ($150.00), not $0
+            expect(screen.getByText('$150.00')).toBeTruthy();
+
+            // Queued payment message should show the pending settlement amount
+            expect(screen.getByText('Payment of $100.00 is queued and will be processed soon.')).toBeTruthy();
+        });
+
+        it('should show Pay Balance button when no settlement is pending and balance exists', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
@@ -454,24 +481,24 @@ describe('WorkspaceTravelInvoicingSection', () => {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
+                        pendingSettlementAmount: 0,
+                        monthlySettlementDate: new Date(),
                     },
                 });
-                // Set the manual billing flag to true (payment queued)
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${WORKSPACE_ACCOUNT_ID}`, true);
                 await waitForBatchedUpdatesWithAct();
             });
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
 
-            // Pay balance button should not be visible when payment is queued
-            expect(screen.queryByText('Pay balance')).toBeNull();
+            // Pay button should be visible
+            expect(screen.getByText('Pay balance')).toBeTruthy();
 
-            // Current spend should show $0.00 (limit also shows $0.00, so use getAllByText)
-            expect(screen.getAllByText('$0.00').length).toBeGreaterThanOrEqual(1);
+            // Should show real balance
+            expect(screen.getByText('$50.00')).toBeTruthy();
 
-            // Queued payment message should be visible with the original amount
-            expect(screen.getByText('Payment of $50.00 is queued and will be processed soon.')).toBeTruthy();
+            // No queued message
+            expect(screen.queryByText(/Payment of .* is queued/)).toBeNull();
         });
     });
 

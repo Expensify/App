@@ -21,6 +21,7 @@ import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
+import GettingStartedSection from './GettingStartedSection';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
@@ -31,8 +32,8 @@ function HomePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
-    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
 
@@ -75,18 +76,35 @@ function HomePage() {
                         {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
-                            <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
-                                <TimeSensitiveSection />
-                                <ForYouSection />
-                                <SpendOverTimeSection />
-                                <DiscoverSection />
-                            </View>
-                            <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
-                                <FreeTrialSection />
-                                <UpcomingTravelSection />
-                                <AssignedCardsSection />
-                                <AnnouncementSection />
-                            </View>
+                            {shouldUseNarrowLayout ? (
+                                <>
+                                    <FreeTrialSection />
+                                    <TimeSensitiveSection />
+                                    <GettingStartedSection />
+                                    <ForYouSection />
+                                    <UpcomingTravelSection />
+                                    <AssignedCardsSection />
+                                    <SpendOverTimeSection />
+                                    <DiscoverSection />
+                                    <AnnouncementSection />
+                                </>
+                            ) : (
+                                <>
+                                    <View style={styles.homePageLeftColumn}>
+                                        <TimeSensitiveSection />
+                                        <ForYouSection />
+                                        <SpendOverTimeSection />
+                                        <DiscoverSection />
+                                    </View>
+                                    <View style={styles.homePageRightColumn}>
+                                        <FreeTrialSection />
+                                        <GettingStartedSection />
+                                        <UpcomingTravelSection />
+                                        <AssignedCardsSection />
+                                        <AnnouncementSection />
+                                    </View>
+                                </>
+                            )}
                         </View>
                     </ScrollView>
                     {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}

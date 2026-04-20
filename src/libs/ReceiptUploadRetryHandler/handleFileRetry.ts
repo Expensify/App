@@ -1,4 +1,5 @@
-import * as IOU from '@userActions/IOU';
+import type * as IOU from '@userActions/IOU';
+import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {startSplitBill} from '@userActions/IOU/Split';
 import * as TrackExpense from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
@@ -15,7 +16,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             dismissError();
             const replaceReceiptParams = {...retryParams} as IOU.ReplaceReceipt;
             replaceReceiptParams.file = file;
-            IOU.replaceReceipt(replaceReceiptParams);
+            replaceReceipt(replaceReceiptParams);
             break;
         }
         case CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL: {

@@ -425,12 +425,13 @@ describe('SearchQueryUtils', () => {
         });
 
         describe('limit option', () => {
-            test('includes limit in query string when provided', () => {
+            test('includes limit in query string when provided in form values', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
+                    limit: '10',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).toEqual('type:expense limit:10');
             });
@@ -439,9 +440,10 @@ describe('SearchQueryUtils', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     merchant: 'Amazon',
+                    limit: '25',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc', limit: 25});
+                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc'});
 
                 expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant:Amazon limit:25');
             });
@@ -462,7 +464,7 @@ describe('SearchQueryUtils', () => {
                     limit: '',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).not.toContain('limit:');
             });
@@ -530,15 +532,23 @@ describe('SearchQueryUtils', () => {
                 expect(keywordFilter?.filters.at(0)?.value).toBe('hello');
             });
 
-            test('form limit takes priority over options limit', () => {
+            test('limit only comes from form values, not options', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     limit: '30',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                const result = buildQueryStringFromFilterFormValues(filterValues);
                 expect(result).toContain('limit:30');
-                expect(result).not.toContain('limit:10');
+            });
+
+            test('omits limit when form has no limit key (reset filters scenario)', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'date', sortOrder: 'desc'});
+                expect(result).not.toContain('limit');
             });
         });
 
@@ -640,6 +650,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
@@ -670,6 +681,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
@@ -705,6 +717,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
@@ -743,6 +756,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('limit:25');
@@ -766,6 +780,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).not.toContain('limit:');
@@ -789,6 +804,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('limit:50');
@@ -2287,6 +2303,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('in:');
@@ -2319,6 +2336,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('from:"Jane Doe"');
@@ -2350,6 +2368,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain(`from:${CONST.SEARCH.ME}`);
@@ -2373,6 +2392,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result.endsWith(' ')).toBe(true);

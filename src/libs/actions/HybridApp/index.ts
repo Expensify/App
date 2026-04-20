@@ -1,10 +1,70 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
+import {shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session, TryNewDot} from '@src/types/onyx';
 import type HybridAppSettings from './types';
+
+let currentTryNewDot: OnyxEntry<TryNewDot>;
+let currentSessionAccountID: Session['accountID'];
+let isLoadingApp = true;
+let isLoadingTryNewDot = true;
+let hasReceivedTryNewDotUpdate = false;
+
+function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] {
+    return session?.accountID;
+}
+
+function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewDotUpdate = false) {
+    if (currentTryNewDot !== undefined) {
+        isLoadingTryNewDot = false;
+        return;
+    }
+
+    if (isTryNewDotUpdate && !isInitialTryNewDotUpdate && isLoadingTryNewDot === false) {
+        isLoadingTryNewDot = true;
+        return;
+    }
+
+    isLoadingTryNewDot = isLoadingApp !== false;
+}
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
+    callback: (tryNewDot) => {
+        const isInitialTryNewDotUpdate = !hasReceivedTryNewDotUpdate;
+        hasReceivedTryNewDotUpdate = true;
+        currentTryNewDot = tryNewDot;
+        updateTryNewDotLoadingState(true, isInitialTryNewDotUpdate);
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (loadingApp) => {
+        isLoadingApp = loadingApp ?? true;
+        updateTryNewDotLoadingState();
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const nextSessionAccountID = getSessionAccountID(session);
+        if (nextSessionAccountID === currentSessionAccountID) {
+            return;
+        }
+
+        currentSessionAccountID = nextSessionAccountID;
+        currentTryNewDot = undefined;
+        hasReceivedTryNewDotUpdate = false;
+        isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
+    },
+});
 
 /*
  * Parses initial settings passed from OldDot app
@@ -24,6 +84,10 @@ function getHybridAppSettings(): Promise<HybridAppSettings | null> {
 }
 
 function closeReactNativeApp({shouldSetNVP, isTrackingGPS}: {shouldSetNVP: boolean; isTrackingGPS: boolean}) {
+    if (shouldBlockOldAppExit(currentTryNewDot, isLoadingTryNewDot, shouldSetNVP)) {
+        return;
+    }
+
     if (isTrackingGPS) {
         setIsGPSInProgressModalOpen(true);
         return;

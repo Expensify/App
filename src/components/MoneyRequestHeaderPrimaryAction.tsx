@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {markRejectViolationAsResolved} from '@libs/actions/IOU';
+import {markRejectViolationAsResolved} from '@libs/actions/IOU/RejectMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -99,7 +99,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                         if (!transaction?.transactionID) {
                             return;
                         }
-                        markRejectViolationAsResolved(transaction.transactionID, reportID);
+                        markRejectViolationAsResolved(transaction.transactionID, isOffline, reportID);
                     }}
                 />
             );

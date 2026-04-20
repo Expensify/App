@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {RotationDegrees} from 'react-fast-pdf';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,14 +13,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    detachReceipt,
-    navigateToStartStepIfScanFileCannotBeRead,
-    removeMoneyRequestOdometerImage,
-    replaceReceipt,
-    setMoneyRequestOdometerImage,
-    setMoneyRequestReceipt,
-} from '@libs/actions/IOU';
+import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/IOU';
+import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
@@ -161,11 +156,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const fileName = (isOdometerImage ? odometerFilename : receiptFilename) ?? '';
     const isImage = !!fileName && Str.isImage(fileName);
+    const isPDF = !!fileName && Str.isPDF(fileName);
     const fileType = isOdometerImage ? odometerFileType : (transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const [pdfRotation, setPdfRotation] = useState<RotationDegrees>(0);
     const [isRotating, setIsRotating] = useState(false);
     const [isCropping, setIsCropping] = useState(false);
     const [isCropSaving, setIsCropSaving] = useState(false);
@@ -537,6 +534,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         style={styles.transactionReceiptButton}
                     />
                 )}
+                {isPDF && !isNative && (
+                    <Button
+                        icon={expensifyIcons.Rotate}
+                        onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
+                        text={translate('common.rotate')}
+                        style={styles.transactionReceiptButton}
+                    />
+                )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
                         icon={expensifyIcons.Camera}
@@ -552,16 +557,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                           Navigation.getActiveRoute(),
                                       );
                             };
-                            if (isNative) {
-                                Navigation.goBack();
-                                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                    Navigation.navigate(getDestinationRoute());
-                                });
-                                return;
-                            }
 
                             Navigation.dismissModal({
-                                callback: () => Navigation.navigate(getDestinationRoute()),
+                                afterTransition: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
                         text={translate('common.replace')}
@@ -575,6 +573,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         shouldShowRotateAndCropReceiptButton,
         shouldShowReplaceReceiptButton,
         isOdometerImage,
+        isPDF,
         styles.flexRow,
         styles.gap2,
         styles.ph5,
@@ -634,6 +633,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
             shouldShowRotateButton: false,
+            pdfRotation,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
             shouldMinimizeMenuButton: false,
@@ -654,6 +654,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowNotFoundPage,
             allowDownload,
             onDownloadAttachment,
+            pdfRotation,
             footerActionButtons,
             customAttachmentContent,
             styles.pv5,

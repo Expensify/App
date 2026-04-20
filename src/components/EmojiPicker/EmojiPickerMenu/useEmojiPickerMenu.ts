@@ -9,6 +9,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis, suggestEmojis} from '@libs/EmojiUtils';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const useEmojiPickerMenu = () => {
@@ -24,9 +26,10 @@ const useEmojiPickerMenu = () => {
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
     const {preferredLocale} = useLocalize();
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     /**
      * The EmojiPicker sets the `innerContainerStyle` with `maxHeight: '95%'` in `styles.popoverInnerContainer`
@@ -34,7 +37,10 @@ const useEmojiPickerMenu = () => {
      * To calculate the available list height, we subtract the keyboard height from the `windowHeight`
      * to ensure the list is properly adjusted when the keyboard is visible.
      */
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95 - keyboardHeight);
+    const listStyle = StyleUtils.getEmojiPickerListHeight(
+        isListFiltered,
+        windowHeight * (isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : 0.95) - keyboardHeight,
+    );
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);

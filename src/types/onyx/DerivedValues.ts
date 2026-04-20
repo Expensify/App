@@ -86,6 +86,15 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
+ * The derived value for reports grouped by policy ID.
+ * Groups reports by their policyID where:
+ * - The report has a policyID
+ * - The report is owned by the current user
+ * - The report state is open or submitted (stateNum <= 1)
+ */
+type OpenAndSubmittedReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
+/**
  * The derived value for visible report actions.
  */
 type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
@@ -283,6 +292,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,

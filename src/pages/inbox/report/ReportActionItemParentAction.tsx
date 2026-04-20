@@ -247,7 +247,6 @@ function ReportActionItemParentAction({
                                 transactionThreadReport={transactionThreadReport}
                                 action={ancestorReportAction}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                                 index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}

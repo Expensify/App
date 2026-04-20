@@ -238,6 +238,12 @@ type CardFeeds = {
 
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
+
+        /** Travel invoicing provisioning data */
+        travelInvoicing?: {
+            /** Provisioning errors for workspace members */
+            errors?: string[];
+        };
     };
 } & CardFeedsStatus &
     DomainSettings;

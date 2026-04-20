@@ -1,6 +1,6 @@
+import {getReportChatType} from '@selectors/Report';
 import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +52,8 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  *
  * AgentZero chats include Concierge DMs and policy #admins rooms.
  */
-function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWithChildren<{reportID: string | undefined; chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined}>) {
+function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
+    const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;

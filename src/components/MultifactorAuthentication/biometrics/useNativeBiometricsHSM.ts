@@ -151,6 +151,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 data: dataToSignB64,
                 inputEncoding: InputEncoding.Base64,
                 promptTitle: translate('multifactorAuthentication.letsVerifyItsYou'),
+                promptSubtitle: '',
                 returnAuthType: true,
             });
 

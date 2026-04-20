@@ -7,13 +7,22 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
+import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
+import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
+import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
-import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
+import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
+import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
+import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
+import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
+import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
@@ -28,7 +37,10 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
+import ExpensifyCardContextProvider from '@pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
+import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import '@src/libs/subscribeToFullReconnect';
@@ -48,7 +60,6 @@ import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -71,6 +82,7 @@ const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigato
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
+const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -147,21 +159,33 @@ function AuthScreens() {
     return (
         <>
             <AuthScreensInitHandler />
-            <KeyboardShortcutsHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
+            <SupportalPermissionDeniedModal />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
+                        AttachmentModalContextProvider,
+                        PlaybackContextProvider,
+                        VolumeContextProvider,
+                        VideoPopoverMenuContextProvider,
+                        FullScreenContextProvider,
+                        SearchRouterContextProvider,
+                        ProductTrainingContextProvider,
+                        ExpensifyCardContextProvider,
+                        TravelCVVContextProvider,
+                        KYCWallContextProvider,
+                        WideRHPContextProvider,
+                        KeyboardDismissibleFlatListContextProvider,
                         CurrencyListContextProvider,
                         OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
-                        SupportalPermissionDeniedModalProvider,
                     ]}
                 >
+                    <KeyboardShortcutsHandler />
                     <RootStack.Navigator
                         persistentScreens={[
                             NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -295,7 +319,7 @@ function AuthScreens() {
                         <RootStack.Screen
                             name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.rightModalNavigator}
-                            component={RightModalNavigator}
+                            getComponent={loadRightModalNavigator}
                             listeners={modalScreenListenersWithCancelSearch}
                         />
                         <RootStack.Screen

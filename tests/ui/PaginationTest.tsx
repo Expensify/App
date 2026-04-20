@@ -232,7 +232,7 @@ async function signInAndGetApp(): Promise<void> {
 
     await act(async () => {
         await Promise.all([
-            Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false),
+            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
@@ -372,6 +372,7 @@ describe('Pagination', () => {
         scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
+        await waitForNetworkPromises();
         await waitForBatchedUpdatesWithAct();
 
         // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.

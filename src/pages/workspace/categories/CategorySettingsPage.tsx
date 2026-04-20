@@ -34,7 +34,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, hasTags, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -155,17 +155,17 @@ function CategorySettingsPage({
         if (!policyCategory) {
             return '';
         }
-        return formatRequiredFieldsTitle(translate, policyCategory, policy?.isAttendeeTrackingEnabled);
-    }, [policyCategory, translate, policy?.isAttendeeTrackingEnabled]);
+        return formatRequiredFieldsTitle(translate, policyCategory, isAttendeeTrackingEnabled(policy));
+    }, [policyCategory, translate, policy]);
 
     const requireFieldsPendingAction = useMemo(() => {
-        if (policy?.isAttendeeTrackingEnabled) {
+        if (isAttendeeTrackingEnabled(policy)) {
             // Pending fields are objects so we can't use nullish coalescing
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;
         }
         return policyCategory?.pendingFields?.areCommentsRequired;
-    }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
+    }, [policyCategory?.pendingFields, policy]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {

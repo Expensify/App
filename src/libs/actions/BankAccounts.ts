@@ -317,6 +317,7 @@ function addPersonalBankAccount(
         addressState: account?.addressState,
         addressZip: account?.addressZipCode,
         addressCountry: account?.country,
+        confirmedOwnershipDetails: account?.confirmedOwnershipDetails,
     };
     if (policyID) {
         parameters.policyID = policyID;

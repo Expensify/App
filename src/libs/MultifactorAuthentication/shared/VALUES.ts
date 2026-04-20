@@ -62,15 +62,6 @@ const REASON = {
         CHALLENGE_MISSING: 'Challenge is missing',
         CHALLENGE_SIGNED: 'Challenge signed successfully',
     },
-    EXPO: {
-        CANCELED: 'Authentication canceled by user',
-        IN_PROGRESS: 'Authentication already in progress',
-        NOT_IN_FOREGROUND: 'Application must be in the foreground',
-        KEY_EXISTS: 'This key already exists',
-        NO_METHOD_AVAILABLE: 'No authentication methods available',
-        NOT_SUPPORTED: 'This feature is not supported on the device',
-        GENERIC: 'An error occurred',
-    },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
         /** The device type is correct for this scenario but no authentication methods are enrolled (e.g. no fingerprint/face/passcode set up in device settings). */
@@ -83,17 +74,6 @@ const REASON = {
         REQUESTED_TRANSACTION_UNAVAILABLE: 'Requested transaction is unavailable',
         UNKNOWN_RESPONSE: 'Unknown response',
         CANCELED: 'Flow canceled by user',
-    },
-    KEYSTORE: {
-        KEY_DELETED: 'Key successfully deleted from SecureStore',
-        REGISTRATION_REQUIRED: 'Key is stored locally but not found on server',
-        KEY_MISSING: 'Key is missing',
-        KEY_SAVED: 'Key successfully saved in SecureStore',
-        UNABLE_TO_SAVE_KEY: 'Failed to save key in SecureStore',
-        UNABLE_TO_DELETE_KEY: 'Failed to delete key from SecureStore',
-        KEY_RETRIEVED: 'Key successfully retrieved from SecureStore',
-        KEY_NOT_FOUND: 'Key not found in SecureStore',
-        UNABLE_TO_RETRIEVE_KEY: 'Failed to retrieve key from SecureStore',
     },
     WEBAUTHN: {
         NOT_ALLOWED: 'NotAllowedError',
@@ -218,9 +198,6 @@ type ReasonValue = ValueOf<{
 
 /** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
 const ROUTINE_FAILURES = new Set<ReasonValue>([
-    REASON.EXPO.CANCELED,
-    REASON.EXPO.NO_METHOD_AVAILABLE,
-    REASON.EXPO.NOT_SUPPORTED,
     REASON.GENERIC.CANCELED,
     REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
     REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
@@ -253,17 +230,8 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.BACKEND.INVALID_KEY,
     REASON.BACKEND.AUTHENTICATION_REQUIRED,
     REASON.BACKEND.UNAUTHORIZED,
-    REASON.KEYSTORE.KEY_MISSING,
-    REASON.KEYSTORE.KEY_NOT_FOUND,
-    REASON.KEYSTORE.REGISTRATION_REQUIRED,
-    REASON.KEYSTORE.UNABLE_TO_SAVE_KEY,
-    REASON.KEYSTORE.UNABLE_TO_DELETE_KEY,
-    REASON.KEYSTORE.UNABLE_TO_RETRIEVE_KEY,
     REASON.GENERIC.BAD_REQUEST,
     REASON.GENERIC.UNKNOWN_RESPONSE,
-    REASON.EXPO.IN_PROGRESS,
-    REASON.EXPO.NOT_IN_FOREGROUND,
-    REASON.EXPO.GENERIC,
     REASON.WEBAUTHN.INVALID_STATE,
     REASON.WEBAUTHN.SECURITY_ERROR,
     REASON.WEBAUTHN.CONSTRAINT_ERROR,
@@ -294,7 +262,6 @@ const SHARED_VALUES = {
      */
     PROMPT_TYPE_MAP: {
         BIOMETRICS_HSM: PROMPT_NAMES.BIOMETRICS_HSM,
-        BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
         PASSKEYS: PROMPT_NAMES.PASSKEYS,
     },
 
@@ -303,7 +270,6 @@ const SHARED_VALUES = {
      */
     TYPE: {
         BIOMETRICS_HSM: 'BIOMETRICS_HSM',
-        BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
     },
     CHALLENGE_TYPE: {

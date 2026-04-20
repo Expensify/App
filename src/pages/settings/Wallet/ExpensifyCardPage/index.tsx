@@ -25,7 +25,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
@@ -155,8 +154,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const isCardHolder = currentCard?.accountID === session?.accountID;
     const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
-    const {isBetaEnabled} = usePermissions();
-    const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+    const canManageCardFreeze = isCardHolder && !!currentCard && !isAccountLocked;
 
     const policySelector = useCallback(
         (allPolicies: OnyxCollection<Policy>): Policy | undefined => {

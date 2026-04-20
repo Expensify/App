@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -387,10 +387,9 @@ function AttachmentPicker({
 
                 if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
                     return getDataForUpload(fileDataObject)
-                        .then((file) => resizeImageIfNeeded(file))
-                        .then((resizedFile) =>
-                            ImageSize.getSize(resizedFile.uri ?? '').then(({width, height}) => ({
-                                ...resizedFile,
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => ({
+                                ...file,
                                 width,
                                 height,
                             })),
@@ -400,16 +399,15 @@ function AttachmentPicker({
 
                 if (fileDataName && Str.isImage(fileDataName)) {
                     return getDataForUpload(fileDataObject)
-                        .then((file) => resizeImageIfNeeded(file))
-                        .then((resizedFile) =>
-                            ImageSize.getSize(resizedFile.uri ?? '').then(({width, height}) => {
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
                                 if (width <= 0 || height <= 0) {
                                     showImageCorruptionAlert();
                                     return null;
                                 }
 
                                 return {
-                                    ...resizedFile,
+                                    ...file,
                                     width,
                                     height,
                                 };

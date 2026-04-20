@@ -93,9 +93,6 @@ type DatePresetFilterBaseProps = {
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
-    /** Whether to show the range validation error */
-    shouldShowRangeError?: boolean;
-
     /** Callback when date values change */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
 
@@ -122,7 +119,6 @@ function DatePresetFilterBase({
     onSelectDateModifier,
     presets,
     isSearchAdvancedFiltersFormLoading,
-    shouldShowRangeError = false,
     onDateValuesChange,
     onRangeValidationErrorChange,
     forceVerticalCalendars = false,
@@ -451,7 +447,6 @@ function DatePresetFilterBase({
                     setRangeEphemeralValues((prev) => ({...prev, to: date}));
                     onRangeValidationErrorChange?.(false);
                 }}
-                shouldShowError={shouldShowRangeError}
                 forceVertical={forceVerticalCalendars}
             />
         );
