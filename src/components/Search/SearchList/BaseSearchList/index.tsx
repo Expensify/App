@@ -32,6 +32,7 @@ function BaseSearchList({
     flattenedItemsLength,
     newTransactions,
     selectedTransactions,
+    policyForMovingExpenses,
     nonPersonalAndWorkspaceCards,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
@@ -106,8 +107,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
-        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, policyForMovingExpenses],
+        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, policyForMovingExpenses],
     );
 
     return (

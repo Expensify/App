@@ -37,7 +37,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -134,6 +134,11 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
+    policyForMovingExpenses?: Policy;
+
+    /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
+    isActionColumnWide?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -218,6 +223,8 @@ function SearchList({
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
+    policyForMovingExpenses,
+    isActionColumnWide,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -332,7 +339,7 @@ function SearchList({
     }, [data, groupBy, newTransactions]);
 
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, queryJSON.type);
+    const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -443,6 +450,7 @@ function SearchList({
                         queryJSONHash={hash}
                         columns={columns}
                         policies={policies}
+                        policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -497,6 +505,7 @@ function SearchList({
             nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
+            policyForMovingExpenses,
             handleUndelete,
         ],
     );
@@ -564,6 +573,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
+                policyForMovingExpenses={policyForMovingExpenses}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal

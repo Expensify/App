@@ -608,11 +608,17 @@ function goBackToHome() {
 
 /**
  * Update route params for the specified route.
+ *
+ * @param targetKey - Optional navigator key to target the dispatch at. When provided,
+ *   the SET_PARAMS action is delivered directly to that navigator, which is required for
+ *   routes nested inside split navigators (where the default dispatch would fail if a
+ *   modal is focused). Can be obtained via `navigation.getState()?.key` in a component.
  */
-function setParams(params: Record<string, unknown>, routeKey = '') {
+function setParams(params: Record<string, unknown>, routeKey = '', targetKey?: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
+        ...(targetKey && {target: targetKey}),
     });
 }
 
@@ -1050,6 +1056,10 @@ function getIsFullscreenPreInsertedUnderRHP() {
     return isFullscreenPreInsertedUnderRHP;
 }
 
+function getPreInsertedFullscreenRouteName() {
+    return preInsertedFullscreenRouteName;
+}
+
 function clearFullscreenPreInsertedFlag() {
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
@@ -1166,6 +1176,7 @@ export default {
     revealRouteBeforeDismissingModal,
     preInsertFullscreenUnderRHP,
     getIsFullscreenPreInsertedUnderRHP,
+    getPreInsertedFullscreenRouteName,
     clearFullscreenPreInsertedFlag,
     removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,

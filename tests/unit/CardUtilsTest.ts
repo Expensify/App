@@ -31,6 +31,7 @@ import {
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getCSVFeedType,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
@@ -80,7 +81,7 @@ import type {
     Policy,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1881,6 +1882,25 @@ describe('CardUtils', () => {
         it('should return the feed name with with the first smallest available number', () => {
             const feedType = getFeedType('vcf', companyCardsCustomVisaFeedSettingsWithNumbers as CombinedCardFeeds);
             expect(feedType).toBe('vcf2');
+        });
+    });
+
+    describe('getCSVFeedType', () => {
+        it('returns the first gap when higher-numbered CSV feeds exist in companyCards only', () => {
+            expect(
+                getCSVFeedType({
+                    ccupload3: {pending: false},
+                    ccupload7: {pending: false},
+                } as CompanyFeeds),
+            ).toBe('ccupload1');
+        });
+
+        it('returns ccupload2 when ccupload1 is already in companyCards', () => {
+            expect(getCSVFeedType({ccupload1: {pending: false}} as CompanyFeeds)).toBe('ccupload2');
+        });
+
+        it('returns ccupload1 when no CSV feeds exist', () => {
+            expect(getCSVFeedType(undefined)).toBe('ccupload1');
         });
     });
 
