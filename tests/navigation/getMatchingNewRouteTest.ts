@@ -52,6 +52,10 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/onboarding/personal-details')).toBe('/onboarding/purpose/personal-details');
     });
 
+    it('redirects old onboarding accounting path to dynamic onboarding path', () => {
+        expect(getMatchingNewRoute('/onboarding/accounting')).toBe('/onboarding/purpose/accounting');
+    });
+
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);
@@ -64,6 +68,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name-extra')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/address/sub')).toBe(undefined);
         expect(getMatchingNewRoute('/onboarding/personal-details/extra')).toBe(undefined);
+        expect(getMatchingNewRoute('/onboarding/accounting/extra')).toBe(undefined);
     });
 
     it('preserves fragment when redirecting', () => {

@@ -150,12 +150,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const skipJoiningWorkspaces = () => {
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, route.params?.backTo ?? ROUTES.ONBOARDING_WORKSPACES.route));
             return;
         }
 
         if (isSmb) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, route.params?.backTo || ROUTES.ONBOARDING_WORKSPACES.route));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, route.params?.backTo ?? ROUTES.ONBOARDING_WORKSPACES.route));
             return;
         }
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));

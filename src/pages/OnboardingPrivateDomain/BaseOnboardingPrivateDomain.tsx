@@ -87,7 +87,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
             if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
                 return;
             }
             if (isSmb) {
@@ -141,7 +141,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(dynamicBackPath));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, dynamicBackPath));
                                 return;
                             }
 

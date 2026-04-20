@@ -114,8 +114,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.ACCOUNTING]: {
-                    path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {

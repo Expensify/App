@@ -127,7 +127,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, ROUTES.ONBOARDING_WORKSPACES.route));
         });
 
         unmount();
