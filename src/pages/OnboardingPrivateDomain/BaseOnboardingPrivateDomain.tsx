@@ -24,6 +24,7 @@ import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 const ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path, ROUTES.ONBOARDING_PURPOSE.route);
+const ONBOARDING_DYNAMIC_PRIVATE_DOMAIN_PATH = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path, ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH);
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPrivateDomainProps) {
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
@@ -90,7 +91,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
                 return;
             }
             if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, ONBOARDING_DYNAMIC_PRIVATE_DOMAIN_PATH), {forceReplace: true});
                 return;
             }
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
@@ -145,7 +146,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
                             }
 
                             if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(dynamicBackPath));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, ONBOARDING_DYNAMIC_PRIVATE_DOMAIN_PATH));
                                 return;
                             }
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(dynamicBackPath));

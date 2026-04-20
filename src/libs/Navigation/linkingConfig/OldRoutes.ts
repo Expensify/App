@@ -8,6 +8,7 @@ const oldRoutes: Record<string, string> = {
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/onboarding/personal-details': '/onboarding/purpose/personal-details',
     '/onboarding/private-domain': '/onboarding/purpose/personal-details/private-domain',
+    '/onboarding/employees': '/onboarding/purpose/employees',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */
 };

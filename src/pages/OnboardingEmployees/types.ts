@@ -2,7 +2,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 
-type OnboardingEmployeesProps = PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.EMPLOYEES>;
+type OnboardingEmployeesProps = PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES>;
 
 type BaseOnboardingEmployeesProps = OnboardingEmployeesProps & {
     /* Whether to use native styles tailored for native devices */

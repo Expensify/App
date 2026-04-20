@@ -142,14 +142,14 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
     }
     if (isSmb) {
-        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        return `/${createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, ROUTES.ONBOARDING_PURPOSE.route)}`;
     }
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 

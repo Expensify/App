@@ -85,7 +85,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/employees');
+            expect(path).toBe('/onboarding/purpose/employees');
         });
     });
 });

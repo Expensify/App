@@ -132,7 +132,7 @@ describe('OnboardingPurpose Page', () => {
         await user.press(manageTeamOption);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, ROUTES.ONBOARDING_PURPOSE.route));
         });
 
         unmount();
