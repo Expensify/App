@@ -11473,6 +11473,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         modifiedMerchant: '',
         modifiedAttendees: undefined,
         mccGroup,
+        // Clear the transaction participants; they will be set when the user selects a recipient in the next step.
+        // This prevents stale participants when submitting to someone in a self DM.
         participants: undefined,
     } as Transaction);
 
