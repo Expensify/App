@@ -360,6 +360,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                             value={searchAdvancedFiltersForm[filterKey] ?? []}
                             label={translate(label)}
                             closeOverlay={closeOverlay}
+                            shouldScopeToVisibleWorkspaceMembers={filterKey === FILTER_KEYS.FROM}
                             onChange={(selectedUsers) => {
                                 const update: Partial<SearchAdvancedFiltersForm> = {};
                                 update[filterKey] = selectedUsers;

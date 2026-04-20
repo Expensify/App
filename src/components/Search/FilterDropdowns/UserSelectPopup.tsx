@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -13,10 +13,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {getNonVisibleWorkspaceMemberExclusionLogins, getVisibleWorkspaceMemberLogins} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import BasePopup from './BasePopup';
 
 type UserSelectPopupProps = {
@@ -38,9 +40,41 @@ type UserSelectPopupProps = {
      * Set to true to always show search, or false to never show search regardless of user count.
      */
     isSearchable?: boolean;
+
+    /** Whether to scope suggestions to visible workspace members while preserving free-text entry */
+    shouldScopeToVisibleWorkspaceMembers?: boolean;
 };
 
-function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
+function getFreeTextOption(identifier: string): OptionData {
+    return {
+        text: identifier,
+        alternateText: identifier,
+        login: identifier,
+        displayName: identifier,
+        accountID: CONST.DEFAULT_NUMBER_ID,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: '-1',
+        keyForList: identifier,
+        selected: true,
+        isSelected: true,
+        icons: [],
+        searchText: identifier,
+    };
+}
+
+function getOptionFromStoredValue(identifier: string, personalDetails: PersonalDetailsList | undefined, shouldAllowFreeText: boolean): OptionData | undefined {
+    const participant = personalDetails?.[identifier] ?? Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === identifier.toLowerCase());
+    if (participant) {
+        return {
+            ...getParticipantsOption(participant, personalDetails),
+            isSelected: true,
+        } as OptionData;
+    }
+
+    return shouldAllowFreeText ? getFreeTextOption(identifier) : undefined;
+}
+
+function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable, shouldScopeToVisibleWorkspaceMembers = false}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,27 +83,29 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserLogin = currentUserPersonalDetails.login ?? currentUserPersonalDetails.email ?? '';
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const visibleWorkspaceMemberLogins = useMemo(
+        () => (shouldScopeToVisibleWorkspaceMembers ? getVisibleWorkspaceMemberLogins(allPolicies, currentUserLogin) : CONST.EMPTY_OBJECT),
+        [allPolicies, currentUserLogin, shouldScopeToVisibleWorkspaceMembers],
+    );
+    const excludeFromSuggestionsOnly = useMemo(
+        () => (shouldScopeToVisibleWorkspaceMembers ? getNonVisibleWorkspaceMemberExclusionLogins(personalDetails, visibleWorkspaceMemberLogins) : CONST.EMPTY_OBJECT),
+        [personalDetails, shouldScopeToVisibleWorkspaceMembers, visibleWorkspaceMemberLogins],
+    );
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((options, id) => {
-            const participant = personalDetails?.[id];
-            if (!participant) {
+            const optionData = getOptionFromStoredValue(id, personalDetails, shouldScopeToVisibleWorkspaceMembers);
+            if (!optionData) {
                 return options;
             }
 
-            const optionData = {
-                ...getParticipantsOption(participant, personalDetails),
-                isSelected: true,
-            };
-
-            if (optionData) {
-                options.push(optionData as OptionData);
-            }
-
+            options.push(optionData);
             return options;
         }, []);
-    }, [value, personalDetails]);
+    }, [value, personalDetails, shouldScopeToVisibleWorkspaceMembers]);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} =
         useSearchSelector({
@@ -77,9 +113,12 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
             initialSelected: initialSelectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeFromSuggestionsOnly,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            includeUserToInvite: false,
+            includeUserToInvite: shouldScopeToVisibleWorkspaceMembers,
             includeCurrentUser: true,
+            includeRecentReports: !shouldScopeToVisibleWorkspaceMembers,
+            shouldAllowNameOnlyOptions: shouldScopeToVisibleWorkspaceMembers,
         });
 
     const listData = useMemo(() => {
@@ -87,11 +126,16 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             ...participant,
             keyForList: String(participant.accountID),
         }));
-        const recentReports = availableOptions.recentReports.map((report) => ({
-            ...report,
-            keyForList: String(report.reportID),
-        }));
-        const combinedOptions = [...selectedOptionsForDisplay, ...personalDetailsList, ...recentReports];
+        const recentReports = shouldScopeToVisibleWorkspaceMembers
+            ? []
+            : availableOptions.recentReports.map((report) => ({
+                  ...report,
+                  keyForList: String(report.reportID),
+              }));
+        const userToInvite = availableOptions.userToInvite
+            ? [{...availableOptions.userToInvite, keyForList: availableOptions.userToInvite.keyForList ?? availableOptions.userToInvite.login ?? ''}]
+            : [];
+        const combinedOptions = [...selectedOptionsForDisplay, ...userToInvite, ...personalDetailsList, ...recentReports];
 
         // Sort the options so that selected items appear first, and the current user appears right after that, followed by the rest of the options in their original order
         combinedOptions.sort((a, b) => {
@@ -118,7 +162,14 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             keyForList: option.keyForList ?? option.login ?? '',
         }));
         return combinedOptionsWithKeyForList;
-    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID]);
+    }, [
+        availableOptions.personalDetails,
+        availableOptions.recentReports,
+        availableOptions.userToInvite,
+        selectedOptionsForDisplay,
+        currentUserAccountID,
+        shouldScopeToVisibleWorkspaceMembers,
+    ]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
@@ -134,10 +185,23 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
     );
 
     const applyChanges = useCallback(() => {
-        const accountIDs = selectedOptions.flatMap((option) => (option.accountID ? [option.accountID.toString()] : []));
+        const selectedUsers = selectedOptions
+            .map((option) => {
+                if (!shouldScopeToVisibleWorkspaceMembers) {
+                    return option.accountID ? option.accountID.toString() : undefined;
+                }
+
+                if (option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID && personalDetails?.[option.accountID]) {
+                    return option.accountID.toString();
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
+                return option.displayName || option.login || option.text;
+            })
+            .filter(Boolean) as string[];
         closeOverlay();
-        onChange(accountIDs);
-    }, [closeOverlay, onChange, selectedOptions]);
+        onChange(selectedUsers);
+    }, [closeOverlay, onChange, personalDetails, selectedOptions, shouldScopeToVisibleWorkspaceMembers]);
 
     const resetChanges = useCallback(() => {
         onChange([]);
@@ -145,16 +209,9 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const [totalOptionsCount, setTotalOptionsCount] = useState(() => selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+    const optionsCount = selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length + (availableOptions.userToInvite ? 1 : 0);
 
-    useEffect(() => {
-        if (debouncedSearchTerm) {
-            return;
-        }
-        setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
-    }, [debouncedSearchTerm, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
-
-    const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = shouldScopeToVisibleWorkspaceMembers || !!debouncedSearchTerm || (isSearchable ?? optionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT);
 
     const textInputOptions = useMemo(
         () =>

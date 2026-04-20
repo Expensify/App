@@ -2743,6 +2743,7 @@ type SearchOptionsConfig = {
     includeUserToInvite?: boolean;
     includeRecentReports?: boolean;
     includeCurrentUser?: boolean;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
     countryCode?: number;
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
@@ -2772,6 +2773,7 @@ function getSearchOptions({
     includeUserToInvite,
     includeRecentReports = true,
     includeCurrentUser = false,
+    excludeFromSuggestionsOnly = {},
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
@@ -2801,6 +2803,7 @@ function getSearchOptions({
         excludeHiddenThreads: true,
         maxElements: maxResults,
         includeCurrentUser,
+        excludeFromSuggestionsOnly,
         searchString: searchQuery,
         includeUserToInvite,
         shouldShowGBR,

@@ -490,6 +490,50 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 }
 
 /**
+ * Get visible workspace member logins for customer-facing member selectors.
+ * This reads policy employeeList keys directly so results do not depend on personal details hydration.
+ */
+function getVisibleWorkspaceMemberLogins(policies: OnyxCollection<Policy> | undefined, currentUserLogin: string | undefined, isOffline = false): Record<string, boolean> {
+    const visibleWorkspaceMemberLogins: Record<string, boolean> = {};
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !isPaidGroupPolicy(policy) || isPendingDeletePolicy(policy)) {
+            continue;
+        }
+
+        const shouldHideExpensifyTeam = shouldFilterExpensifyTeam(policy.owner, currentUserLogin);
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
+            if (!email || isDeletedPolicyEmployee(policyEmployee, isOffline) || (shouldHideExpensifyTeam && isExpensifyTeam(email))) {
+                continue;
+            }
+
+            visibleWorkspaceMemberLogins[email.toLowerCase()] = true;
+        }
+    }
+
+    return visibleWorkspaceMemberLogins;
+}
+
+/**
+ * Build a soft-exclusion map for hydrated personal details that are not visible workspace members.
+ * Callers can still accept manually typed values while hiding these entries from suggestions.
+ */
+function getNonVisibleWorkspaceMemberExclusionLogins(personalDetails: OnyxEntry<PersonalDetailsList>, visibleWorkspaceMemberLogins: Record<string, boolean>): Record<string, boolean> {
+    const exclusions: Record<string, boolean> = {};
+
+    for (const personalDetail of Object.values(personalDetails ?? {})) {
+        const login = personalDetail?.login;
+        if (!login || visibleWorkspaceMemberLogins[login.toLowerCase()]) {
+            continue;
+        }
+
+        exclusions[login] = true;
+    }
+
+    return exclusions;
+}
+
+/**
  * Checks if the current user is of the role "user" on the policy.
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
@@ -2167,6 +2211,8 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
+    getVisibleWorkspaceMemberLogins,
+    getNonVisibleWorkspaceMemberExclusionLogins,
     getHRConnectionNames,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,

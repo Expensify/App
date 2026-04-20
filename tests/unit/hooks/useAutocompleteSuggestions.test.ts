@@ -36,21 +36,38 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
 }));
 
 jest.mock('@libs/OptionsListUtils', () => ({
-    getSearchOptions: jest.fn(() => ({
-        personalDetails: [
+    getSearchOptions: jest.fn(({excludeFromSuggestionsOnly = {}}: {excludeFromSuggestionsOnly?: Record<string, boolean>} = {}) => {
+        const personalDetails = [
             {text: 'John Doe', login: 'john@example.com', accountID: 1},
             {text: 'Jane Smith', login: 'jane@example.com', accountID: 2},
-        ],
-        recentReports: [
-            {text: 'General Chat', reportID: 'report1'},
-            {text: 'Team Updates', reportID: 'report2'},
-        ],
-    })),
+            {text: 'Account Manager', login: 'account.manager@expensify.com', accountID: 3},
+        ];
+
+        return {
+            personalDetails: personalDetails.filter((personalDetail) => !excludeFromSuggestionsOnly[personalDetail.login]),
+            recentReports: [
+                {text: 'General Chat', reportID: 'report1'},
+                {text: 'Team Updates', reportID: 'report2'},
+            ],
+        };
+    }),
 }));
 
 jest.mock('@libs/PolicyUtils', () => ({
     getAllTaxRates: jest.fn(() => ({})),
     getCleanedTagName: jest.fn((tag: string) => tag),
+    getVisibleWorkspaceMemberLogins: jest.fn(() => Object.fromEntries([['john@example.com', true]])),
+    getNonVisibleWorkspaceMemberExclusionLogins: jest.fn((personalDetails: Record<string, {login?: string} | null> = {}, visibleWorkspaceMemberLogins: Record<string, boolean> = {}) => {
+        const exclusions: Record<string, boolean> = {};
+        for (const personalDetail of Object.values(personalDetails)) {
+            const login = personalDetail?.login;
+            if (!login || visibleWorkspaceMemberLogins[login.toLowerCase()]) {
+                continue;
+            }
+            exclusions[login] = true;
+        }
+        return exclusions;
+    }),
     shouldShowPolicy: jest.fn(() => true),
 }));
 
@@ -193,6 +210,50 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
         expect(result.current.at(0)?.mapKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+    });
+
+    it('scopes from suggestions to visible workspace members', () => {
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
+            ranges: [],
+        });
+        const personalDetails = Object.fromEntries([
+            ['1', {accountID: 1, login: 'john@example.com'}],
+            ['2', {accountID: 2, login: 'jane@example.com'}],
+            ['3', {accountID: 3, login: 'account.manager@expensify.com'}],
+        ]);
+
+        const {result} = renderHook(() =>
+            useAutocompleteSuggestions({
+                ...defaultParams,
+                autocompleteQueryValue: 'from:',
+                personalDetails,
+            }),
+        );
+
+        expect(result.current.map((item) => item.text)).toEqual(['John Doe']);
+    });
+
+    it('does not scope to: suggestions to visible workspace members', () => {
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, value: ''},
+            ranges: [],
+        });
+        const personalDetails = Object.fromEntries([
+            ['1', {accountID: 1, login: 'john@example.com'}],
+            ['2', {accountID: 2, login: 'jane@example.com'}],
+            ['3', {accountID: 3, login: 'account.manager@expensify.com'}],
+        ]);
+
+        const {result} = renderHook(() =>
+            useAutocompleteSuggestions({
+                ...defaultParams,
+                autocompleteQueryValue: 'to:',
+                personalDetails,
+            }),
+        );
+
+        expect(result.current.map((item) => item.text)).toEqual(['John Doe', 'Jane Smith', 'Account Manager']);
     });
 
     it('returns type suggestions when autocomplete key is type', () => {

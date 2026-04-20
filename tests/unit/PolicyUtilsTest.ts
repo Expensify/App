@@ -17,6 +17,7 @@ import {
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
+    getNonVisibleWorkspaceMemberExclusionLogins,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
     getRateDisplayValue,
@@ -26,6 +27,7 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    getVisibleWorkspaceMemberLogins,
     hasConfiguredRules,
     hasDependentTags,
     hasDynamicExternalWorkflow,
@@ -230,6 +232,101 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('getVisibleWorkspaceMemberLogins', () => {
+        const makePolicy = (id: string, owner: string, policyEmployeeList: PolicyEmployeeList, type: Policy['type'] = CONST.POLICY.TYPE.TEAM): Policy =>
+            ({
+                id,
+                name: `Policy ${id}`,
+                type,
+                role: CONST.POLICY.ROLE.USER,
+                owner,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: policyEmployeeList,
+            }) as Policy;
+
+        it('hides Expensify team members for external customers', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: makePolicy('1', 'owner@example.com', {
+                    'owner@example.com': {email: 'owner@example.com'},
+                    'employee@example.com': {email: 'employee@example.com'},
+                    'account.manager@expensify.com': {email: 'account.manager@expensify.com'},
+                    'guide@team.expensify.com': {email: 'guide@team.expensify.com'},
+                }),
+            };
+
+            expect(getVisibleWorkspaceMemberLogins(policies, 'employee@example.com')).toEqual({
+                'owner@example.com': true,
+                'employee@example.com': true,
+            });
+        });
+
+        it('shows Expensify team members for internal workspaces or internal viewers', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: makePolicy('1', 'owner@expensify.com', {
+                    'owner@expensify.com': {email: 'owner@expensify.com'},
+                    'employee@example.com': {email: 'employee@example.com'},
+                    'guide@team.expensify.com': {email: 'guide@team.expensify.com'},
+                }),
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: makePolicy('2', 'customer@example.com', {
+                    'account.manager@expensify.com': {email: 'account.manager@expensify.com'},
+                }),
+            };
+
+            expect(getVisibleWorkspaceMemberLogins(policies, 'employee@team.expensify.com')).toEqual({
+                'owner@expensify.com': true,
+                'employee@example.com': true,
+                'guide@team.expensify.com': true,
+                'account.manager@expensify.com': true,
+            });
+        });
+
+        it('excludes deleted members and non-workspace policies without personal details hydration', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: makePolicy('1', 'owner@example.com', {
+                    'visible@example.com': {email: 'visible@example.com'},
+                    'deleted@example.com': {email: 'deleted@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                }),
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: makePolicy(
+                    '2',
+                    'owner@example.com',
+                    {
+                        'personal@example.com': {email: 'personal@example.com'},
+                    },
+                    CONST.POLICY.TYPE.PERSONAL,
+                ),
+                [`${ONYXKEYS.COLLECTION.POLICY}3`]: {
+                    ...makePolicy('3', 'owner@example.com', {
+                        'deleted-policy@example.com': {email: 'deleted-policy@example.com'},
+                    }),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(getVisibleWorkspaceMemberLogins(policies, 'visible@example.com')).toEqual({
+                'visible@example.com': true,
+            });
+        });
+    });
+
+    describe('getNonVisibleWorkspaceMemberExclusionLogins', () => {
+        it('builds suggestion-only exclusions from personal details outside the visible workspace member allowlist', () => {
+            expect(
+                getNonVisibleWorkspaceMemberExclusionLogins(
+                    {
+                        1: {accountID: 1, login: 'visible@example.com'},
+                        2: {accountID: 2, login: 'hidden@expensify.com'},
+                        3: {accountID: 3, login: 'other@example.com'},
+                    },
+                    {'visible@example.com': true},
+                ),
+            ).toEqual({
+                'hidden@expensify.com': true,
+                'other@example.com': true,
+            });
         });
     });
 

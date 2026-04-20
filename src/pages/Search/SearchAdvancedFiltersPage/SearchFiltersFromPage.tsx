@@ -34,6 +34,7 @@ function SearchFiltersFromPage() {
             <View style={[styles.flex1]}>
                 <SearchFiltersParticipantsSelector
                     initialAccountIDs={searchAdvancedFiltersForm?.from ?? []}
+                    shouldScopeToVisibleWorkspaceMembers
                     onFiltersUpdate={(selectedAccountIDs) => {
                         updateAdvancedFilters({
                             from: selectedAccountIDs,

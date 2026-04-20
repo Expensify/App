@@ -7,7 +7,7 @@ import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtil
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getNonVisibleWorkspaceMemberExclusionLogins, getVisibleWorkspaceMemberLogins, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -213,6 +213,10 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+            const excludeFromSuggestionsOnly =
+                autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM
+                    ? getNonVisibleWorkspaceMemberExclusionLogins(personalDetails, getVisibleWorkspaceMemberLogins(policies, currentUserEmail))
+                    : CONST.EMPTY_OBJECT;
             const participants = getSearchOptions({
                 options,
                 draftComments,
@@ -225,6 +229,7 @@ function useAutocompleteSuggestions({
                 includeUserToInvite: false,
                 includeRecentReports: false,
                 includeCurrentUser: true,
+                excludeFromSuggestionsOnly,
                 countryCode,
                 loginList,
                 shouldShowGBR: true,

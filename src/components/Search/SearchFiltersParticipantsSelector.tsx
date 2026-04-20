@@ -11,6 +11,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
+import {getNonVisibleWorkspaceMemberExclusionLogins, getVisibleWorkspaceMemberLogins} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -55,9 +56,17 @@ type SearchFiltersParticipantsSelectorProps = {
 
     /** Whether to allow name-only options (for attendee filter only) */
     shouldAllowNameOnlyOptions?: boolean;
+
+    /** Whether to scope suggestions to visible workspace members while preserving free-text entry */
+    shouldScopeToVisibleWorkspaceMembers?: boolean;
 };
 
-function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, shouldAllowNameOnlyOptions = false}: SearchFiltersParticipantsSelectorProps) {
+function SearchFiltersParticipantsSelector({
+    initialAccountIDs,
+    onFiltersUpdate,
+    shouldAllowNameOnlyOptions = false,
+    shouldScopeToVisibleWorkspaceMembers = false,
+}: SearchFiltersParticipantsSelectorProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -67,8 +76,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserLogin = currentUserPersonalDetails.login ?? currentUserEmail;
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const shouldAllowFreeTextOptions = shouldAllowNameOnlyOptions || shouldScopeToVisibleWorkspaceMembers;
+    const visibleWorkspaceMemberLogins = useMemo(
+        () => (shouldScopeToVisibleWorkspaceMembers ? getVisibleWorkspaceMemberLogins(allPolicies, currentUserLogin) : CONST.EMPTY_OBJECT),
+        [allPolicies, currentUserLogin, shouldScopeToVisibleWorkspaceMembers],
+    );
+    const excludeFromSuggestionsOnly = useMemo(
+        () => (shouldScopeToVisibleWorkspaceMembers ? getNonVisibleWorkspaceMemberExclusionLogins(personalDetails, visibleWorkspaceMemberLogins) : CONST.EMPTY_OBJECT),
+        [personalDetails, shouldScopeToVisibleWorkspaceMembers, visibleWorkspaceMemberLogins],
+    );
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
@@ -82,11 +101,12 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         includeUserToInvite: true,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
+        excludeFromSuggestionsOnly,
+        includeRecentReports: !shouldScopeToVisibleWorkspaceMembers,
         shouldInitialize: didScreenTransitionEnd,
         includeCurrentUser: true,
         recentAttendees: recentAttendeeLists,
-        shouldAllowNameOnlyOptions,
+        shouldAllowNameOnlyOptions: shouldAllowFreeTextOptions,
     });
 
     const {sections, headerMessage} = useMemo(() => {
@@ -146,6 +166,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             data: formattedResults.section.data.map((option) => ({...option, isSelected: true})) as OptionData[],
         });
 
+        if (chatOptions.userToInvite) {
+            newSections.push({
+                title: '',
+                data: [chatOptions.userToInvite],
+                sectionIndex: 1,
+            });
+        }
+
         // Filter current user from recentReports to avoid duplicate with currentUserOption section
         // Only filter if both the report and currentUserOption have valid accountIDs to avoid
         // accidentally filtering out name-only attendees (which have accountID: undefined)
@@ -156,16 +184,16 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         newSections.push({
             title: '',
             data: filteredRecentReports,
-            sectionIndex: 1,
+            sectionIndex: 2,
         });
 
         newSections.push({
             title: '',
             data: chatOptions.personalDetails,
-            sectionIndex: 2,
+            sectionIndex: 3,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
+        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption && !chatOptions.userToInvite;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
@@ -193,7 +221,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const applyChanges = useCallback(() => {
         let selectedIdentifiers: string[];
 
-        if (shouldAllowNameOnlyOptions) {
+        if (shouldAllowFreeTextOptions) {
             selectedIdentifiers = selectedOptions
                 .map((option) => {
                     // For real users (with valid accountID in personalDetails), use accountID
@@ -201,9 +229,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         return option.accountID.toString();
                     }
 
-                    // For name-only attendees, use displayName or login as identifier
+                    // For name-only attendees and free-text From values, use the typed identifier
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
-                    return option.displayName || option.login;
+                    return option.displayName || option.login || option.text;
                 })
                 .filter(Boolean) as string[];
         } else {
@@ -212,21 +240,22 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         onFiltersUpdate(selectedIdentifiers);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onFiltersUpdate, selectedOptions, personalDetails, shouldAllowNameOnlyOptions]);
+    }, [onFiltersUpdate, selectedOptions, personalDetails, shouldAllowFreeTextOptions]);
 
     // This effect handles setting initial selectedOptions based on accountIDs (or displayNames for attendee filter)
     useEffect(() => {
-        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
+        if (!initialAccountIDs || initialAccountIDs.length === 0 || (!personalDetails && !shouldAllowFreeTextOptions)) {
             return;
         }
 
         let preSelectedOptions: OptionData[];
 
-        if (shouldAllowNameOnlyOptions) {
+        if (shouldAllowFreeTextOptions) {
             preSelectedOptions = initialAccountIDs
                 .map((identifier) => {
                     // First, try to look up as accountID in personalDetails
-                    const participant = personalDetails[identifier];
+                    const participant =
+                        personalDetails?.[identifier] ?? Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === identifier.toLowerCase());
                     if (participant) {
                         const optionData = {
                             ...getParticipantsOption(participant, personalDetails),
@@ -237,7 +266,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
                     // If not found in personalDetails, this might be a name-only attendee
                     // Search in recentAttendees by displayName or email
-                    const attendee = recentAttendees?.find((recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier);
+                    const attendee = shouldAllowNameOnlyOptions
+                        ? recentAttendees?.find((recentAttendee) => recentAttendee.displayName === identifier || recentAttendee.email === identifier)
+                        : undefined;
                     if (attendee) {
                         return getOptionDataFromAttendee(attendee);
                     }
@@ -252,7 +283,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         accountID: CONST.DEFAULT_NUMBER_ID,
                         // eslint-disable-next-line rulesdir/no-default-id-values
                         reportID: '-1',
+                        keyForList: identifier,
                         selected: true,
+                        isSelected: true,
                         icons: [],
                         searchText: identifier,
                     };
@@ -261,7 +294,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         } else {
             preSelectedOptions = initialAccountIDs
                 .map((accountID) => {
-                    const participant = personalDetails[accountID];
+                    const participant = personalDetails?.[accountID];
                     if (!participant) {
                         return undefined;
                     }
@@ -276,7 +309,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         setSelectedOptions(preSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
-    }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
+    }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions, shouldAllowFreeTextOptions]);
 
     const handleParticipantSelection = useCallback(
         (option: OptionData) => {
