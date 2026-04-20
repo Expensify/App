@@ -1832,7 +1832,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>): Route {
 /**
  * Check if personal detail of accountID is empty or optimistic data
  */
-function isOptimisticPersonalDetail(accountID: number, personalDetail: PersonalDetails | undefined): boolean {
+function isOptimisticPersonalDetail(accountID: number, personalDetail: PersonalDetails | null | undefined): boolean {
     // TODO: Remove fallback once all callers pass personalDetail (https://github.com/Expensify/App/issues/66413)
     const resolvedPersonalDetail = personalDetail ?? allPersonalDetails?.[accountID];
     return isEmptyObject(resolvedPersonalDetail) || !!resolvedPersonalDetail?.isOptimisticPersonalDetail;
