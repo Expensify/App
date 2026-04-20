@@ -36,7 +36,7 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -64,7 +64,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_DETAILS);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS);
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, session?.email);
@@ -133,7 +133,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
-                Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
+                Navigation.navigate(nextRoute.getRoute());
                 return;
             }
 
@@ -145,7 +145,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute());
                 return;
             }
 
@@ -161,7 +161,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             isSmb,
             completeOnboarding,
             isValidated,
-            route.params?.backTo,
             autoCreateTrackWorkspace,
         ],
     );
@@ -221,7 +220,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         return;
                     }
 
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />

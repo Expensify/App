@@ -9,16 +9,19 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path, ROUTES.ONBOARDING_PURPOSE.route);
 
 TestHelper.setupGlobalFetchMock();
 
@@ -141,7 +144,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -162,7 +165,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH});
 
         await waitForBatchedUpdatesWithAct();
 

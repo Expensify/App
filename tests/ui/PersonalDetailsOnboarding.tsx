@@ -38,8 +38,8 @@ const mockLoginList = {
 };
 
 const renderOnboardingPersonalDetailsPage = (
-    initialRouteName: typeof SCREENS.ONBOARDING.PERSONAL_DETAILS,
-    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.PERSONAL_DETAILS],
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -47,7 +47,7 @@ const renderOnboardingPersonalDetailsPage = (
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                            name={SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS}
                             component={OnboardingPersonalDetails}
                             initialParams={initialParams}
                         />
@@ -96,7 +96,7 @@ describe('OnboardingPersonalDetails Page', () => {
             await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         });
 
-        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
+        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -128,7 +128,7 @@ describe('OnboardingPersonalDetails Page', () => {
             await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         });
 
-        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
+        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, undefined);
 
         await waitForBatchedUpdatesWithAct();
 

@@ -285,6 +285,10 @@ const DYNAMIC_ROUTES = {
         path: 'role',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE, SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER, SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW],
     },
+    ONBOARDING_PERSONAL_DETAILS: {
+        path: 'personal-details',
+        entryScreens: [SCREENS.ONBOARDING.PURPOSE],
+    },
     KEYBOARD_SHORTCUTS: {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
@@ -3226,12 +3230,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_PERSONAL_DETAILS: {
-        route: 'onboarding/personal-details',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',

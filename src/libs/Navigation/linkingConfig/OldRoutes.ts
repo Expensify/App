@@ -6,6 +6,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
     '/flag/*/*': '/r/$1/flag/$1/$2',
+    '/onboarding/personal-details': '/onboarding/purpose/personal-details',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */
 };

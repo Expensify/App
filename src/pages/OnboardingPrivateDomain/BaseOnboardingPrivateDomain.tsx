@@ -11,16 +11,19 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPrivateDomainProps} from './types';
+
+const ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path, ROUTES.ONBOARDING_PURPOSE.route);
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
@@ -58,7 +61,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+        const routeToNavigate = (route.params?.backTo as Route) ?? ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH;
         Navigation.goBack(routeToNavigate);
     }, [route.params?.backTo, onboardingValues]);
 
@@ -75,7 +78,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
 
         if (joinablePoliciesLength > 0) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
             return;
         }
 
@@ -83,14 +86,14 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
             if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
                 return;
             }
             if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
                 return;
             }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH), {forceReplace: true});
         }
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb]);
 

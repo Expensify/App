@@ -52,7 +52,7 @@ function OnboardingModalNavigator() {
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
 
     if (isOnPrivateDomainAndHasAccessiblePolicies) {
-        initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
+        initialRouteName = SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS;
     }
 
     if (account?.isFromPublicDomain) {
@@ -129,7 +129,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingPurpose}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
                             />
                             <Stack.Screen

@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -14,7 +15,7 @@ import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
@@ -134,7 +135,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         if (onboardingInitialPath) {
             return onboardingInitialPath;
         }
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+        return `/${createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path, ROUTES.ONBOARDING_PURPOSE.route)}`;
     }
 
     if (isVsb) {
