@@ -1,22 +1,22 @@
 import React, {useEffect} from 'react';
-import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import useFilterFeedData from '@components/Search/hooks/useFilterFeedData';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
-import MultiSelectFilterPopup from './MultiSelectFilterPopup';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-type FeedFilterPopupProps = {
+type FeedSelectPopupProps = {
     isExpanded: boolean;
-    items: Array<MultiSelectItem<string>>;
-    value: Array<MultiSelectItem<string>>;
     closeOverlay: () => void;
-    onChangeCallback: (items: Array<MultiSelectItem<string>>) => void;
+    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function FeedFilterPopup({closeOverlay, items, value, isExpanded, onChangeCallback}: FeedFilterPopupProps) {
+function FeedSelectPopup({isExpanded, updateFilterForm, closeOverlay}: FeedSelectPopupProps) {
     const {isOffline} = useNetwork();
     const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
+    const {feedOptions, feedValue} = useFilterFeedData();
 
     useEffect(() => {
         if (isOffline || !isExpanded) {
@@ -29,14 +29,14 @@ function FeedFilterPopup({closeOverlay, items, value, isExpanded, onChangeCallba
 
     return (
         <MultiSelectFilterPopup
-            items={items}
-            value={value}
+            items={feedOptions}
+            value={feedValue}
             loading={shouldShowLoadingState}
             translationKey="search.filters.feed"
             closeOverlay={closeOverlay}
-            onChangeCallback={onChangeCallback}
+            onChangeCallback={(items) => updateFilterForm({feed: items.map((item) => item.value)})}
         />
     );
 }
 
-export default FeedFilterPopup;
+export default FeedSelectPopup;
