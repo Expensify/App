@@ -60,6 +60,12 @@ type ParentNavigationSubtitleProps = {
 
     /** The number of lines for the subtitle */
     subtitleNumberOfLines?: number;
+
+    /** AccountID of the human agent assisting Concierge, gates the "- assisted by [...]" suffix */
+    humanAgentAccountID?: number;
+
+    /** Display name of the human agent; falls back to a generic label when missing */
+    humanAgentName?: string;
 };
 
 function ParentNavigationSubtitle({
@@ -75,6 +81,8 @@ function ParentNavigationSubtitle({
     statusTextColor,
     statusTextContainerStyles,
     subtitleNumberOfLines = 1,
+    humanAgentAccountID,
+    humanAgentName,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -226,6 +234,11 @@ function ParentNavigationSubtitle({
                             <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{reportName}</Text>
                         )}
                     </>
+                )}
+                {!!humanAgentAccountID && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>
+                        {` - ${translate('reportAction.assistedBy', humanAgentName ?? translate('reportAction.humanSupportAgent'))}`}
+                    </Text>
                 )}
                 {!!workspaceName && workspaceName !== reportName && (
                     <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>

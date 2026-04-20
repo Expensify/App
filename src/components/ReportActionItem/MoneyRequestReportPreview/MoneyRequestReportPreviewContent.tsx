@@ -18,9 +18,9 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,7 +28,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
@@ -136,6 +135,7 @@ function MoneyRequestReportPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
@@ -157,7 +157,6 @@ function MoneyRequestReportPreviewContent({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -710,7 +709,6 @@ function MoneyRequestReportPreviewContent({
                                                 onPaymentOptionsHide={onPaymentOptionsHide}
                                                 openReportFromPreview={openReportFromPreview}
                                                 onHoldMenuOpen={handleHoldMenuOpen}
-                                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                                                 transactionPreviewCarouselWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
                                             />
                                             {transactions.length > 1 && !shouldShowAccessPlaceHolder && (
@@ -747,7 +745,6 @@ function MoneyRequestReportPreviewContent({
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
-                                transactions={transactions}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
                                 onConfirm={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {

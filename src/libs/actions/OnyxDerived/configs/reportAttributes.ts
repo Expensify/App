@@ -185,6 +185,7 @@ export default createOnyxDerivedValueConfig({
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
+                dataToIterate = [];
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -271,7 +272,7 @@ export default createOnyxDerivedValueConfig({
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
+                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID);
 
                 let brickRoadStatus;
                 let actionBadge;

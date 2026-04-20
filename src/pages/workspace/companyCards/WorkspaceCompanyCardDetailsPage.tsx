@@ -67,8 +67,9 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
 
     const {isOffline} = useNetwork();
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
+    const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
     const {showConfirmModal} = useConfirmModal();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);

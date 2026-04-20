@@ -76,7 +76,6 @@ function useReceiptScan({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
@@ -132,7 +131,7 @@ function useReceiptScan({
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
-            shouldGenerateTransactionThreadReport,
+            shouldGenerateTransactionThreadReport: false,
             isArchivedExpenseReport: isArchived,
             isAutoReporting: !!personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,

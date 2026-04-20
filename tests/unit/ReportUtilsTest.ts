@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -119,6 +119,7 @@ import {
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
+    isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
     isArchivedReport,
@@ -4871,7 +4872,7 @@ describe('ReportUtils', () => {
                 },
             ]);
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID)).toEqual({
                 canHoldRequest: true,
                 canUnholdRequest: false,
             });
@@ -4909,10 +4910,162 @@ describe('ReportUtils', () => {
             const transactionThreadReportHoldReportAction = getReportAction(transactionThreadReport.reportID, `${expenseTransactionUpdated?.comment?.hold ?? ''}`);
 
             // canUnholdRequest should be true after the transaction is held.
-            expect(canHoldUnholdReportAction(expenseReportUpdated, expenseCreatedActionUpdated, transactionThreadReportHoldReportAction, expenseTransactionUpdated, undefined)).toEqual({
+            expect(
+                canHoldUnholdReportAction(
+                    expenseReportUpdated,
+                    expenseCreatedActionUpdated,
+                    transactionThreadReportHoldReportAction,
+                    expenseTransactionUpdated,
+                    undefined,
+                    currentUserAccountID,
+                ),
+            ).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: true,
             });
+        });
+
+        it('should return false for admin-only on open expense report', () => {
+            const expenseReport = {
+                ...createExpenseReport(1001),
+                policyID: 'policy-1',
+                ownerAccountID: 99999,
+                managerID: 99998,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+            expenseCreatedAction.actorAccountID = 99997;
+            const adminPolicy = {
+                id: expenseReport.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, adminPolicy, currentUserAccountID)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should return false for non-admin action owner when processing report is not awaiting first level approval', () => {
+            const expenseReport = {
+                ...createExpenseReport(1002),
+                policyID: 'policy-2',
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should return true for manager on processing expense report', () => {
+            const expenseReport = {
+                ...createExpenseReport(1003),
+                policyID: 'policy-3',
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+            expenseCreatedAction.actorAccountID = 99996;
+
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
+        });
+    });
+
+    describe('isAdminOwnerApproverOrReportOwner uses explicit currentUserAccountID', () => {
+        it('should use the passed currentUserAccountID instead of the Onyx session value', () => {
+            const approverAccountID = 42;
+
+            const report: Report = {
+                ...createExpenseReport(300),
+                managerID: approverAccountID,
+                ownerAccountID: 999,
+            };
+            const testPolicy: Policy = {
+                ...createRandomPolicy(1),
+                ownerAccountID: 888,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, approverAccountID)).toBe(true);
+            expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, currentUserAccountID)).toBe(false);
+            expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, undefined)).toBe(false);
+        });
+    });
+
+    describe('canLeaveChat uses explicit currentUserAccountID', () => {
+        it('should use the passed currentUserAccountID for IOU owner/manager check instead of the Onyx session value', () => {
+            const ownerAccountID = 100;
+            const managerAccountID = 200;
+            const unrelatedAccountID = 999;
+
+            const report: Report = {
+                reportID: '400',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+                managerID: managerAccountID,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, ownerAccountID]),
+            };
+
+            expect(canLeaveChat(report, undefined, unrelatedAccountID)).toBe(true);
+            expect(canLeaveChat(report, undefined, ownerAccountID)).toBe(false);
+            expect(canLeaveChat(report, undefined, managerAccountID)).toBe(false);
         });
     });
 
@@ -5527,6 +5680,115 @@ describe('ReportUtils', () => {
 
             expect(canEditReportAction(reportAction, transaction)).toEqual(false);
         });
+
+        it('should return false for a money request action on a settled expense report', async () => {
+            const settledReport: Report = {
+                reportID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const transaction = createRandomTransaction(200);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '200',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: settledReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for a money request action on an approved expense report', async () => {
+            const approvedReport: Report = {
+                reportID: '201',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            const transaction = createRandomTransaction(201);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '201',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: approvedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for a money request action on a closed expense report', async () => {
+            const closedReport: Report = {
+                reportID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            const transaction = createRandomTransaction(202);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '202',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: closedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
     });
 
     describe('getChatByParticipants', () => {
@@ -5583,8 +5845,7 @@ describe('ReportUtils', () => {
                 [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
                 (item) => item.reportID,
             );
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT>);
         });
         it('should return the 1:1 chat', () => {
             const report = getChatByParticipants([currentUserAccountID, userAccountID]);
@@ -6882,8 +7143,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
         });
@@ -6913,8 +7173,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
         });
@@ -9108,7 +9367,7 @@ describe('ReportUtils', () => {
         it('should return true for root group chat', () => {
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
 
-            expect(canLeaveChat(report, undefined)).toBe(true);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
         });
 
         it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
@@ -9123,7 +9382,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(true);
         });
 
         it('should return false if the chat is public room and the user is the guest', async () => {
@@ -9134,7 +9393,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
 
-            expect(canLeaveChat(report, undefined)).toBe(false);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
         });
 
         it('should return false if the report is hidden for the current user', async () => {
@@ -9151,7 +9410,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canLeaveChat(report, undefined)).toBe(false);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
         });
 
         it('should return false for selfDM reports', () => {
@@ -9160,7 +9419,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            expect(canLeaveChat(report, undefined)).toBe(false);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(false);
         });
 
         it('should return false for the public announce room if the user is a member of the policy', () => {
@@ -9174,7 +9433,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy)).toBe(false);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(false);
         });
 
         it('should return true for the invoice room if the user is not the sender or receiver', async () => {
@@ -9195,7 +9454,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(true);
         });
 
         it('should return true for chat thread if the user is joined', async () => {
@@ -9209,7 +9468,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canLeaveChat(report, undefined)).toBe(true);
+            expect(canLeaveChat(report, undefined, currentUserAccountID, false)).toBe(true);
         });
 
         it('should return true for user created policy room', async () => {
@@ -9225,7 +9484,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.USER,
             };
 
-            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+            expect(canLeaveChat(report, reportPolicy, currentUserAccountID, false)).toBe(true);
         });
     });
 
@@ -9991,6 +10250,21 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
         });
+
+        it('should return "Deleted" when isDeleted is true', () => {
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, isDeleted: true, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.deleted'));
+        });
+
+        it('should return "Deleted" when isDeleted is true regardless of stateNum and statusNum', () => {
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
+        });
     });
 
     describe('buildOptimisticReportPreview', () => {
@@ -10074,15 +10348,15 @@ describe('ReportUtils', () => {
             };
             const context = createFormulaContext(reportWithNaNTotal, mockPolicy);
             const result = compute('{report:total}', context);
-            // NaN gets formatted as "NaN" by formatAmount, which is a non-empty value
-            expect(result).toBe('NaN');
+            // NaN gets formatted as "$NaN" by convertToDisplayString, which is a non-empty value
+            expect(result).toBe('$NaN');
         });
 
         it('should replace {report:total} with formatted amount', () => {
             const context = createFormulaContext(mockReport, mockPolicy);
             const result = compute('{report:total}', context);
             // compute uses convertToDisplayString which includes currency symbol
-            expect(result).toBe('50.00');
+            expect(result).toBe('$50.00');
         });
 
         it('should replace {report:id} with base62 report ID', () => {
@@ -10096,7 +10370,7 @@ describe('ReportUtils', () => {
             const context = createFormulaContext(mockReport, mockPolicy);
             const result = compute(formula, context);
             const expectedId = getBase62ReportID(Number(mockReport.reportID));
-            expect(result).toBe(`Report ${expectedId} has total 50.00`);
+            expect(result).toBe(`Report ${expectedId} has total $50.00`);
         });
 
         it('should handle undefined total by falling back to original definition', () => {
@@ -10119,8 +10393,8 @@ describe('ReportUtils', () => {
             const context = createFormulaContext(reportWithNaNTotal, mockPolicy);
             const expectedId = getBase62ReportID(Number(mockReport.reportID));
             const result = compute(formula, context);
-            // NaN gets formatted as "NaN" which is a non-empty value
-            expect(result).toBe(`ID: ${expectedId}, Total: NaN, Type: Expense Report`);
+            // NaN gets formatted as "$NaN" which is a non-empty value
+            expect(result).toBe(`ID: ${expectedId}, Total: $NaN, Type: Expense Report`);
         });
 
         it('should handle missing total gracefully', () => {
@@ -13227,7 +13501,7 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(true);
         });
 
         it('returns false when title field is disabled', () => {
@@ -13243,7 +13517,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(false);
         });
 
         it('returns false for non-expense reports', () => {
@@ -13256,7 +13530,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when policy is not a paid group policy', () => {
@@ -13270,7 +13544,7 @@ describe('ReportUtils', () => {
 
             expect(testPolicy.type).toBe(CONST.POLICY.TYPE.PERSONAL);
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(false);
-            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(false);
         });
 
         it('returns false when user is not admin, owner, approver, or report owner', () => {
@@ -13282,7 +13556,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(false);
         });
     });
 
@@ -14063,7 +14337,6 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 1);
                 // Grace period end is in the past (Unix timestamp in seconds)
                 const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
@@ -14100,7 +14373,6 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
                 const userBillingGracePeriodEnds = {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         value: 1,
@@ -15045,7 +15317,7 @@ describe('ReportUtils', () => {
         it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
             const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled)).toBe(false);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID)).toBe(false);
         });
 
         it('should return false when the report is not an expense report or invoice report', () => {
@@ -15055,7 +15327,7 @@ describe('ReportUtils', () => {
                 policyID,
             };
 
-            expect(hasVisibleReportFieldViolations(chatReport, basePolicy)).toBe(false);
+            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID)).toBe(false);
         });
 
         it('should return true when expense report has a required field with no value', async () => {
@@ -15073,7 +15345,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField)).toBe(true);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID)).toBe(true);
         });
     });
 
@@ -15256,6 +15528,42 @@ describe('ReportUtils', () => {
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
+        });
+
+        it('should navigate to the restricted action page for each option when owner billable actions are restricted', async () => {
+            // Given a corporate policy where the current user is the owner with past-due billing
+            jest.clearAllMocks();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
+            mockPolicy.ownerAccountID = currentUserAccountID;
+            const pastGracePeriod = Math.floor(Date.now() / 1000) - 3600;
+            const amountOwed = 500;
+
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGracePeriodEnds: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed,
+                ownerBillingGracePeriodEnd: pastGracePeriod,
+            });
+
+            // Trigger CREATE_NEW_EXPENSE onSelected
+            result.at(0)?.onSelected?.();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
+            jest.clearAllMocks();
+
+            // Trigger TRACK_DISTANCE_EXPENSE onSelected
+            result.at(1)?.onSelected?.();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
+            jest.clearAllMocks();
+
+            // Trigger ADD_UNREPORTED_EXPENSE onSelected
+            result.at(2)?.onSelected?.();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
         });
     });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {
@@ -15690,7 +15998,7 @@ describe('ReportUtils', () => {
                     policy: testPolicy,
                     userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
-                    amountOwed: undefined,
+                    amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
                 });
                 options.at(2)?.onSelected?.();

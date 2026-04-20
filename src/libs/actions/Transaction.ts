@@ -35,19 +35,13 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
     findSelfDMReportID,
+    getIOUReportActionMessage,
     getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {
-    hasPendingRTERViolation,
-    isManagedCardTransaction,
-    isOnHold,
-    recalculateUnreportedTransactionDetails,
-    shouldClearConvertedAmount,
-    waypointHasValidAddress,
-} from '@libs/TransactionUtils';
+import {hasPendingRTERViolation, isDeletedTransaction, isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -604,7 +598,6 @@ function dismissDuplicateTransactionViolation({
         });
     }
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const optimisticReportActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
@@ -614,7 +607,7 @@ function dismissDuplicateTransactionViolation({
                 ? {
                       [optimisticDismissedViolationReportAction.reportActionID]: optimisticDismissedViolationReportAction as ReportAction,
                   }
-                : undefined,
+                : null,
         };
     });
     const optimisticDataTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = currentTransactionViolations.map((transactionViolations) => ({
@@ -658,7 +651,6 @@ function dismissDuplicateTransactionViolation({
         },
     }));
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureReportActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
@@ -668,7 +660,7 @@ function dismissDuplicateTransactionViolation({
                 ? {
                       [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
-                : undefined,
+                : null,
         };
     });
 
@@ -676,7 +668,6 @@ function dismissDuplicateTransactionViolation({
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const successReportActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = transactionsReportActions.map((action, index) => {
         const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
@@ -686,7 +677,7 @@ function dismissDuplicateTransactionViolation({
                 ? {
                       [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
-                : undefined,
+                : null,
         };
     });
     successData.push(...successReportActions);
@@ -1008,11 +999,14 @@ function changeTransactionsReport({
     const destinationCurrency = newReport?.currency ?? policy?.outputCurrency;
 
     for (const transaction of transactions) {
+        const isDeletedExpense = isDeletedTransaction(transaction);
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
         const selfDMReportID = existingSelfDMReportID ?? selfDMReport?.reportID;
 
-        const oldIOUAction = getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
+        // Skip lookup for deleted transactions: the old IOU action is already cleaned up
+        // during deletion and its transaction thread is deleted, so reusing it is harmful.
+        const oldIOUAction = isDeletedExpense ? undefined : getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
+
         if (!transaction.reportID || transaction.reportID === reportID) {
             continue;
         }
@@ -1028,29 +1022,42 @@ function changeTransactionsReport({
         const optimisticMoneyRequestReportActionID = rand64();
 
         const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
+        const actionType = isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         const newIOUAction = {
             ...oldIOUAction,
             originalMessage: {
                 ...originalMessage,
+                IOUTransactionID: originalMessage?.IOUTransactionID ?? transaction.transactionID,
                 IOUReportID: reportID,
-                type: isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                type: actionType,
             },
             reportActionID: optimisticMoneyRequestReportActionID,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+            actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.IOU,
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
+            ...(!oldIOUAction && {
+                actorAccountID: accountID,
+                message: getIOUReportActionMessage(reportID, actionType, Math.abs(transaction.amount), transaction.comment?.comment ?? '', transaction.currency),
+            }),
         };
 
-        const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : {};
+        const comment = isUnreported ? {...transaction.comment, hold: null} : transaction.comment;
 
-        // 1. Optimistically change the reportID on the passed transactions
-        // Only set pendingAction for transactions that need convertedAmount recalculation
+        const shouldCopyOriginalAmount = transaction.originalAmount !== undefined && transaction.originalAmount !== transaction.amount;
+        const shouldCopyOriginalCurrency = transaction.originalCurrency !== undefined && transaction.originalCurrency !== transaction.currency;
+
+        // 1. Optimistically update the transaction with full data and changed fields.
+        // Spreading the full transaction ensures the TRANSACTION collection has complete data
+        // (e.g. amount) even when the existing entry was incomplete from search results.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
+                ...transaction,
                 reportID,
                 comment,
+                originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
+                originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
@@ -1072,6 +1079,8 @@ function changeTransactionsReport({
             value: {
                 reportID: transaction.reportID,
                 comment: transaction.comment,
+                originalAmount: transaction.originalAmount,
+                originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
@@ -1122,11 +1131,10 @@ function changeTransactionsReport({
                 false,
             );
             optimisticData.push(violationData);
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: allTransactionViolation?.[transaction.transactionID],
+                value: allTransactionViolation?.[transaction.transactionID] ?? null,
             });
             const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
             const hasOtherViolationsBesideDuplicates =
@@ -1215,15 +1223,15 @@ function changeTransactionsReport({
         // 4. Optimistically update the IOU action reportID
         const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
 
-        if (oldIOUAction) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
-                value: {
-                    [newIOUAction.reportActionID]: newIOUAction,
-                },
-            });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: {
+                [newIOUAction.reportActionID]: newIOUAction,
+            },
+        });
 
+        if (oldIOUAction) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
@@ -1256,24 +1264,22 @@ function changeTransactionsReport({
                 [newIOUAction.reportActionID]: {pendingAction: null},
             },
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: {
+                [newIOUAction.reportActionID]: null,
+            },
+        });
         if (oldIOUAction) {
-            failureData.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
-                    value: {
-                        [newIOUAction.reportActionID]: null,
-                    },
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
+                value: {
+                    [oldIOUAction.reportActionID]: oldIOUAction,
+                    ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: trackExpenseActionableWhisper} : {}),
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
-                    value: {
-                        [oldIOUAction.reportActionID]: oldIOUAction,
-                        ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: trackExpenseActionableWhisper} : {}),
-                    },
-                },
-            );
+            });
         }
 
         const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
@@ -1297,10 +1303,9 @@ function changeTransactionsReport({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: {
                     parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
-                    optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
+                    parentReportActionID: oldIOUAction.reportActionID,
                     policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
                 },
             });
@@ -1320,7 +1325,7 @@ function changeTransactionsReport({
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
-                    value: {...optimisticTransactionThread, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    value: {...optimisticTransactionThread, parentReportID: targetReportID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -1394,7 +1399,7 @@ function changeTransactionsReport({
         const baseTransactionData = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
-            ...(oldIOUAction && !oldIOUAction.childReportID
+            ...(transactionThreadCreatedReportActionID
                 ? {
                       transactionThreadReportID,
                       transactionThreadCreatedReportActionID,
@@ -1614,11 +1619,10 @@ function changeTransactionsReport({
                 },
             },
         });
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${nextStepOnyxReportID}`,
-            value: nextStepOnyxReportID === reportID ? reportNextStep : (affectedReport.nextStep ?? null),
+            value: nextStepOnyxReportID === reportID ? (reportNextStep ?? null) : (affectedReport.nextStep ?? null),
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,

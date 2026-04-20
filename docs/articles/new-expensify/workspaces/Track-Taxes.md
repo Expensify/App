@@ -89,6 +89,17 @@ If your receipt includes more than one tax rate, there are two ways you can hand
 - Many tax authorities do not require reporting tax amounts by rate; therefore, you can apply the highest rate on the receipt and then modify the tax amount on the receipt if necessary. Please check with your tax advisor to determine if this approach suits you.
 - Alternatively, you can apply each specific tax rate by splitting the expense by the applicable costs for each rate. To do this, open the expense and click **Split Expense**. Then, apply the correct tax rate to each.
 
+## What happens if an expense with tax is moved to a workspace where tax tracking is disabled?
+
+If an expense that includes tax data is moved or merged into a workspace that does not have tax tracking enabled, the tax fields (**Tax** and **Tax amount**) will still appear on the expense with a "Tax no longer valid" violation.
+
+To resolve this, tap the **Tax** or **Tax amount** field on the expense. An alert will appear explaining that tax tracking is disabled on the workspace. You can then choose to:
+
+- **Delete tax** — Removes the tax rate and tax amount from the expense.
+- **Cancel** — Keeps the tax data on the expense.
+
+Alternatively, you can enable tax tracking on the workspace to edit the tax details directly.
+
 ## What if my workspace has multiple tax rates?
 
 You'll have the option to change the tax rate from within the expense as needed.

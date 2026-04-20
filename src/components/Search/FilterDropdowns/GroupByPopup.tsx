@@ -5,6 +5,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {GroupBySection} from '@libs/SearchUIUtils';
@@ -37,6 +38,8 @@ type GroupByPopupProps = {
 
 function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: GroupByPopupProps) {
     const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -79,6 +82,8 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
         closeOverlay();
     }, [closeOverlay, onChange]);
 
+    const shouldShowLabel = isSmallScreenWidth && !!label;
+
     return (
         <BasePopup
             label={label}
@@ -88,7 +93,7 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
             style={style}
         >
-            <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false)]}>
+            <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false, isInLandscapeMode, shouldShowLabel)]}>
                 <SelectionListWithSections
                     sections={listSections}
                     shouldSingleExecuteRowSelect

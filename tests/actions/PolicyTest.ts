@@ -3446,7 +3446,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -3459,7 +3459,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -3474,7 +3474,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL_2, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -3492,7 +3492,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
@@ -3503,7 +3503,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
@@ -3525,7 +3525,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });
@@ -6017,7 +6017,7 @@ describe('actions/Policy', () => {
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
             const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate);
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -6059,8 +6059,75 @@ describe('actions/Policy', () => {
                 CONST.CURRENCY.USD,
                 undefined,
                 mockTranslate,
+                {},
             );
             expect(result).toBeUndefined();
+        });
+
+        it('should use reportActionsList parameter instead of deprecated Onyx connection', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const employeeAccountID = 300;
+            const iouReportOwnerEmail = 'employee@example.com';
+
+            const existingChatReportID = '700';
+
+            // Create a report preview action for the existing chat
+            const reportPreviewAction: ReportAction = {
+                reportActionID: 'previewAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: 'childReport1',
+                created: '2024-01-01',
+                message: [],
+            };
+
+            // Pass reportActionsList explicitly - this should be used instead of the deprecated Onyx connection
+            const reportActionsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${existingChatReportID}`]: {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '800',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '801',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 2000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            const result = Policy.createWorkspaceFromIOUPayment(
+                iouReport,
+                undefined,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                iouReportOwnerEmail,
+                undefined,
+                CONST.CURRENCY.USD,
+                undefined,
+                mockTranslate,
+                reportActionsList,
+            );
+
+            // Verify the function returns a valid result (not undefined)
+            expect(result).toBeDefined();
+            expect(result?.policyID).toBeDefined();
+            expect(result?.workspaceChatReportID).toBeDefined();
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
         });
     });
 });

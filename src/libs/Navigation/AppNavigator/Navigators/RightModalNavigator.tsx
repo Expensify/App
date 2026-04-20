@@ -100,6 +100,7 @@ function SecondaryOverlay() {
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -208,8 +209,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
 
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
-
     return (
         <NarrowPaneContextProvider>
             <MultifactorAuthenticationContextProviders>
@@ -287,6 +286,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                                     component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
+                                    component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
@@ -396,6 +399,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                                     component={ModalStackNavigators.RestrictedActionModalStackNavigator}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
+                                    getComponent={loadSearchSavePage}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}

@@ -109,6 +109,7 @@ const ValidOptionsConfig = {
     includeMultipleParticipantReports: true,
     includeSelfDM: true,
     includeOwnedWorkspaceChats: true,
+    sortedActions: undefined,
 };
 
 const loginList = {};
@@ -144,6 +145,8 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -210,6 +213,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             ),
         );
@@ -339,6 +343,8 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 personalDetails,
                 maxResults: 20,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
             }),
         );
     });

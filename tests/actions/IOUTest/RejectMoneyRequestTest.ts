@@ -358,12 +358,12 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             jest.clearAllMocks();
         });
 
-        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation', async () => {
-            // When: Mark violation as resolved
+        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation when online', async () => {
+            // When: Mark violation as resolved while online
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -375,6 +375,87 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     }),
                 ]),
             );
+        });
+
+        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation when offline', async () => {
+            // When: Mark violation as resolved while offline
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            markRejectViolationAsResolved(transaction.transactionID, true, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is removed
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
+        });
+
+        it('should call API.write with MARK_TRANSACTION_VIOLATION_AS_RESOLVED command', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: API.write should be called with the correct command and transactionID
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED,
+                expect.objectContaining({
+                    transactionID: transaction.transactionID,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('should call notifyNewAction after resolving the violation', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const {notifyNewAction} = require('@src/libs/actions/Report');
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved while online
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: notifyNewAction should be called
+            expect(notifyNewAction).toHaveBeenCalled();
+        });
+
+        it('should not make API call or notify when reportID is undefined', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const {notifyNewAction} = require('@src/libs/actions/Report');
+
+            if (!transaction?.transactionID) {
+                throw new Error('Required transaction data is missing');
+            }
+
+            // When: Mark violation as resolved without reportID
+            markRejectViolationAsResolved(transaction.transactionID, false, undefined);
+            await waitForBatchedUpdates();
+
+            // Then: API.write should not be called
+            expect(writeSpy).not.toHaveBeenCalled();
+
+            // Then: notifyNewAction should not be called
+            expect(notifyNewAction).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
         });
     });
 });

@@ -10,6 +10,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
 import CONST from '@src/CONST';
@@ -56,8 +57,8 @@ describe('ClearReportActionErrors UI', () => {
 
     beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
@@ -93,7 +94,6 @@ describe('ClearReportActionErrors UI', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 personalPolicyID={undefined}
-                                currentUserEmail={undefined}
                                 report={report}
                                 parentReportAction={undefined}
                                 action={action}
@@ -106,8 +106,6 @@ describe('ClearReportActionErrors UI', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 betas={undefined}
-                                draftTransactionIDs={[]}
-                                userBillingGracePeriodEnds={undefined}
                                 clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}
                             />

@@ -55,6 +55,21 @@ describe('useAutoUpdateTimezone', () => {
         );
     });
 
+    it('does not call update when selected timezone matches system timezone (with backwards compatibility)', () => {
+        setSystemTimezone('Asia/Calcutta');
+        mockUseCurrentUserPersonalDetails.mockReturnValue({
+            accountID: 1,
+            timezone: {
+                automatic: true,
+                selected: 'Asia/Kolkata',
+            },
+        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+
+        render(<TestComponent />);
+
+        expect(updateAutomaticTimezoneSpy).not.toHaveBeenCalled();
+    });
+
     it('does not call update when selected matches system timezone', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: 1,
