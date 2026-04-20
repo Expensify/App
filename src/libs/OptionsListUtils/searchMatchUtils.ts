@@ -37,7 +37,8 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUs
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
-    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
+    // Include `item.text` here to handle cases where the item represents a workspace chat
+    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', item.text ?? ''];
 }
 
 /**
