@@ -6968,7 +6968,7 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, fromReportPolicy: OnyxEntry<Policy>, toReportPolicy: OnyxEntry<Policy>, conciergeReportID?: string) {
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, fromReportPolicy: OnyxEntry<Policy>, toReportPolicy: OnyxEntry<Policy>, conciergeReportID: string | undefined) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
