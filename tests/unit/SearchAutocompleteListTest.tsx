@@ -113,20 +113,18 @@ const getMockedPersonalDetails = (length = 10) =>
         length,
     );
 
-const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
-
 const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
+const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 const mockOnClose = jest.fn();
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
                 <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
                     <SearchRouter onRouterClose={mockOnClose} />
                 </OptionsListActionsContext.Provider>
@@ -181,7 +179,7 @@ describe('SearchAutocompleteList', () => {
             ...mockedReports,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
             [ONYXKEYS.BETAS]: mockedBetas,
-            [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
         });
 

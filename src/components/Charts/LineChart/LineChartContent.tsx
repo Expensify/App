@@ -1,4 +1,3 @@
-import {useFont} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
@@ -9,22 +8,14 @@ import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
+import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
-import {
-    AXIS_LABEL_GAP,
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_PADDING,
-    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
-    X_AXIS_LINE_WIDTH,
-    Y_AXIS_LINE_WIDTH,
-    Y_AXIS_TICK_COUNT,
-} from '@components/Charts/constants';
-import fontSource from '@components/Charts/font';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getNiceUpperBound, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -49,12 +40,7 @@ const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
  */
 const computeLineLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
     const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
-    let additionalOffset = 0;
-    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
-        additionalOffset = variables.iconSizeExtraSmall / 1.5;
-    } else if (angleRad > 1) {
-        additionalOffset = variables.iconSizeExtraSmall / 3;
-    }
+    const additionalOffset = getAdditionalOffset(angleRad);
     return {
         labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
         iconSin: variables.iconSizeExtraSmall * sinA,
@@ -75,7 +61,7 @@ type LineChartProps = CartesianChartProps & {
 function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const font = useFont(fontSource, variables.iconSizeExtraSmall);
+    const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
@@ -110,12 +96,12 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
         const geometricPadding = calculateMinDomainPadding(chartWidth, data.length);
 
-        if (!font) {
+        if (!fontMgr) {
             return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
         }
 
-        const firstLabelWidth = measureTextWidth(data.at(0)?.label ?? '', font);
-        const lastLabelWidth = measureTextWidth(data.at(-1)?.label ?? '', font);
+        const firstLabelWidth = measureTextWidth(data.at(0)?.label ?? '', fontMgr, variables.iconSizeExtraSmall);
+        const lastLabelWidth = measureTextWidth(data.at(-1)?.label ?? '', fontMgr, variables.iconSizeExtraSmall);
 
         const firstLabelNeeds = firstLabelWidth / 2;
         const lastLabelNeeds = lastLabelWidth / 2;
@@ -139,7 +125,8 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
-        font,
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
@@ -149,13 +136,13 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const {formatValue} = useChartLabelFormats({
         data,
-        font,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
     });
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
-        font,
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
         truncatedLabels,
         labelRotation,
         labelSkipInterval,
@@ -210,15 +197,28 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                     radius={DOT_RADIUS}
                     color={DEFAULT_CHART_COLOR}
                 />
-                {!!font && xAxisLabelHeight !== undefined && (
+                {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
                         labels={truncatedLabels}
                         labelRotation={labelRotation}
                         labelSkipInterval={labelSkipInterval}
-                        font={font}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontMgr={fontMgr}
                         labelColor={theme.textSupporting}
                         xScale={args.xScale}
                         chartBoundsBottom={args.chartBounds.bottom}
+                    />
+                )}
+                {!!fontMgr && (
+                    <ChartYAxisLabels
+                        yTicks={args.yTicks}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontMgr={fontMgr}
+                        labelColor={theme.textSupporting}
+                        formatValue={formatValue}
+                        leftAlign
                     />
                 )}
             </>
@@ -227,10 +227,12 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
+    const maxYAxisTickValue = getNiceUpperBound(Math.max(...data.map((p) => Math.abs(p.total)), 0), Y_AXIS_TICK_COUNT);
+    const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth + GLYPH_PADDING / 2};
 
-    if (isLoading || !font) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !font};
+    if (isLoading || !fontMgr) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !fontMgr};
         return (
             <View style={styles.chartActivityIndicator}>
                 <ActivityIndicator
@@ -266,9 +268,6 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         }}
                         yAxis={[
                             {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,

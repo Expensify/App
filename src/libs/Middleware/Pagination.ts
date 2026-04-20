@@ -6,6 +6,7 @@ import Log from '@libs/Log';
 import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
@@ -109,7 +110,8 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || response.hasNewerActions === null || (type === 'initial' && !cursorID)) {
+        const shouldMarkNoNewerActions = response.hasNewerActions === false || response.hasNewerActions === null || (type === 'initial' && !cursorID && response.hasNewerActions !== true);
+        if (shouldMarkNoNewerActions) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false || response.hasOlderActions === null) {
@@ -123,13 +125,41 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];
-        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
+
+        // Only strip PAGINATION_START_ID from cached pages when the server explicitly confirms newer actions exist.
+        // Some commands (e.g. GetOlderActions) don't return hasNewerActions at all — in that case, preserve the existing boundary.
+        const shouldStripStartMarker = response.hasNewerActions === true;
+        const sanitizedExistingPages = shouldStripStartMarker ? existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID)) : existingPages;
+
+        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
         (response.onyxData as AnyOnyxUpdate[]).push({
             key: pageKey,
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,
         });
+
+        // Store cursor IDs scoped to pagination direction so backfill (getOlderActions)
+        // doesn't overwrite the forward cursor used by auto-pagination.
+        if (resourceCollectionKey === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
+            const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
+            const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
+            const isOlderDirection = type === 'previous';
+            const value: Record<string, string> = {};
+            if (newestFetchedID && !isOlderDirection) {
+                value.newestFetchedReportActionID = newestFetchedID;
+            }
+            if (oldestFetchedID && isOlderDirection) {
+                value.oldestFetchedReportActionID = oldestFetchedID;
+            }
+            if (Object.keys(value).length > 0) {
+                (response.onyxData as AnyOnyxUpdate[]).push({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${resourceID}`,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value,
+                });
+            }
+        }
 
         return Promise.resolve(response);
     });

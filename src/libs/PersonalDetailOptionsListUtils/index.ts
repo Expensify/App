@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {optionsOrderBy, personalDetailsComparator, processSearchString} from '@libs/OptionsListUtils';
@@ -24,7 +24,7 @@ function createOption(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributes,
-    isReportArchived?: string,
+    isReportArchived?: boolean,
 ): OptionData {
     const {selected = false, isSelected = false, isDisabled = false, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config ?? {};
     const result: OptionData = {

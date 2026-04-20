@@ -1,14 +1,20 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions as ReportActionsType} from '@src/types/onyx';
+import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
@@ -25,28 +31,90 @@ function OptionRowLHNData({
     reportAttributes,
     reportAttributesDerived,
     oneTransactionThreadReport,
-    reportNameValuePairs,
     personalDetails = {},
     policy,
     invoiceReceiverPolicy,
-    parentReportAction,
-    lastMessageTextFromReport,
-    localeCompare,
-    translate,
-    isReportArchived = false,
-    lastAction,
-    lastActionReport,
-    currentUserAccountID,
+    conciergeReportID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    const {translate, localeCompare} = useLocalize();
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
+
+    // Per-item report actions subscriptions (scoped by specific report ID)
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
+
+    // Scoped VISIBLE_REPORT_ACTIONS selector
+    const visibleActionsSelector = useCallback(
+        (data: VisibleReportActionsDerivedValue | undefined) => {
+            if (!data) {
+                return undefined;
+            }
+            const result: VisibleReportActionsDerivedValue = {};
+            const reportEntry = data[reportID];
+            if (reportEntry) {
+                result[reportID] = reportEntry;
+            }
+            if (oneTransactionThreadReportID) {
+                const txThreadEntry = data[oneTransactionThreadReportID];
+                if (txThreadEntry) {
+                    result[oneTransactionThreadReportID] = txThreadEntry;
+                }
+            }
+            return result;
+        },
+        [reportID, oneTransactionThreadReportID],
+    );
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: visibleActionsSelector});
+
+    // Per-item NVP subscription instead of collection-level subscription in parent
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+
+    const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
+
+    const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+    const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+
+    const lastAction = useMemo(() => {
+        const actionsCollection: OnyxCollection<ReportActionsType> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
+        };
+        if (oneTransactionThreadReportID) {
+            actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReportID}`] = transactionThreadReportActions ?? undefined;
+        }
+        return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
+    }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
+
+    const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
+
+    const lastMessageTextFromReport = useMemo(() => {
+        if (whisperTransactionID && !whisperTransaction) {
+            return '';
+        }
+        return undefined;
+    }, [whisperTransactionID, whisperTransaction]);
+
+    const lastActionReportID = useMemo(() => {
+        if (isInviteOrRemovedAction(lastAction)) {
+            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+            return lastActionOriginalMessage?.reportID;
+        }
+        return undefined;
+    }, [lastAction]);
+    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
+
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+    const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
@@ -107,6 +175,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             report={fullReport}
+            hasDraftComment={hasDraftComment}
             conciergeReportID={conciergeReportID}
         />
     );

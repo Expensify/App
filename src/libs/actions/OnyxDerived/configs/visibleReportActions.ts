@@ -6,13 +6,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedValue, reportID: string): Record<string, boolean> {
+function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedValue, reportID: string, clonedReportIDs: Set<string>): Record<string, boolean> {
     if (!result[reportID]) {
         // Parameter reassignment is necessary here because we are building up the derived value
         // object incrementally as we process report actions. Creating a new object would break
         // the reference chain and lose previously computed visibility data.
         // eslint-disable-next-line no-param-reassign
         result[reportID] = {};
+        clonedReportIDs.add(reportID);
+    } else if (!clonedReportIDs.has(reportID)) {
+        // Clone the existing entry to avoid mutating the cached value
+        // eslint-disable-next-line no-param-reassign
+        result[reportID] = {...result[reportID]};
+        clonedReportIDs.add(reportID);
     }
     return result[reportID];
 }
@@ -50,6 +56,9 @@ export default createOnyxDerivedValueConfig({
         const sessionUpdates = sourceValues?.[ONYXKEYS.SESSION];
         const networkUpdates = sourceValues?.[ONYXKEYS.NETWORK];
 
+        // Track which reportID entries have been cloned to avoid mutating cached nested objects.
+        const clonedReportIDs = new Set<string>();
+
         // Session change = user changed, need full recompute due to whisper targeting
         // Network change = online/offline status changed, need full recompute for DELETE action visibility
         if (sessionUpdates || networkUpdates) {
@@ -61,7 +70,7 @@ export default createOnyxDerivedValueConfig({
                 }
 
                 const reportID = reportActionsKey.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID);
+                const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID, clonedReportIDs);
 
                 for (const [actionID, action] of Object.entries(reportActions)) {
                     if (action) {
@@ -89,7 +98,7 @@ export default createOnyxDerivedValueConfig({
                 }
 
                 const reportID = reportActionsKey.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID);
+                const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID, clonedReportIDs);
 
                 for (const [actionID, action] of Object.entries(reportActions)) {
                     if (!action) {
@@ -129,7 +138,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID);
+            const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID, clonedReportIDs);
 
             const specificUpdates = reportActionsUpdates?.[reportActionsKey];
             const actionIDsToProcess = specificUpdates ? Object.keys(specificUpdates) : Object.keys(reportActions);

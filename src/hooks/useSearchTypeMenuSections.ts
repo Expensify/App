@@ -6,10 +6,9 @@ import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session} from '@src/types/onyx';
+import type {IntroSelected, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
-import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -44,6 +43,9 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
+const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) =>
+    introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
     similarSearchHash?: number;
@@ -62,13 +64,13 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -102,7 +104,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections({
-                icons,
                 currentUserEmail: currentUserLoginAndAccountID?.email,
                 currentUserAccountID: currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
@@ -113,6 +114,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 draftTransactionIDs,
+                isTrackIntentUser: isTrackIntentUser ?? false,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -124,8 +126,8 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             savedSearches,
             isOffline,
             shouldRedirectToExpensifyClassic,
-            icons,
             draftTransactionIDs,
+            isTrackIntentUser,
         ],
     );
 

@@ -11,6 +11,7 @@ import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -19,7 +20,6 @@ import Visibility from '@libs/Visibility';
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -112,6 +112,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
      */
     keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
 
+    /** Callback fired synchronously when the user presses submit, before validation runs */
+    onBeforeSubmit?: () => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -132,10 +135,11 @@ function FormProvider({
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
+    onBeforeSubmit,
     ref,
     ...rest
 }: FormProviderProps) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const {isOffline} = useNetwork();
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
@@ -270,6 +274,8 @@ function FormProvider({
                 return;
             }
 
+            onBeforeSubmit?.();
+
             // Prepare values before submitting
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
@@ -289,7 +295,7 @@ function FormProvider({
             }
 
             // Do not submit form if network is offline and the form is not enabled when offline
-            if (network?.isOffline && !enabledWhenOffline) {
+            if (isOffline && !enabledWhenOffline) {
                 return;
             }
 
@@ -300,7 +306,7 @@ function FormProvider({
             } else {
                 onSubmit(trimmedStringValues);
             }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior]),
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit]),
         1000,
         {leading: true, trailing: false},
     );

@@ -24,15 +24,17 @@ import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import NetworkConnection from './libs/NetworkConnection';
+// This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
+import './libs/NetworkState';
 import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
-import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -54,10 +56,9 @@ function Expensify() {
     const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {preferredLocale} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useDebugShortcut();
@@ -138,6 +139,22 @@ function Expensify() {
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
+    // We store this in a ref to get the latest values in BootsplashMonitor callback
+    const gateStatusRef = useRef<BootsplashGateStatus | null>(null);
+    gateStatusRef.current = {
+        splashScreenState,
+        isOnyxMigrated,
+        isCheckingPublicRoom,
+        hasAttemptedToOpenPublicRoom,
+        isNavigationReady,
+        preferredLocale,
+        shouldInit,
+        shouldHideSplash,
+        isAuthenticated,
+        updateRequired,
+        lastVisitedPath,
+    };
+
     useEffect(() => {
         if (!shouldHideSplash) {
             return;
@@ -192,12 +209,7 @@ function Expensify() {
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
-        // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(accountID);
-
-        return unsubscribeNetInfo;
-    }, [accountID]);
+    }, []);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
@@ -205,21 +217,10 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => {
-            const appState = AppState.currentState;
-            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
+        return startBootsplashMonitor(gateStatusRef);
+    }, []);
 
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog = {
-                    isCheckingPublicRoom,
-                    updateRequired,
-                    isAuthenticated,
-                    lastVisitedPath,
-                };
-                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-            }
-        }, 30 * 1000);
-
+    useEffect(() => {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
             // In case of a crash that led to disconnection, we want to remove all the push notifications.
@@ -285,7 +286,12 @@ function Expensify() {
                     initialUrl={initialUrl}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {(isSplashVisible || isSplashReadyToBeHidden) && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
         </>
     );
 }

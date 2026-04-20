@@ -6,10 +6,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {IntroSelected} from '@userActions/Report';
-import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
+import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -51,11 +50,15 @@ type PromotedActionsBarProps = {
 const PromotedActions = {
     pin: (report) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
-        ...getPinMenuItem(report),
+        icon: 'Pin',
+        translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
+        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
     }),
     share: (report, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...getShareMenuItem(report, backTo),
+        icon: 'QrCode',
+        translationKey: 'common.share',
+        onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report.reportID, backTo)),
     }),
     join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
@@ -82,7 +85,7 @@ const PromotedActions = {
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, betas);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas);
             }
         },
     }),
@@ -91,7 +94,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles']);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles', 'Pin', 'QrCode']);
 
     if (promotedActions.length === 0) {
         return null;

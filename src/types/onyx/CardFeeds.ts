@@ -99,6 +99,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Preferred policy */
     preferredPolicy?: string;
 
+    /** Linked policy IDs */
+    linkedPolicyIDs?: string[];
+
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
     country?: string;
 
@@ -235,6 +238,12 @@ type CardFeeds = {
 
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
+
+        /** Travel invoicing provisioning data */
+        travelInvoicing?: {
+            /** Provisioning errors for workspace members */
+            errors?: string[];
+        };
     };
 } & CardFeedsStatus &
     DomainSettings;
@@ -279,6 +288,15 @@ type AddNewCardFeedData = {
 
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;
+
+    /** Name of the CSV layout template */
+    companyCardLayoutName?: string;
+
+    /** Identifier for the CSV layout template */
+    layoutType?: string;
+
+    /** Whether to use advanced fields in the CSV layout */
+    useAdvancedFields?: boolean;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];

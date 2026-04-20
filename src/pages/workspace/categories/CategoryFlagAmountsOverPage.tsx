@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -36,6 +37,7 @@ function CategoryFlagAmountsOverPage({
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
@@ -47,7 +49,7 @@ function CategoryFlagAmountsOverPage({
     const defaultValue =
         policyCategoryMaxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategoryMaxExpenseAmount
             ? ''
-            : convertToFrontendAmountAsString(policyCategoryMaxExpenseAmount, policy?.outputCurrency);
+            : convertToFrontendAmountAsString(policyCategoryMaxExpenseAmount, getCurrencyDecimals(policy?.outputCurrency));
 
     return (
         <AccessOrNotFoundWrapper

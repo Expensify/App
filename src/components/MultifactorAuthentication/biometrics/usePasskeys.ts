@@ -8,6 +8,7 @@ import {
     buildPublicKeyCredentialRequestOptions,
     createPasskeyCredential,
     decodeWebAuthnError,
+    extractAAGUID,
     isSupportedTransport,
     isWebAuthnSupported,
     PASSKEY_AUTH_TYPE,
@@ -25,7 +26,7 @@ function usePasskeys(): UseBiometricsReturn {
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
-    const doesDeviceSupportAuthenticationMethod = () => isWebAuthnSupported();
+    const doesDeviceSupportAuthenticationMethod = async () => isWebAuthnSupported();
 
     const getLocalCredentialID = async (): Promise<string | undefined> => {
         return (localPasskeyCredentials ?? []).at(0)?.id;
@@ -55,9 +56,11 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             credential = await createPasskeyCredential(publicKeyOptions);
         } catch (error) {
+            const {reason, message} = decodeWebAuthnError(error);
             await onResult({
                 success: false,
-                reason: decodeWebAuthnError(error),
+                reason,
+                message,
             });
             return;
         }
@@ -76,12 +79,17 @@ function usePasskeys(): UseBiometricsReturn {
 
         const transports = attestationResponse.getTransports?.().filter(isSupportedTransport);
 
+        // getAuthenticatorData() is a WebAuthn Level 2 method — not available in older browsers.
+        // NOTE: A value of "00000000-0000-0000-0000-000000000000" is expected for Apple iCloud Keychain
+        const aaguid = attestationResponse.getAuthenticatorData ? extractAAGUID(attestationResponse.getAuthenticatorData()) : undefined;
+
         addLocalPasskeyCredential({
             userId,
             credential: {
                 id: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
                 transports,
+                aaguid,
             },
             existingCredentials: localPasskeyCredentials ?? null,
         });
@@ -92,14 +100,12 @@ function usePasskeys(): UseBiometricsReturn {
             keyInfo: {
                 rawId: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
+                transports,
+                aaguid,
                 response: {
                     clientDataJSON,
                     attestationObject,
                 },
-            },
-            authenticationMethod: {
-                name: PASSKEY_AUTH_TYPE.NAME,
-                marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
             },
         });
     };
@@ -129,9 +135,11 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             assertion = await authenticateWithPasskey(publicKeyOptions);
         } catch (error) {
+            const {reason, message} = decodeWebAuthnError(error);
             await onResult({
                 success: false,
-                reason: decodeWebAuthnError(error),
+                reason,
+                message,
             });
             return;
         }
@@ -174,6 +182,7 @@ function usePasskeys(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
+        deviceCheckFailureReason: VALUES.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

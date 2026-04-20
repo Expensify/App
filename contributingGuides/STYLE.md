@@ -1221,7 +1221,7 @@ We love React and learning about all the new features that are regularly being a
 
 ### Problem
 
-When using `SelectionList` alongside other components (e.g., `Text`, `Button`), wrapping them inside a `ScrollView` can lead to alignment and performance issues. Additionally, using `ScrollView` with nested `FlatList` or `SectionList` causes the error:
+When using `SelectionList` alongside other components (e.g., `Text`, `Button`), wrapping them inside a `ScrollView` can lead to alignment and performance issues. Additionally, using `ScrollView` with nested `FlatList` causes the error:
 
 > "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation."
 

@@ -47,8 +47,7 @@ export default function () {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-            [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
-            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
@@ -60,7 +59,16 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
-        ramOnlyKeys: [ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS],
+        ramOnlyKeys: [
+            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
+            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+            ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
+            ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
+            ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
+            ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+        ],
     });
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification

@@ -55,16 +55,33 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         }
     };
 
+    // Screen readers (e.g. JAWS in Virtual PC Cursor mode) activate elements via the
+    // accessibility API rather than dispatching a keydown event. This produces a click
+    // on the focused wrapper div instead of the inner pressable. Forward that click to
+    // the inner pressable so Enter works correctly with assistive technology.
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (isDragging || e.target !== node.current) {
+            return;
+        }
+        const innerPressable = node.current?.querySelector<HTMLElement>(PRESSABLE_SELECTOR);
+        if (innerPressable) {
+            innerPressable.click();
+        }
+    };
+
     return (
         <div
             ref={setNodeRef}
             style={style}
             // Use capture phase to intercept Enter before inner MenuItem handles it
             onKeyDownCapture={handleKeyDown}
+            onClick={handleClick}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
+            role="button"
+            tabIndex={0}
         >
             {children}
         </div>

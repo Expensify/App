@@ -4,6 +4,7 @@ import {
     clearTravelInvoicingSettlementFrequencyErrors,
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
+    retryTravelCardsProvisioning,
     setTravelInvoicingSettlementAccount,
     updateTravelInvoiceSettlementFrequency,
 } from '@libs/actions/TravelInvoicing';
@@ -12,6 +13,7 @@ import {
 import * as API from '@libs/API';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;
@@ -325,6 +327,48 @@ describe('TravelInvoicing', () => {
                             pendingAction: null,
                             errors: expect.anything() as unknown,
                         }),
+                    }),
+                ]),
+            }),
+        );
+    });
+
+    it('retryTravelCardsProvisioning restores provisioning errors on the shared domain member key when the retry fails', () => {
+        const policyID = '123';
+        const workspaceAccountID = 456;
+        const currentProvisioningErrors = ['provisioning-failed'];
+        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`;
+
+        retryTravelCardsProvisioning(policyID, workspaceAccountID, currentProvisioningErrors);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'RetryTravelCardsProvisioning',
+            {
+                policyID,
+            },
+            expect.objectContaining({
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: travelInvoicingKey,
+                        value: {
+                            settings: {
+                                travelInvoicing: {
+                                    errors: [],
+                                },
+                            },
+                        },
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: travelInvoicingKey,
+                        value: {
+                            settings: {
+                                travelInvoicing: {
+                                    errors: currentProvisioningErrors,
+                                },
+                            },
+                        },
                     }),
                 ]),
             }),

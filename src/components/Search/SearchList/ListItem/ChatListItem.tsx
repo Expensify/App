@@ -78,7 +78,6 @@ function ChatListItem<TItem extends ListItem>({
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
-                isMostRecentIOUReportAction={false}
                 shouldDisplayNewMarker={false}
                 index={item.index ?? 0}
                 isFirstVisibleReportAction={false}

@@ -18,7 +18,7 @@ Manual memoization is therefore:
 The codebase enforces this via:
 - **Babel plugin**: `babel-plugin-react-compiler` in `babel.config.js`
 - **ESLint processor**: `eslint-plugin-react-compiler-compat` suppresses redundant lint rules when files compile successfully
-- **CI compliance check**: `scripts/react-compiler-compliance-check.ts` blocks PRs with manual memoization in new files
+- **CI compliance check**: `scripts/react-compiler-compliance-check.ts` enforces that new components/hooks compile and that existing compiled files don't regress
 
 Reference: [React Compiler documentation](https://react.dev/learn/react-compiler)
 
@@ -100,6 +100,8 @@ Before flagging, verify that the file actually compiles with React Compiler:
 ```bash
 check-compiler.sh <filepath>
 ```
+
+**IMPORTANT:** Run `check-compiler.sh` exactly as shown above - by name only, without an absolute path or `bash` prefix. The script is already on `$PATH`.
 
 If the output contains **"Failed to compile"** for the file under review, the rule **does not apply** — the author may have no alternative to manual memoization until the compilation issue is resolved.
 

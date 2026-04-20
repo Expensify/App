@@ -1,4 +1,3 @@
-import type {SkFont} from '@shopify/react-native-skia';
 import {renderHook} from '@testing-library/react-native';
 import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
@@ -11,8 +10,6 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-const mockFont = (supported: string) => ({getGlyphIDs: (text: string) => [...text].map((ch) => (supported.includes(ch) ? 1 : 0))}) as unknown as SkFont;
-
 const SAMPLE_DATA: ChartDataPoint[] = [
     {label: 'Jan', total: 100},
     {label: 'Feb', total: 200},
@@ -23,21 +20,15 @@ beforeEach(() => {
 });
 
 describe('useChartLabelFormats', () => {
-    it('falls back to currency code when font cannot render the symbol', () => {
-        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, font: mockFont('$'), unit: {value: '₹', fallback: 'INR'}, unitPosition: 'left'}));
-
-        expect(result.current.formatValue(100)).toBe('INR 100');
-    });
-
-    it('keeps the symbol when font supports it', () => {
-        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, font: mockFont('$'), unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
+    it('formats with single-char unit without separator', () => {
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
 
         expect(result.current.formatValue(100)).toBe('$100');
     });
 
     it('updates unit and position when locale changes', () => {
         const {result, rerender} = renderHook(
-            ({unit, position}: {unit: UnitWithFallback; position: UnitPosition}) => useChartLabelFormats({data: SAMPLE_DATA, font: mockFont('$€'), unit, unitPosition: position}),
+            ({unit, position}: {unit: UnitWithFallback; position: UnitPosition}) => useChartLabelFormats({data: SAMPLE_DATA, unit, unitPosition: position}),
             {initialProps: {unit: {value: '$', fallback: 'USD'}, position: 'left' as UnitPosition}},
         );
         expect(result.current.formatValue(1000)).toBe('$1,000');

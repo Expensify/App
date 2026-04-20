@@ -80,7 +80,7 @@ const filterRNVPs = (rNVPCollection: OnyxCollection<ReportNameValuePairs>, repor
         for (const [key, value] of Object.entries(rNVPCollection)) {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
             if (reportIDsSet.has(reportID)) {
-                map[reportID] = value?.private_isArchived;
+                map[reportID] = !!value?.private_isArchived;
             }
         }
     }

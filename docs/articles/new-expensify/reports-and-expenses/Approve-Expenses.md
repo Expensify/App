@@ -1,127 +1,148 @@
 ---
 title: Approve Expenses
-description: Approve, hold, and unapprove submitted expenses
-keywords: [New Expensify, approve expenses, hold expenses, unapprove report, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+description: Approve, hold, reject, and unapprove submitted expenses
+keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+internalScope: Audience is Workspace approvers and admins. Covers approving and managing submitted expenses and reports. Does not cover creating or submitting expenses.
 ---
 
-Expenses can be created through manual entry, tracking distance, or scanning a receipt. They can be submitted to an individual or to a workspace. For steps on creating and submitting expenses, check out [Create an Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense).
+# Approve Expenses
+
+When an expense report is submitted on a Workspace with an approval workflow configured, it must be approved before it can be paid. To set an approval workflow on your Workspace, [learn how to add approvals](/articles/new-expensify/workspaces/Add-Approvals). 
+
+When an expense report is submitted to an individual (rather than on a workspace), it won't go through an approval process. It only needs to be paid. [Learn how to pay an expense](/articles/new-expensify/expenses-and-payments/Pay-an-expense).
 
 ---
 
-# Expenses Sent to an Individual (Not a Workspace)
+## What actions can be taken on expenses and reports submitted on a Workspace
 
-When an expense is submitted to an individual (rather than on a workspace), it won't go through an approval process. It only needs to be paid. See [Pay an Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Pay-an-expense) for the payment steps.
+On a submitted report, the approver can: 
 
----
-
-# Expenses Submitted on a Workspace
-
-When an expense is submitted on a workspace with an approval workflow configured, it must be approved before it can be paid.
-
-**For each expense report, you can:**
-
-- **Approve**: Confirm the expense is valid and ready to pay.
+- **Approve**: Confirm the report is valid and ready to pay.
 - **Unapprove**: Return the report to its previous state for additional edits.
+- **Reject**: Return the report to the submitter or a previous approver. 
 
-**For each expense on a report, you can:**
+On any expense submitted on a report, the approver can: 
+
 - **Hold**: Temporarily delay approval of the individual expense if more information is needed.
-- **Reject**: Remove the expense from the report and send back to the submitter with a reason. The rejected expense can be marked as resolved and resubmitted by the submitter. 
+- **Reject**: Remove the expense from the report and send it back to the submitter with a reason. The rejected expense can be marked as resolved and resubmitted.
 
-**To set up an approval workflow:**
-
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Workflows**.
-2. Create a custom workflow to route expenses to the appropriate approvers.
+**Note:** On reports with only one expense, you cannot reject a single expense. Instead, the entire report must be rejected.
 
 ---
 
-# Approve an Expense
+## How to review and approve a report
 
-1. You’ll receive an in-app and email notification when an expense is submitted.
-2. Click the notification to review the expense in Expensify, or you can find the expense in your **Inbox**.
-3. Review details like the receipt, amount, and description.
-4. Click **Approve**.
+When a report is submitted to you for approval it will appear in the **For you** section on **Home**, and on **Reports** in the **Approve** section. 
 
-**Note:** If the transaction is still pending (e.g., an Expensify Card or SmartScan expense), you must wait until the transaction posts before approving.
+To review and approve a report submitted to you for approval: 
+
+1. Click the report to open it.
+2. Review details like the receipt, amount, and description.
+3. Click **Approve** at the top of the report. 
 
 ---
 
-# Change Approver
+## How to add an approver to a report
 
-**To add an approver:**
-
-1. From the Report, open the **More** dropdown at the top of the expense.
+1. From the Report, choose **More**. 
 2. Select **Change approver**.
 3. Select **Add approver**.
-4. Select the approver and save.
-5. The approver you selected is now the current approver, and the prescribed workflow will continue after their approval. 
+4. Choose an additional approver to add to the report.
+5. Click **Save**.
 
-**To bypass approvers:**
+The approver you added is now the current approver, and the original workflow will continue after their approval. 
 
-1. From the Report, open the **More** dropdown at the top of the expense.
+---
+
+## How to bypass an approver on a report
+
+Workspace admins can bypass the approval workflow on a report to final approve it themselves.
+
+1. From the Report, choose **More**. 
 2. Select **Change approver**.
 3. Select **Bypass approvers**.
 4. You are now the final approver, and the prescribed workflow has been bypassed.
 
----
-
-# Hold an Expense
-
-**To place an expense on hold:**
-
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
-2. Locate the expense using the search bar or filters.
-3. Click **View**.
-4. Open the **More** dropdown at the top of the expense.
-5. Select **Hold** and enter a reason (this will be added to the report).
-
-**To take an expense off hold to approve:**
-
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
-2. Locate the held expense using the search bar or filters.
-3. Click **View**.
-4. Open the **More** dropdown at the top of the expense.
-5. Select **Unhold**.
-6. Then follow the steps above to **Approve**.
-
-**Note:** Held expenses cannot be paid until they are approved.
+**Note:** Only Workspace admins can bypass the prescribed approval workflow.
 
 ---
 
-# Unapprove a report
+## How to hold an expense
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
-2. Locate the report using the search bar or filters.
-3. Click **View**.
-4. Open the **More** dropdown at the top of the report.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Expenses**.
+2. Locate the expense you want to hold. 
+3. Click the expense to open it. 
+4. Click **More** at the top of the expense.
+5. Select **Hold** and enter a reason. 
+
+To take an expense off hold, follow the same steps but select **Unhold**. 
+
+---
+
+## How to unapprove a report
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
+2. Locate the Approved report you want to unapprove. 
+3. Click the report to open it. 
+4. Click **More** at the top of the report. 
 5. Select **Unapprove**.
 
-Unapproving a report returns it to the Processing state. The last approver will be notified and can then revise or reject expenses on the report.
+Unapproving a report returns it to the Outstanding state. The last approver will be notified and can then revise or reject expenses on the report.
 
-**Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before approving the expense again.
-
----
-
-# Reject an expense
-
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
-2. Locate the expense using the search bar or filters.
-3. Click **View**.
-4. Open the **More** dropdown at the top of the expense.
-5. Select **Reject** and enter a reason (this will be added to the report).
-
-The rejected expense will be removed from the report, and the submitter will be notified. The rejection reason will be added to the expense. The expense can later be marked as resolved and resubmitted for approval.
+**Note:** Only Approved reports can be unapproved. Paid and Done reports cannot be unapproved.
 
 ---
 
+## How to reject a report 
+
+As the assigned approver, you can reject an entire expense report to return it to the submitter or a previous approver while keeping the report's expense grouping intact.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Approve**.
+2. Locate the Outstanding report you want to reject.
+3. Click the report to open it. 
+4. Click **More** at the top of the report. 
+5. Select **Reject**.
+6. Enter a comment to explain why you will not approve the report. 
+7. If the report passed through previous approvers, choose who the report should be rejected back to for review.
+8. Click **Reject report** to confirm.
+
+---
+
+## What happens after a report is rejected
+
+- **Rejected to the submitter**: The report moves back to Draft. The submitter must fix any issues and manually resubmit — rejected reports are skipped during scheduled submit.
+- **Rejected to a previous approver**: The report stays Outstanding and prior approvals are preserved, so it won't restart the entire approval workflow.
+
+---
+
+## How to reject an expense 
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Expenses**.
+2. Locate the Outstanding expense you want to reject.
+3. Click the expense to open it. 
+4. Click **More** at the top of the expense. 
+5. Select **Reject** and enter a reason.
+
+The rejected expense will be removed from the report, and the submitter will be notified. The rejection reason will be added to the expense, and it can later be marked as resolved and resubmitted for approval.
+
+---
 
 # FAQ
 
-## Why is an employee expense showing as pending?
-Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels).
+## Why can't I action a pending expense? 
+Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
 
-## What are expense reports?
-Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Reports > Expenses**.
+## Why can’t I see Bypass approvers?
+Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 
 
-## Why can’t I see “Bypass approvers”?
-Only workspace admins can bypass the prescribed approval workflow. If “Prevent Self-Approval” is enabled, an admin cannot bypass approvals to approve their own report. 
+## What’s the difference between rejecting a report and rejecting an expense?
 
+Rejecting a report sends the entire report back while keeping all expenses grouped together. Rejecting an expense removes only that expense from the report and sends it back to the submitter.
+
+## Why can’t I unapprove a report?
+
+Reports that are already paid cannot be unapproved. You also need to be an approver on the report to unapprove it.
+
+## What happens after I approve a report?
+
+The report moves to the next approver in the workflow. If you are the final approver, the report becomes **Approved** and is ready for payment.

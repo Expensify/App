@@ -43,7 +43,7 @@ function UserListItem<TItem extends ListItem>({
     forwardedFSClass,
     shouldDisableHoverStyle,
 }: UserListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();

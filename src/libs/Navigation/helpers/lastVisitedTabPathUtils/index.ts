@@ -1,4 +1,4 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {InitialState, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -61,7 +61,10 @@ function getSettingsTabStateFromSessionStorage() {
 
 function getLastVisitedWorkspaceTabScreen() {
     const workspacesTabState = getWorkspacesTabStateFromSessionStorage();
-    return workspacesTabState?.routes?.at(-1)?.state?.routes?.at(-1)?.name;
+    if (!workspacesTabState) {
+        return undefined;
+    }
+    return findFocusedRoute(workspacesTabState as InitialState)?.name;
 }
 
 export {

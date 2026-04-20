@@ -325,7 +325,9 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
-            userBillingGraceEndPeriods: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -340,7 +342,9 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
-            userBillingGraceEndPeriods: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -361,8 +365,9 @@ describe('handleBulkPayItemSelected', () => {
         isDelegateAccessRestricted: false,
         showDelegateNoAccessModal: jest.fn(),
         confirmPayment: jest.fn(),
-        userBillingGraceEndPeriods: undefined,
+        userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
+        ownerBillingGracePeriodEnd: undefined,
     };
 
     beforeEach(async () => {
@@ -392,6 +397,7 @@ describe('handleBulkPayItemSelected', () => {
             ...baseParams,
             policy,
             amountOwed: 100,
+            ownerBillingGracePeriodEnd: pastDate,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));

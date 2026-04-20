@@ -1,56 +1,31 @@
-import type {SkFont} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {LABEL_ROTATIONS} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {canFontRenderText} from '@components/Charts/utils';
 import useLocalize from '@hooks/useLocalize';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
-    font?: SkFont | null;
     unit?: UnitWithFallback | string;
     unitPosition?: UnitPosition;
     labelSkipInterval?: number;
     labelRotation?: LabelRotation;
     truncatedLabels?: string[];
+    fontMgr?: SkTypefaceFontProvider | null;
 };
 
-/**
- * Checks if all characters in the text can be rendered by the font.
- * Returns true if all glyphs are supported (no glyph ID is 0).
- */
-function canFontRenderText(font: SkFont, text: string): boolean {
-    const glyphIDs = font.getGlyphIDs(text);
-    return glyphIDs.every((id) => id !== 0);
-}
-
-/**
- * Resolves the display unit based on font support.
- * If unit is a string, returns it directly.
- * If unit is an object, checks if font can render the value and uses fallback if not.
- */
-function resolveDisplayUnit(font: SkFont | null | undefined, unit: UnitWithFallback | string | undefined): string | undefined {
-    if (!unit) {
-        return undefined;
-    }
-
-    if (typeof unit === 'string') {
-        return unit;
-    }
-
-    return !font || canFontRenderText(font, unit.value) ? unit.value : unit.fallback;
-}
-
-export default function useChartLabelFormats({data, font, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontMgr}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
-    const displayUnit = resolveDisplayUnit(font, unit);
-
+    const displayUnit = typeof unit === 'string' ? unit : unit?.value;
+    const unitToDisplay = fontMgr && !canFontRenderText(displayUnit, fontMgr) ? (unit as UnitWithFallback)?.fallback : displayUnit;
     const formatValue = (value: number) => {
         const formatted = numberFormat(value);
-        if (!displayUnit) {
+        if (!unitToDisplay) {
             return formatted;
         }
-        const separator = displayUnit.length > 1 ? ' ' : '';
-        return unitPosition === 'left' ? `${displayUnit}${separator}${formatted}` : `${formatted}${separator}${displayUnit}`;
+        const separator = unitToDisplay.length > 1 ? ' ' : '';
+        return unitPosition === 'left' ? `${unitToDisplay}${separator}${formatted}` : `${formatted}${separator}${unitToDisplay}`;
     };
 
     const formatLabel = (value: number) => {

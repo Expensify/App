@@ -2,6 +2,7 @@ import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -42,6 +43,7 @@ type PaymentMethodItem = PaymentMethod & {
     errors?: Errors;
     iconRight?: IconAsset;
     isMethodActive?: boolean;
+    isInactive?: boolean;
     cardID?: number;
     plaidUrl?: string;
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
@@ -98,6 +100,10 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
+function isBusinessBankAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+}
+
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
@@ -107,6 +113,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInSetupState = isAccountInSetupState(item);
+    const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
 
     // Check if this is a Chase personal bank account connected via Plaid
@@ -116,6 +123,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (isInLockedState) {
+            if (item.onThreeDotsMenuPress) {
+                item.onThreeDotsMenuPress(e);
+            } else {
+                item.onPress?.(e);
+            }
+            return;
+        }
+
         if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress) || isInSetupState) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
@@ -123,25 +139,48 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
+    // Account-level status badges (right side of the row)
     const badgeText = useMemo(() => {
+        if (isInLockedState) {
+            return translate('common.locked');
+        }
         if (isInSetupState) {
             return translate('common.actionRequired');
         }
-        if (item.isCardFrozen) {
-            return translate('cardPage.frozen');
-        }
         return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isInSetupState, item.isCardFrozen, shouldShowDefaultBadge, translate]);
+    }, [isInSetupState, isInLockedState, shouldShowDefaultBadge, translate]);
 
     const badgeIcon = useMemo(() => {
-        if (isInSetupState) {
+        if (isInSetupState || isInLockedState) {
             return icons.DotIndicator;
         }
+        return undefined;
+    }, [icons.DotIndicator, isInSetupState, isInLockedState]);
+
+    // Card state pills (below title, next to description)
+    const descriptionAddon = useMemo(() => {
         if (item.isCardFrozen) {
-            return icons.FreezeCard;
+            return (
+                <Badge
+                    text={translate('cardPage.frozen')}
+                    icon={icons.FreezeCard}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                    iconStyles={[styles.mr1]}
+                />
+            );
+        }
+        if (item.isInactive) {
+            return (
+                <Badge
+                    text={translate('walletPage.cardInactive')}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
         }
         return undefined;
-    }, [icons.DotIndicator, icons.FreezeCard, isInSetupState, item.isCardFrozen]);
+    }, [item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback
@@ -155,6 +194,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 onPress={handleRowPress}
                 title={item.title}
                 description={item.description}
+                descriptionAddon={descriptionAddon}
                 icon={item.icon}
                 plaidUrl={item.plaidUrl}
                 disabled={item.disabled}
@@ -166,7 +206,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconFill={item.iconFill}
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
-                isBadgeSuccess={isInSetupState ? true : undefined}
+                isBadgeSuccess={isInSetupState}
+                isBadgeError={isInLockedState}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}

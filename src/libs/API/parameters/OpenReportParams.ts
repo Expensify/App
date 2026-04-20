@@ -27,6 +27,7 @@ type OpenReportParams = {
     moneyRequestPreviewReportActionID?: string;
     includePartiallySetupBankAccounts?: boolean;
     useLastUnreadReportAction?: boolean;
+    includeLockedBankAccounts?: boolean;
 };
 
 export default OpenReportParams;
