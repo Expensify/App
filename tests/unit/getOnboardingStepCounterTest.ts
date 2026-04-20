@@ -3,7 +3,13 @@ import {getOnboardingFlow, getOnboardingStepCounter} from '@src/libs/getOnboardi
 import type {OnboardingFlowContext, OnboardingScreen} from '@src/libs/getOnboardingStepCounter';
 import SCREENS from '@src/SCREENS';
 
-const O = SCREENS.ONBOARDING;
+const O = {
+    ...SCREENS.ONBOARDING,
+    ACCOUNTING: SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING,
+    EMPLOYEES: SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES,
+    PERSONAL_DETAILS: SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS,
+    PRIVATE_DOMAIN: SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
+} as const;
 const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
 describe('getOnboardingFlow', () => {
