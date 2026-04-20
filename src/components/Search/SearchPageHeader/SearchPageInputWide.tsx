@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
@@ -14,7 +14,7 @@ type SearchPageInputWideProps = {
     queryJSON: SearchQueryJSON;
     handleSearch: (value: string) => void;
 };
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
+
 function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -66,17 +66,18 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     return (
         <>
             {/* An empty view as the input placeholder so that the applied filters won't move when the real input position becomes absolute */}
-            {isAutocompleteListVisible && <View style={styles.searchPageInputPlaceholder} />}
+            {isAutocompleteListVisible && <View style={styles.searchPageInputWidePlaceholder} />}
             <View
                 dataSet={{dragArea: false}}
-                style={[styles.appBG, styles.newSearchResultsHeaderBar, ...autocompleteInputStyle]}
+                style={[styles.appBG, styles.searchResultsHeaderBar, ...autocompleteInputStyle]}
             >
                 <SearchInputSelectionWrapper
                     value={textInputValue}
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
-                    // inputContainerStyle={isAutocompleteListVisible ? styles.ph3 : styles.ph2}
-                    // touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputTouchableWrapper}
+                    inputStyle={isAutocompleteListVisible ? undefined : styles.fontSizeLabel}
+                    inputContainerStyle={isAutocompleteListVisible ? undefined : styles.ph2}
+                    touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputWideTouchableWrapper}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption();
                         if (focusedOption) {
@@ -87,7 +88,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     autoFocus={false}
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
-                    wrapperStyle={{...styles.newSearchAutocompleteInputResults, ...styles.br2}}
+                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                     wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.flex1]}
                     ref={textInputRef}

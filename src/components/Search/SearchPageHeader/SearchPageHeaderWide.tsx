@@ -7,7 +7,7 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 type SearchPageHeaderWideProps = {
     queryJSON: SearchQueryJSON;
 };
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
+
 function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
     const {translate} = useLocalize();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections(queryJSON);

@@ -1956,7 +1956,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2564,6 +2564,22 @@ function deleteReportComment(
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportMentionWhisperAction);
         if (!originalMessage?.resolution && !originalMessage?.deleted) {
             unresolvedMentionWhisperIDs.push(reportMentionWhisperID);
+        }
+    }
+
+    // Whispers created during a message edit receive a random ID (not parentID+1/+2), but the
+    // backend stores the parent's reportActionID in originalMessage.parentReportActionID. Scan
+    // all actions to catch any such whispers that the offset lookup above would miss.
+    for (const [actionID, action] of Object.entries(reportActionsForReport)) {
+        if (unresolvedMentionWhisperIDs.includes(actionID)) {
+            continue;
+        }
+        if (!ReportActionsUtils.isActionableMentionWhisper(action) && !ReportActionsUtils.isActionableReportMentionWhisper(action)) {
+            continue;
+        }
+        const originalMessage = ReportActionsUtils.getOriginalMessage(action);
+        if (originalMessage?.parentReportActionID === reportActionID && !originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(actionID);
         }
     }
 
@@ -4116,11 +4132,6 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     // If this is a whisper targeted to someone else, don't show it
     if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
         Log.info(`${tag} No notification because the action is whispered to someone else`, false);
-        return false;
-    }
-
-    if (action && !ReportActionsUtils.isActionable(action, currentUserAccountID)) {
-        Log.info(`${tag} No notification because report action is not actionable`);
         return false;
     }
 

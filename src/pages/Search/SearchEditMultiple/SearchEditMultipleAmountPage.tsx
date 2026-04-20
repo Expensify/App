@@ -7,7 +7,7 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
