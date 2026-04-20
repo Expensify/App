@@ -1876,6 +1876,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                     selectedOptions: [selectedPerson, selectedReport],
