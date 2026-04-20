@@ -20,7 +20,7 @@ import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/ac
 import {resetSplitShares, setIndividualShare} from '@libs/actions/IOU/Split';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -243,7 +243,7 @@ function MoneyRequestConfirmationList({
         selector: mileageRateSelector,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -647,6 +647,7 @@ function MoneyRequestConfirmationList({
         transaction?.splitShares,
         onSplitShareChange,
         getCurrencySymbol,
+        convertToDisplayString,
     ]);
 
     const isSplitModified = useMemo(() => {

@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -159,20 +160,22 @@ function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
             <HTMLEngineProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <LocaleContextProvider>
-                        <IOURequestStepConfirmation
-                            route={{
-                                key: SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
-                                name: SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
-                                params: {
-                                    action,
-                                    iouType: CONST.IOU.TYPE.SUBMIT,
-                                    transactionID: TRANSACTION_ID,
-                                    reportID: POLICY_CHAT_REPORT_ID,
-                                },
-                            }}
-                            // @ts-expect-error we don't need navigation param here
-                            navigation={undefined}
-                        />
+                        <CurrencyListContextProvider>
+                            <IOURequestStepConfirmation
+                                route={{
+                                    key: SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+                                    name: SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+                                    params: {
+                                        action,
+                                        iouType: CONST.IOU.TYPE.SUBMIT,
+                                        transactionID: TRANSACTION_ID,
+                                        reportID: POLICY_CHAT_REPORT_ID,
+                                    },
+                                }}
+                                // @ts-expect-error we don't need navigation param here
+                                navigation={undefined}
+                            />
+                        </CurrencyListContextProvider>
                     </LocaleContextProvider>
                 </CurrentUserPersonalDetailsProvider>
             </HTMLEngineProvider>
