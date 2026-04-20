@@ -108,7 +108,7 @@ describe('doesPersonalDetailMatchSearchTerm', () => {
                     return concatenatedSearchTerms;
                 },
             });
-            expect(receivedText).toBe('upper case  ');
+            expect(receivedText).toBe('upper case   ');
         });
 
         it('should use the transform result as the final match target', () => {
