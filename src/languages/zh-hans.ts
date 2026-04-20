@@ -8370,6 +8370,7 @@ ${reportName}
         details: {
             title: '订阅详情',
             annual: '年度订阅',
+            creditBalance: '积分余额',
             taxExempt: '申请免税状态',
             taxExemptEnabled: '免税',
             taxExemptStatus: '免税状态',

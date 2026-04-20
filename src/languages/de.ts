@@ -8637,6 +8637,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         details: {
             title: 'Abonnementdetails',
             annual: 'Jahresabonnement',
+            creditBalance: 'Guthaben',
             taxExempt: 'Steuerbefreiungsstatus beantragen',
             taxExemptEnabled: 'Steuerbefreit',
             taxExemptStatus: 'Steuerbefreiungsstatus',

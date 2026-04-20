@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -18,12 +19,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {saveResponse} from '@libs/actions/ExitSurvey';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -31,9 +33,10 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
 
-function ExitSurveyReasonPage() {
+function DynamicExitSurveyReasonPage() {
     const {isOffline} = useNetwork();
     const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector});
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -47,7 +50,7 @@ function ExitSurveyReasonPage() {
 
     const submitForm = useCallback(() => {
         saveResponse(draftResponse);
-        Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_REASON));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path), {forceReplace: true});
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 
@@ -67,10 +70,10 @@ function ExitSurveyReasonPage() {
     );
 
     return (
-        <ScreenWrapper testID="ExitSurveyReasonPage">
+        <ScreenWrapper testID="DynamicExitSurveyReasonPage">
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
@@ -116,4 +119,4 @@ function ExitSurveyReasonPage() {
     );
 }
 
-export default ExitSurveyReasonPage;
+export default DynamicExitSurveyReasonPage;

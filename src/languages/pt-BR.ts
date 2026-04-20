@@ -8591,6 +8591,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         details: {
             title: 'Detalhes da assinatura',
             annual: 'Assinatura anual',
+            creditBalance: 'Saldo de crédito',
             taxExempt: 'Solicitar isenção de impostos',
             taxExemptEnabled: 'Isento de impostos',
             taxExemptStatus: 'Status de isenção de impostos',

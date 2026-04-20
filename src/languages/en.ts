@@ -8623,6 +8623,7 @@ const translations = {
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
+            creditBalance: 'Credit balance',
             taxExempt: 'Request tax exempt status',
             taxExemptEnabled: 'Tax exempt',
             taxExemptStatus: 'Tax exempt status',
