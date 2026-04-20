@@ -148,7 +148,12 @@ const onboardingInviteTypes = {
 } as const;
 
 const onboardingCompanySize = {
+    MICRO_SMALL: '1-4',
+    MICRO_MEDIUM: '5-10',
+
+    // This range is deprecated in favor of the smaller ranges above, but the constant is kept to compare against saved data for backwards compatibility.
     MICRO: '1-10',
+
     SMALL: '11-50',
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
@@ -2555,6 +2560,7 @@ const CONST = {
         SUGGESTER_INNER_PADDING: 8,
         SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
+        SMALL_CONTAINER_HEIGHT_FACTOR_LANDSCAPE_MODE: 1.5,
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
@@ -3265,6 +3271,9 @@ const CONST = {
             isLoading: false,
             errors: {},
         },
+        // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
+        // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
+        OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
     ONFIDO: {
@@ -3597,6 +3606,7 @@ const CONST = {
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
+            IS_HR_ENABLED: 'isHREnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3726,6 +3736,7 @@ const CONST = {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
                 STARTING_IMPORT_QBD: 'startingImportQBD',
+                STARTING_IMPORT_GUSTO: 'startingImportGusto',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -3791,6 +3802,10 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
                 SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
+                GUSTO_SYNC_LOAD_COMPANY: 'gustoSyncLoadCompany',
+                GUSTO_SYNC_IMPORT_EMPLOYEES: 'gustoSyncImportEmployees',
+                GUSTO_SYNC_BUILD_APPROVAL_CHAINS: 'gustoSyncBuildApprovalChains',
+                GUSTO_SYNC_FINALIZE: 'gustoSyncFinalize',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -7532,6 +7547,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             UNDELETE: 'undelete',
         },
+        BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',
@@ -8754,6 +8770,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        BILLING_BANNER: {
+            RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
@@ -9248,6 +9267,7 @@ const CONST = {
                 MEMBERS: 'WorkspaceInitial-Members',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
+                HR: 'WorkspaceInitial-HR',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',

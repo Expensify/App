@@ -30,6 +30,7 @@ type CreateTrackExpenseParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
+    defaultWorkspaceName?: string;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

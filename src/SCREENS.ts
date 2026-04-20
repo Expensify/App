@@ -131,6 +131,8 @@ const SCREENS = {
         HELP: 'Settings_Help',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
+        DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',
+        DYNAMIC_EXIT_SURVEY_REASON: 'Dynamic_ExitSurvey_Reason',
         DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
 
         PROFILE: {
@@ -226,9 +228,7 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
-            REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
-            CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
 
         DELEGATE: {
@@ -603,10 +603,10 @@ const SCREENS = {
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
             NETSUITE_EXPORT: 'Policy_Accounting_NetSuite_Export',
-            NETSUITE_PREFERRED_EXPORTER_SELECT: 'Policy_Accounting_NetSuite_Preferred_Exporter_Select',
-            NETSUITE_DATE_SELECT: 'Policy_Accounting_NetSuite_Date_Select',
-            NETSUITE_EXPORT_EXPENSES: 'Policy_Accounting_NetSuite_Export_Expenses',
-            NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: 'Policy_Accounting_NetSuite_Export_Expenses_Destination_Select',
+            DYNAMIC_NETSUITE_PREFERRED_EXPORTER_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Preferred_Exporter_Select',
+            DYNAMIC_NETSUITE_DATE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Date_Select',
+            DYNAMIC_NETSUITE_EXPORT_EXPENSES: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses',
+            DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Destination_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Vendor_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Payable_Account_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Journal_Posting_Preference_Select',

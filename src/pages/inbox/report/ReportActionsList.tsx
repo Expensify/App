@@ -541,7 +541,10 @@ function ReportActionsList({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    // Wait for the next frame so the list has laid out new items before scrolling
+                    requestAnimationFrame(() => {
+                        reportScrollManager.scrollToBottom();
+                    });
                 }
 
                 setIsScrollToBottomEnabled(true);

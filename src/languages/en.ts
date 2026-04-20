@@ -1714,6 +1714,7 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        bulkDuplicateLimit: `You can duplicate up to ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} expenses at a time. Please select fewer expenses and try again.`,
         taxDisabledAlert: {
             title: 'Tax disabled',
             prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
@@ -2670,6 +2671,9 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
+        memberAlreadyInWorkflowTitle: 'Member already in a workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} is already in an approval workflow that submits to ${approverName}. Adding them here will move them to this workflow.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -2970,6 +2974,8 @@ const translations = {
         },
         employees: {
             title: 'How many employees do you have?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
@@ -4253,6 +4259,7 @@ const translations = {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            hr: 'HR',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -6317,6 +6324,36 @@ const translations = {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
+        },
+        hr: {
+            title: 'HR',
+            subtitle: 'Connect HR tools and keep employee approvals in sync.',
+            settingsTitle: 'Gusto settings',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importing Gusto data';
+                    case 'gustoSyncLoadCompany':
+                        return 'Loading Gusto company data';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importing employees';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Building approval chains';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizing sync';
+                    case 'jobDone':
+                        return 'Waiting for imported data to load';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
             },
         },
         export: {
@@ -8586,6 +8623,7 @@ const translations = {
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
+            creditBalance: 'Credit balance',
             taxExempt: 'Request tax exempt status',
             taxExemptEnabled: 'Tax exempt',
             taxExemptStatus: 'Tax exempt status',

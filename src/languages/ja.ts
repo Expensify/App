@@ -1650,6 +1650,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
             confirmText: '税を削除',
         },
+        bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
     },
     transactionMerge: {
@@ -2584,6 +2585,9 @@ ${date} の ${merchant} への ${amount}`,
     workflowsExpensesFromPage: {
         title: '経費（開始日）',
         header: '次のメンバーが経費を提出したとき：',
+        memberAlreadyInWorkflowTitle: 'メンバーはすでにワークフローに属しています',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -2885,11 +2889,13 @@ ${date} の ${merchant} への ${amount}`,
         },
         employees: {
             title: '従業員は何人いますか？',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1～4名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5～10人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '従業員数 1～10 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '従業員数 11～50 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '従業員数 51～100 人',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11～50名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51～100人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101～1,000人の従業員',
-            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人を超える従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人超の従業員',
         },
         accounting: {
             title: '会計ソフトを利用していますか？',
@@ -4250,6 +4256,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
+            hr: '人事',
         },
         receiptPartners: {
             uber: {
@@ -6849,6 +6856,31 @@ ${reportName}
             }),
             subscriptions: 'サブスクリプション',
         },
+        hr: {
+            title: '人事',
+            subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
+            settingsTitle: 'Gusto 設定',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Gusto データのインポート';
+                    case 'gustoSyncLoadCompany':
+                        return 'Gusto 会社データを読み込み中';
+                    case 'gustoSyncImportEmployees':
+                        return '従業員のインポート';
+                    case 'gustoSyncBuildApprovalChains':
+                        return '承認フローの構築';
+                    case 'gustoSyncFinalize':
+                        return '同期を完了しています';
+                    case 'jobDone':
+                        return 'インポートしたデータの読み込みを待機しています';
+                    default: {
+                        return `ステージの翻訳が見つかりません: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: '承認モード', finalApprover: '最終承認者'},
+        },
     },
     getAssistancePage: {
         title: 'サポートを受ける',
@@ -8484,6 +8516,7 @@ ${reportName}
         details: {
             title: 'サブスクリプションの詳細',
             annual: '年額サブスクリプション',
+            creditBalance: 'クレジット残高',
             taxExempt: '非課税扱いを申請',
             taxExemptEnabled: '非課税',
             taxExemptStatus: '非課税ステータス',

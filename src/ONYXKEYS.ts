@@ -272,6 +272,9 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
+    /** The user's freebie credits balance (in cents). */
+    NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
+
     /** The amount owed by the workspace’s owner. */
     NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
 
@@ -807,9 +810,6 @@ const ONYXKEYS = {
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
 
-        /** Used for identifying user as admin of a domain */
-        SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
-
         /** Stored the user information with whom bank account is being shared */
         BANK_ACCOUNT_SHARE_DETAILS: 'expensify_bankAccountShare_',
 
@@ -1295,7 +1295,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
-    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
@@ -1479,6 +1478,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;

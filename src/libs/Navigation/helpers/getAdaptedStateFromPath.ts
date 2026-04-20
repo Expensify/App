@@ -352,13 +352,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    // The Plaid OAuth redirect URI for iOS (partners/plaid/oauth_ios) is not a registered route.
-    // When this URL is processed — either as a deep link or opened in Safari — redirect to home
-    // to avoid showing NotFound. The native Plaid SDK handles the actual OAuth callback separately.
-    if (normalizedPath.startsWith('/partners/plaid/oauth_ios')) {
-        normalizedPath = '/';
-    }
-
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
