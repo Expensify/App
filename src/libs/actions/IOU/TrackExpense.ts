@@ -189,6 +189,7 @@ type GetTrackExpenseInformationParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
+    optimisticChatReportID?: string;
 };
 
 type DeleteTrackExpenseParams = {
@@ -827,6 +828,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
     } = params;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
     const {policy} = policyParams;
@@ -873,7 +875,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let optimisticReportActionID: string | undefined;
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
-        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime, optimisticChatReportID);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(getCurrentUserEmail() ?? '', currentTime);
         optimisticReportID = selfDMReport.reportID;
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
@@ -2244,6 +2246,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -2385,6 +2388,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        optimisticChatReportID,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;

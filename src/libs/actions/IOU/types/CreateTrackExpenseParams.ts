@@ -23,6 +23,7 @@ type CreateTrackExpenseParams = {
     shouldPlaySound?: boolean;
     shouldDeferAPIWrite?: boolean;
     draftTransactionIDs?: string[];
+    optimisticChatReportID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;

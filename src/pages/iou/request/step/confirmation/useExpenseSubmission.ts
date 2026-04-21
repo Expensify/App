@@ -486,6 +486,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
+        const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         for (const [index, item] of transactions.entries()) {
             const isLastBatchItem = index === transactions.length - 1;
             const isLinkedTrackedExpenseReportArchived =
@@ -550,6 +551,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                optimisticChatReportID: optimisticSelfDMReportID,
             });
         }
 
@@ -565,7 +567,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            optimisticChatReportID: selfDMReport?.reportID ?? findSelfDMReportID(),
+            optimisticChatReportID: optimisticSelfDMReportID,
         });
     }
 

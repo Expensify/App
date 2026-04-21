@@ -1095,6 +1095,32 @@ describe('actions/IOU/TrackExpense', () => {
             expect(selfDMReports.length).toBeGreaterThan(0);
         });
 
+        it('should use optimisticChatReportID as the new self-DM reportID when no self-DM exists', async () => {
+            // Given no selfDM report exists AND the UI pre-generated a reportID
+            const optimisticSelfDMReportID = 'optimistic-selfdm-42';
+
+            // When trackExpense is called with undefined report and the pre-generated reportID
+            trackExpense({
+                ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic SelfDM ID Test'}),
+                optimisticChatReportID: optimisticSelfDMReportID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic self-DM report should be created under the provided reportID
+            const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReportID}`]?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+        });
+
         it('should handle API failure gracefully with failure data', async () => {
             // Given a selfDM report
             const selfDMReport: Report = {
