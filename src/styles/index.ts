@@ -943,6 +943,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.componentSizeXSmall,
         },
 
+        threeDotsMenuIconWidth: {
+            width: variables.componentSizeXSmall,
+        },
+
         touchableButtonImage: {
             alignItems: 'center',
             height: variables.componentSizeNormal,
@@ -4645,7 +4649,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
+            // aspectRatio is calculated first and then maxWidth/maxHeight clamps the dimensions, thus both have to be specified
             maxWidth: variables.receiptPreviewMaxWidth,
+            maxHeight: (variables.receiptPreviewMaxWidth * 9) / 16,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -4914,8 +4920,10 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
+        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
         searchBulkActionsButton: {
-            marginVertical: 3,
+            marginVertical: -3,
         },
 
         filtersBar: {

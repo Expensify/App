@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSortedActions from '@hooks/useSortedActions';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
@@ -68,6 +69,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const sortedActions = useSortedActions();
 
     const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
@@ -95,6 +97,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   currentUserEmail,
                   personalDetails,
                   policyCollection: allPolicies,
+                  sortedActions,
                   conciergeReportID,
               });
 

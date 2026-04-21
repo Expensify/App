@@ -463,6 +463,52 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
     });
 
+    it('should show duplicate option when only deleted expenses are selected', async () => {
+        const transactionID = '1950';
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            managedCard: false,
+        };
+
+        mockSelectedTransactions = {
+            [transactionID]: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID}),
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
+    });
+
+    it('should show duplicate option when selection includes deleted and non-deleted expenses that can be duplicated', async () => {
+        const deletedTransactionID = '1951';
+        const nonDeletedTransactionID = '1952';
+        const deletedTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: deletedTransactionID,
+            managedCard: false,
+        };
+        const nonDeletedTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: nonDeletedTransactionID,
+            managedCard: false,
+        };
+
+        mockSelectedTransactions = {
+            [deletedTransactionID]: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID}),
+            [nonDeletedTransactionID]: makeSelectedTransaction({reportID: 'r1', action: CONST.SEARCH.ACTION_TYPES.SUBMIT}),
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`, deletedTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${nonDeletedTransactionID}`, nonDeletedTransaction);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
+    });
+
     it('should show duplicate option for expenses with VIEW action (unreported/paid)', async () => {
         const txnID = '2000';
         const txn = {...createRandomTransaction(1), transactionID: txnID, managedCard: false};

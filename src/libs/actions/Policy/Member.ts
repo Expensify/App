@@ -638,8 +638,17 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                employeeList: previousEmployeeList,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                employeeList: {
+                    ...memberRoles.reduce((member: Record<string, PolicyEmployee>, current) => {
+                        // eslint-disable-next-line no-param-reassign
+                        member[current.email] = {
+                            ...(previousEmployeeList[current.email] ?? {}),
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                        };
+                        return member;
+                    }, {}),
+                },
             },
         },
     ];
@@ -1142,6 +1151,20 @@ function clearAddMemberError(policyID: string, login: string, accountID: number)
     });
 }
 
+/**
+ * Removes an error after trying to update a member role
+ */
+function clearUpdateMemberRoleError(policyID: string, login: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [login]: {
+                pendingAction: null,
+                errors: null,
+            },
+        },
+    });
+}
+
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -1353,6 +1376,7 @@ export {
     addMembersToWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,
+    clearUpdateMemberRoleError,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,

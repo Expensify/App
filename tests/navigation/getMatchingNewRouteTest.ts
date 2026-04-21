@@ -44,6 +44,14 @@ describe('getBestMatchingPath', () => {
         );
     });
 
+    it('redirects old settings category edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/category/Meals/category-edit');
+    });
+
+    it('preserves query params when redirecting old settings category edit path', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
@@ -63,5 +71,17 @@ describe('getBestMatchingPath', () => {
 
     it('preserves fragment when redirecting', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
+    });
+
+    it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync')).toBe(
+            '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync/accounting-method')).toBe(
+            '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync/quickbooks-online-accounting-method',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync?backTo=/x')).toBe(
+            '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync?backTo=/x',
+        );
     });
 });

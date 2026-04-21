@@ -7,30 +7,26 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineAccountingMethod} from '@libs/actions/connections/QuickbooksOnline';
+import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-type QuickbooksAccountingMethodPageRouteParams = {
-    backTo?: Route;
-};
-
-function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksOnlineAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const {backTo} = route.params as QuickbooksAccountingMethodPageRouteParams;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.path);
     const styles = useThemeStyles();
     const config = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
@@ -54,19 +50,23 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
         [translate, styles.pb5, styles.ph5],
     );
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(backPath);
+    }, [backPath]);
+
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.accountingMethod) {
                 updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo));
+            goBack();
         },
-        [config?.accountingMethod, policyID, backTo],
+        [config?.accountingMethod, policyID, goBack],
     );
 
     return (
         <SelectionScreen
-            displayName="QuickbooksAccountingMethodPage"
+            displayName="DynamicQuickbooksOnlineAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.qbo.accountingMethods.label')}
             headerContent={headerContent}
             data={data}
@@ -76,7 +76,7 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo))}
+            onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={pendingAction}
             shouldBeBlocked={!config?.autoSync?.enabled}
@@ -84,4 +84,4 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
     );
 }
 
-export default withPolicyConnections(QuickbooksAccountingMethodPage);
+export default withPolicyConnections(DynamicQuickbooksOnlineAccountingMethodPage);

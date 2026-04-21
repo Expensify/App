@@ -846,7 +846,6 @@ export {
     buildNextStepMessage,
     buildOptimisticNextStep,
     parseMessage,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
