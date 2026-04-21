@@ -1559,6 +1559,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
+        optimisticTransactionID,
         shouldGenerateTransactionThreadReport,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
@@ -1613,7 +1614,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
-    const existingTransactionID = existingTransactionDraft?.transactionID;
+    const existingTransactionID = existingTransactionDraft?.transactionID ?? optimisticTransactionID;
     const existingTransaction = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const retryParams = {
@@ -2247,6 +2248,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
+        optimisticTransactionID,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -2346,7 +2348,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-                : undefined,
+                : optimisticTransactionID,
         participantParams: {
             participant,
             payeeAccountID,

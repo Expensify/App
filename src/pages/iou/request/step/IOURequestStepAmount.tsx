@@ -35,6 +35,7 @@ import {
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -268,8 +269,9 @@ function IOURequestStepAmount({
                     dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
                     return;
                 }
+                const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+                const optimisticTransactionID = rand64();
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
                     const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                     requestMoney({
@@ -301,6 +303,7 @@ function IOURequestStepAmount({
                         isSelfTourViewed,
                         personalDetails,
                         optimisticChatReportID,
+                        optimisticTransactionID,
                     });
                 } else if (iouType === CONST.IOU.TYPE.TRACK) {
                     trackExpense({
@@ -329,6 +332,7 @@ function IOURequestStepAmount({
                         betas,
                         draftTransactionIDs,
                         isSelfTourViewed,
+                        optimisticTransactionID,
                     });
                 } else {
                     return;
@@ -336,7 +340,7 @@ function IOURequestStepAmount({
                 cleanupAndNavigateAfterExpenseCreate({
                     report,
                     draftTransactionIDs,
-                    transactionID,
+                    transactionID: existingTransactionID ?? optimisticTransactionID,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     backToReport,
                     optimisticChatReportID,

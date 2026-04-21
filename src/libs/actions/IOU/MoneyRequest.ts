@@ -6,7 +6,7 @@ import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfir
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -211,6 +211,7 @@ function createTransaction({
     onTransactionsCreated,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    let lastOptimisticTransactionID: string | undefined;
     for (const [index, receiptFile] of files.entries()) {
         const isLastBatchItem = index === files.length - 1;
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -221,6 +222,7 @@ function createTransaction({
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
         const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
         const taxAmount = transaction?.taxAmount ?? 0;
+        lastOptimisticTransactionID = rand64();
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
@@ -253,6 +255,7 @@ function createTransaction({
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
+                optimisticTransactionID: lastOptimisticTransactionID,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -292,10 +295,11 @@ function createTransaction({
                 existingTransactionDraft,
                 isSelfTourViewed,
                 personalDetails,
+                optimisticTransactionID: lastOptimisticTransactionID,
             });
         }
     }
-    onTransactionsCreated?.(files.at(-1)?.transactionID);
+    onTransactionsCreated?.(lastOptimisticTransactionID);
 }
 
 function getMoneyRequestParticipantOptions(
@@ -684,6 +688,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
+                const distanceOptimisticTransactionID = rand64();
                 trackExpense({
                     report,
                     isDraftPolicy: false,
@@ -728,8 +733,9 @@ function handleMoneyRequestStepDistanceNavigation({
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
+                    optimisticTransactionID: distanceOptimisticTransactionID,
                 });
-                onTransactionsCreated?.(transaction?.transactionID);
+                onTransactionsCreated?.(distanceOptimisticTransactionID);
                 return;
             }
 

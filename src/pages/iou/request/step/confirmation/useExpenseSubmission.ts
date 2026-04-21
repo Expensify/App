@@ -246,6 +246,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
+        let lastOptimisticTransactionID: string | undefined;
 
         for (const [index, item] of transactions.entries()) {
             const isLastBatchItem = index === transactions.length - 1;
@@ -273,6 +274,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+            lastOptimisticTransactionID = existingTransactionID ?? rand64();
             let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
             if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                 const distance = item.comment?.customUnit?.quantity;
@@ -355,6 +357,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                optimisticTransactionID: lastOptimisticTransactionID,
             });
             existingIOUReport = iouReport;
         }
@@ -367,17 +370,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         let resolvedChatReportID: string | undefined;
-        if (!report) {
-            if (participant.isPolicyExpenseChat && participant.reportID) {
-                resolvedChatReportID = participant.reportID;
-            } else if (participant.accountID) {
-                resolvedChatReportID = getChatByParticipants([participant.accountID, currentUserPersonalDetails.accountID])?.reportID;
-            }
+        if (participant.isPolicyExpenseChat && participant.reportID) {
+            resolvedChatReportID = participant.reportID;
+        } else if (participant.accountID) {
+            resolvedChatReportID = getChatByParticipants([participant.accountID, currentUserPersonalDetails.accountID])?.reportID;
         }
+        const participantDiffersFromReport = !!resolvedChatReportID && resolvedChatReportID !== report?.reportID;
         cleanupAndNavigateAfterExpenseCreate({
-            report,
+            report: participantDiffersFromReport ? undefined : report,
             draftTransactionIDs,
-            transactionID: lastTransaction.transactionID,
+            transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             backToReport,
             optimisticChatReportID: resolvedChatReportID ?? optimisticChatReportID,
@@ -487,11 +489,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
+        let lastOptimisticTransactionID: string | undefined;
         for (const [index, item] of transactions.entries()) {
             const isLastBatchItem = index === transactions.length - 1;
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            lastOptimisticTransactionID = rand64();
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
@@ -552,6 +556,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 optimisticChatReportID: optimisticSelfDMReportID,
+                optimisticTransactionID: lastOptimisticTransactionID,
             });
         }
 
@@ -565,7 +570,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         cleanupAndNavigateAfterExpenseCreate({
             report,
             draftTransactionIDs,
-            transactionID: lastTransaction.transactionID,
+            transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             optimisticChatReportID: optimisticSelfDMReportID,
         });

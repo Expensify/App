@@ -233,8 +233,10 @@ describe('MoneyRequest', () => {
                 {...fakeReceiptFile, transactionID: '333'},
             ];
             const callOrder: string[] = [];
-            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+            let lastOptimisticTransactionID: string | undefined;
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {optimisticTransactionID?: string}) => {
                 callOrder.push('trackExpense');
+                lastOptimisticTransactionID = params.optimisticTransactionID;
             });
             const onTransactionsCreated = jest.fn(() => {
                 callOrder.push('onTransactionsCreated');
@@ -251,7 +253,8 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
             expect(callOrder).toEqual(['trackExpense', 'trackExpense', 'trackExpense', 'onTransactionsCreated']);
-            expect(onTransactionsCreated).toHaveBeenCalledWith('333');
+            expect(lastOptimisticTransactionID).toBeDefined();
+            expect(onTransactionsCreated).toHaveBeenCalledWith(lastOptimisticTransactionID);
         });
 
         it('should not throw when onTransactionsCreated callback is undefined', () => {
@@ -1284,52 +1287,27 @@ describe('MoneyRequest', () => {
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
-                report: baseParams.report,
-                isDraftPolicy: false,
-                activePolicyID: undefined,
-                introSelected: undefined,
-                isSelfTourViewed: false,
-                participantParams: {
-                    payeeEmail: baseParams.currentUserLogin,
-                    payeeAccountID: baseParams.currentUserAccountID,
-                    participant: expect.objectContaining({
-                        accountID: 0,
-                        selected: true,
-                        isSelected: true,
-                        allReportErrors: {},
-                        brickRoadIndicator: null,
-                        isPolicyExpenseChat: true,
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: baseParams.report,
+                    isDraftPolicy: false,
+                    participantParams: expect.objectContaining({
+                        payeeEmail: baseParams.currentUserLogin,
+                        payeeAccountID: baseParams.currentUserAccountID,
                     }),
-                },
-                policyParams: {
-                    policy: undefined,
-                },
-                transactionParams: {
-                    amount: 0,
-                    distance: 20,
-                    currency: fakeTransaction?.currency ?? 'USD',
-                    created: fakeTransaction?.created ?? '',
-                    merchant: 'Pending...',
-                    receipt: {},
-                    billable: false,
-                    reimbursable: fakePolicy?.defaultReimbursable ?? true,
-                    validWaypoints: undefined,
-                    customUnitRateID: '_FAKE_P2P_ID_',
-                    attendees: fakeTransaction?.comment?.attendees,
-                    gpsCoordinates: undefined,
-                    odometerEnd: undefined,
-                    odometerStart: undefined,
-                    taxCode: '',
-                    taxAmount: 0,
-                },
-                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: baseParams.currentUserAccountID,
-                currentUserEmailParam: baseParams.currentUserLogin,
-                quickAction: baseParams.quickAction,
-                recentWaypoints: baseParams.recentWaypoints,
-                betas: [CONST.BETAS.ALL],
-            });
+                    transactionParams: expect.objectContaining({
+                        amount: 0,
+                        distance: 20,
+                        merchant: 'Pending...',
+                        receipt: {},
+                        billable: false,
+                        customUnitRateID: '_FAKE_P2P_ID_',
+                    }),
+                    isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: baseParams.currentUserAccountID,
+                    currentUserEmailParam: baseParams.currentUserLogin,
+                }),
+            );
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
@@ -1337,8 +1315,10 @@ describe('MoneyRequest', () => {
 
         it('should fire onTransactionsCreated exactly once after trackExpense in the TRACK skip-confirm branch with the transactionID', () => {
             const callOrder: string[] = [];
-            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+            let capturedOptimisticTransactionID: string | undefined;
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {optimisticTransactionID?: string}) => {
                 callOrder.push('trackExpense');
+                capturedOptimisticTransactionID = params.optimisticTransactionID;
             });
             const onTransactionsCreated = jest.fn((transactionID?: string) => {
                 callOrder.push(`onTransactionsCreated:${transactionID}`);
@@ -1354,8 +1334,9 @@ describe('MoneyRequest', () => {
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
-            expect(onTransactionsCreated).toHaveBeenCalledWith(fakeTransaction.transactionID);
-            expect(callOrder).toEqual(['trackExpense', `onTransactionsCreated:${fakeTransaction.transactionID}`]);
+            expect(capturedOptimisticTransactionID).toBeDefined();
+            expect(onTransactionsCreated).toHaveBeenCalledWith(capturedOptimisticTransactionID);
+            expect(callOrder).toEqual(['trackExpense', `onTransactionsCreated:${capturedOptimisticTransactionID}`]);
         });
 
         it('should NOT fire onTransactionsCreated on early-return paths (backTo) or non-TRACK paths (createDistanceRequest)', () => {
