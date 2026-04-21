@@ -123,7 +123,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}
             policyID={moneyRequestReport?.policyID}
-            report={moneyRequestReport as OnyxEntry<Report>}
+            report={moneyRequestReport}
         />
     );
 }

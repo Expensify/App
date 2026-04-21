@@ -13,6 +13,7 @@ import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {

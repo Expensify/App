@@ -5,7 +5,6 @@ import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getNextApproverAccountID, isReportOwner, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useConfirmApproval from './useConfirmApproval';

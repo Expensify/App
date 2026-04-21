@@ -105,7 +105,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
             onAnimationFinish={stopAnimation}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
             policyID={iouReport?.policyID}
-            report={iouReport as OnyxEntry<Report>}
+            report={iouReport}
         />
     );
 }
