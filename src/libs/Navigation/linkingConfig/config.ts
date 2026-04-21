@@ -2117,7 +2117,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: {
                     screens: {
-                        [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: ROUTES.REPORT_CHANGE_APPROVER.route,
+                        [SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT]: DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path,
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },

@@ -267,7 +267,7 @@ const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<Repor
 });
 
 const ReportChangeApproverModalStackNavigator = createModalStackNavigator<ReportChangeApproverParamList>({
-    [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportChangeApproverPage').default,
+    [SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportChangeApproverPage').default,
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/ReportAddApproverPage').default,
 });
 

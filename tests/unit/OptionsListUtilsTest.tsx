@@ -3513,7 +3513,7 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
 
-        it('createOptionList() localization', () => {
+        it('createOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
@@ -3522,18 +3522,15 @@ describe('OptionsListUtils', () => {
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
 
-            return (
-                waitForBatchedUpdates()
-                    // When we set the preferred locale to Spanish
-                    .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
-                    .then(() => {
-                        // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
-                        // Then the returned reports should change to Spanish
-                        // cspell:disable-next-line
-                        expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
-                    })
-            );
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
+
+            await waitForBatchedUpdates();
+
+            // When we call createOptionList again
+            const newReports = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
+            // Then the returned reports should change to Spanish
+            // cspell:disable-next-line
+            expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
         });
     });
 
@@ -3607,6 +3604,8 @@ describe('OptionsListUtils', () => {
                     '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                 },
             });
+            await waitForBatchedUpdates();
+
             // When we call createOptionList with report 10 marked as archived
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,

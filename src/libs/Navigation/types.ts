@@ -3200,7 +3200,7 @@ type ScheduleCallParamList = {
 };
 
 type ReportChangeApproverParamList = {
-    [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: {
+    [SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT]: {
         reportID: string;
     };
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {

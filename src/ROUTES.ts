@@ -352,6 +352,10 @@ const DYNAMIC_ROUTES = {
         path: 'exit-survey/confirm',
         entryScreens: [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON, SCREENS.SETTINGS.TROUBLESHOOT],
     },
+    REPORT_CHANGE_APPROVER: {
+        path: 'change-approver',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -1068,12 +1072,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
-    },
-    REPORT_CHANGE_APPROVER: {
-        route: 'r/:reportID/change-approver',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
