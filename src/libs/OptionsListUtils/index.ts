@@ -161,6 +161,7 @@ import {
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
     shouldReportBeInOptionList,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
@@ -787,10 +788,13 @@ function getLastMessageTextForReport({
         } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
             lastMessageTextFromReport = translate('iou.queuedToSubmitViaDEW');
         } else {
-            lastMessageTextFromReport =
-                isTrackIntentUser && isSubmitAndClose(policy)
-                    ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
-                    : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
+            lastMessageTextFromReport = shouldShowMarkAsDone({
+                report,
+                isTrackIntentUser,
+                policy,
+            })
+                ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
+                : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};

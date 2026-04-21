@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
-import {getNextApproverAccountID, isReportOwner} from '@libs/ReportUtils';
+import {getNextApproverAccountID, isReportOwner, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useConfirmApproval from './useConfirmApproval';
 
@@ -21,7 +21,11 @@ function ApprovePrimaryAction({reportID, startApprovedAnimation}: ApprovePrimary
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: moneyRequestReport,
+        policy,
+    });
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover =
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);

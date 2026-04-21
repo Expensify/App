@@ -1164,6 +1164,7 @@ function PureReportActionItem({
                 />
             );
         } else if (isApprovalFlowAction(action)) {
+            const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
             children = (
                 <ApprovalFlowContent
                     action={action}
@@ -1171,6 +1172,7 @@ function PureReportActionItem({
                     reportMetadata={reportMetadata}
                     childReport={childReport}
                     originalReport={originalReport}
+                    isTrackIntentUser={isTrackIntentUser}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {

@@ -1,6 +1,7 @@
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
@@ -9,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
+import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,9 +37,12 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
 
     // The policy ID for the report, used to check approval mode
     policyID?: string;
+
+    /** The report we are paying */
+    report: OnyxEntry<Report>;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel, policyID}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel, policyID, report}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -129,7 +134,19 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 >
                     <Button
                         success={success}
-                        text={showLoading ? text : translate(isTrackIntentUser && isSubmitAndClose(animationPolicy) ? 'common.markedAsDoneStatus' : 'common.submitted')}
+                        text={
+                            showLoading
+                                ? text
+                                : translate(
+                                      shouldShowMarkAsDone({
+                                          isTrackIntentUser,
+                                          report,
+                                          policy: animationPolicy,
+                                      })
+                                          ? 'common.markedAsDoneStatus'
+                                          : 'common.submitted',
+                                  )
+                        }
                         isLoading={showLoading}
                         icon={!showLoading ? icon : undefined}
                         isDisabled

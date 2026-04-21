@@ -182,6 +182,7 @@ import {
     isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
@@ -990,7 +991,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                         setClipboardMessage(translate('iou.automaticallySubmitted'));
                     } else {
                         Clipboard.setString(
-                            isTrackIntentUser && isSubmitAndClose(policy)
+                            shouldShowMarkAsDone({
+                                policy,
+                                isTrackIntentUser,
+                                report,
+                            })
                                 ? translate('iou.markedAsDone', getOriginalMessage(reportAction)?.message)
                                 : translate('iou.submitted', getOriginalMessage(reportAction)?.message),
                         );

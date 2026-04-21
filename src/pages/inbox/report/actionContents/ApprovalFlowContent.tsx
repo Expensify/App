@@ -2,7 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
-import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
@@ -15,6 +15,7 @@ type ApprovalFlowContentProps = {
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
     childReport: OnyxEntry<OnyxTypes.Report>;
     originalReport: OnyxEntry<OnyxTypes.Report>;
+    isTrackIntentUser: boolean;
 };
 
 function isApprovalFlowAction(action: OnyxTypes.ReportAction): boolean {
@@ -27,7 +28,7 @@ function isApprovalFlowAction(action: OnyxTypes.ReportAction): boolean {
     );
 }
 
-function ApprovalFlowContent({action, policy, reportMetadata, childReport, originalReport}: ApprovalFlowContentProps) {
+function ApprovalFlowContent({action, policy, reportMetadata, childReport, originalReport, isTrackIntentUser}: ApprovalFlowContentProps) {
     const {translate} = useLocalize();
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isPendingAdd = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -35,7 +36,9 @@ function ApprovalFlowContent({action, policy, reportMetadata, childReport, origi
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
 
-        if (wasSubmittedViaHarvesting) {
+        if (isTrackIntentUser && isSubmitAndClose(policy)) {
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
+        } else if (wasSubmittedViaHarvesting) {
             return (
                 <ReportActionItemMessageWithExplain
                     message={translate('iou.automaticallySubmitted')}
@@ -61,7 +64,9 @@ function ApprovalFlowContent({action, policy, reportMetadata, childReport, origi
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
 
-        if (wasAutoApproved) {
+        if (isTrackIntentUser && isSubmitAndClose(policy)) {
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+        } else if (wasAutoApproved) {
             return (
                 <ReportActionItemMessageWithExplain
                     message={translate('iou.automaticallyApproved')}

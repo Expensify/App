@@ -1,6 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
+import {OnyxEntry} from 'react-native-onyx';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
@@ -17,7 +18,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
-import {getNextApproverAccountID, hasViolations as hasViolationsReportUtils, isReportOwner, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
+import {getNextApproverAccountID, hasViolations as hasViolationsReportUtils, isReportOwner, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -74,7 +75,11 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
         transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
-    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
 
     const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
@@ -120,6 +125,7 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}
             policyID={moneyRequestReport?.policyID}
+            report={moneyRequestReport as OnyxEntry<Report>}
         />
     );
 }

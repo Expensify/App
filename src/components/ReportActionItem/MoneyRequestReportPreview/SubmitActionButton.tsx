@@ -1,6 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
+import {OnyxEntry} from 'react-native-onyx';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
-import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -74,7 +75,15 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     return (
         <AnimatedSubmitButton
             success={isWaitingForSubmissionFromCurrentUser}
-            text={isTrackIntentUser && isSubmitAndClose(policy) ? translate('common.markAsDone') : translate('common.submit')}
+            text={
+                shouldShowMarkAsDone({
+                    isTrackIntentUser,
+                    report: iouReport,
+                    policy,
+                })
+                    ? translate('common.markAsDone')
+                    : translate('common.submit')
+            }
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
@@ -97,6 +106,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
             onAnimationFinish={stopAnimation}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
             policyID={iouReport?.policyID}
+            report={iouReport as OnyxEntry<Report>}
         />
     );
 }

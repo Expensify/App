@@ -24,6 +24,7 @@ import {
     isOpenExpenseReport,
     isPayer,
     isReportOwner,
+    shouldShowMarkAsDone,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
@@ -153,7 +154,9 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: isTrackIntentUser() && isSubmitAndClose(policy) ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackIntentUser(), report, policy})
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };
@@ -214,7 +217,13 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             // Manual submission
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
-                    messageKey: isTrackIntentUser() && isSubmitAndClose(policy) ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    messageKey: shouldShowMarkAsDone({
+                        isTrackIntentUser: isTrackIntentUser(),
+                        report,
+                        policy,
+                    })
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: ownerAccountID,
                 };

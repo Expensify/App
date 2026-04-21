@@ -18,6 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -29,7 +30,15 @@ import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
-import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
+import {
+    isAdminRoom,
+    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
+    isConciergeChatReport,
+    isGroupChat,
+    isOneOnOneChat,
+    isSystemChat,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -163,7 +172,13 @@ function OptionRowLHN({
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const isTrackIntentUser = onboardingPurpose === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || onboardingPurpose === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
-    const shouldUseMarkAsDone = isTrackIntentUser && isApprovalDisabledForReport && optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+    const policy = usePolicy(report?.policyID);
+    const shouldUseMarkAsDone =
+        shouldShowMarkAsDone({
+            report,
+            isTrackIntentUser,
+            policy,
+        }) && optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
     let actionBadgeText = '';
     if (!isProduction && optionItem.actionBadge) {
         actionBadgeText = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
