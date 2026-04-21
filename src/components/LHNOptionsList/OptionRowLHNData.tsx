@@ -8,7 +8,6 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -181,7 +180,6 @@ function OptionRowLHNData({
             report={fullReport}
             hasDraftComment={hasDraftComment}
             conciergeReportID={conciergeReportID}
-            isApprovalDisabledForReport={isSubmitAndClose(policy)}
         />
     );
 }

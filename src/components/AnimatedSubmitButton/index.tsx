@@ -9,7 +9,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

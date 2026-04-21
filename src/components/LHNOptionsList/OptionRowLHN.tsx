@@ -62,7 +62,6 @@ function OptionRowLHN({
     hasDraftComment,
     testID,
     conciergeReportID,
-    isApprovalDisabledForReport,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
     const theme = useTheme();
@@ -99,6 +98,7 @@ function OptionRowLHN({
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const policy = usePolicy(report?.policyID);
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
@@ -172,7 +172,6 @@ function OptionRowLHN({
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const isTrackIntentUser = onboardingPurpose === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || onboardingPurpose === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
-    const policy = usePolicy(report?.policyID);
     const shouldUseMarkAsDone =
         shouldShowMarkAsDone({
             report,
