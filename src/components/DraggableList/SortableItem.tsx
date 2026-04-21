@@ -31,7 +31,10 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
     // The sortable wrapper is the single Tab stop (tabIndex: 0 via dnd-kit attributes).
     // Inner pressables must be non-focusable to avoid a double Tab stop per item.
     useLayoutEffect(() => {
-        for (const el of node.current?.querySelectorAll<HTMLElement>(PRESSABLE_SELECTOR) ?? []) {
+        if (!node.current) {
+            return;
+        }
+        for (const el of Array.from(node.current.querySelectorAll<HTMLElement>(PRESSABLE_SELECTOR))) {
             el.setAttribute('tabindex', '-1');
         }
     }, [children, node]);
@@ -84,8 +87,8 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             // nested interactive element via Tab, pull it back to the sortable wrapper
             // and remove the child from tab order so the next Tab advances correctly.
             onFocus={(e) => {
-                for (const element of e.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR)) {
-                    element.tabIndex = -1;
+                for (const element of Array.from(e.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR))) {
+                    element.setAttribute('tabindex', '-1');
                 }
                 if (e.target === e.currentTarget) {
                     return;
