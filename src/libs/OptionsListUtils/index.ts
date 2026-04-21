@@ -34,7 +34,6 @@ import {
     getSubmitToAccountID,
     hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
-    isSubmitAndClose,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {
