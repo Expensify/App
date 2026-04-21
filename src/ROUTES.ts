@@ -259,6 +259,30 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    MERGE_TRANSACTION_LIST_PAGE: {
+        path: 'merge/:transactionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.SEARCH.ROOT],
+        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        queryParams: ['isOnSearch'],
+    },
+    MERGE_TRANSACTION_RECEIPT_PAGE: {
+        path: 'merge/:transactionID/receipt',
+        entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE],
+        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}/receipt`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        queryParams: ['isOnSearch'],
+    },
+    MERGE_TRANSACTION_DETAILS_PAGE: {
+        path: 'merge/:transactionID/details',
+        entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE],
+        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}/details`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        queryParams: ['isOnSearch'],
+    },
+    MERGE_TRANSACTION_CONFIRMATION_PAGE: {
+        path: 'merge/:transactionID/confirmation',
+        entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE],
+        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}/confirmation`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        queryParams: ['isOnSearch'],
+    },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
@@ -3406,42 +3430,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
-    },
-    MERGE_TRANSACTION_LIST_PAGE: {
-        route: 'merge/:transactionID',
-
-        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            const url = getUrlWithBackToParam(`merge/${transactionID}` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
-        },
-    },
-    MERGE_TRANSACTION_RECEIPT_PAGE: {
-        route: 'merge/:transactionID/receipt',
-
-        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            const url = getUrlWithBackToParam(`merge/${transactionID}/receipt` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
-        },
-    },
-    MERGE_TRANSACTION_DETAILS_PAGE: {
-        route: 'merge/:transactionID/details',
-
-        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
-        },
-    },
-    MERGE_TRANSACTION_CONFIRMATION_PAGE: {
-        route: 'merge/:transactionID/confirmation',
-
-        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
-        },
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',

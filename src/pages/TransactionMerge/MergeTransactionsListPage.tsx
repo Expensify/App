@@ -3,6 +3,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,15 +11,17 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeTransactionsListContent from './MergeTransactionsListContent';
 
-type MergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.LIST_PAGE>;
+type MergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE>;
 
 function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     const {translate} = useLocalize();
-    const {transactionID, backTo} = route.params;
+    const {transactionID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
 
@@ -40,7 +43,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
                 <HeaderWithBackButton
                     title={translate('transactionMerge.listPage.header')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(backTo);
+                        Navigation.goBack(backPath);
                     }}
                 />
                 <MergeTransactionsListContent
