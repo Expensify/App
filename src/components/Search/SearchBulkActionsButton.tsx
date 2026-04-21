@@ -60,13 +60,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         confirmPayment,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
-        isNonReimbursablePaymentErrorModalVisible,
         isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        handleNonReimbursablePaymentErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -173,11 +171,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             />
                         </View>
                     ) : (
-                        <View style={[styles.flexRow, styles.gap3]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
-                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
@@ -242,15 +239,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
-            />
-            <DecisionModal
-                title={translate('iou.error.nonReimbursablePayment')}
-                prompt={translate('iou.error.nonReimbursablePaymentDescription', selectedItemsCount > 1)}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleNonReimbursablePaymentErrorModalClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isNonReimbursablePaymentErrorModalVisible}
-                onClose={handleNonReimbursablePaymentErrorModalClose}
             />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal

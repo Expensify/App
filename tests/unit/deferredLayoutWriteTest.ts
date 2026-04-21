@@ -1,5 +1,5 @@
 import {AppState} from 'react-native';
-import {cancelDeferredWrite, flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite, registerDeferredWrite} from '@libs/deferredLayoutWrite';
+import {cancelDeferredWrite, flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite, registerDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 
 beforeEach(() => {
     jest.useFakeTimers();
@@ -119,5 +119,50 @@ describe('deferredLayoutWrite', () => {
         expect(hasDeferredWrite('test')).toBe(true);
 
         flushDeferredWrite('test');
+    });
+
+    it('marks a reserved channel as flushRequested instead of consuming it', () => {
+        reserveDeferredWriteChannel('test');
+        expect(hasDeferredWrite('test')).toBe(true);
+
+        flushDeferredWrite('test');
+
+        expect(hasDeferredWrite('test')).toBe(true);
+    });
+
+    it('executes the real callback immediately when registering on a flush-requested reservation', () => {
+        reserveDeferredWriteChannel('test');
+        flushDeferredWrite('test');
+
+        const callback = jest.fn();
+        registerDeferredWrite('test', callback);
+
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(hasDeferredWrite('test')).toBe(false);
+    });
+
+    it('preserves optimisticWatchKey when flush-requested reservation is consumed', () => {
+        reserveDeferredWriteChannel('test');
+        flushDeferredWrite('test');
+
+        const callback = jest.fn();
+        registerDeferredWrite('test', callback, {optimisticWatchKey: 'transactions_123'});
+
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(hasDeferredWrite('test')).toBe(false);
+        expect(getOptimisticWatchKey('test')).toBe('transactions_123');
+    });
+
+    it('defers the real callback normally when registering on a reservation that was not flushed', () => {
+        reserveDeferredWriteChannel('test');
+
+        const callback = jest.fn();
+        registerDeferredWrite('test', callback);
+
+        expect(callback).not.toHaveBeenCalled();
+        expect(hasDeferredWrite('test')).toBe(true);
+
+        flushDeferredWrite('test');
+        expect(callback).toHaveBeenCalledTimes(1);
     });
 });

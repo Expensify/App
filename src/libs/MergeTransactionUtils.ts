@@ -26,11 +26,13 @@ import {
     getReimbursable,
     getTaxName,
     getWaypoints,
+    hasValidModifiedAmount,
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
     isFromCreditCardImport,
     isMerchantMissing,
+    isOdometerDistanceRequest,
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
@@ -372,6 +374,10 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
             customUnit: mergeTransaction.customUnit,
             waypoints: mergeTransaction.waypoints,
             attendees: mergeTransaction.attendees,
+            ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
+            ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
+            ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
+            ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
@@ -605,8 +611,9 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
-        if (mergeTransaction?.taxValue && transaction?.amount) {
-            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, transaction.amount, getCurrencyDecimals(getCurrency(transaction))));
+        const amount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+        if (mergeTransaction?.taxValue && amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, amount, getCurrencyDecimals(getCurrency(transaction))));
         }
     }
 
@@ -628,9 +635,20 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         // Distance expense tax rate is fixed to the distance rate, so just carry it over
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
-        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
         updatedValues.taxAmount = transaction?.taxAmount;
+        // Don't erase this prop
+        // The selected rate might not have tax tracking
+        // The backend needs it to remove tax from the transaction
         updatedValues.taxPolicyID = policy?.id;
+
+        // Copy odometer readings from the selected transaction for odometer distance requests
+        if (isOdometerDistanceRequest(transaction)) {
+            updatedValues.odometerStart = transaction?.comment?.odometerStart;
+            updatedValues.odometerEnd = transaction?.comment?.odometerEnd;
+            updatedValues.odometerStartImage = transaction?.comment?.odometerStartImage;
+            updatedValues.odometerEndImage = transaction?.comment?.odometerEndImage;
+        }
     }
 
     if (field === 'taxValue') {
@@ -673,7 +691,6 @@ export {
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTransactionsAndReportsFromSearch,
-    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

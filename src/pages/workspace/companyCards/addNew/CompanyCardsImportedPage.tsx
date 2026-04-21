@@ -1,15 +1,14 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useCardFeeds from '@hooks/useCardFeeds';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {getFeedType} from '@libs/CardUtils';
+import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -37,13 +36,15 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardFeeds] = useCardFeeds(policyID);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
-    const [generatedLayoutType] = useState(() => prefilledLayoutType ?? getFeedType(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardFeeds));
+    const generatedLayoutType = useMemo(
+        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards),
+        [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards],
+    );
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
     const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);
 

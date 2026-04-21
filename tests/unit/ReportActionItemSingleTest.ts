@@ -1,5 +1,6 @@
 import {act, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -20,10 +21,7 @@ describe('ReportActionItemSingle', () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-            await waitForBatchedUpdatesWithAct();
-        });
+        setHasRadio(true);
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate

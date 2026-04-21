@@ -101,12 +101,19 @@ jest.mock('@libs/Navigation/Navigation', () => {
             params: {},
         })),
         getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
     };
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        dismissModal: jest.fn(),
         dismissModalWithReport: jest.fn(),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
+        clearFullscreenPreInsertedFlag: jest.fn(),
+        revealRouteBeforeDismissingModal: jest.fn(),
+        getTopmostReportId: jest.fn(() => undefined),
         navigationRef: mockRef,
     };
 });

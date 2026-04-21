@@ -106,6 +106,7 @@ const ValidOptionsConfig = {
     includeMultipleParticipantReports: true,
     includeSelfDM: true,
     includeOwnedWorkspaceChats: true,
+    sortedActions: undefined,
 };
 
 const loginList = {};
@@ -141,6 +142,8 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -156,6 +159,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            undefined,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -172,6 +176,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            undefined,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -191,6 +196,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
@@ -204,6 +210,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             ),
         );
@@ -308,6 +315,8 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 personalDetails,
                 maxResults: 20,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
             }),
         );
     });

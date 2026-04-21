@@ -1,22 +1,15 @@
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
-    createDraftTransactionAndNavigateToParticipantSelector,
     getIndicatedMissingPaymentMethod,
-    getReimbursementDeQueuedOrCanceledActionMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReport,
     isChatThread,
@@ -24,32 +17,14 @@ import {
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {
-    deleteReportActionDraft,
-    dismissTrackExpenseActionableWhisper,
-    resolveActionableMentionWhisper,
-    resolveActionableReportMentionWhisper,
-    toggleEmojiReaction,
-} from '@userActions/Report';
+import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper, toggleEmojiReaction} from '@userActions/Report';
 import {clearError} from '@userActions/Transaction';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<
-    PureReportActionItemProps,
-    | 'taskReport'
-    | 'linkedReport'
-    | 'iouReportOfLinkedReport'
-    | 'currentUserAccountID'
-    | 'currentUserEmail'
-    | 'personalPolicyID'
-    | 'draftTransactionIDs'
-    | 'userBillingGracePeriodEnds'
-    | 'betas'
-> & {
+type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'betas'> & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
@@ -88,28 +63,17 @@ function ReportActionItem({
     isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
-    const {translate} = useLocalize();
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
-    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    // When an expense is moved from a self-DM to a workspace, the report's policyID is temporarily
-    // set to a fake placeholder (CONST.POLICY.OWNER_EMAIL_FAKE). Looking up POLICY_TAGS with that
-    // fake ID would return nothing, so we fall back to policyForMovingExpensesID (the actual
-    // destination workspace) to fetch the correct tag list for display.
-    const policyIDForTags = report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : report?.policyID;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`);
-    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`);
 
     const taskReportID = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
@@ -122,7 +86,6 @@ function ReportActionItem({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -135,7 +98,6 @@ function ReportActionItem({
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
-    const blockedFromConcierge = useBlockedFromConcierge();
     const targetReport = isChatThread(report) ? parentReport : report;
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
@@ -145,13 +107,11 @@ function ReportActionItem({
             {...props}
             introSelected={introSelected}
             betas={betas}
-            draftTransactionIDs={draftTransactionIDs}
             personalPolicyID={personalPolicyID}
             action={action}
             report={report}
             policy={policy}
             currentUserAccountID={currentUserAccountID}
-            currentUserEmail={currentUserEmail}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
@@ -163,42 +123,24 @@ function ReportActionItem({
             isUserValidated={isUserValidated}
             parentReport={parentReport}
             personalDetails={personalDetails}
-            blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
             originalReport={originalReport}
             deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={toggleEmojiReaction}
-            createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
-            reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
-                translate,
-                action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
-                report,
-            )}
-            modifiedExpenseMessage={getForReportAction({
-                translate,
-                reportAction: action,
-                policy,
-                movedFromReport,
-                movedToReport,
-                policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
-                currentUserLogin: currentUserEmail ?? '',
-            })}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
-            dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
-            userBillingGracePeriodEnds={userBillingGracePeriodEnds}
         />
     );
 }

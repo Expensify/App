@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -34,6 +35,7 @@ function TestDriveDemo() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
@@ -72,6 +74,7 @@ function TestDriveDemo() {
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
+            delegateEmail,
             false,
         );
     }, [
@@ -82,6 +85,7 @@ function TestDriveDemo() {
         currentUserPersonalDetails.accountID,
         hasOutstandingChildTask,
         parentReportAction,
+        delegateEmail,
         conciergeReportID,
         introSelected,
         betas,

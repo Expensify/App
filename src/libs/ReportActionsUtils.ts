@@ -21,6 +21,7 @@ import type {
     OnyxInputOrEntry,
     OriginalMessageIOU,
     PersonalDetails,
+    PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
     ReportMetadata,
@@ -32,6 +33,7 @@ import type {
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageReimbursed,
     OriginalMessageUnreportedTransaction,
     PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
@@ -54,6 +56,7 @@ import {formatMessageElementList} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
+import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
@@ -109,10 +112,9 @@ Onyx.connect({
     },
 });
 
-let deprecatedIsNetworkOffline = false;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => (deprecatedIsNetworkOffline = val?.isOffline ?? false),
+let deprecatedIsNetworkOffline = getIsOffline();
+subscribeNetworkState(() => {
+    deprecatedIsNetworkOffline = getIsOffline();
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;
@@ -184,7 +186,6 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
-    CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
 ]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -440,6 +441,76 @@ function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction:
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
 
+function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxEntry<Report>, currentUserAccountID?: number): string {
+    const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const originalMessage = getOriginalMessage(reportAction) as OriginalMessageReimbursed | undefined;
+
+    // Auth stores the payment method as `method`; the openReport path maps it to `paymentMethod` via getDisplayInformation().
+    // Real-time Pusher updates only carry `method`, so we fall back to it here for compatibility.
+    const effectivePaymentMethod = originalMessage?.paymentMethod ?? originalMessage?.method;
+
+    // If no structured data, or if this is a Pusher-only payload for a payment method that requires
+    // bank account digits (ACH, Fast_ACH, StripeConnect) but `creditBankAccountLast4` hasn't been
+    // populated yet by the openReport path, fall back to the pre-formatted server message fragments
+    // which already contain the correct account info. Check payments don't need enriched fields, so
+    // they are excluded from this fallback.
+    if (!effectivePaymentMethod || !originalMessage || (!originalMessage.paymentMethod && effectivePaymentMethod !== 'Check' && !originalMessage.creditBankAccountLast4)) {
+        const messageFragments = reportAction?.message;
+        let fallback = getReportActionMessageText(reportAction as OnyxEntry<ReportAction>);
+        if (Array.isArray(messageFragments) && messageFragments.length > 1) {
+            fallback = messageFragments
+                .slice(1)
+                .map((fragment) => fragment?.text ?? '')
+                .join('')
+                .trim();
+        }
+        return fallback;
+    }
+
+    const {debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
+
+    // Resolve submitter from report owner
+    const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID: effectiveCurrentUserAccountID}).at(0)?.login ?? '';
+    const isCurrentUser = submitterAccountID === effectiveCurrentUserAccountID;
+
+    // Resolve actor from action
+    const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID: effectiveCurrentUserAccountID}).at(0)?.login ?? '';
+
+    const isAutomation = !!reportAction?.delegateAccountID;
+
+    let paymentSuffix = '';
+    if (effectivePaymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
+        const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+        paymentSuffix = translate('iou.reimbursedWithFastACH', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', expectedDate: formattedDate});
+    } else if (effectivePaymentMethod === 'Check') {
+        paymentSuffix = translate('iou.reimbursedWithCheck');
+    } else if (effectivePaymentMethod === 'StripeConnect') {
+        paymentSuffix = translate('iou.reimbursedWithStripeConnect', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', isCard: stripePaymentType === 'card'});
+    } else {
+        let formattedDate: string | undefined;
+        if (expectedDate) {
+            formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+        }
+        paymentSuffix = translate('iou.reimbursedWithACH', {creditBankAccount: creditBankAccountLast4, expectedDate: formattedDate});
+    }
+
+    if (isSubmitterAddingBankAccount) {
+        return `${translate('iou.reimbursedSubmitterAddedBankAccount', submitterLogin)}${paymentSuffix}`;
+    }
+
+    const actionText = isInvoiceOrBill ? translate('iou.paidThisBill') : translate('iou.reimbursedThisReport');
+    let message = actionText;
+    if (isAutomation) {
+        message += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
+    }
+    if (debitBankAccountLast4) {
+        message += ` ${translate('iou.reimbursedFromBankAccount', debitBankAccountLast4)}`;
+    }
+    return message + paymentSuffix;
+}
+
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
     if (!reportAction || reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return undefined;
@@ -459,6 +530,37 @@ function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<Rep
     }
 
     return undefined;
+}
+
+function getHumanAgentAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
+    if (!reportAction || reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+        return undefined;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return undefined;
+    }
+
+    if ('humanAgentAccountID' in originalMessage && typeof originalMessage.humanAgentAccountID === 'number') {
+        return originalMessage.humanAgentAccountID;
+    }
+
+    return undefined;
+}
+
+/**
+ * Returns the human Concierge agent's first name for the "assisted by [Name]" label.
+ * We intentionally use the first name only (not `displayName`, which is "First Last")
+ * to keep the label casual and minimize exposed agent identity.
+ */
+function getHumanAgentFirstName(reportAction: OnyxInputOrEntry<ReportAction>, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(reportAction);
+    if (!humanAgentAccountID) {
+        return undefined;
+    }
+    const firstName = personalDetails?.[humanAgentAccountID]?.firstName;
+    return firstName?.trim() ? firstName : undefined;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
@@ -960,6 +1062,10 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
+    if (getHumanAgentAccountIDFromReportAction(currentAction) !== getHumanAgentAccountIDFromReportAction(adjacentAction)) {
+        return false;
+    }
+
     // Do not group if one of previous / adjacent action is report preview and another one is not report preview
     if ((isReportPreviewAction(adjacentAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(adjacentAction))) {
         return false;
@@ -1003,33 +1109,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     }
 
     return false;
-}
-
-function isActionable(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number) {
-    if (!reportAction) {
-        return false;
-    }
-
-    const actionableTypes = [
-        CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
-        CONST.REPORT.ACTIONS.TYPE.CREATED,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS,
-    ] as const;
-
-    if ((actionableTypes as readonly string[]).includes(reportAction.actionName)) {
-        return true;
-    }
-
-    const originalMessage = getOriginalMessage(reportAction);
-    const actionableForAccountIDs = (
-        originalMessage && typeof originalMessage === 'object' && 'actionableForAccountIDs' in originalMessage ? originalMessage?.actionableForAccountIDs : []
-    ) as number[];
-
-    return actionableForAccountIDs.includes(currentUserAccountID);
 }
 
 /**
@@ -1114,8 +1193,11 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allA
         const reportID = reportAction.reportID;
         const actions = allActionsForReport ?? (reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] : undefined);
         if (actions) {
-            const parentOffset = isActionableReportMentionWhisper(reportAction) ? 2n : 1n;
-            const parentActionID = String(BigInt(reportAction.reportActionID) - parentOffset);
+            // Prefer the stored reportActionID from the whisper's originalMessage when available (set for
+            // whispers created during message edits, which don't follow the parentID+1 ID convention).
+            // Fall back to offset arithmetic for legacy whispers that predate this field.
+            const storedParentID = isActionableMentionWhisper(reportAction) ? (originalMessage as {parentReportActionID?: string}).parentReportActionID : undefined;
+            const parentActionID = storedParentID ?? String(BigInt(reportAction.reportActionID) - (isActionableReportMentionWhisper(reportAction) ? 2n : 1n));
             const parentAction = actions[parentActionID];
             if (parentAction && !isDeletedAction(parentAction)) {
                 return false;
@@ -1174,7 +1256,10 @@ function shouldReportActionBeVisible(
 
     if (actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
         const unreportedTransactionOriginalMessage = getOriginalMessage(reportAction as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>>) ?? {};
-        const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        const {fromReportID, reasoning} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        if (reasoning) {
+            return !!fromReportID;
+        }
         const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
         return !!fromReport;
     }
@@ -1233,6 +1318,14 @@ function shouldReportActionBeVisible(
     // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction, allActionsForReport)) {
         return false;
+    }
+
+    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        const originalMessage = getOriginalMessage(reportAction);
+        if (originalMessage?.isNewDot) {
+            return false;
+        }
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
@@ -2075,7 +2168,7 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
 }
 
 function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
-    if (!action || !action.actionName) {
+    if (!action?.actionName) {
         return false;
     }
     return [
@@ -2349,6 +2442,13 @@ function getUpdateRoomDescriptionFragment(translate: LocalizedTranslate, reportA
 }
 
 function getReportActionMessageFragments(translate: LocalizedTranslate, action: ReportAction): Message[] {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const reportID = action.reportID;
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const message = getReimbursedMessage(translate, action, report, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
     if (isOldDotReportAction(action)) {
         const oldDotMessage = getMessageOfOldDotReportAction(translate, action);
         const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
@@ -4520,6 +4620,7 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
+    getReimbursedMessage,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
@@ -4550,7 +4651,6 @@ export {
     hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
-    isActionable,
     isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
@@ -4742,6 +4842,8 @@ export {
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedSharedBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
+    getHumanAgentAccountIDFromReportAction,
+    getHumanAgentFirstName,
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,

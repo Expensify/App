@@ -78,8 +78,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    nonPersonalAndWorkspaceCards,
     isFirstItem,
     isLastItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    onUndelete,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -137,7 +141,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             conciergeReportID,
-        }) as [TransactionListItemType[], number];
+        }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
@@ -452,6 +456,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 />
             );
         }
@@ -570,6 +576,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
+                                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onUndelete={onUndelete}
                             />
                         </AnimatedCollapsible>
                     </View>

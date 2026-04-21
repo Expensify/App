@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
+import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';

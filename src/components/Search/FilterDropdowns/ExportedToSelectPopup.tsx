@@ -48,7 +48,7 @@ function ExportedToSelectPopup({closeOverlay, updateFilterForm}: ExportedToSelec
 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
 
-    const integrationConnectionNames = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
 
     const tableIconForExportOption = (
         <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getWidthAndHeightStyle(variables.w28, variables.h28)]}>

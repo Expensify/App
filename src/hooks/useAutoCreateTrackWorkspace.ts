@@ -1,16 +1,18 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
+import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
-import {completeOnboarding} from '@userActions/Report';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
-import type {OnboardingPurpose, Policy} from '@src/types/onyx';
+import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
@@ -67,7 +69,7 @@ function useAutoCreateTrackWorkspace() {
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
     const autoCreateTrackWorkspace = useCallback(
-        (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
+        async (firstName: string, lastName: string, onboardingPurposeSelected: OnboardingPurpose) => {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
             const displayName = createDisplayName(session?.email ?? '', {firstName, lastName}, formatPhoneNumber);
 
@@ -75,7 +77,7 @@ function useAutoCreateTrackWorkspace() {
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: newGenerateDefaultWorkspaceName(session?.email ?? '', lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(session?.email ?? '', lastWorkspaceNumber, translate, displayName),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                       currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -93,30 +95,43 @@ function useAutoCreateTrackWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            completeOnboarding({
-                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
-                firstName,
-                lastName,
-                adminsChatReportID: newAdminsChatReportID,
-                onboardingPolicyID: newPolicyID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-            });
+            // On mobile, hardcode trackExpensesWithConcierge since the web flow already works
+            // with the CompleteGuidedSetup response and side panel isn't supported on native.
+            let rhpVariant: OnboardingRHPVariant | undefined = isSidePanelReportSupported ? undefined : CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
+            try {
+                const response = await completeOnboarding({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+                    firstName,
+                    lastName,
+                    adminsChatReportID: newAdminsChatReportID,
+                    onboardingPolicyID: newPolicyID,
+                    shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
+                    introSelected,
+                    isSelfTourViewed,
+                    betas,
+                });
 
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
+                if (isSidePanelReportSupported) {
+                    rhpVariant = extractRHPVariantFromResponse(response);
+                }
+            } catch (error) {
+                Log.warn('[useAutoCreateTrackWorkspace] Error completing onboarding', {error});
+            } finally {
+                setOnboardingAdminsChatReportID();
+                setOnboardingPolicyID();
 
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                conciergeChatReportID,
-                archivedReportsIdSet,
-                newPolicyID,
-                mergedAccountConciergeReportID,
-                false,
-            );
+                navigateAfterOnboardingWithMicrotaskQueue(
+                    isSmallScreenWidth,
+                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                    conciergeChatReportID,
+                    archivedReportsIdSet,
+                    newPolicyID,
+                    mergedAccountConciergeReportID,
+                    false,
+                    rhpVariant,
+                );
+            }
         },
         [
             session?.email,

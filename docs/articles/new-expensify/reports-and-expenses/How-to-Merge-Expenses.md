@@ -77,10 +77,9 @@ Use this method when both expenses are inside the same report.
 
 ---
 
-<!-- SCREENSHOT:
-Show 2 expenses selected within a report > Selected button > Merge highlighted
-Design request:https://github.com/Expensify/Expensify/issues/614048
--->
+![expenses selected within a report > Selected button > Merge highlighted]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_01){:width="100%"}
+
+---
 
 ## How to merge duplicate expenses from an individual expense
 
@@ -94,10 +93,7 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 
 ---
 
-<!-- SCREENSHOT:
-Open one individual expense > More > Merge > one eligible expense selected. 
-Design request:https://github.com/Expensify/Expensify/issues/614048
--->
+![one individual expense > More > Merge > one eligible expense selected]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_02){:width="100%"}
 
 ---
 
