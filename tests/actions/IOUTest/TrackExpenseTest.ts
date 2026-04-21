@@ -1097,7 +1097,7 @@ describe('actions/IOU/TrackExpense', () => {
 
         it('should use optimisticChatReportID as the new self-DM reportID when no self-DM exists', async () => {
             // Given no selfDM report exists AND the UI pre-generated a reportID
-            const optimisticSelfDMReportID = 'optimistic-selfdm-42';
+            const optimisticSelfDMReportID = 'optimistic-self-dm-42';
 
             // When trackExpense is called with undefined report and the pre-generated reportID
             trackExpense({
