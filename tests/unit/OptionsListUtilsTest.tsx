@@ -38,6 +38,7 @@ import {
     getValidOptions,
     optionsOrderBy,
     orderOptions,
+    orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
     shouldShowLastActorDisplayName,
@@ -8025,6 +8026,32 @@ describe('OptionsListUtils', () => {
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
+        });
+    });
+
+    describe('orderPersonalDetailsOptions()', () => {
+        it('sorts options alphabetically using text values', () => {
+            const options = [
+                {accountID: 1, text: 'Charlie', login: 'c@example.com'},
+                {accountID: 2, text: 'aaron', login: 'a@example.com'},
+                {accountID: 3, text: 'Bob', login: 'b@example.com'},
+            ] as SearchOptionData[];
+
+            const sorted = orderPersonalDetailsOptions(options);
+
+            expect(sorted.map((option) => option.text)).toEqual(['aaron', 'Bob', 'Charlie']);
+        });
+
+        it('falls back to alternateText and login when text is missing', () => {
+            const options = [
+                {accountID: 1, text: undefined, alternateText: 'mango', login: 'm@example.com'},
+                {accountID: 2, text: 'apple', login: 'a@example.com'},
+                {accountID: 3, text: undefined, alternateText: undefined, login: 'banana@example.com'},
+            ] as SearchOptionData[];
+
+            const sorted = orderPersonalDetailsOptions(options);
+
+            expect(sorted.map((option) => option.accountID)).toEqual([2, 3, 1]);
         });
     });
 

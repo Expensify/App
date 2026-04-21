@@ -7,7 +7,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
-import useGroupChatDraftParticipantSync from '../../src/pages/NewChatPage/useGroupDraftRestore';
+import useGroupChatDraftParticipantSync from '../../src/pages/NewChatPage/useGroupChatDraftParticipantSync';
 
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockGetUserToInviteOption = OptionsListUtilsModule.getUserToInviteOption as jest.MockedFunction<typeof OptionsListUtilsModule.getUserToInviteOption>;
@@ -35,6 +35,10 @@ jest.mock('@react-navigation/native', () => {
                 mockFocusState.cleanup = cleanup;
             }
         },
+        useNavigation: () => ({
+            isFocused: () => mockFocusState.isScreenFocused,
+            addListener: () => () => {},
+        }),
     };
 });
 
