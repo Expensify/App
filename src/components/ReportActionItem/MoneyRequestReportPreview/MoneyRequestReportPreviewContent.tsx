@@ -1,7 +1,7 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useDeferredValue, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +28,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
@@ -135,6 +135,7 @@ function MoneyRequestReportPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
@@ -374,31 +375,39 @@ function MoneyRequestReportPreviewContent({
         carouselTransactionsRef.current = carouselTransactions;
     }, [carouselTransactions]);
 
-    useFocusEffect(
-        useCallback(() => {
-            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+    const isFocused = useIsFocused();
+    const getIsFocused = useEffectEvent(() => {
+        return isFocused;
+    });
 
-            if (index < 0) {
+    useEffect(() => {
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+
+        if (index < 0) {
+            return;
+        }
+        const newTransaction = carouselTransactions.at(index);
+        setTimeout(() => {
+            if (!getIsFocused()) {
                 return;
             }
-            const newTransaction = carouselTransactions.at(index);
-            setTimeout(() => {
-                // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-                // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-                if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                    return;
-                }
 
-                carouselRef.current?.scrollToIndex({
-                    index,
-                    viewOffset: -2 * styles.gap2.gap,
-                    animated: true,
-                });
-            }, CONST.ANIMATED_TRANSITION);
+            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
+            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
+            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
+                return;
+            }
 
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [newTransactionIDs]),
-    );
+            carouselRef.current?.scrollToIndex({
+                index,
+                viewOffset: -2 * styles.gap2.gap,
+                animated: true,
+            });
+        }, CONST.ANIMATED_TRANSITION);
+
+        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionIDs]);
 
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
@@ -662,8 +671,8 @@ function MoneyRequestReportPreviewContent({
                                                         <Icon
                                                             src={expensifyIcons.BackArrow}
                                                             fill={theme.icon}
-                                                            width={variables.iconSizeNormal}
-                                                            height={variables.iconSizeNormal}
+                                                            width={variables.iconSizeExtraSmall}
+                                                            height={variables.iconSizeExtraSmall}
                                                         />
                                                     </PressableWithFeedback>
                                                     <PressableWithFeedback
@@ -683,8 +692,8 @@ function MoneyRequestReportPreviewContent({
                                                         <Icon
                                                             src={expensifyIcons.ArrowRight}
                                                             fill={theme.icon}
-                                                            width={variables.iconSizeNormal}
-                                                            height={variables.iconSizeNormal}
+                                                            width={variables.iconSizeExtraSmall}
+                                                            height={variables.iconSizeExtraSmall}
                                                         />
                                                     </PressableWithFeedback>
                                                 </View>

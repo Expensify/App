@@ -54,14 +54,16 @@ describe('getSecondaryAction', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: SESSION,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}},
+            },
         });
     });
 
     beforeEach(async () => {
         jest.clearAllMocks();
         Onyx.clear();
-        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}});
     });
 
     it('should always return default options', () => {
@@ -1403,8 +1405,8 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
 
-        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
         jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(false);
+        jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValueOnce(true);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,

@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新機能',
         search: '検索',
         reports: 'レポート',
+        spend: '支出',
         find: '検索',
         searchWithThreeDots: '検索…',
         next: '次へ',
@@ -433,8 +434,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: '折りたたみ',
         expanded: '展開',
         expenseReport: '経費精算書',
-        expenseReports: '経費レポート',
-        rateOutOfPolicy: 'ポリシー対象外のレート',
+        rateOutOfPolicy: 'ポリシー外の料率',
         leaveWorkspace: 'ワークスペースから退出',
         leaveWorkspaceConfirmation: 'このワークスペースを退出すると、そこへ経費を提出できなくなります。',
         leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を表示できなくなります。',
@@ -452,9 +452,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: 'コメント',
         sharedIn: '共有元',
         unreported: '未報告',
-        explore: '探索',
-        insights: 'インサイト',
-        todo: 'To-do',
         invoice: '請求書',
         expense: '経費',
         chat: 'チャット',
@@ -869,6 +866,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'このルームでメッセージを送信できるのは管理者のみです。',
     reportAction: {
         asCopilot: '共同操縦者として',
+        assistedBy: (agentName: string) => `${agentName}がアシスト`,
+        humanSupportAgent: 'サポート担当者',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `選択した頻度で提出できなかった、<a href="${reportUrl}">${reportName}</a> のすべての経費を保持するためにこのレポートを作成しました`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
@@ -1029,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'はじめに',
             createWorkspace: 'ワークスペースを作成',
             connectAccounting: ({integrationName}: {integrationName: string}) => `${integrationName}に接続する`,
+            connectAccountingDefault: '会計ソフトに接続',
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
@@ -1648,6 +1648,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
             confirmText: '税を削除',
         },
+        bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
     },
     transactionMerge: {
@@ -2582,6 +2583,9 @@ ${date} の ${merchant} への ${amount}`,
     workflowsExpensesFromPage: {
         title: '経費（開始日）',
         header: '次のメンバーが経費を提出したとき：',
+        memberAlreadyInWorkflowTitle: 'メンバーはすでにワークフローに属しています',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -2883,11 +2887,13 @@ ${date} の ${merchant} への ${amount}`,
         },
         employees: {
             title: '従業員は何人いますか？',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1～4名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5～10人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '従業員数 1～10 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '従業員数 11～50 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '従業員数 51～100 人',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11～50名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51～100人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101～1,000人の従業員',
-            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人を超える従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人超の従業員',
         },
         accounting: {
             title: '会計ソフトを利用していますか？',
@@ -4125,7 +4131,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             everyone: '全員',
             delete: 'ワークスペースを削除',
             settings: '設定',
-            reimburse: '精算払い',
             categories: 'カテゴリ',
             tags: 'タグ',
             customField1: 'カスタムフィールド1',
@@ -4248,6 +4253,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
+            hr: '人事',
         },
         receiptPartners: {
             uber: {
@@ -4841,6 +4847,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noAccountsFoundDescription: 'NetSuite にアカウントを追加して、接続をもう一度同期してください',
             noVendorsFound: 'ベンダーが見つかりません',
             noVendorsFoundDescription: 'NetSuite に仕入先を追加して、接続をもう一度同期してください',
+            travelInvoicing: 'Expensify Travel の買掛金を書き出す送信先',
+            travelInvoicingVendor: '旅行代理店',
+            travelInvoicingPayableAccount: '旅費未払勘定',
             noItemsFound: '請求書項目が見つかりません',
             noItemsFoundDescription: 'NetSuite で請求書アイテムを追加し、接続をもう一度同期してください',
             noSubsidiariesFound: '子会社が見つかりません',
@@ -5445,6 +5454,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             monthlySpendLimitDescription: '各メンバーが1か月に出張に使える最大金額。',
                             reduceLimitTitle: '出張支出上限を引き下げますか？',
                             reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
+                            provisioningError:
+                                'ワークスペース内の一部メンバーを集中請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
                         },
                     },
                     disableModal: {
@@ -6548,6 +6559,12 @@ ${reportName}
                 upgradeWorkspaceWarning: `ワークスペースをアップグレードできません`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'あなたの会社ではワークスペースの作成が制限されています。管理者に連絡してサポートを受けてください。',
             },
+            hr: {
+                title: '人事連携',
+                description: '人事システムを連携して、従業員情報を自動で同期し、承認ワークフローを管理できます。チームの名簿とレポートラインを手作業なしで最新の状態に保てます。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>人事システム連携は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり、1か月ごと。`}からのControlプランでのみご利用いただけます</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6844,6 +6861,31 @@ ${reportName}
                 other: `あなたは、年間サブスクリプションが${annualSubscriptionEndDate}に終了するまで、Controlプランでアクティブメンバー${count}名を契約しています。${annualSubscriptionEndDate}以降は、自動更新を無効にすることで、従量課金制サブスクリプションに切り替え、Collectプランへダウングレードできます。その操作は、`,
             }),
             subscriptions: 'サブスクリプション',
+        },
+        hr: {
+            title: '人事',
+            subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
+            settingsTitle: 'Gusto 設定',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Gusto データのインポート';
+                    case 'gustoSyncLoadCompany':
+                        return 'Gusto 会社データを読み込み中';
+                    case 'gustoSyncImportEmployees':
+                        return '従業員のインポート';
+                    case 'gustoSyncBuildApprovalChains':
+                        return '承認フローの構築';
+                    case 'gustoSyncFinalize':
+                        return '同期を完了しています';
+                    case 'jobDone':
+                        return 'インポートしたデータの読み込みを待機しています';
+                    default: {
+                        return `ステージの翻訳が見つかりません: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: '承認モード', finalApprover: '最終承認者'},
         },
     },
     getAssistancePage: {
@@ -7479,20 +7521,11 @@ ${reportName}
         resetColumns: '列をリセット',
         groupColumns: '列をグループ化',
         expenseColumns: '経費列',
-        statements: 'ステートメント',
-        cardStatements: 'カード明細',
-        monthlyAccrual: '月次発生',
-        unapprovedCash: '未承認の現金',
-        unapprovedCard: '未承認のカード',
-        reconciliation: '照合',
-        topSpenders: '上位支出者',
         saveSearch: '検索を保存',
         deleteSavedSearch: '保存した検索を削除',
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
-        topCategories: 'トップカテゴリ',
-        topMerchants: '上位加盟店',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             editMultiple: '複数を編集',
@@ -7647,6 +7680,24 @@ ${reportName}
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
         spendOverTime: '時間経過による支出',
+        tabs: {
+            expenseReports: '経費精算書',
+            reports: 'すべてのレポート',
+            expenses: 'すべての経費',
+            submit: '下書き',
+            approve: '承認が必要',
+            pay: '支払いの準備完了',
+            accounting: '会計',
+            export: 'エクスポート待ち',
+            unapprovedCash: '現金発生主義',
+            unapprovedCard: 'カード発生額',
+            statements: 'カード明細',
+            reconciliation: '銀行照合',
+            insights: 'インサイト',
+            topSpenders: '上位の支出者',
+            topCategories: '上位カテゴリ',
+            topMerchants: '上位加盟店',
+        },
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -8480,6 +8531,7 @@ ${reportName}
         details: {
             title: 'サブスクリプションの詳細',
             annual: '年額サブスクリプション',
+            creditBalance: 'クレジット残高',
             taxExempt: '非課税扱いを申請',
             taxExemptEnabled: '非課税',
             taxExemptStatus: '非課税ステータス',
@@ -8934,12 +8986,15 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
+                moveMember: 'このメンバーを移動できませんでした。もう一度お試しください。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `本当によろしいですか？これにより、<strong>${email}</strong> さんのアカウントがロックされます。<br /><br />その後、当社のチームがアカウントを確認し、不正アクセスを削除します。アクセスを回復するには、Concierge と連携して対応してもらう必要があります。`,
             reportSuspiciousActivityConfirmationPrompt: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
             emptyMembers: {title: 'このグループにはメンバーがいません', subtitle: 'メンバーを追加するか、上のフィルターを変更してみてください。'},
+            moveToGroup: 'グループへ移動',
+            chooseWhereToMove: ({count}: {count: number}) => `${count} ${count === 1 ? 'メンバー' : 'メンバー'} を移動する先を選択してください。`,
         },
         common: {
             settings: '設定',

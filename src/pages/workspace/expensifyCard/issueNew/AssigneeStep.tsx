@@ -47,7 +47,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {isOffline} = useNetwork();
     const policyID = route.params.policyID;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);

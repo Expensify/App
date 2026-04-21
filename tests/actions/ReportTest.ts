@@ -3317,6 +3317,7 @@ describe('actions/Report', () => {
                 },
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
+                reportNextStep: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3403,6 +3404,7 @@ describe('actions/Report', () => {
                 employeeList,
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
+                reportNextStep: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -5277,6 +5279,38 @@ describe('actions/Report', () => {
             expect(userCommentAction?.created).toBeDefined();
             expect(pendingResponse?.reportAction.created).toBeDefined();
             expect(new Date(pendingResponse?.reportAction.created ?? 0).getTime()).toBeGreaterThan(new Date(userCommentAction?.created ?? 0).getTime());
+        });
+
+        it('should emit Log.info followup_clicked telemetry when a suggested followup is resolved', async () => {
+            const logInfoSpy = jest.spyOn(Log, 'info');
+            const reportAction = {
+                reportActionID: REPORT_ACTION_ID,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                message: [
+                    {
+                        html: '<p>Here is help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text></followup></followup-list>',
+                        text: 'Here is help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL);
+            await waitForBatchedUpdates();
+
+            const telemetryCall = logInfoSpy.mock.calls.find((args) => {
+                const params = args.at(2);
+                return !!params && typeof params === 'object' && !Array.isArray(params) && (params as Record<string, unknown>).event === 'followup_clicked';
+            });
+            expect(telemetryCall).toBeDefined();
+
+            logInfoSpy.mockRestore();
         });
     });
 

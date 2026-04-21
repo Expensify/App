@@ -40,11 +40,11 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
 
-    const [value, setValue] = useState(() => {
+    const [text, setText] = useState(() => {
         return draftComment ?? '';
     });
 
-    const isEmpty = !value || !!value.match(CONST.REGEX.EMPTY_COMMENT);
+    const isEmpty = !text || !!text.match(CONST.REGEX.EMPTY_COMMENT);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
@@ -127,13 +127,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const onValueChange = (v: string) => {
+        setText(v);
         if (v.length === 0 && isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
         debouncedValidate(v);
     };
-
-    const text = value;
 
     const composerState = {
         isFocused,
@@ -149,7 +148,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerActions = {
-        setValue,
+        setText,
         setMenuVisibility,
         setIsFullComposerAvailable,
         setComposerRef,

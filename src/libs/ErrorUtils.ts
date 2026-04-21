@@ -240,7 +240,6 @@ export {
     getAuthenticateErrorMessage,
     getEarliestErrorField,
     getErrorMessage,
-    getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
     getLatestErrorField,
     getLatestErrorFieldForAnyField,

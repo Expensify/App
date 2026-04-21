@@ -18,8 +18,7 @@ import {exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@li
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getRangeBoundariesFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import {getDateRangeForPreset} from '@libs/SearchUIUtils';
+import {getDateRangeForPreset, getRangeBoundariesFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {downloadTravelInvoiceStatementPDF} from '@libs/TravelInvoicingUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';

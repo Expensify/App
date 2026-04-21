@@ -46,7 +46,7 @@ function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootN
 }
 
 function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
-    return action !== undefined && action.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    return action?.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 }
 
 function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
@@ -94,12 +94,6 @@ function shouldChangeToMatchingFullScreen(
     lastFullScreenRoute: NavigationPartialRoute,
 ) {
     if (matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-        // HOME has no RHP children (HOME_TO_RHP maps to []).
-        // Pushing another fullscreen under HOME causes Android to trim HOME
-        // from the render tree, reversing the back animation direction.
-        if (lastFullScreenRoute.name === SCREENS.HOME) {
-            return false;
-        }
         return true;
     }
 
@@ -174,15 +168,20 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                // When navigating from HOME to an RHP that maps to a different fullscreen (e.g. Settings),
+                // replace HOME instead of pushing on top. Pushing creates [HOME, SETTINGS, RHP] which causes
+                // Android's useCustomRootStackNavigatorState to trim HOME from the render tree, producing
+                // a wrong back animation. Replacing matches the reload state shape: [SETTINGS, RHP].
+                const shouldReplace = lastFullScreenRoute.name === SCREENS.HOME;
                 if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
-                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                    navigation.dispatch(shouldReplace ? StackActions.replace(matchingFullScreenRoute.name) : StackActions.push(matchingFullScreenRoute.name));
                 } else {
                     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                    const routeParams = {
                         screen: lastRouteInMatchingFullScreen?.name,
                         params: lastRouteInMatchingFullScreen?.params,
-                    });
-                    navigation.dispatch(additionalAction);
+                    };
+                    navigation.dispatch(shouldReplace ? StackActions.replace(matchingFullScreenRoute.name, routeParams) : StackActions.push(matchingFullScreenRoute.name, routeParams));
                 }
             }
         }

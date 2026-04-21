@@ -260,6 +260,17 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    // When lastReadTime transitions from empty to a real value (e.g., data hasn't
+    // loaded yet after sign-in), update the marker so it uses the fresh value
+    // instead of the empty string from initial mount.
+    useEffect(() => {
+        if (reportLastReadTime === '' || unreadMarkerTime !== '') {
+            return;
+        }
+        setUnreadMarkerTime(reportLastReadTime);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportLastReadTime]);
+
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
     /**
@@ -541,7 +552,10 @@ function ReportActionsList({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    // Wait for the next frame so the list has laid out new items before scrolling
+                    requestAnimationFrame(() => {
+                        reportScrollManager.scrollToBottom();
+                    });
                 }
 
                 setIsScrollToBottomEnabled(true);
@@ -688,21 +702,6 @@ function ReportActionsList({
 
             return (
                 <>
-                    {showPreviousMessagesButton && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
-                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
-                            <View>
-                                <Button
-                                    small
-                                    shouldShowRightIcon
-                                    iconRight={expensifyIcons.UpArrow}
-                                    text={translate('common.concierge.showHistory')}
-                                    onPress={onShowPreviousMessages}
-                                />
-                            </View>
-                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
-                        </View>
-                    )}
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
@@ -730,6 +729,21 @@ function ReportActionsList({
                         reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                         reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                     />
+                    {showPreviousMessagesButton && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
+                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
+                            <View>
+                                <Button
+                                    small
+                                    shouldShowRightIcon
+                                    iconRight={expensifyIcons.UpArrow}
+                                    text={translate('common.concierge.showHistory')}
+                                    onPress={onShowPreviousMessages}
+                                />
+                            </View>
+                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
+                        </View>
+                    )}
                 </>
             );
         },
