@@ -38,7 +38,9 @@ function ApprovalFlowContent({action, policy, reportMetadata, childReport, origi
 
         if (isTrackIntentUser && isSubmitAndClose(policy)) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
-        } else if (wasSubmittedViaHarvesting) {
+        }
+
+        if (wasSubmittedViaHarvesting) {
             return (
                 <ReportActionItemMessageWithExplain
                     message={translate('iou.automaticallySubmitted')}
@@ -66,7 +68,9 @@ function ApprovalFlowContent({action, policy, reportMetadata, childReport, origi
 
         if (isTrackIntentUser && isSubmitAndClose(policy)) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
-        } else if (wasAutoApproved) {
+        }
+
+        if (wasAutoApproved) {
             return (
                 <ReportActionItemMessageWithExplain
                     message={translate('iou.automaticallyApproved')}
