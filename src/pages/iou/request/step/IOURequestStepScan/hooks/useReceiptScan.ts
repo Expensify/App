@@ -157,7 +157,7 @@ function useReceiptScan({
                     report,
                     draftTransactionIDs,
                     transactionID: lastTransactionID ?? initialTransactionID,
-                    isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
+                    isFromGlobalCreate: initialTransaction?.isFromFloatingActionButton ?? initialTransaction?.isFromGlobalCreate,
                     backToReport,
                     linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
                 });

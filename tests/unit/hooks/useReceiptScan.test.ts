@@ -15,6 +15,7 @@ const mockGetMoneyRequestParticipantOptions = jest.fn().mockReturnValue([]);
 const mockRemoveTransactionReceipt = jest.fn();
 const mockSetMoneyRequestReceipt = jest.fn();
 const mockBuildOptimisticTransactionAndCreateDraft = jest.fn();
+const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 
 jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
     __esModule: true,
@@ -45,6 +46,11 @@ jest.mock('@userActions/TransactionEdit', () => ({
 
 jest.mock('@userActions/IOU/Receipt', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
+}));
+
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockCleanupAndNavigateAfterExpenseCreate(...args),
 }));
 
 const REPORT_ID = '123';
@@ -468,6 +474,28 @@ describe('useReceiptScan', () => {
                     files,
                     isTestTransaction: false,
                     locationPermissionGranted: false,
+                }),
+            );
+        });
+
+        it('should pass isFromGlobalCreate=true to cleanup when the initial transaction was started from the FAB (isFromFloatingActionButton)', async () => {
+            // Given a scan flow initiated from the FAB — isFromFloatingActionButton is set on the draft, isFromGlobalCreate is not
+            params.initialTransaction = {...params.initialTransaction, isFromFloatingActionButton: true} as Transaction;
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            // When navigateToConfirmationStep fires and the action's onTransactionsCreated callback runs
+            const files = [{file: {uri: 'receipt.jpg'}, source: 'file://receipt.jpg', transactionID: INITIAL_TRANSACTION_ID}];
+            await act(async () => {
+                result.current.navigateToConfirmationStep(files, false, false);
+            });
+            const [capturedParams] = mockHandleMoneyRequestStepScanParticipants.mock.calls.at(0) as [{onTransactionsCreated: (id?: string) => void}];
+            act(() => capturedParams.onTransactionsCreated(INITIAL_TRANSACTION_ID));
+
+            // Then cleanup should receive isFromGlobalCreate=true so post-submit navigation routes to Search
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    isFromGlobalCreate: true,
                 }),
             );
         });

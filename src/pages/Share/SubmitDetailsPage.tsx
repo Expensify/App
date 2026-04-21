@@ -298,6 +298,7 @@ function SubmitDetailsPage({
             transactionID: transaction.transactionID,
             isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
             optimisticChatReportID: reportOrAccountID,
+            linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
         });
     };
 
