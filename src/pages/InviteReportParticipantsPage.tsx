@@ -10,6 +10,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
@@ -22,9 +23,10 @@ import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getGroupChatName} from '@libs/ReportNameUtils';
+import {getGroupChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +45,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const reportAttributes = useReportAttributes();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -113,7 +116,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     };
 
     const reportID = report.reportID;
-    const reportName = getGroupChatName(formatPhoneNumber, undefined, true, report);
+    const reportName = StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes));
 
     const goBack = () => {
         Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
