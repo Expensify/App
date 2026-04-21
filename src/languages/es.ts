@@ -360,7 +360,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: 'Contraído',
         expanded: 'Expandido',
         expenseReport: 'Informe de Gastos',
-        expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         leaveWorkspace: 'Salir del espacio de trabajo',
         leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él.',
@@ -379,9 +378,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
-        explore: 'Explorar',
-        insights: 'Información',
-        todo: 'Tereas',
         invoice: 'Factura',
         expense: 'Gasto',
         chat: 'Chat',
@@ -800,6 +796,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
     reportAction: {
         asCopilot: 'como copiloto de',
+        assistedBy: (agentName: string) => `asistido por ${agentName}`,
+        humanSupportAgent: 'un agente de soporte humano',
         harvestCreatedExpenseReport: (reportUrl, reportName) =>
             `creó este informe para contener todos los gastos de <a href="${reportUrl}">${reportName}</a> que no se pudieron enviar con la frecuencia que elegiste`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
@@ -1600,6 +1598,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
         cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
+        bulkDuplicateLimit: `Solo puedes duplicar hasta ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} gastos a la vez. Por favor, selecciona menos gastos e inténtalo de nuevo.`,
         taxDisabledAlert: {
             title: 'Impuesto deshabilitado',
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
@@ -2486,6 +2485,9 @@ ${amount} para ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Gastos de',
         header: 'Cuando los siguientes miembros presenten gastos:',
+        memberAlreadyInWorkflowTitle: 'Miembro ya está en un flujo de trabajo',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} ya está en un flujo de trabajo de aprobación que envía a ${approverName}. Agregarlo aquí lo moverá a este flujo de trabajo.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -2788,6 +2790,8 @@ ${amount} para ${merchant} - ${date}`,
         },
         employees: {
             title: '¿Cuántos empleados tienes?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 empleados',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 empleados',
@@ -4060,7 +4064,6 @@ ${amount} para ${merchant} - ${date}`,
             everyone: 'Todos',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
-            reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
             customField1: 'Campo personalizado 1',
@@ -4076,6 +4079,7 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            hr: 'HR',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -4807,6 +4811,9 @@ ${amount} para ${merchant} - ${date}`,
             noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo',
             noVendorsFound: 'No se han encontrado proveedores',
             noVendorsFoundDescription: 'Añade proveedores en NetSuite y sincroniza la conexión de nuevo',
+            travelInvoicing: 'Exportar Viajes de Expensify por Pagar a',
+            travelInvoicingVendor: 'Proveedor de viajes',
+            travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
             noItemsFound: 'No se han encontrado artículos de factura',
             noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
@@ -6166,6 +6173,36 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
 
+        hr: {
+            title: 'HR',
+            subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
+            settingsTitle: 'Configuración de Gusto',
+            syncStageName: ({stage}) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importando datos desde Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Cargando datos de la empresa desde Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importando empleados';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Creando cadenas de aprobación';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizando la sincronización';
+                    case 'jobDone':
+                        return 'Esperando a que se carguen los datos importados';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Modo de aprobación',
+                finalApprover: 'Aprobador final',
+            },
+        },
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:
@@ -6426,6 +6463,13 @@ ${amount} para ${merchant} - ${date}`,
                     'Las dietas per diem (ej.: $100 por día para comidas) son una excelente forma de mantener los gastos diarios predecibles y ajustados a las políticas de la empresa, especialmente si tus empleados viajan por negocios. Disfruta de funciones como tasas personalizadas, categorías por defecto y detalles más específicos como destinos y subtasas.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las dietas per diem solo están disponibles en el plan Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            hr: {
+                title: 'Integraciones de HR',
+                description:
+                    'Conecta tu proveedor de HR para sincronizar automáticamente empleados y gestionar los flujos de aprobación. Mantén actualizados el equipo y la estructura de informes sin trabajo manual.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Las integraciones de HR solo están disponibles en el plan Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             travel: {
                 title: 'Viajes',
@@ -7373,6 +7417,24 @@ ${amount} para ${merchant} - ${date}`,
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
+        tabs: {
+            expenseReports: 'Informes de gastos',
+            reports: 'Todos los informes',
+            expenses: 'Todos los gastos',
+            submit: 'Borradores',
+            approve: 'Necesita aprobación',
+            pay: 'Listo para pagar',
+            accounting: 'Contabilidad',
+            export: 'Pendiente de exportación',
+            unapprovedCash: 'Acumulaciones de efectivo',
+            unapprovedCard: 'Acumulaciones de tarjeta',
+            statements: 'Extractos de tarjeta',
+            reconciliation: 'Conciliación bancaria',
+            insights: 'Información',
+            topSpenders: 'Mayores gastadores',
+            topCategories: 'Categorías principales',
+            topMerchants: 'Principales comerciantes',
+        },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
         appliedFilters: 'Filtros aplicados',
@@ -7433,13 +7495,6 @@ ${amount} para ${merchant} - ${date}`,
         resetColumns: 'Restablecer columnas',
         groupColumns: 'Columnas de grupo',
         expenseColumns: 'Columnas de gastos',
-        statements: 'Extractos',
-        cardStatements: 'Extractos de tarjeta',
-        monthlyAccrual: 'Devengo mensual',
-        unapprovedCash: 'Efectivo no aprobado',
-        unapprovedCard: 'Tarjeta no aprobada',
-        reconciliation: 'Conciliación',
-        topSpenders: 'Mayores gastadores',
         display: {
             label: 'Mostrar',
             sortBy: 'Ordenar por',
@@ -7451,8 +7506,6 @@ ${amount} para ${merchant} - ${date}`,
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
-        topCategories: 'Categorías principales',
-        topMerchants: 'Principales comerciantes',
         spendOverTime: 'Evolución de gastos',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -8815,6 +8868,7 @@ ${amount} para ${merchant} - ${date}`,
         details: {
             title: 'Datos de suscripción',
             annual: 'Suscripción anual',
+            creditBalance: 'Saldo de crédito',
             taxExempt: 'Solicitar estado de exención de impuestos',
             taxExemptEnabled: 'Exento de impuestos',
             taxExemptStatus: 'Estado de exención de impuestos',

@@ -905,7 +905,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1096,6 +1100,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
+        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
     }
@@ -1160,7 +1167,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
         }
         for (let j = 0; j < rule.applyWhen.length; j++) {
             const applyWhen = rule.applyWhen.at(j);
-            if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+            if (applyWhen?.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
                 continue;
             }
             if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
@@ -1285,7 +1292,7 @@ function getPersonalPolicy() {
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    if (!policy || !policy.employeeList) {
+    if (!policy?.employeeList) {
         return [];
     }
     return Object.keys(policy.employeeList)
@@ -1352,12 +1359,7 @@ function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<
 
 /** Get the Xero organizations connected to the policy */
 function getXeroTenants(policy: Policy | undefined): Tenant[] {
-    // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-    if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
-        return [];
-    }
-    return policy.connections.xero.data.tenants ?? [];
+    return policy?.connections?.xero?.data?.tenants ?? [];
 }
 
 function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
@@ -1635,8 +1637,7 @@ function getIntegrationLastSuccessfulDate(
     const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
 
     if (
-        connectionSyncProgress &&
-        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
         connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
     ) {

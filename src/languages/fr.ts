@@ -435,7 +435,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: 'Réduit',
         expanded: 'Développé',
         expenseReport: 'Note de frais',
-        expenseReports: 'Notes de frais',
         rateOutOfPolicy: 'Taux hors politique',
         leaveWorkspace: 'Quitter l’espace de travail',
         leaveWorkspaceConfirmation: 'Si vous quittez cet espace de travail, vous ne pourrez plus lui soumettre de dépenses.',
@@ -454,9 +453,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: 'Commentaires',
         sharedIn: 'Partagé dans',
         unreported: 'Non déclarée',
-        explore: 'Explorer',
-        insights: 'Analyses',
-        todo: 'À faire',
         invoice: 'Facture',
         expense: 'Dépense',
         chat: 'Discussion',
@@ -886,6 +882,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Seuls les administrateurs peuvent envoyer des messages dans ce salon.',
     reportAction: {
         asCopilot: 'en tant que copilote pour',
+        assistedBy: (agentName: string) => `assisté par ${agentName}`,
+        humanSupportAgent: 'un agent humain',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `a créé cette note de frais pour regrouper toutes les dépenses de <a href="${reportUrl}">${reportName}</a> qui n'ont pas pu être soumises à la fréquence que vous avez choisie`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
@@ -1677,6 +1675,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Activez le suivi des taxes dans l’espace de travail pour modifier les détails de la dépense ou supprimer la taxe de cette dépense.',
             confirmText: 'Supprimer la taxe',
         },
+        bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
         deleted: 'Supprimé',
     },
     transactionMerge: {
@@ -2619,6 +2618,9 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsExpensesFromPage: {
         title: 'Dépenses de',
+        memberAlreadyInWorkflowTitle: 'Membre déjà dans un workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {
@@ -2924,6 +2926,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
         employees: {
             title: 'Combien d’employés avez-vous ?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1 à 4 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5 à 10 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1 à 10 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11 à 50 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 à 100 employés',
@@ -4181,7 +4185,6 @@ ${amount} pour ${merchant} - ${date}`,
             everyone: 'Tout le monde',
             delete: 'Supprimer l’espace de travail',
             settings: 'Paramètres',
-            reimburse: 'Remboursements',
             categories: 'Catégories',
             tags: 'Tags',
             customField1: 'Champ personnalisé 1',
@@ -4305,6 +4308,7 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+            hr: 'RH',
         },
         receiptPartners: {
             uber: {
@@ -4915,6 +4919,9 @@ ${amount} pour ${merchant} - ${date}`,
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans NetSuite et synchroniser à nouveau la connexion',
             noVendorsFound: 'Aucun fournisseur trouvé',
             noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans NetSuite et synchroniser à nouveau la connexion',
+            travelInvoicing: 'Exporter Expensify Travel créditeur vers',
+            travelInvoicingVendor: 'Fournisseur de voyage',
+            travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             noItemsFound: 'Aucun article de facture trouvé',
             noItemsFoundDescription: 'Veuillez ajouter des éléments de facture dans NetSuite et synchroniser à nouveau la connexion',
             noSubsidiariesFound: 'Aucune filiale trouvée',
@@ -6662,6 +6669,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Votre entreprise a restreint la création d’espaces de travail. Veuillez contacter un administrateur pour obtenir de l’aide.',
             },
+            hr: {
+                title: 'Intégrations RH',
+                description:
+                    'Connectez votre fournisseur RH pour synchroniser automatiquement les employés et gérer les workflows d’approbation. Maintenez la liste de votre équipe et la structure de reporting à jour sans travail manuel.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les intégrations RH sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6961,6 +6975,31 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 other: `Vous vous êtes engagé·e à avoir ${count} membres actifs sur le forfait Control jusqu’à la fin de votre abonnement annuel le ${annualSubscriptionEndDate}. Vous pouvez passer à un abonnement à l’usage et rétrograder vers le forfait Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
             }),
             subscriptions: 'Abonnements',
+        },
+        hr: {
+            title: 'RH',
+            subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
+            settingsTitle: 'Paramètres Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importation des données Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return "Chargement des données de l'entreprise Gusto";
+                    case 'gustoSyncImportEmployees':
+                        return 'Importation des employés';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Création de chaînes d’approbation';
+                    case 'gustoSyncFinalize':
+                        return 'Finalisation de la synchronisation';
+                    case 'jobDone':
+                        return 'En attente du chargement des données importées';
+                    default: {
+                        return `Traduction manquante pour l’étape : ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Mode d’approbation', finalApprover: 'Approbateur final'},
         },
     },
     getAssistancePage: {
@@ -7608,20 +7647,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
-        statements: 'Relevés',
-        cardStatements: 'Relevés de carte',
-        monthlyAccrual: 'Régularisation mensuelle',
-        unapprovedCash: 'Espèces non approuvées',
-        unapprovedCard: 'Carte non approuvée',
-        reconciliation: 'Rapprochement',
-        topSpenders: 'Plus gros dépensiers',
         saveSearch: 'Enregistrer la recherche',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
-        topCategories: 'Catégories principales',
-        topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
@@ -7782,6 +7812,24 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
+        tabs: {
+            expenseReports: 'Notes de frais',
+            reports: 'Toutes les notes de frais',
+            expenses: 'Toutes les dépenses',
+            submit: 'Brouillons',
+            approve: 'Nécessite une approbation',
+            pay: 'Prêt à payer',
+            accounting: 'Comptabilité',
+            export: 'En attente d’exportation',
+            unapprovedCash: 'Provisions de trésorerie',
+            unapprovedCard: 'Provisions sur cartes',
+            statements: 'Relevés de carte',
+            reconciliation: 'Rapprochement bancaire',
+            insights: 'Analyses',
+            topSpenders: 'Plus gros dépensiers',
+            topCategories: 'Catégories principales',
+            topMerchants: 'Meilleurs commerçants',
+        },
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -8626,6 +8674,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         details: {
             title: 'Détails de l’abonnement',
             annual: 'Abonnement annuel',
+            creditBalance: 'Solde créditeur',
             taxExempt: 'Demander le statut d’exonération fiscale',
             taxExemptEnabled: 'Exonéré d’impôt',
             taxExemptStatus: 'Statut d’exonération fiscale',

@@ -24,6 +24,7 @@ import Text from '@components/Text';
 import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -37,7 +38,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -64,6 +64,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
 function WalletPage() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
@@ -754,11 +755,11 @@ function WalletPage() {
                                         >
                                             <MenuItemWithTopDescription
                                                 description={translate('walletPage.balance')}
-                                                title={convertToDisplayString(userWallet?.currentBalance ?? 0)}
+                                                title={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
                                                 titleStyle={styles.textHeadlineH2}
                                                 interactive={false}
                                                 wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
+                                                copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
                                                 copyable
                                             />
                                         </OfflineWithFeedback>

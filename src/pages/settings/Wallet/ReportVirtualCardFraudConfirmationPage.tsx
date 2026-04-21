@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -41,9 +42,8 @@ function ReportVirtualCardFraudConfirmationPage({
                 title={translate('reportFraudConfirmationPage.title')}
                 onBackButtonPress={close}
             />
-
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                <View style={[themeStyles.justifyContentCenter, themeStyles.flex1]}>
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1, themeStyles.gap2]}>
+                <ScrollView contentContainerStyle={[themeStyles.flexGrow1, themeStyles.justifyContentCenter]}>
                     <ImageSVG
                         contentFit="contain"
                         src={expensifyIcons.MagnifyingGlassSpyMouthClosed}
@@ -56,8 +56,7 @@ function ReportVirtualCardFraudConfirmationPage({
                     <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
                         {translate('reportFraudConfirmationPage.description')}
                     </Text>
-                </View>
-
+                </ScrollView>
                 <Button
                     text={translate('reportFraudConfirmationPage.buttonText')}
                     onPress={close}

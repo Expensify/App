@@ -271,7 +271,7 @@ function openReportFromDeepLink(
     }
 
     // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
-    if (route?.includes('partners/plaid/oauth_ios')) {
+    if (route?.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
         return;
     }
 
@@ -347,11 +347,7 @@ function openReportFromDeepLink(
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (
-                                reportID &&
-                                !isAuthenticated &&
-                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
-                            ) {
+                            if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
                                 const reportConnection = Onyx.connectWithoutView({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return

@@ -146,6 +146,7 @@ type TransactionItemRowProps = {
     isLargeScreenWidth?: boolean;
     policyForMovingExpenses?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
+    isActionColumnWide?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -200,6 +201,7 @@ function TransactionItemRow({
     nonPersonalAndWorkspaceCards = {},
     isLargeScreenWidth: isLargeScreenWidthProp,
     policyForMovingExpenses,
+    isActionColumnWide: isActionColumnWideProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -416,7 +418,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
                     >
                         {!!transactionItem.action && (
                             <ActionCell
