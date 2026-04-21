@@ -366,14 +366,21 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!lastTransaction) {
             return;
         }
-        const existingDMReportID = report ? undefined : getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID])?.reportID;
+        let resolvedChatReportID: string | undefined;
+        if (!report) {
+            if (participant.isPolicyExpenseChat && participant.reportID) {
+                resolvedChatReportID = participant.reportID;
+            } else if (participant.accountID) {
+                resolvedChatReportID = getChatByParticipants([participant.accountID, currentUserPersonalDetails.accountID])?.reportID;
+            }
+        }
         cleanupAndNavigateAfterExpenseCreate({
             report,
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             backToReport,
-            optimisticChatReportID: existingDMReportID ?? optimisticChatReportID,
+            optimisticChatReportID: resolvedChatReportID ?? optimisticChatReportID,
             linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
         });
     }
@@ -558,7 +565,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            optimisticChatReportID: selfDMReport?.reportID,
+            optimisticChatReportID: selfDMReport?.reportID ?? findSelfDMReportID(),
         });
     }
 
