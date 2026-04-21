@@ -55,7 +55,7 @@ describe('handleFileRetry', () => {
     });
 
     describe('TRACK_EXPENSE retry', () => {
-        it('calls trackExpense with isRetry=true, then cleanupAfterExpenseCreate with the retry-payload draft list', () => {
+        it('should call trackExpense with isRetry=true, then cleanupAfterExpenseCreate with the retry-payload draft list', () => {
             const callOrder: string[] = [];
             (trackExpense as jest.Mock).mockImplementation(() => callOrder.push('trackExpense'));
             (cleanupAfterExpenseCreate as jest.Mock).mockImplementation(() => callOrder.push('cleanup'));
@@ -77,7 +77,7 @@ describe('handleFileRetry', () => {
             });
         });
 
-        it('does NOT forward linkedTrackedExpenseReportAction into cleanup — retry must match trackExpense success-path, which never pops the linked child report (SHARE/CATEGORIZE flows)', () => {
+        it('should NOT forward linkedTrackedExpenseReportAction for TRACK_EXPENSE retries', () => {
             const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as ReportAction;
 
             handleFileRetry(
@@ -92,7 +92,7 @@ describe('handleFileRetry', () => {
             expect(cleanupAfterExpenseCreate).not.toHaveBeenCalledWith(expect.objectContaining({linkedTrackedExpenseReportAction}));
         });
 
-        it('passes undefined draftTransactionIDs when the retry payload omits them (helper tolerates undefined)', () => {
+        it('should pass undefined draftTransactionIDs when the retry payload omits them', () => {
             handleFileRetry(makeTrackExpenseRetry({draftTransactionIDs: undefined}), file, dismissError, setShouldShowErrorModal);
 
             expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(
@@ -104,7 +104,7 @@ describe('handleFileRetry', () => {
     });
 
     describe('MONEY_REQUEST retry', () => {
-        it('calls requestMoney with isRetry=true, then cleanupAfterExpenseCreate with the retry-payload draft list', () => {
+        it('should call requestMoney with isRetry=true, then cleanupAfterExpenseCreate with the retry-payload draft list', () => {
             const callOrder: string[] = [];
             (requestMoney as jest.Mock).mockImplementation(() => callOrder.push('requestMoney'));
             (cleanupAfterExpenseCreate as jest.Mock).mockImplementation(() => callOrder.push('cleanup'));
@@ -125,10 +125,25 @@ describe('handleFileRetry', () => {
                 linkedTrackedExpenseReportAction: undefined,
             });
         });
+
+        it('should forward linkedTrackedExpenseReportAction through cleanup for MONEY_REQUEST retries (move-from-track flow)', () => {
+            const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as ReportAction;
+
+            handleFileRetry(
+                makeMoneyRequestRetry({
+                    transactionParams: {amount: 500, currency: 'USD', created: '2026-04-20', merchant: 'Starbucks', linkedTrackedExpenseReportAction},
+                }),
+                file,
+                dismissError,
+                setShouldShowErrorModal,
+            );
+
+            expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({linkedTrackedExpenseReportAction}));
+        });
     });
 
     describe('non-expense-creation branches', () => {
-        it('does NOT call cleanupAfterExpenseCreate for REPLACE_RECEIPT (different scope — no transaction created)', () => {
+        it('should NOT call cleanupAfterExpenseCreate for REPLACE_RECEIPT', () => {
             const message = {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams: {} as ReplaceReceipt} as ReceiptError;
 
             handleFileRetry(message, file, dismissError, setShouldShowErrorModal);
@@ -137,7 +152,7 @@ describe('handleFileRetry', () => {
             expect(cleanupAfterExpenseCreate).not.toHaveBeenCalled();
         });
 
-        it('does NOT call cleanupAfterExpenseCreate for START_SPLIT_BILL (different scope — split flows handled separately)', () => {
+        it('should NOT call cleanupAfterExpenseCreate for START_SPLIT_BILL', () => {
             const message = {action: CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams: {} as StartSplitBilActionParams} as ReceiptError;
 
             handleFileRetry(message, file, dismissError, setShouldShowErrorModal);

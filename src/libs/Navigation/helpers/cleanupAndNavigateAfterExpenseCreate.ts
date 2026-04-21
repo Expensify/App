@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import type {Report, ReportAction} from '@src/types/onyx';
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
@@ -32,11 +31,7 @@ function cleanupAndNavigateAfterExpenseCreate({
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
 
-    const isExpenseReport = isMoneyRequestReport(report);
-    const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
-    const activeReportID =
-        isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID ?? optimisticChatReportID);
-    const finalActiveReportID = backToReport ?? activeReportID;
+    const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
 
     navigateAfterExpenseCreate({
         activeReportID: finalActiveReportID,

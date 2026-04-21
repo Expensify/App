@@ -717,6 +717,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         odometerEnd,
                         taxCode: distanceTaxCode,
                         taxAmount: distanceTaxAmount,
+                        isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     },
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserAccountID,

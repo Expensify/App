@@ -29,7 +29,7 @@ describe('cleanupAfterExpenseCreate', () => {
         jest.clearAllMocks();
     });
 
-    it('removes draft transactions via InteractionManager when draftTransactionIDs is provided', () => {
+    it('should remove draft transactions via InteractionManager when draftTransactionIDs is provided', () => {
         cleanupAfterExpenseCreate({
             draftTransactionIDs: ['txn-1', 'txn-2'],
         });
@@ -38,7 +38,7 @@ describe('cleanupAfterExpenseCreate', () => {
         expect(mockRemoveDraftTransactionsByIDs).toHaveBeenCalledWith(['txn-1', 'txn-2']);
     });
 
-    it('forwards undefined draftTransactionIDs to removeDraftTransactionsByIDs (the helper is tolerant of undefined)', () => {
+    it('should forward undefined draftTransactionIDs to removeDraftTransactionsByIDs', () => {
         cleanupAfterExpenseCreate({
             draftTransactionIDs: undefined,
         });
@@ -47,7 +47,7 @@ describe('cleanupAfterExpenseCreate', () => {
         expect(mockRemoveDraftTransactionsByIDs).toHaveBeenCalledWith(undefined);
     });
 
-    it('pops the linked child report screen when linkedTrackedExpenseReportAction has a childReportID and the route is found', () => {
+    it('should pop the linked child report screen when linkedTrackedExpenseReportAction has a childReportID and the route is found', () => {
         (Navigation.getReportRouteByID as jest.Mock).mockReturnValue({key: 'rhp-key-123'});
         const linkedTrackedExpenseReportAction = {childReportID: 'child-report-456'} as OnyxEntry<ReportAction>;
 
@@ -60,7 +60,7 @@ describe('cleanupAfterExpenseCreate', () => {
         expect(Navigation.removeScreenByKey).toHaveBeenCalledWith('rhp-key-123');
     });
 
-    it('does NOT pop any screen when linkedTrackedExpenseReportAction is undefined', () => {
+    it('should NOT pop any screen when linkedTrackedExpenseReportAction is undefined', () => {
         cleanupAfterExpenseCreate({
             draftTransactionIDs: ['txn-1'],
         });
@@ -69,7 +69,7 @@ describe('cleanupAfterExpenseCreate', () => {
         expect(Navigation.removeScreenByKey).not.toHaveBeenCalled();
     });
 
-    it('does NOT call removeScreenByKey when getReportRouteByID returns undefined', () => {
+    it('should NOT call removeScreenByKey when getReportRouteByID returns undefined', () => {
         (Navigation.getReportRouteByID as jest.Mock).mockReturnValue(undefined);
         const linkedTrackedExpenseReportAction = {childReportID: 'child-report-456'} as OnyxEntry<ReportAction>;
 

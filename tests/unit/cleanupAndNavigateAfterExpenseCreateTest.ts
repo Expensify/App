@@ -23,7 +23,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
     });
 
-    it('delegates cleanup to cleanupAfterExpenseCreate and navigation to navigateAfterExpenseCreate', () => {
+    it('should delegate cleanup to cleanupAfterExpenseCreate and navigation to navigateAfterExpenseCreate', () => {
         const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as OnyxEntry<ReportAction>;
 
         cleanupAndNavigateAfterExpenseCreate({
@@ -42,7 +42,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         expect(navigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
 
-    it('resolves activeReportID to backToReport when provided (backToReport wins over all other sources)', () => {
+    it('should resolve activeReportID to backToReport when provided', () => {
         cleanupAndNavigateAfterExpenseCreate({
             report: expenseReport,
             draftTransactionIDs: [],
@@ -59,7 +59,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('resolves activeReportID to report.reportID when report is an expense report (including RHP cases where topmost differs)', () => {
+    it('should resolve activeReportID to report.reportID when report is an expense report', () => {
         cleanupAndNavigateAfterExpenseCreate({
             report: expenseReport,
             draftTransactionIDs: [],
@@ -74,7 +74,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('resolves activeReportID to report.reportID for a regular (non-expense) chat report', () => {
+    it('should resolve activeReportID to report.reportID for a regular (non-expense) chat report', () => {
         cleanupAndNavigateAfterExpenseCreate({
             report: chatReport,
             draftTransactionIDs: [],
@@ -89,7 +89,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('falls back to optimisticChatReportID when report is undefined', () => {
+    it('should fall back to optimisticChatReportID when report is undefined', () => {
         cleanupAndNavigateAfterExpenseCreate({
             report: undefined,
             draftTransactionIDs: [],
@@ -105,7 +105,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('derives hasMultipleTransactions=true when the resolved activeReportID points to a money-request report', () => {
+    it('should derive hasMultipleTransactions=true when the resolved activeReportID points to a money-request report', () => {
         const resolvedFinalReport = {reportID: 'expense-1'} as Report;
         (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
         (getReportOrDraftReport as jest.Mock).mockReturnValue(resolvedFinalReport);
@@ -125,7 +125,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('derives hasMultipleTransactions=false when the resolved activeReportID points to a chat report', () => {
+    it('should derive hasMultipleTransactions=false when the resolved activeReportID points to a chat report', () => {
         (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
         (getReportOrDraftReport as jest.Mock).mockReturnValue(chatReport);
 
@@ -144,7 +144,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
-    it('passes isInvoice, isFromGlobalCreate, and transactionID through to navigateAfterExpenseCreate', () => {
+    it('should pass isInvoice, isFromGlobalCreate, and transactionID through to navigateAfterExpenseCreate', () => {
         cleanupAndNavigateAfterExpenseCreate({
             report: chatReport,
             draftTransactionIDs: [],
