@@ -92,6 +92,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type SubmitReportFunctionParams = {
@@ -339,6 +340,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         delegateEmail,
         expenseReportPolicy,
+        bankAccountList,
     } = params;
     if (!expenseReport) {
         return;
@@ -372,6 +374,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
           buildNextStepNew({
               report: expenseReport,
               policy,
+              bankAccountList,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
