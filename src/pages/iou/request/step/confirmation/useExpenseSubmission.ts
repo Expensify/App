@@ -24,7 +24,15 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {
+    findSelfDMReportID,
+    generateReportID,
+    getChatByParticipants,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isMoneyRequestReport,
+    isSelectedManagerMcTest,
+} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
@@ -358,13 +366,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!lastTransaction) {
             return;
         }
+        const existingDMReportID = report ? undefined : getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID])?.reportID;
         cleanupAndNavigateAfterExpenseCreate({
             report,
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             backToReport,
-            optimisticChatReportID,
+            optimisticChatReportID: existingDMReportID ?? optimisticChatReportID,
             linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
         });
     }

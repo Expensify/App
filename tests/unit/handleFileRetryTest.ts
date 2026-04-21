@@ -73,11 +73,10 @@ describe('handleFileRetry', () => {
             expect(callOrder).toEqual(['trackExpense', 'cleanup']);
             expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
                 draftTransactionIDs: ['txn-track-1', 'txn-track-2'],
-                linkedTrackedExpenseReportAction: undefined,
             });
         });
 
-        it('passes linkedTrackedExpenseReportAction through to cleanup so the move-from-track child report screen is popped', () => {
+        it('does NOT forward linkedTrackedExpenseReportAction into cleanup — retry must match trackExpense success-path, which never pops the linked child report (SHARE/CATEGORIZE flows)', () => {
             const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as ReportAction;
 
             handleFileRetry(
@@ -89,11 +88,7 @@ describe('handleFileRetry', () => {
                 setShouldShowErrorModal,
             );
 
-            expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    linkedTrackedExpenseReportAction,
-                }),
-            );
+            expect(cleanupAfterExpenseCreate).not.toHaveBeenCalledWith(expect.objectContaining({linkedTrackedExpenseReportAction}));
         });
 
         it('passes undefined draftTransactionIDs when the retry payload omits them (helper tolerates undefined)', () => {
