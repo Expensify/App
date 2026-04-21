@@ -193,8 +193,16 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         if (!shouldFetchData) {
             return undefined;
         }
-        return getAllNonDeletedTransactions(reportTransactions, iouActions ?? []);
-    }, [reportTransactions, iouActions, shouldFetchData]);
+        const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
+        const filteredTransactions = getAllNonDeletedTransactions(reportTransactions, iouActions ?? []);
+        const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+
+        if (filteredTransactions.length < allReportTransactions.length && filteredTransactions.length < activeMoneyRequestCount) {
+            return getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
+        }
+
+        return filteredTransactions;
+    }, [reportTransactions, iouActions, shouldFetchData, iouReport?.transactionCount, action?.childMoneyRequestCount]);
 
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
         selector: getSplitsSelector,
