@@ -25,6 +25,7 @@ import type {
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
+    EnablePolicyHRParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
@@ -2183,7 +2184,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
  */
 function generateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
     const emailParts = email.split('@');
-    if (!emailParts || emailParts.length !== 2) {
+    if (emailParts?.length !== 2) {
         return '';
     }
     const domain = emailParts.at(1) ?? '';
@@ -2204,7 +2205,7 @@ function generateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number
  */
 function oldGenerateDefaultWorkspaceName(email = '', displayNameOverride?: string): string {
     const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
-    if (!emailParts || emailParts.length !== 2) {
+    if (emailParts?.length !== 2) {
         return '';
     }
     const username = emailParts.at(0) ?? '';
@@ -4467,6 +4468,54 @@ function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBac
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature();
+    }
+}
+
+function enablePolicyHR(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isHREnabled: enabled,
+                    pendingFields: {
+                        isHREnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isHREnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isHREnabled: !enabled,
+                    pendingFields: {
+                        isHREnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyHRParams = {policyID, enabled};
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature();
     }
 }
@@ -7078,6 +7127,7 @@ export {
     openPolicyWorkflowsPage,
     enableCompanyCards,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
     enablePolicyTaxes,

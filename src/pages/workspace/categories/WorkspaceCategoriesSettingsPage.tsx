@@ -54,7 +54,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     );
 
     const data = useMemo(() => {
-        if (!(policyData.policy && policyData.policy?.mccGroup)) {
+        if (!policyData.policy?.mccGroup) {
             return [];
         }
 

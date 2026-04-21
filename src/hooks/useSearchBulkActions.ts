@@ -105,8 +105,7 @@ function getRestrictedPolicyID(
         .map((item) => item.policyID)
         .find(
             (policyID): policyID is string =>
-                !!policyID &&
-                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+                !!policyID && shouldRestrictUserBillableActions(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed),
         );
 }
 
@@ -417,7 +416,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !policy.achAccount?.bankAccountID) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 
@@ -869,22 +868,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
 
-        if (allSelectedAreDeleted) {
-            return [
-                {
-                    icon: expensifyIcons.RotateLeft,
-                    text: translate('search.bulkActions.undelete'),
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
-                    shouldCloseModalOnSelect: true,
-                    onSelected: () => {
-                        const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
-                        undeleteTransactions(selectedTransactionsKeys.map((id) => selectedTransactions[id]?.transaction).filter((t) => t !== undefined));
-                        clearSelectedTransactions(undefined, selectedTransactionsKeys.length >= totalTransactionsInResults);
-                    },
-                },
-            ];
-        }
-
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
@@ -1048,6 +1031,35 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
+        }
+
+        if (allSelectedAreDeleted) {
+            const deletedTransactionOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [
+                {
+                    icon: expensifyIcons.RotateLeft,
+                    text: translate('search.bulkActions.undelete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => {
+                        const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
+                        undeleteTransactions(selectedTransactionsKeys.map((id) => selectedTransactions[id]?.transaction).filter((t) => t !== undefined));
+                        clearSelectedTransactions(undefined, selectedTransactionsKeys.length >= totalTransactionsInResults);
+                    },
+                },
+                exportButtonOption,
+            ];
+
+            if (isDuplicateOptionVisible) {
+                deletedTransactionOptions.push({
+                    text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
+                    icon: expensifyIcons.ExpenseCopy,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: invokeDuplicateHandler,
+                });
+            }
+
+            return deletedTransactionOptions;
         }
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;

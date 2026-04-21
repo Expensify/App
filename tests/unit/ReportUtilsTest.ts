@@ -8827,6 +8827,12 @@ describe('ReportUtils', () => {
     });
 
     describe('getReasonAndReportActionThatRequiresAttention', () => {
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
         it('should return a reason for a non-archived report', async () => {
             // Given a non-archived expense report that is unread with a mention
             const report: OptionData = {
@@ -8907,6 +8913,233 @@ describe('ReportUtils', () => {
 
             // Then the result is null
             expect(result).toBe(null);
+        });
+
+        it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41000),
+                hasOutstandingChildTask: true,
+            };
+            const cardMissingAddressAction: ReportAction = {
+                reportActionID: 'card-missing-address-action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-11000',
+                childManagerAccountID: currentUserAccountID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11000,
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
+        });
+
+        it('should return the first incomplete task when waiting for assignee to complete action', async () => {
+            const completedTaskAction: ReportAction = {
+                reportActionID: 'completed-task-action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-completed',
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11001,
+                },
+            };
+
+            const incompleteTaskAction: ReportAction = {
+                reportActionID: 'incomplete-task-action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-incomplete',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11002,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41001),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [completedTaskAction.reportActionID]: completedTaskAction,
+                [incompleteTaskAction.reportActionID]: incompleteTaskAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // Should skip the completed task and return the incomplete one
+            expect(result?.reportAction?.reportActionID).toBe('incomplete-task-action');
+        });
+
+        it('should return the earliest incomplete task sorted by created date', async () => {
+            const laterIncompleteTask: ReportAction = {
+                reportActionID: 'later-incomplete-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-later',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-03 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11003,
+                },
+            };
+
+            const earlierIncompleteTask: ReportAction = {
+                reportActionID: 'earlier-incomplete-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-earlier',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11004,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41002),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [laterIncompleteTask.reportActionID]: laterIncompleteTask,
+                [earlierIncompleteTask.reportActionID]: earlierIncompleteTask,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // Should return the earliest created incomplete task
+            expect(result?.reportAction?.reportActionID).toBe('earlier-incomplete-task');
+        });
+
+        it('should return null reportAction when all tasks are completed', async () => {
+            const completedTask1: ReportAction = {
+                reportActionID: 'completed-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-done-1',
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11005,
+                },
+            };
+
+            const completedTask2: ReportAction = {
+                reportActionID: 'completed-2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-done-2',
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11006,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41003),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [completedTask1.reportActionID]: completedTask1,
+                [completedTask2.reportActionID]: completedTask2,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // All tasks completed, so no matching reportAction
+            expect(result?.reportAction).toBeUndefined();
+        });
+
+        it('should exclude tasks assigned to a different manager', async () => {
+            const otherManagerAccountID = 99999;
+
+            const taskAssignedToOtherManager: ReportAction = {
+                reportActionID: 'other-manager-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-other-manager',
+                childManagerAccountID: otherManagerAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11007,
+                },
+            };
+
+            const taskAssignedToCurrentUser: ReportAction = {
+                reportActionID: 'current-user-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-current-user',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11008,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41004),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [taskAssignedToOtherManager.reportActionID]: taskAssignedToOtherManager,
+                [taskAssignedToCurrentUser.reportActionID]: taskAssignedToCurrentUser,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // Should only return the task where childManagerAccountID matches the current user
+            expect(result?.reportAction?.reportActionID).toBe('current-user-task');
         });
     });
 
@@ -12005,36 +12238,6 @@ describe('ReportUtils', () => {
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
-    });
-
-    it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
-        const workspaceChat = {
-            ...createPolicyExpenseChat(41000),
-            hasOutstandingChildTask: true,
-        };
-        const cardMissingAddressAction: ReportAction = {
-            reportActionID: 'card-missing-address-action',
-            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-            childType: CONST.REPORT.TYPE.TASK,
-            childReportID: 'task-11000',
-            created: DateUtils.getDBTime(),
-            originalMessage: {
-                assigneeAccountID: currentUserAccountID,
-                cardID: 11000,
-            },
-        };
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
-            [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
-        });
-        await waitForBatchedUpdates();
-
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-        const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
-
-        expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
-        expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
     });
 
     it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {

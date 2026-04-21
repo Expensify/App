@@ -1156,7 +1156,7 @@ function updateSplitTransactions({
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
 
         // If the rate doesn't exist or is disabled, show an error and return early
-        if (!customUnitRate || !customUnitRate.enabled) {
+        if (!customUnitRate?.enabled) {
             // Show error to user
             Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.invalidRate'),

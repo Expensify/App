@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account, SidePanel} from '@src/types/onyx';
+import type {SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
@@ -71,15 +71,6 @@ const SET_UP_2FA_SCREENS = new Set<string>([
 
 const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
 
-let account: OnyxEntry<Account>;
-// We have used `connectWithoutView` here because it is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
-
 let sidePanelNVP: OnyxEntry<SidePanel>;
 // `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
 // Also it is not directly connected to any UI
@@ -96,10 +87,6 @@ function isTwoFactorSetupScreen(screen: string | undefined): boolean {
 
 function isMFAFlowScreen(screen: string | undefined): boolean {
     return screen ? MFA_FLOW_SCREENS.has(screen) : false;
-}
-
-function shouldShowRequire2FAPage() {
-    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -232,7 +219,7 @@ function getActiveRoute(): string {
         return '';
     }
 
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRoute = navigationRef.current?.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }
@@ -739,7 +726,7 @@ function getTopmostSuperWideRHPReportParams(
     }
     const topmostRightModalNavigator = state.routes?.at(-1);
 
-    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (topmostRightModalNavigator?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
 
@@ -1186,4 +1173,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen};
