@@ -159,6 +159,7 @@ function useReceiptScan({
                     transactionID: lastTransactionID ?? initialTransactionID,
                     isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
                     backToReport,
+                    linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
                 });
             },
             amountOwed,

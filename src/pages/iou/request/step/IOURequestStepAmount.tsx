@@ -338,6 +338,7 @@ function IOURequestStepAmount({
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     backToReport,
                     optimisticChatReportID,
+                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
                 });
                 return;
             }
