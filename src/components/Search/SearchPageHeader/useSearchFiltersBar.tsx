@@ -7,6 +7,7 @@ import CategorySelectPopup from '@components/Search/FilterDropdowns/CategorySele
 import CurrencySelectPopup from '@components/Search/FilterDropdowns/CurrencySelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import ExportedToSelectPopup from '@components/Search/FilterDropdowns/ExportedToSelectPopup';
+import FeedFilterPopup from '@components/Search/FilterDropdowns/FeedSelectPopup';
 import InSelectPopup from '@components/Search/FilterDropdowns/InSelectPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -51,7 +52,15 @@ type UseSearchFiltersBarResult = {
     translate: ReturnType<typeof useLocalize>['translate'];
 };
 
-const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([FILTER_KEYS.GROUP_BY, FILTER_KEYS.GROUP_CURRENCY, FILTER_KEYS.LIMIT, FILTER_KEYS.TYPE, FILTER_KEYS.VIEW]);
+const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([
+    FILTER_KEYS.GROUP_BY,
+    FILTER_KEYS.GROUP_CURRENCY,
+    FILTER_KEYS.LIMIT,
+    FILTER_KEYS.TYPE,
+    FILTER_KEYS.VIEW,
+    FILTER_KEYS.PAYER,
+    FILTER_KEYS.ACTION,
+]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
     return `Search-Filter-${filterKey}`;
@@ -230,11 +239,22 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     sentryLabel: getFilterSentryLabel(filterKey),
                 };
             }
-            case FILTER_KEYS.FEED:
             case FILTER_KEYS.CARD_ID: {
                 return {
                     PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <CardSelectPopup
+                            isExpanded={isExpanded}
+                            updateFilterForm={updateFilterForm}
+                            closeOverlay={closeOverlay}
+                        />
+                    ),
+                    sentryLabel: getFilterSentryLabel(filterKey),
+                };
+            }
+            case FILTER_KEYS.FEED: {
+                return {
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
+                        <FeedFilterPopup
                             isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
@@ -301,10 +321,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             case FILTER_KEYS.IS:
             case FILTER_KEYS.EXPENSE_TYPE:
             case FILTER_KEYS.STATUS: {
-                const formValues = searchAdvancedFiltersForm[filterKey];
-                const formValuesAsArray = Array.isArray(formValues) ? formValues : [formValues];
+                let formValues = searchAdvancedFiltersForm[filterKey] ?? [];
+
+                if (filterKey === FILTER_KEYS.STATUS) {
+                    formValues = Array.isArray(formValues) ? formValues : formValues.split(',');
+                }
+
                 const items = getMultiSelectFilterOptions(filterKey, type, translate);
-                const value = items.filter((item) => formValuesAsArray.includes(item.value));
+                const value = items.filter((item) => formValues.includes(item.value));
 
                 const multiSelectComponent = ({closeOverlay}: PopoverComponentProps) => (
                     <MultiSelectFilterPopup

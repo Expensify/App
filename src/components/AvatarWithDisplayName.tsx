@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
@@ -212,14 +213,18 @@ function AvatarWithDisplayName({
     const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy, currentUserAccountID);
 
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
+    const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
+
+    const parentReportActionActorAccountID = parentReportAction?.actorAccountID;
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
         if (!report?.parentReportActionID) {
             return;
         }
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID];
-        actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActions, report?.parentReportActionID]);
+        actorAccountID.current = parentReportActionActorAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
     const goToDetailsPage = () => {
         navigateToDetailsPage(report, Navigation.getActiveRoute());
@@ -338,6 +343,8 @@ function AvatarWithDisplayName({
                                 statusTextContainerStyles={parentNavigationStatusContainerStyles}
                                 statusTextColor={reportStatusColorStyle?.textColor}
                                 statusTextBackgroundColor={reportStatusColorStyle?.backgroundColor}
+                                humanAgentAccountID={humanAgentAccountID}
+                                humanAgentName={humanAgentName}
                             />
                         )}
                         {!!subtitle && (

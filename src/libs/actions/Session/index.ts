@@ -28,7 +28,6 @@ import type {
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
-import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
 import Fullstory from '@libs/Fullstory';
@@ -40,8 +39,8 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
+import reauthenticate from '@libs/Reauthentication';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
@@ -517,9 +516,10 @@ function resendValidateCode(login = credentials.login) {
         },
     ];
 
-    const params: RequestNewValidateCodeParams = {email: login};
-
-    API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: RequestNewValidateCodeParams = {email: login, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
+    });
 }
 
 /**
@@ -576,9 +576,10 @@ function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEY
 function beginSignIn(email: string) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    const params: BeginSignInParams = {email};
-
-    API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: BeginSignInParams = {email, deviceInfo};
+        API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    });
 }
 
 /**
@@ -1032,7 +1033,6 @@ function cleanupSession() {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
-    NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetNavigationState();
     clearCache().then(() => {
@@ -1061,7 +1061,7 @@ function setAccountError(error: string) {
 const reauthenticatePusher = throttle(
     () => {
         Log.info('[Pusher] Re-authenticating and then reconnecting');
-        Authentication.reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
+        reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
             .then((wasSuccessful) => {
                 if (!wasSuccessful) {
                     return;

@@ -98,15 +98,15 @@ If you are creating expenses on a Workspace:
 
 [Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
 
-### Distance expenses created for personal tracking
+### Distance expenses created outside of a Workspace
 
-If you're creating expenses outside of a Workspace:
+If you're creating a distance expense outside of a Workspace (e.g., in a DM chat or Your space):
 
-- Expensify sets a default rate based on your payment currency. 
-   - Example: For USD, the rate is based on the current IRS reimbursement rate and uses miles.
-   - Distance default rates are updated annually.
-
-**Note:** Only Workspace Admins can set a custom distance rate. It's not possible to set a custom distance rate for personal expenses outside of a Workspace.
+- **DM chats:** Expensify sets a default rate based on your payment currency (e.g., the current IRS rate for USD). It is not possible to set a custom distance rate for these expenses.
+- **Your space (tracking for personal use):**
+   - **If you have a default Workspace:** The distance rates from your default Workspace are automatically applied. You can tap the **Rate** field to choose a different rate from that Workspace.
+   - **If you have multiple Workspaces but no default:** You'll be prompted to select a Workspace first, and then you can choose from that Workspace's available rates.
+   - **If you don't have a group Workspace:** Expensify sets a default rate based on your payment currency (e.g., the current IRS rate for USD). When you tap the **Rate** field, you'll be guided through creating a Workspace with a custom distance rate.
 
 ---
 
@@ -133,7 +133,7 @@ Yes! You can edit the expense before it is approved. To learn how to edit an exp
 
 ## Can I update the Distance expense unit or rate?
 
-The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level. 
+The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 

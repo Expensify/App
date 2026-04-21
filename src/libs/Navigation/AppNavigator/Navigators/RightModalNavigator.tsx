@@ -209,8 +209,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
 
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
-
     return (
         <NarrowPaneContextProvider>
             <MultifactorAuthenticationContextProviders>

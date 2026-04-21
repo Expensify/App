@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,7 +17,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTripTransactions from '@hooks/useTripTransactions';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -140,6 +140,7 @@ function TripRoomPreview({
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const chatReportID = chatReport?.reportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
@@ -161,7 +162,7 @@ function TripRoomPreview({
             tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
             currency,
         );
-    }, [currency, totalDisplaySpend, tripTransactions]);
+    }, [convertToDisplayString, currency, totalDisplaySpend, tripTransactions]);
 
     const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID, undefined, undefined, Navigation.getActiveRoute()));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (

@@ -1074,6 +1074,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** The vendor to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingVendorID?: string;
+
+        /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingPayableAccountID?: string;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -2055,6 +2061,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
 
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -2133,7 +2142,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */

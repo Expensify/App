@@ -53,7 +53,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
+    policyForMovingExpenses,
     onLongPress,
+    nonPersonalAndWorkspaceCards,
     onUndelete,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
@@ -97,6 +99,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+
+    const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
     const {markReportIDAsExpense} = useWideRHPActions();
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
@@ -195,7 +199,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
-    const minTableWidth = getTableMinWidth(currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? []);
+    const dataColumns = currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? [];
+    const minTableWidth = getTableMinWidth(dataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     const content = (
@@ -216,6 +221,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             columns={currentColumns}
                             groupBy={groupBy}
                             isExpenseReportView
+                            isActionColumnWide={isActionColumnWide}
                         />
                     </View>
                     <View style={[styles.borderBottom, styles.ml3, styles.mr3]} />
@@ -249,6 +255,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onArrowRightPress={isDeletedTransaction(transaction) ? undefined : () => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
                         reportActions={exportedReportActions}
+                        policyForMovingExpenses={policyForMovingExpenses}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        isActionColumnWide={isActionColumnWide}
                     />
                 );
                 return (

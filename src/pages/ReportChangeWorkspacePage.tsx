@@ -76,6 +76,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const selectPolicy = useCallback(
@@ -84,7 +85,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
+            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -111,6 +112,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     employeeList,
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
+                    reportNextStep,
                 });
             } else {
                 changeReportPolicy(
@@ -131,6 +133,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             policies,
             userBillingGracePeriods,
             ownerBillingGracePeriodEnd,
+            amountOwed,
             route.params,
             reportID,
             report,
