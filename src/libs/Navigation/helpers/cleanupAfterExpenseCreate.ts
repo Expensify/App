@@ -16,7 +16,7 @@ type CleanupAfterExpenseCreateParams = {
  */
 function cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction}: CleanupAfterExpenseCreateParams) {
     // Defer cleanup until after modal-dismiss animation so it doesn't block the JS thread.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase and kept alive via a dedicated RN patch
     InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
 
     if (linkedTrackedExpenseReportAction?.childReportID) {
