@@ -10,7 +10,7 @@ import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmM
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import AccountIDsAvatar from '@components/ReportActionAvatars/AccountIDsAvatar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
@@ -166,7 +166,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ReportActionAvatars
+                    <AccountIDsAvatar
                         size={CONST.AVATAR_SIZE.LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                         horizontalStacking={{

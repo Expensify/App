@@ -9,8 +9,8 @@ import CONST from '@src/CONST';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import IconsAvatar from './IconsAvatar';
 import type {HorizontalStacking} from './ReportActionAvatar';
-import ReportActionAvatar from './ReportActionAvatar';
 
 type AccountIDsAvatarProps = {
     accountIDs: number[];
@@ -76,72 +76,19 @@ function AccountIDsAvatar({
         };
     });
 
-    const shouldStackHorizontally = !!horizontalStacking;
-    const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
-    const {isHovered = false} = isHorizontalStackingAnObject ? horizontalStacking : {};
-
-    if (subscriptCardFeed) {
-        const [primaryAvatar] = icons;
-        if (!primaryAvatar) {
-            return null;
-        }
-        return (
-            <ReportActionAvatar.Subscript
-                primaryAvatar={primaryAvatar}
-                secondaryAvatar={icons.at(1) ?? primaryAvatar}
-                size={size}
-                shouldShowTooltip={shouldShowTooltip}
-                noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-                subscriptCardFeed={subscriptCardFeed}
-                fallbackDisplayName={fallbackDisplayName}
-            />
-        );
-    }
-
-    if (icons.length === 0) {
-        return null;
-    }
-
-    if (shouldStackHorizontally) {
-        return (
-            <ReportActionAvatar.Multiple.Horizontal
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
-                size={size}
-                icons={icons}
-                isInReportAction={isInReportAction}
-                shouldShowTooltip={shouldShowTooltip}
-                fallbackDisplayName={fallbackDisplayName}
-            />
-        );
-    }
-
-    const [primaryAvatar, secondaryAvatar] = icons;
-
-    if (icons.length >= 2 && secondaryAvatar?.name) {
-        return (
-            <ReportActionAvatar.Multiple.Diagonal
-                shouldShowTooltip={shouldShowTooltip}
-                size={size}
-                icons={icons}
-                isInReportAction={isInReportAction}
-                useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
-                isHovered={isHovered}
-                fallbackDisplayName={fallbackDisplayName}
-            />
-        );
-    }
-
     return (
-        <ReportActionAvatar.Single
-            avatar={primaryAvatar}
+        <IconsAvatar
+            icons={icons}
+            horizontalStacking={horizontalStacking}
+            subscriptCardFeed={subscriptCardFeed}
             size={size}
             shouldShowTooltip={shouldShowTooltip}
-            accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            fallbackIcon={primaryAvatar.fallbackIcon}
+            isInReportAction={isInReportAction}
             fallbackDisplayName={fallbackDisplayName}
+            subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+            noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
+            secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+            useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
         />
     );
 }

@@ -610,8 +610,8 @@ function ReportActionAvatarMultipleDiagonal({
 }
 
 /**
- * This component should not be used outside ReportActionAvatars; its sole purpose is to render the ReportActionAvatars UI.
- * To render user avatars, use ReportActionAvatars.
+ * Low-level avatar primitives consumed by IconsAvatar (the unified dispatcher).
+ * Prefer using IconsAvatar, AccountIDsAvatar, or ReportActionAvatars over these directly.
  */
 export default {
     Single: ReportActionAvatarSingle,

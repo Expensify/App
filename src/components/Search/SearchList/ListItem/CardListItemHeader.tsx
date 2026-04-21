@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import AccountIDsAvatar from '@components/ReportActionAvatars/AccountIDsAvatar';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -136,7 +136,7 @@ function CardListItemHeader<TItem extends ListItem>({
                     )}
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <ReportActionAvatars
+                            <AccountIDsAvatar
                                 subscriptCardFeed={cardItem.bank as CompanyCardFeed}
                                 subscriptAvatarBorderColor={backgroundColor}
                                 noRightMarginOnSubscriptContainer
@@ -160,7 +160,7 @@ function CardListItemHeader<TItem extends ListItem>({
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
                                 <UserDetailsTooltip accountID={cardItem.accountID}>
                                     <View>
-                                        <ReportActionAvatars
+                                        <AccountIDsAvatar
                                             subscriptCardFeed={cardItem.bank as CompanyCardFeed}
                                             subscriptAvatarBorderColor={backgroundColor}
                                             noRightMarginOnSubscriptContainer

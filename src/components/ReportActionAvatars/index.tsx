@@ -7,8 +7,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
+import IconsAvatar from './IconsAvatar';
 import type {HorizontalStacking} from './ReportActionAvatar';
-import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
 
 type ReportActionAvatarsProps = {
@@ -76,13 +76,14 @@ type ReportActionAvatarsProps = {
 };
 
 /**
- * The component that renders proper user avatars based on either:
+ * Heavy avatar component that resolves report/action/policy data via Onyx
+ * and delegates rendering to IconsAvatar.
  *
- * - policyID - this can be passed if we have no other option, and we want to display workspace avatar, it makes component ignore the props below
- * - accountIDs - if this is passed, it is prioritized and render even if report or action has different avatars attached, useful for option items, menu items etc.
- * - action - this is useful when we want to display avatars of chat threads, messages, report/trip previews etc.
- * - reportID - this can be passed without above props, when we want to display chat report avatars, DM chat avatars etc.
- *
+ * Renders proper user avatars based on either:
+ * - policyID - workspace avatar
+ * - accountIDs - prioritized over report/action
+ * - action - chat threads, messages, report/trip previews
+ * - reportID - chat report avatars, DM chat avatars
  */
 function ReportActionAvatars({
     reportID: potentialReportID,
@@ -116,16 +117,12 @@ function ReportActionAvatars({
     // reportID can be an empty string causing Onyx to fetch the whole collection
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
-    // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
-    // Therefore, we will fall back to reportProp while the data is being fetched.
     const report = reportFromOnyx ?? reportProp;
 
     const shouldStackHorizontally = !!horizontalStacking;
-    const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
-    const {isHovered = false} = isHorizontalStackingAnObject ? horizontalStacking : {};
 
     const {
-        avatarType: notPreciseAvatarType,
+        avatarType,
         avatars: icons,
         details: {delegateAccountID},
         source,
@@ -143,80 +140,29 @@ function ReportActionAvatars({
         chatReportID,
     });
 
-    let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
-
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !icons.length) {
         return null;
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE) {
-        avatarType = shouldStackHorizontally ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
-    }
-
-    const [primaryAvatar, secondaryAvatar] = icons;
-
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
-        return (
-            <ReportActionAvatar.Subscript
-                primaryAvatar={primaryAvatar}
-                secondaryAvatar={secondaryAvatar}
-                size={size}
-                shouldShowTooltip={shouldShowTooltip}
-                noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-                subscriptCardFeed={subscriptCardFeed}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
-                fallbackDisplayName={fallbackDisplayName}
-                reportID={reportID}
-            />
-        );
-    }
-
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
-        return (
-            <ReportActionAvatar.Multiple.Horizontal
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
-                size={size}
-                icons={icons}
-                isInReportAction={isInReportAction}
-                shouldShowTooltip={shouldShowTooltip}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
-                fallbackDisplayName={fallbackDisplayName}
-                reportID={reportID}
-            />
-        );
-    }
-
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
-        return (
-            <ReportActionAvatar.Multiple.Diagonal
-                shouldShowTooltip={shouldShowTooltip}
-                size={size}
-                icons={icons}
-                isInReportAction={isInReportAction}
-                useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
-                isHovered={isHovered}
-                fallbackDisplayName={fallbackDisplayName}
-                useProfileNavigationWrapper={useProfileNavigationWrapper}
-                reportID={reportID}
-            />
-        );
-    }
-
     return (
-        <ReportActionAvatar.Single
-            avatar={primaryAvatar}
+        <IconsAvatar
+            icons={icons}
+            avatarType={avatarType}
+            horizontalStacking={horizontalStacking}
+            subscriptCardFeed={subscriptCardFeed}
             size={size}
-            containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
             shouldShowTooltip={shouldShowTooltip}
-            accountID={Number(delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            delegateAccountID={source.action?.delegateAccountID}
-            fallbackIcon={primaryAvatar.fallbackIcon}
+            isInReportAction={isInReportAction}
             fallbackDisplayName={fallbackDisplayName}
             useProfileNavigationWrapper={useProfileNavigationWrapper}
             reportID={reportID}
+            singleAvatarContainerStyle={singleAvatarContainerStyle}
+            delegateTooltipAccountID={delegateAccountID ? Number(delegateAccountID) : undefined}
+            delegateAccountID={source.action?.delegateAccountID}
+            subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+            noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
+            secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+            useMidSubscriptSize={useMidSubscriptSizeForMultipleAvatars}
         />
     );
 }

@@ -3,7 +3,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import AccountIDsAvatar from '@components/ReportActionAvatars/AccountIDsAvatar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -77,7 +77,7 @@ function ReportActionItemThread({
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_THREAD}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                    <ReportActionAvatars
+                    <AccountIDsAvatar
                         size={CONST.AVATAR_SIZE.SMALL}
                         accountIDs={accountIDs}
                         horizontalStacking={{

@@ -20,7 +20,7 @@ import Icon from './Icon';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import ReportActionAvatars from './ReportActionAvatars';
+import IconsAvatar from './ReportActionAvatars/IconsAvatar';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
@@ -170,9 +170,6 @@ function OptionRow({
         subscriptColor = focusedBackgroundColor;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportID = (option.iouReportID ?? option.reportID) || undefined;
-
     return (
         <Hoverable>
             {(hovered) => (
@@ -228,10 +225,10 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
-                                    <ReportActionAvatars
+                                    <IconsAvatar
+                                        icons={option.icons}
+                                        shouldShowSubscript={!!option.shouldShowSubscript}
                                         subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                        reportID={reportID}
-                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
                                         size={CONST.AVATAR_SIZE.DEFAULT}
                                         secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                         shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option as OptionData)}

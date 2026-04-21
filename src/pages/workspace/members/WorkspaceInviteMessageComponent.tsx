@@ -9,7 +9,7 @@ import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import AccountIDsAvatar from '@components/ReportActionAvatars/AccountIDsAvatar';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -239,7 +239,7 @@ function WorkspaceInviteMessageComponent({
                 >
                     {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
+                        <AccountIDsAvatar
                             size={CONST.AVATAR_SIZE.LARGE}
                             accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                             horizontalStacking={{

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import AccountIDsAvatar from '@components/ReportActionAvatars/AccountIDsAvatar';
+import IconsAvatar from '@components/ReportActionAvatars/IconsAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -97,9 +97,9 @@ function TableListItem<TItem extends ListItem>({
                             testID={`TableListItemCheckbox-${item.text}`}
                         />
                     )}
-                    {!!item.accountID && (
-                        <AccountIDsAvatar
-                            accountIDs={[item.accountID]}
+                    {!!item.icons?.length && (
+                        <IconsAvatar
+                            icons={item.icons}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                             shouldShowTooltip={showTooltip}
                             secondaryAvatarContainerStyle={[

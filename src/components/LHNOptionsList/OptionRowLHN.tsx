@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import IconsAvatar from '@components/ReportActionAvatars/IconsAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -37,7 +38,6 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import LHNAvatar from './LHNAvatar';
 import {useLHNTooltipContext} from './LHNTooltipContext';
 import type {OptionRowLHNProps} from './types';
 
@@ -326,13 +326,13 @@ function OptionRowLHN({
                                     <View style={sidebarInnerRowStyle}>
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {!!optionItem.icons?.length && !!firstIcon && (
-                                                <LHNAvatar
+                                                <IconsAvatar
                                                     icons={icons}
                                                     shouldShowSubscript={!!optionItem.shouldShowSubscript}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                                     useMidSubscriptSize={isInFocusMode}
-                                                    secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
+                                                    secondaryAvatarContainerStyle={secondaryAvatarBgColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBgColor) : undefined}
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                     delegateAccountID={skipDelegate ? undefined : delegateAccountID}

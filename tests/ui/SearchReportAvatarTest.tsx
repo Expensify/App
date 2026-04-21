@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import {View as MockedAvatarData} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
+import IconsAvatar from '@components/ReportActionAvatars/IconsAvatar';
 import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
 import {getSearchReportAvatarProps} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -199,10 +199,10 @@ const onyxState = {
 /* --- Helpers --- */
 
 function renderSearchReportAvatar(props: {primaryAvatar?: Icon; secondaryAvatar?: Icon; avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>; reportID: string}) {
+    const icons = [props.primaryAvatar, props.secondaryAvatar].filter((icon): icon is Icon => !!icon);
     return render(
-        <SearchReportAvatar
-            primaryAvatar={props.primaryAvatar}
-            secondaryAvatar={props.secondaryAvatar}
+        <IconsAvatar
+            icons={icons}
             avatarType={props.avatarType ?? CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE}
             shouldShowTooltip={false}
             subscriptAvatarBorderColor="transparent"

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
+import IconsAvatar from '@components/ReportActionAvatars/IconsAvatar';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {SearchColumnType} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -353,14 +353,13 @@ function ExpenseReportListItemRow({
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
-                    <SearchReportAvatar
-                        primaryAvatar={item.primaryAvatar}
-                        secondaryAvatar={item.secondaryAvatar}
+                    <IconsAvatar
+                        icons={[item.primaryAvatar, item.secondaryAvatar].filter((icon): icon is NonNullable<typeof icon> => !!icon)}
                         avatarType={item.avatarType}
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                         reportID={item.reportID}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                     />
                 </View>
 
