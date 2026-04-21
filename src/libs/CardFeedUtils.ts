@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {AdditionalCardProps} from '@components/Search/SearchList/ListItem/CardListItem';
+import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
@@ -676,12 +676,10 @@ export {
     getWorkspaceCardFeedKey,
     getFeedInfo,
     getLinkedPolicyName,
-    generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
-    getCardFeedStatus,
     getWorkspaceCardFeedsStatus,
 };

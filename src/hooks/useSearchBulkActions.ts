@@ -105,8 +105,7 @@ function getRestrictedPolicyID(
         .map((item) => item.policyID)
         .find(
             (policyID): policyID is string =>
-                !!policyID &&
-                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+                !!policyID && shouldRestrictUserBillableActions(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed),
         );
 }
 
@@ -417,7 +416,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !policy.achAccount?.bankAccountID) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 

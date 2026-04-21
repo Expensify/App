@@ -65,5 +65,4 @@ function SettingsSplitNavigator() {
     );
 }
 
-export {CENTRAL_PANE_SETTINGS_SCREENS};
 export default SettingsSplitNavigator;

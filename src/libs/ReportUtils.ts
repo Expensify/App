@@ -24,7 +24,6 @@ import type {TransactionWithOptionalSearchFields} from '@components/TransactionI
 import type PolicyData from '@hooks/usePolicyData/types';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
-import {canApproveIOU, canIOUBePaid, canSubmitReport, getIOUReportActionWithBadge} from '@userActions/IOU/ReportWorkflow';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -90,6 +89,7 @@ import {getBankAccountFromID} from './actions/BankAccounts';
 import {createDraftTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID, startDistanceRequest, startMoneyRequest} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
@@ -247,6 +247,7 @@ import {
 } from './ReportNameUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
+import {isTaskCompleted} from './TaskUtils';
 import {
     getAttendees,
     getBillable,
@@ -2506,7 +2507,7 @@ function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxColle
  * Checks if the current user is the admin of the policy.
  */
 function isPolicyAdmin(policy: OnyxEntry<Policy>): boolean {
-    if (!policy || !policy.id) {
+    if (!policy?.id) {
         return false;
     }
 
@@ -3018,11 +3019,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (
-                    policy &&
-                    policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)
-                ) {
+                if (policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3038,7 +3035,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3051,7 +3048,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3641,7 +3638,7 @@ function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetai
  * Helper function to get the icons for an expense request. Only to be used in getIcons().
  */
 function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>): Icon[] {
-    if (!report || !report?.parentReportID || !report?.parentReportActionID) {
+    if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
@@ -3666,7 +3663,7 @@ function getIconsForChatThread(
     policy: OnyxInputOrEntry<Policy>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Icon[] {
-    if (!report || !report?.parentReportID || !report?.parentReportActionID) {
+    if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
@@ -4195,27 +4192,30 @@ function getLastVisibleMessage(
 }
 
 /**
- * Checks if a report is waiting for the manager to complete an action.
+ * Returns the action type for the assignee to complete, or undefined if there is no pending action.
  * Example: the assignee of an open task report or the manager of a processing expense report.
  *
  * @param [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isWaitingForAssigneeToCompleteAction(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function getActionTypeForAssigneeToComplete(
+    report: OnyxEntry<Report>,
+    parentReportAction: OnyxEntry<ReportAction>,
+): ValueOf<typeof CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE> | undefined {
     if (report?.hasOutstandingChildTask) {
-        return true;
+        return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.TASK;
     }
 
     if (report?.hasParentAccess === false && isReportManager(report)) {
         if (isOpenTaskReport(report, parentReportAction)) {
-            return true;
+            return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.TASK;
         }
 
         if (isProcessingReport(report) && isExpenseReport(report)) {
-            return true;
+            return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         }
     }
 
-    return false;
+    return undefined;
 }
 
 function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
@@ -4298,13 +4298,6 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    if (isWaitingForAssigneeToCompleteAction(optionOrReport, parentReportAction)) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
-            reportAction: Object.values(reportActions).find((action) => action.childType === CONST.REPORT.TYPE.TASK),
-        };
-    }
-
     const optionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -4313,6 +4306,22 @@ function getReasonAndReportActionThatRequiresAttention(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? getPolicy(invoiceReceiverPolicyID) : undefined;
+    const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
+
+    if (actionTypeForAssigneeToComplete) {
+        const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
+        const expenseBadge = isAssigneeExpenseAction ? getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy) : undefined;
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            reportAction: Object.values(reportActions)
+                .filter((action) => action.childType === CONST.REPORT.TYPE.TASK && !isTaskCompleted(action) && action.childManagerAccountID === deprecatedCurrentUserAccountID)
+                // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
+                .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
+                .at(0),
+            ...(expenseBadge ? {actionBadge: expenseBadge} : {}),
+        };
+    }
+
     const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(optionOrReport, policy, optionReportMetadata, invoiceReceiverPolicy);
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -10144,7 +10153,7 @@ function temporary_getMoneyRequestOptions(
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    if (!report || !report?.invoiceReceiver) {
+    if (!report?.invoiceReceiver) {
         return false;
     }
 
@@ -11494,7 +11503,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, activePolicy)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -11805,7 +11814,7 @@ function prepareOnboardingOnyxData({
     const assignedGuidePersonalDetail = getPersonalDetailByEmail(assignedGuideEmail);
     let assignedGuideAccountID: number;
     let isOptimisticAssignedGuide = false;
-    if (assignedGuidePersonalDetail && assignedGuidePersonalDetail.accountID) {
+    if (assignedGuidePersonalDetail?.accountID) {
         isOptimisticAssignedGuide = assignedGuidePersonalDetail.isOptimisticPersonalDetail ?? false;
         assignedGuideAccountID = assignedGuidePersonalDetail.accountID;
     } else {
@@ -12742,7 +12751,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (!submitterEmail || !newPolicy?.isPolicyExpenseChatEnabled) {
         return false;
     }
-    if (report && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
+    if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
     return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
@@ -13749,7 +13758,7 @@ export {
     isUserCreatedPolicyRoom,
     isValidReport,
     isValidReportIDFromPath,
-    isWaitingForAssigneeToCompleteAction,
+    getActionTypeForAssigneeToComplete,
     isWaitingForSubmissionFromCurrentUser,
     isWorkspaceMemberLeavingWorkspaceRoom,
     isInvoiceRoom,

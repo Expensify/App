@@ -15,7 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getHumanAgentAccountIDFromReportAction, getHumanAgentDisplayName} from '@libs/ReportActionsUtils';
+import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
@@ -215,7 +215,7 @@ function AvatarWithDisplayName({
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
-    const humanAgentName = getHumanAgentDisplayName(parentReportAction, personalDetails);
+    const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
 
     const parentReportActionActorAccountID = parentReportAction?.actorAccountID;
     const actorAccountID = useRef<number | null>(null);

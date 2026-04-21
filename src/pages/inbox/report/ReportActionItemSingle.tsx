@@ -21,7 +21,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
-    getHumanAgentDisplayName,
+    getHumanAgentFirstName,
     getManagerOnVacation,
     getOriginalMessage,
     getReportActionMessage,
@@ -100,7 +100,7 @@ function ReportActionItemSingle({
     const [primaryAvatar, secondaryAvatar] = avatars;
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
-    const humanAgentName = getHumanAgentDisplayName(action, personalDetails);
+    const humanAgentName = getHumanAgentFirstName(action, personalDetails);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
     const accountOwnerDetails = getPersonalDetailByEmail(String(mainAccountLogin ?? ''));

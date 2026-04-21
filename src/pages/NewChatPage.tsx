@@ -244,6 +244,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+    const allPersonalDetails = usePersonalDetails();
 
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
@@ -379,7 +380,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, betas))();
+            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas))();
         });
     };
 
@@ -419,7 +420,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const createGroup = () => {
-        if (!personalData || !personalData.login || !personalData.accountID) {
+        if (!personalData?.login || !personalData.accountID) {
             return;
         }
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({

@@ -2,6 +2,7 @@ import {StackActions} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -147,6 +148,7 @@ type ReportDetailsPageMenuItem = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     subtitle?: number;
     shouldShowRightIcon?: boolean;
+    subtitleStyle?: StyleProp<TextStyle>;
 };
 
 type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
@@ -271,7 +273,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!detail) {
             return [];
         }
-        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+        return pendingMember?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
@@ -411,6 +413,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 translationKey: 'common.members',
                 icon: expensifyIcons.Users,
                 subtitle: activeChatMembers.length,
+                subtitleStyle: [styles.ph2],
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -634,6 +637,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         iouTransactionID,
         moneyRequestReport?.reportID,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -650,6 +654,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        styles.ph2,
         delegateEmail,
     ]);
 
@@ -1129,6 +1134,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             isAnonymousAction={item.isAnonymousAction}
                             shouldShowRightIcon={item.shouldShowRightIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
+                            subtitleStyle={item.subtitleStyle}
                         />
                     ))}
 

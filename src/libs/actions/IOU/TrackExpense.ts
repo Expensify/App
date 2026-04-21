@@ -14,7 +14,7 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
@@ -64,6 +64,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -1604,7 +1605,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         count,
         rate,
         unit,
-        isFromGlobalCreate,
+        isFromGlobalCreate = false,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -1823,10 +1824,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    if (shouldHandleNavigation) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
+    // InteractionManager defers past the synchronous multi-scan batch loop,
+    // so running cleanup from every call (including intermediates) is safe.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
 
+    if (shouldHandleNavigation) {
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
         if (trackReport?.key) {
             Navigation.removeScreenByKey(trackReport.key);
@@ -1836,24 +1839,24 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // Register the deferred write BEFORE navigation so the Search component's
     // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
-        if (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
-            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
-                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            });
-        } else {
-            deferredAPIWrite();
-        }
+        deferOrExecuteWrite(deferredAPIWrite, {
+            shouldDeferForSearch: shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+            isRetry: requestMoneyInformation.isRetry,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        });
     }
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-        handleNavigateAfterExpenseCreate({
-            activeReportID: backToReport ?? activeReportID,
-            transactionID: transaction.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
+        if (shouldHandleNavigation) {
+            handleNavigateAfterExpenseCreate({
+                activeReportID: backToReport ?? activeReportID,
+                transactionID: transaction.transactionID,
+                isFromGlobalCreate,
+            });
+        }
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -2296,7 +2299,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         attendees,
         odometerStart,
         odometerEnd,
-        isFromGlobalCreate,
+        isFromGlobalCreate = false,
         gpsCoordinates,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -2599,35 +2602,33 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            const shouldDeferWrite = shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
             const apiWrite = () => {
                 API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
             };
 
-            if (shouldDeferWrite) {
-                registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
-                    optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
-                });
-            } else {
-                apiWrite();
-            }
+            deferOrExecuteWrite(apiWrite, {
+                shouldDeferForSearch: shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+                isRetry: params.isRetry,
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+                onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            });
         }
     }
 
-    if (shouldHandleNavigation) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-    }
+    // See comment in requestMoney above.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
 
     if (!params.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-        handleNavigateAfterExpenseCreate({
-            activeReportID,
-            transactionID: transaction?.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
+        if (shouldHandleNavigation) {
+            handleNavigateAfterExpenseCreate({
+                activeReportID,
+                transactionID: transaction?.transactionID,
+                isFromGlobalCreate,
+            });
+        }
     }
 
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);

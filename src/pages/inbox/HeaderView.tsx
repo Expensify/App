@@ -38,7 +38,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getHumanAgentAccountIDFromReportAction, getHumanAgentDisplayName} from '@libs/ReportActionsUtils';
+import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
@@ -158,7 +158,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, isParentReportHeaderDataArchived);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
-    const humanAgentName = getHumanAgentDisplayName(parentReportAction, personalDetails);
+    const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));

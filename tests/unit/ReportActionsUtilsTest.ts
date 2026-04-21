@@ -25,7 +25,7 @@ import {
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
-    getHumanAgentDisplayName,
+    getHumanAgentFirstName,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
@@ -5105,7 +5105,7 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getHumanAgentDisplayName', () => {
+    describe('getHumanAgentFirstName', () => {
         const HUMAN_AGENT_ACCOUNT_ID = 54321;
 
         function makeConciergeAction(originalMessageOverrides: Record<string, unknown> = {}): ReportAction {
@@ -5122,10 +5122,11 @@ describe('ReportActionsUtils', () => {
             };
         }
 
-        function makePersonalDetails(displayName: string | undefined): PersonalDetailsList {
+        function makePersonalDetails(firstName: string | undefined, displayName = 'Pat Agent'): PersonalDetailsList {
             return {
                 [HUMAN_AGENT_ACCOUNT_ID]: {
                     accountID: HUMAN_AGENT_ACCOUNT_ID,
+                    firstName,
                     displayName,
                 },
             };
@@ -5133,32 +5134,32 @@ describe('ReportActionsUtils', () => {
 
         it('returns undefined when there is no human agent on the action', () => {
             const action = makeConciergeAction();
-            expect(getHumanAgentDisplayName(action, makePersonalDetails('Pat Agent'))).toBeUndefined();
+            expect(getHumanAgentFirstName(action, makePersonalDetails('Pat'))).toBeUndefined();
         });
 
-        it('returns the agent displayName when available', () => {
+        it('returns the agent firstName (not the full displayName) when available', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
-            expect(getHumanAgentDisplayName(action, makePersonalDetails('Pat Agent'))).toBe('Pat Agent');
+            expect(getHumanAgentFirstName(action, makePersonalDetails('Pat', 'Pat Agent'))).toBe('Pat');
         });
 
         it('returns undefined when personalDetails has no entry for the agent', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
-            expect(getHumanAgentDisplayName(action, {})).toBeUndefined();
+            expect(getHumanAgentFirstName(action, {})).toBeUndefined();
         });
 
         it('returns undefined when personalDetails are not loaded yet', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
-            expect(getHumanAgentDisplayName(action, undefined)).toBeUndefined();
+            expect(getHumanAgentFirstName(action, undefined)).toBeUndefined();
         });
 
-        it('returns undefined when the agent displayName is an empty string so the generic fallback can be used', () => {
+        it('returns undefined when the agent firstName is an empty string so the generic fallback can be used', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
-            expect(getHumanAgentDisplayName(action, makePersonalDetails(''))).toBeUndefined();
+            expect(getHumanAgentFirstName(action, makePersonalDetails(''))).toBeUndefined();
         });
 
-        it('returns undefined when the agent displayName is only whitespace so the generic fallback can be used', () => {
+        it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
-            expect(getHumanAgentDisplayName(action, makePersonalDetails('   '))).toBeUndefined();
+            expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
         });
     });
 });

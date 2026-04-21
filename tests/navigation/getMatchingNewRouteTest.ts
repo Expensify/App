@@ -44,6 +44,14 @@ describe('getBestMatchingPath', () => {
         );
     });
 
+    it('redirects old settings category edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/category/Meals/category-edit');
+    });
+
+    it('preserves query params when redirecting old settings category edit path', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });

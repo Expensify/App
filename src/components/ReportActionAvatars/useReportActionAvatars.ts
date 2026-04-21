@@ -10,6 +10,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
+    getHumanAgentFirstName,
     getOriginalMessage,
     getReportAction,
     getReportActionActorAccountID,
@@ -347,11 +348,12 @@ function useReportActionAvatars({
     if (humanAgentAccountID && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE) {
         const humanAgentDetails = personalDetails?.[humanAgentAccountID];
         if (humanAgentDetails) {
+            const agentFirstName = getHumanAgentFirstName(action, personalDetails);
             const agentAvatar: IconType = {
                 id: humanAgentAccountID,
                 type: CONST.ICON_TYPE_AVATAR,
                 source: humanAgentDetails.avatar ?? defaultAvatars.FallbackAvatar,
-                name: humanAgentDetails.displayName ?? translate('reportAction.humanSupportAgent'),
+                name: agentFirstName ?? translate('reportAction.humanSupportAgent'),
             };
             const [conciergeAvatar] = avatars;
             avatars = [conciergeAvatar, agentAvatar];

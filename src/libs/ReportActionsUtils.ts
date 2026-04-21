@@ -549,13 +549,18 @@ function getHumanAgentAccountIDFromReportAction(reportAction: OnyxInputOrEntry<R
     return undefined;
 }
 
-function getHumanAgentDisplayName(reportAction: OnyxInputOrEntry<ReportAction>, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
+/**
+ * Returns the human Concierge agent's first name for the "assisted by [Name]" label.
+ * We intentionally use the first name only (not `displayName`, which is "First Last")
+ * to keep the label casual and minimize exposed agent identity.
+ */
+function getHumanAgentFirstName(reportAction: OnyxInputOrEntry<ReportAction>, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(reportAction);
     if (!humanAgentAccountID) {
         return undefined;
     }
-    const displayName = personalDetails?.[humanAgentAccountID]?.displayName;
-    return displayName?.trim() ? displayName : undefined;
+    const firstName = personalDetails?.[humanAgentAccountID]?.firstName;
+    return firstName?.trim() ? firstName : undefined;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
@@ -2163,7 +2168,7 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
 }
 
 function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
-    if (!action || !action.actionName) {
+    if (!action?.actionName) {
         return false;
     }
     return [
@@ -4838,7 +4843,7 @@ export {
     getUpdatedSharedBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
-    getHumanAgentDisplayName,
+    getHumanAgentFirstName,
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,

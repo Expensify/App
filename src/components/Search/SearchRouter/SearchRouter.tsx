@@ -142,7 +142,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (reportForContextualSearch.isInvoiceRoom) {
                 roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
                 const report = reportForContextualSearch as SearchOption<Report>;
-                if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                if (report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                     autocompleteID = report.item.invoiceReceiver.accountID.toString();
                 } else {
                     autocompleteID = '';
@@ -315,7 +315,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                        navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
                     }
                 });
                 onRouterClose();
@@ -324,6 +324,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [
             autocompleteSubstitutions,
             onRouterClose,
+            personalDetails,
             onSearchQueryChange,
             submitSearch,
             textInputValue,

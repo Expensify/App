@@ -20,6 +20,7 @@ type SearchRowSkeletonProps = {
     reasonAttributes: SkeletonSpanReasonAttributes;
     isLoadMore?: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
+    shouldUseNarrowLayout?: boolean;
 };
 
 const barHeight = 8;
@@ -41,10 +42,23 @@ const rightArrowWidth = 28;
 // 68 is the width of the action button
 const rightButtonWidth = 68;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, isLoadMore = false, onLayout}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({
+    shouldAnimate = true,
+    fixedNumItems,
+    gradientOpacityEnabled = false,
+    containerStyle,
+    reasonAttributes,
+    isLoadMore = false,
+    onLayout,
+    shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
+}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
+    // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
+    // global responsive breakpoint - useful when the skeleton is rendered in a context
+    // whose container width doesn't match the window (e.g. inside a split pane).
+    const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
     useSkeletonSpan('SearchRowSkeleton', reasonAttributes);
 
     if (shouldUseNarrowLayout) {

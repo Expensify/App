@@ -1,16 +1,11 @@
-import {Str} from 'expensify-common';
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {scheduleOnUI} from 'react-native-worklets';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,25 +15,12 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addComment} from '@libs/actions/Report';
-import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {rand64} from '@libs/NumberUtils';
-import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {
-    getFilteredReportActionsForReportView,
-    getLinkedTransactionID,
-    getOneTransactionThreadReportID,
-    getReportAction,
-    isMoneyRequestAction,
-    isSentMoneyReportAction,
-} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -51,12 +33,7 @@ import {
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
-import {generateAccountID} from '@libs/UserUtils';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import {addAttachmentWithComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -87,14 +64,8 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const isInSidePanel = useIsInSidePanel();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     // Context: only 2 subscriptions needed for attachment/DropZone logic
@@ -105,23 +76,12 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-
-    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
-    const reportAncestors = useAncestors(report);
-    const targetReportAncestors = useAncestors(targetReport);
-    const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
@@ -180,95 +140,6 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
         ComposerFocusManager.setReadyToFocus();
     };
 
-    const submitForm = (newComment: string) => {
-        const newCommentTrimmed = newComment.trim();
-        kickoffWaitingIndicator();
-
-        if (attachmentFileRef.current) {
-            addAttachmentWithComment({
-                report: targetReport,
-                notifyReportID: reportID,
-                ancestors: targetReportAncestors,
-                attachments: attachmentFileRef.current,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                text: newCommentTrimmed,
-                timezone: currentUserPersonalDetails.timezone,
-                shouldPlaySound: true,
-                isInSidePanel,
-            });
-            attachmentFileRef.current = null;
-            return;
-        }
-
-        const taskMatch = newCommentTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-        if (taskMatch) {
-            let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
-            if (taskTitle) {
-                const mention = taskMatch[1] ? taskMatch[1].trim() : '';
-                const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
-                const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
-                const isValidMention = Str.isValidEmail(mentionWithDomain);
-
-                let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
-                let assigneeChatReport;
-                if (mentionWithDomain) {
-                    if (isValidMention) {
-                        assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                        if (!Object.keys(assignee ?? {}).length) {
-                            const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
-                                accountID: generateAccountID(mentionWithDomain),
-                                login: mentionWithDomain,
-                            });
-                            assignee = optimisticDataForNewAssignee.assignee;
-                            assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
-                        }
-                    } else {
-                        taskTitle = `@${mentionWithDomain} ${taskTitle}`;
-                    }
-                }
-                createTaskAndNavigate({
-                    parentReport: report,
-                    title: taskTitle,
-                    description: '',
-                    assigneeEmail: assignee?.login ?? '',
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    currentUserEmail,
-                    assigneeAccountID: assignee?.accountID,
-                    assigneeChatReport,
-                    policyID: report?.policyID,
-                    isCreatedUsingMarkdown: true,
-                    quickAction,
-                    ancestors: reportAncestors,
-                });
-                return;
-            }
-        }
-
-        const optimisticReportActionID = rand64();
-        const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        if (isScrolledToBottom) {
-            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
-                name: 'send-message',
-                op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
-                },
-            });
-        }
-        addComment({
-            report: targetReport,
-            notifyReportID: reportID,
-            ancestors: targetReportAncestors,
-            text: newCommentTrimmed,
-            timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            shouldPlaySound: true,
-            isInSidePanel,
-            reportActionID: optimisticReportActionID,
-        });
-    };
-
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
         policy,
         reportID,
@@ -301,7 +172,6 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
                     />
                     <ComposerInput
                         reportID={reportID}
-                        submitForm={submitForm}
                         onPasteFile={(files) => validateAttachments({files})}
                     />
                     {shouldDisplayDualDropZone && (
