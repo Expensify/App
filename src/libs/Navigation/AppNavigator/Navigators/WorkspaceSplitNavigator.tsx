@@ -69,5 +69,4 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     );
 }
 
-export {CENTRAL_PANE_WORKSPACE_SCREENS};
 export default WorkspaceSplitNavigator;

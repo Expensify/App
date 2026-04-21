@@ -74,9 +74,6 @@ type GetReportPrimaryActionParams = {
     reportMetadata?: OnyxEntry<ReportMetadata>;
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
-    isPaidAnimationRunning?: boolean;
-    isApprovedAnimationRunning?: boolean;
-    isSubmittingAnimationRunning?: boolean;
 };
 
 type IsPrimaryPayActionParams = {
@@ -130,13 +127,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-
-    if (isAnyReceiptBeingScanned) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction) || isScanning(transaction))) {
         return false;
     }
 
@@ -415,7 +406,7 @@ function isPrimaryMarkAsResolvedAction(
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ) {
-    if (!reportTransactions || reportTransactions.length !== 1) {
+    if (reportTransactions?.length !== 1) {
         return false;
     }
 
@@ -461,9 +452,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         isChatReportArchived,
         chatReport,
         invoiceReceiverPolicy,
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
     } = params;
 
     // The expense report of personal policy shouldn't have any action
@@ -471,14 +459,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return '';
     }
 
-    // We want to have action displayed for either paid or approved animations
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (isPaidAnimationRunning || isApprovedAnimationRunning) {
-        return CONST.REPORT.PRIMARY_ACTIONS.PAY;
-    }
-    if (isSubmittingAnimationRunning) {
-        return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-    }
     if (!report) {
         return '';
     }

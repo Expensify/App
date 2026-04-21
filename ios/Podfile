@@ -89,6 +89,8 @@ target 'NewExpensify' do
 
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
+  # ENV Variable enables/disables Hermes V1
+  ENV['RCT_HERMES_V1_ENABLED'] = '1';
 
 
   use_react_native!(

@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新功能',
         search: '搜索',
         reports: '报表',
+        spend: '支出',
         find: '查找',
         searchWithThreeDots: '搜索…',
         next: '下一步',
@@ -433,7 +434,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: '已折叠',
         expanded: '已展开',
         expenseReport: '报销报告',
-        expenseReports: '报销报告',
         rateOutOfPolicy: '超出政策的费率',
         leaveWorkspace: '离开工作区',
         leaveWorkspaceConfirmation: '如果你离开此工作区，将无法再向其提交报销。',
@@ -448,9 +448,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: '评论',
         sharedIn: '共享于',
         unreported: '未报销',
-        explore: '探索',
-        insights: '洞察',
-        todo: '待办事项',
         invoice: '发票',
         expense: '报销',
         chat: '聊天',
@@ -857,6 +854,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: '只有管理员可以在此房间中发送消息。',
     reportAction: {
         asCopilot: '作为副驾驶，用于',
+        assistedBy: (agentName: string) => `由${agentName}协助`,
+        humanSupportAgent: '人工客服',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) => `创建了此报销单，用于保存所有来自 <a href="${reportUrl}">${reportName}</a> 且无法按照你选择的频率提交的费用`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
             isReportDeleted ? `为已删除报销单 #${reportID} 中的所有暂挂报销创建了此报销单` : `为从<a href="${reportUrl}">${reportName}</a>中被暂挂的任何报销创建了此报表`,
@@ -1012,6 +1011,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '入门',
             createWorkspace: '创建工作区',
             connectAccounting: ({integrationName}: {integrationName: string}) => `连接到 ${integrationName}`,
+            connectAccountingDefault: '连接会计系统',
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
             setupRules: '设置消费规则',
@@ -1614,6 +1614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
+        bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
     },
     transactionMerge: {
@@ -2536,6 +2537,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     workflowsExpensesFromPage: {
         title: '支出起始于',
         header: '当以下成员提交报销时：',
+        memberAlreadyInWorkflowTitle: '成员已在工作流中',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName}已在提交给${approverName}的审批流程中。在此处添加将把该成员移动到此工作流。`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
@@ -2832,9 +2836,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         employees: {
             title: '您有多少名员工？',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1,000 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '超过 1,000 名员工',
         },
@@ -4057,7 +4063,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             everyone: '所有人',
             delete: '删除工作区',
             settings: '设置',
-            reimburse: '报销',
             categories: '类别',
             tags: '标签',
             customField1: '自定义字段 1',
@@ -4179,6 +4184,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
+            hr: '人力资源',
         },
         receiptPartners: {
             uber: {
@@ -4758,6 +4764,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noAccountsFoundDescription: '请在 NetSuite 中添加该账户，然后再次同步连接',
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 NetSuite 中添加供应商，然后重新同步连接',
+            travelInvoicing: '导出 Expensify Travel 应付至',
+            travelInvoicingVendor: '差旅供应商',
+            travelInvoicingPayableAccount: '差旅应付账户',
             noItemsFound: '未找到发票项目',
             noItemsFoundDescription: '请在 NetSuite 中添加发票项目，然后再次同步连接',
             noSubsidiariesFound: '未找到子公司',
@@ -5358,6 +5367,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             monthlySpendLimitDescription: '每位成员每月可用于出差的最高金额。',
                             reduceLimitTitle: '降低出差支出限额？',
                             reduceLimitWarning: '如果您降低限额，已超出该金额的成员将无法进行新的出差预订，直至下个月。',
+                            provisioningError: '我们无法为您工作区中的部分成员开通集中开票功能。请稍后重试或联系 Concierge 获得协助。',
                         },
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
@@ -6728,6 +6738,31 @@ ${reportName}
             }),
             subscriptions: '订阅',
         },
+        hr: {
+            title: '人力资源',
+            subtitle: '连接人力资源工具，保持员工审批同步。',
+            settingsTitle: 'Gusto 设置',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return '正在导入 Gusto 数据';
+                    case 'gustoSyncLoadCompany':
+                        return '正在加载 Gusto 公司数据';
+                    case 'gustoSyncImportEmployees':
+                        return '正在导入员工';
+                    case 'gustoSyncBuildApprovalChains':
+                        return '构建审批链';
+                    case 'gustoSyncFinalize':
+                        return '正在完成同步';
+                    case 'jobDone':
+                        return '正在加载导入的数据';
+                    default: {
+                        return `阶段缺少翻译：${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人'},
+        },
     },
     getAssistancePage: {
         title: '获取帮助',
@@ -7351,20 +7386,11 @@ ${reportName}
         resetColumns: '重置列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
-        statements: '对账单',
-        cardStatements: '卡对账单',
-        monthlyAccrual: '月度计提',
-        unapprovedCash: '未批准现金',
-        unapprovedCard: '未批准的卡片',
-        reconciliation: '对账',
-        topSpenders: '最高支出者',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
-        topCategories: '热门类别',
-        topMerchants: '热门商家',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
             editMultiple: '批量编辑',
@@ -7519,6 +7545,24 @@ ${reportName}
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
+        tabs: {
+            expenseReports: '报销报告',
+            reports: '所有报表',
+            expenses: '所有报销',
+            submit: '草稿',
+            approve: '待审批',
+            pay: '准备付款',
+            accounting: '会计',
+            export: '等待导出',
+            unapprovedCash: '现金应计',
+            unapprovedCard: '卡应计费用',
+            statements: '卡片对账单',
+            reconciliation: '银行对账',
+            insights: '洞察',
+            topSpenders: '最高消费者',
+            topCategories: '热门类别',
+            topMerchants: '热门商家',
+        },
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
@@ -8335,6 +8379,7 @@ ${reportName}
         details: {
             title: '订阅详情',
             annual: '年度订阅',
+            creditBalance: '积分余额',
             taxExempt: '申请免税状态',
             taxExemptEnabled: '免税',
             taxExemptStatus: '免税状态',
@@ -8785,12 +8830,15 @@ ${reportName}
                 removeMember: '无法移除此用户。请重试。',
                 addMember: '无法添加此成员。请重试。',
                 vacationDelegate: '无法将此用户设置为休假代理人。请重试。',
+                moveMember: '无法移动此成员。请重试。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `您无法为 ${email} 设置休假代理人，因为 TA 当前是以下成员的代理人：`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `你确定要这样做吗？这将锁定 <strong>${email}</strong> 的账户。<br /><br />我们的团队随后会审核该账户并移除任何未经授权的访问。若要重新获得访问权限，他们需要与 Concierge 配合处理。`,
             reportSuspiciousActivityConfirmationPrompt: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
             emptyMembers: {title: '此群组中没有成员', subtitle: '添加成员或尝试更改上方的筛选条件。'},
+            moveToGroup: '移至群组',
+            chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
         },
         common: {
             settings: '设置',

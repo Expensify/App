@@ -364,7 +364,7 @@ describe('Transaction', () => {
             const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
 
             expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toBeUndefined();
+            expect(nextStepFailureData?.value).toBeNull();
 
             mockAPIWrite.mockRestore();
         });

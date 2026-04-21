@@ -73,14 +73,6 @@ function Confirmation() {
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
     );
-    const taxData = useMemo(() => {
-        const taxCode = reviewDuplicates?.taxCode ?? '';
-        const taxRate = taxCode ? policy?.taxRates?.taxes?.[taxCode] : undefined;
-        return {
-            taxAmount: -(reviewDuplicates?.taxAmount ?? 0),
-            taxValue: taxRate?.value ?? '',
-        };
-    }, [reviewDuplicates?.taxCode, reviewDuplicates?.taxAmount, policy?.taxRates?.taxes]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const handleMergeDuplicates = useCallback(() => {
@@ -88,18 +80,18 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
-        mergeDuplicates({...transactionsMergeParams, ...taxData});
+        mergeDuplicates(transactionsMergeParams);
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
         Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams, taxData, isSuperWideRHPDisplayed]);
+    }, [reportAction?.childReportID, transactionsMergeParams, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates({...transactionsMergeParams, ...taxData});
+        resolveDuplicates(transactionsMergeParams);
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams, taxData]);
+    }, [transactionsMergeParams]);
 
     const contextMenuStateValue = useMemo(
         () => ({

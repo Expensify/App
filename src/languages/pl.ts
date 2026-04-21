@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nowa funkcja',
         search: 'Szukaj',
         reports: 'Raporty',
+        spend: 'Wydatki',
         find: 'Znajdź',
         searchWithThreeDots: 'Szukaj...',
         next: 'Dalej',
@@ -433,7 +434,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: 'Zwinięte',
         expanded: 'Rozwinięte',
         expenseReport: 'Raport wydatków',
-        expenseReports: 'Raporty wydatków',
         rateOutOfPolicy: 'Stawka poza zasadami',
         leaveWorkspace: 'Opuść przestrzeń roboczą',
         leaveWorkspaceConfirmation: 'Jeśli opuścisz ten obszar roboczy, nie będziesz mógł przesyłać do niego wydatków.',
@@ -452,9 +452,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: 'Komentarze',
         sharedIn: 'Udostępnione w',
         unreported: 'Nierozliczone',
-        explore: 'Odkrywaj',
-        insights: 'Wgląd',
-        todo: 'Do zrobienia',
         invoice: 'Faktura',
         expense: 'Wydatek',
         chat: 'Czat',
@@ -882,6 +879,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Tylko administratorzy mogą wysyłać wiadomości w tym pokoju.',
     reportAction: {
         asCopilot: 'jako drugi pilot dla',
+        assistedBy: (agentName: string) => `wspierany przez ${agentName}`,
+        humanSupportAgent: 'ludzki agent wsparcia',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `utworzył(-a) ten raport, aby zawierał wszystkie wydatki z <a href="${reportUrl}">${reportName}</a>, których nie można było złożyć z wybraną przez Ciebie częstotliwością`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
@@ -1046,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Pierwsze kroki',
             createWorkspace: 'Utwórz przestrzeń roboczą',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Połącz z ${integrationName}`,
+            connectAccountingDefault: 'Połącz z księgowością',
             customizeCategories: 'Dostosuj kategorie księgowe',
             linkCompanyCards: 'Połącz firmowe karty',
             setupRules: 'Skonfiguruj zasady wydatków',
@@ -1664,6 +1664,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz śledzenie podatku w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć podatek z tego wydatku.',
             confirmText: 'Usuń podatek',
         },
+        bulkDuplicateLimit: `Możesz jednocześnie zduplikować maksymalnie ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} wydatków. Wybierz mniej wydatków i spróbuj ponownie.`,
         deleted: 'Usunięto',
     },
     transactionMerge: {
@@ -2600,6 +2601,9 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Wydatki od',
         header: 'Gdy następujący członkowie przesyłają wydatki:',
+        memberAlreadyInWorkflowTitle: 'Członek jest już w procesie',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -2900,6 +2904,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         employees: {
             title: 'Ilu masz pracowników?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 pracowników',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 pracowników',
@@ -4144,7 +4150,6 @@ ${amount} dla ${merchant} - ${date}`,
             everyone: 'Wszyscy',
             delete: 'Usuń przestrzeń roboczą',
             settings: 'Ustawienia',
-            reimburse: 'Zwroty kosztów',
             categories: 'Kategorie',
             tags: 'Tagi',
             customField1: 'Niestandardowe pole 1',
@@ -4268,6 +4273,7 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
+            hr: 'HR',
         },
         receiptPartners: {
             uber: {
@@ -4871,6 +4877,9 @@ ${amount} dla ${merchant} - ${date}`,
             noAccountsFoundDescription: 'Dodaj konto w NetSuite i ponownie zsynchronizuj połączenie',
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Dodaj proszę dostawców w NetSuite i zsynchronizuj połączenie ponownie',
+            travelInvoicing: 'Eksportuj zobowiązania Expensify Travel do',
+            travelInvoicingVendor: 'Dostawca usług turystycznych',
+            travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             noItemsFound: 'Nie znaleziono pozycji faktury',
             noItemsFoundDescription: 'Dodaj pozycje faktury w NetSuite i zsynchronizuj połączenie ponownie',
             noSubsidiariesFound: 'Nie znaleziono spółek zależnych',
@@ -5482,6 +5491,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             reduceLimitTitle: 'Zmniejszyć limit wydatków na podróże?',
                             reduceLimitWarning:
                                 'Jeśli zmniejszysz limit, członkowie, którzy już wydali więcej niż ta kwota, nie będą mogli dokonywać nowych rezerwacji podróży do następnego miesiąca.',
+                            provisioningError:
+                                'Nie udało się skonfigurować części członków twojej przestrzeni roboczej do scentralizowanego fakturowania. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                         },
                     },
                     disableModal: {
@@ -6893,6 +6904,31 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }),
             subscriptions: 'Subskrypcje',
         },
+        hr: {
+            title: 'HR',
+            subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
+            settingsTitle: 'Ustawienia Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importowanie danych Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Wczytywanie danych firmy Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importowanie pracowników';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Tworzenie łańcuchów zatwierdzania';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizowanie synchronizacji';
+                    case 'jobDone':
+                        return 'Oczekiwanie na załadowanie zaimportowanych danych';
+                    default: {
+                        return `Brak tłumaczenia dla etapu: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Tryb zatwierdzania', finalApprover: 'Ostateczny zatwierdzający'},
+        },
     },
     getAssistancePage: {
         title: 'Uzyskaj pomoc',
@@ -7537,20 +7573,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         resetColumns: 'Resetuj kolumny',
         groupColumns: 'Grupuj kolumny',
         expenseColumns: 'Kolumny wydatków',
-        statements: 'Wyciągi',
-        cardStatements: 'Wyciągi kartowe',
-        monthlyAccrual: 'Miesięczne rozliczenie',
-        unapprovedCash: 'Niezaakceptowana gotówka',
-        unapprovedCard: 'Niezaakceptowana karta',
-        reconciliation: 'Uzgodnienie',
-        topSpenders: 'Najwięksi wydający',
         saveSearch: 'Zapisz wyszukiwanie',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwanie',
         deleteSavedSearchConfirm: 'Na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
-        topCategories: 'Najpopularniejsze kategorie',
-        topMerchants: 'Najlepsi sprzedawcy',
         groupedExpenses: 'zgrupowane wydatki',
         bulkActions: {
             editMultiple: 'Edytuj wiele',
@@ -7711,6 +7738,24 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',
         },
         spendOverTime: 'Wydatki w czasie',
+        tabs: {
+            expenseReports: 'Raporty wydatków',
+            reports: 'Wszystkie raporty',
+            expenses: 'Wszystkie wydatki',
+            submit: 'Szkice',
+            approve: 'Wymaga zatwierdzenia',
+            pay: 'Gotowe do zapłaty',
+            accounting: 'Księgowość',
+            export: 'Oczekuje na eksport',
+            unapprovedCash: 'Rozliczenia kasowe',
+            unapprovedCard: 'Rozliczenia narosłe na kartach',
+            statements: 'Wyciągi z karty',
+            reconciliation: 'Uzgadnianie bankowe',
+            insights: 'Wnioski',
+            topSpenders: 'Najwięksi wydający',
+            topCategories: 'Najpopularniejsze kategorie',
+            topMerchants: 'Najważniejsi sprzedawcy',
+        },
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
@@ -8548,6 +8593,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         details: {
             title: 'Szczegóły subskrypcji',
             annual: 'Abonament roczny',
+            creditBalance: 'Saldo kredytowe',
             taxExempt: 'Poproś o status zwolnienia z podatku',
             taxExemptEnabled: 'Zwolnione z podatku',
             taxExemptStatus: 'Status zwolnienia z podatku',
@@ -9004,12 +9050,15 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
                 vacationDelegate: 'Nie można ustawić tego użytkownika jako zastępującego na czas nieobecności. Spróbuj ponownie.',
+                moveMember: 'Nie można przenieść tego członka. Spróbuj ponownie.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Nie możesz ustawić zastępstwa urlopowego dla ${email}, ponieważ jest on/ona obecnie zastępcą dla następujących członków:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Czy na pewno? To zablokuje konto użytkownika <strong>${email}</strong>. <br /><br /> Nasz zespół następnie przejrzy konto i usunie wszelki nieautoryzowany dostęp. Aby odzyskać dostęp, będą musieli współpracować z Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
             emptyMembers: {title: 'Brak członków w tej grupie', subtitle: 'Dodaj członka lub spróbuj zmienić filtr powyżej.'},
+            moveToGroup: 'Przenieś do grupy',
+            chooseWhereToMove: ({count}: {count: number}) => `Wybierz, dokąd przenieść ${count} ${count === 1 ? 'członka' : 'członków'}.`,
         },
         common: {
             settings: 'Ustawienia',

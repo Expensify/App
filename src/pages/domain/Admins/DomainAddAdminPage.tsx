@@ -64,7 +64,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     }, [debouncedSearchTerm]);
 
     const inviteUser = () => {
-        if (didInvite.current || !currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
+        if (didInvite.current || !currentlySelectedUser?.accountID || !currentlySelectedUser.login || !domainName) {
             return;
         }
         didInvite.current = true;
