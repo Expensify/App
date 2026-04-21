@@ -910,7 +910,8 @@
         "Wintrust",
         "Zürcher",
         "CARDFROZEN",
-        "CARDUNFROZEN"
+        "CARDUNFROZEN",
+        "Kolkata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

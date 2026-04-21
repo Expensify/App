@@ -20,6 +20,9 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     width = 0,
     bottom = 0,
     resetSuggestions = () => {},
+    // isInLandscapeMode is only used on native platforms to adjust the bottom padding
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isInLandscapeMode = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();

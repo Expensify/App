@@ -65,7 +65,7 @@ function ThreeDotsMenu({
     };
 
     const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
-        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+        if (selectedItem?.shouldKeepModalOpen) {
             return;
         }
         setPopupMenuVisible(false);
