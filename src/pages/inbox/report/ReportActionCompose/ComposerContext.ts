@@ -36,7 +36,7 @@ type ComposerSendState = {
 
 // Frozen — stable references, never changes after mount
 type ComposerActions = {
-    setValue: (v: string) => void;
+    setText: (v: string) => void;
     setMenuVisibility: (v: boolean) => void;
     setIsFullComposerAvailable: (v: boolean) => void;
     setComposerRef: (ref: ComposerRef | null) => void;
@@ -85,7 +85,7 @@ const defaultSendState: ComposerSendState = {
 const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
 
 const defaultActions: ComposerActions = {
-    setValue: noop,
+    setText: noop,
     setMenuVisibility: noop,
     setIsFullComposerAvailable: noop,
     setComposerRef: noop,

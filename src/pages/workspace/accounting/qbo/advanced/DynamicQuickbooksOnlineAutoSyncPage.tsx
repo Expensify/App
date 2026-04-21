@@ -4,10 +4,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineAutoSync} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -17,26 +19,21 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQuickbooksOnlineAutoSyncErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type QuickbooksAutoSyncPageRouteParams = {
-    backTo?: Route;
-};
-
-function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const config = policy?.connections?.quickbooksOnline?.config;
     const policyID = route.params.policyID;
-    const {backTo} = route.params as QuickbooksAutoSyncPageRouteParams;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path);
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -47,7 +44,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID="QuickbooksAutoSyncPage"
+                testID="DynamicQuickbooksOnlineAutoSyncPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
@@ -76,7 +73,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.qbo.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.path))}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -85,4 +82,4 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(QuickbooksAutoSyncPage);
+export default withPolicyConnections(DynamicQuickbooksOnlineAutoSyncPage);

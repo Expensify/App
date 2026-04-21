@@ -235,4 +235,4 @@ function reauthenticate(command = ''): Promise<boolean> {
     });
 }
 
-export {reauthenticate, Authenticate};
+export default reauthenticate;

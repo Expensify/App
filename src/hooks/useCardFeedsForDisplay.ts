@@ -68,4 +68,4 @@ const useCardFeedsForDisplay = () => {
 };
 
 export default useCardFeedsForDisplay;
-export {getDefaultCardFeed, eligiblePoliciesSelector};
+export {getDefaultCardFeed};

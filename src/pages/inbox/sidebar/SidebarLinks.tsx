@@ -56,20 +56,21 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
+            const actionTargetReportActionID = option.actionTargetReportActionID;
 
             // Prevent opening a new Report page if the user quickly taps on another conversation
             // before the first one is displayed.
             const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
 
             if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
                 shouldBlockReportNavigation
             ) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
         },
         [shouldUseNarrowLayout, isActiveReport],
     );

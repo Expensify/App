@@ -3,6 +3,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {OnyxEntry} from 'react-native-onyx';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,12 +28,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
-    isSubmittingAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startSubmittingAnimation: () => void;
 };
 
-function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitPrimaryActionProps) {
+function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
+    const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();

@@ -1,301 +1,107 @@
-import {useRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import lodashDebounce from 'lodash/debounce';
-import noop from 'lodash/noop';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
-import type {Emoji} from '@assets/emojis/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
-import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
-import ExceededCommentLength from '@components/ExceededCommentLength';
-import ImportedStateIndicator from '@components/ImportedStateIndicator';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShortMentionsList from '@hooks/useShortMentionsList';
-import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addComment} from '@libs/actions/Report';
-import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import DomUtils from '@libs/DomUtils';
-import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {rand64} from '@libs/NumberUtils';
-import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {
-    getCombinedReportActions,
-    getFilteredReportActionsForReportView,
-    getLinkedTransactionID,
-    getOneTransactionThreadReportID,
-    getReportAction,
-    isMoneyRequestAction,
-    isSentMoneyReportAction,
-} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
-    canEditReportAction,
-    canShowReportRecipientLocalTime,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    chatIncludesChronos,
-    chatIncludesConcierge,
     getParentReport,
-    getReportOfflinePendingActionAndErrors,
-    getReportRecipientAccountIDs,
     isChatRoom,
     isGroupChat,
     isInvoiceReport,
-    isMoneyRequestReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
-import {generateAccountID} from '@libs/UserUtils';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
-import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
-import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
-import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import ComposerWithSuggestions from './ComposerWithSuggestions';
+import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
+import ComposerActionMenu from './ComposerActionMenu';
+import ComposerBox from './ComposerBox';
+import type {SuggestionsRef} from './ComposerContext';
+import {useComposerMeta, useComposerSendState} from './ComposerContext';
+import ComposerEmojiPicker from './ComposerEmojiPicker';
+import ComposerExceededLength from './ComposerExceededLength';
+import ComposerFooter from './ComposerFooter';
+import ComposerImportedState from './ComposerImportedState';
+import ComposerInput from './ComposerInput';
+import ComposerLocalTime from './ComposerLocalTime';
+import ComposerProvider from './ComposerProvider';
+import ComposerSendButton from './ComposerSendButton';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 
-type SuggestionsRef = {
-    resetSuggestions: () => void;
-    onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
-    triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
-    updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
-    setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
-    getSuggestions: () => Mention[] | Emoji[];
-    getIsSuggestionsMenuVisible: () => boolean;
-};
-
 type ReportActionComposeProps = {
-    /** The ID of the report this composer is for */
     reportID: string;
 };
 
-function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
-    const shouldSuppress = useShouldSuppressConciergeIndicators(reportID);
-    if (shouldSuppress) {
-        return null;
-    }
-    return <ReportTypingIndicator reportID={reportID} />;
-}
-
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-
-/**
- * List of AI-aware placeholder translation keys for expense threads
- */
-const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
-
-/**
- * Returns a random AI-aware placeholder for expense threads
- */
-function getRandomPlaceholder(translate: LocalizedTranslate): string {
-    const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
-    return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
-}
-
-// eslint-disable-next-line import/no-mutable-exports
-let onSubmitAction = noop;
-
-function ReportActionCompose({reportID}: ReportActionComposeProps) {
+function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, preferredLocale} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const isInSidePanel = useIsInSidePanel();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
-    const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
-    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const {availableLoginsList} = useShortMentionsList();
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+
+    // Context: only 2 subscriptions needed for attachment/DropZone logic
+    const {exceededMaxLength} = useComposerSendState();
+    const {composerRef, suggestionsRef, attachmentFileRef} = useComposerMeta();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = useMemo(
-        () => getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true),
-        [allReportTransactions, filteredReportActions, isOffline],
-    );
-    const visibleTransactions = useMemo(
-        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [reportTransactions, isOffline],
-    );
-    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((t) => t.transactionID), [visibleTransactions]);
-    const isSentMoneyReport = useMemo(() => filteredReportActions.some((action) => isSentMoneyReportAction(action)), [filteredReportActions]);
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs),
-        [report, chatReport, filteredReportActions, isOffline, reportTransactionIDs],
-    );
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
-
-    const parentReportAction = useParentReportAction(report);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
-    const transactionThreadReportActionsArray = useMemo(() => (transactionThreadReportActions ? Object.values(transactionThreadReportActions) : []), [transactionThreadReportActions]);
-    const combinedReportActions = useMemo(
-        () => getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, transactionThreadReportActionsArray),
-        [filteredReportActions, effectiveTransactionThreadReportID, transactionThreadReportActionsArray],
-    );
-
-    const route = useRoute();
-    const isOnSearchMoneyRequestReport = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
-
-    // On the search money request report page (MoneyRequestReportView), lastReportAction uses only
-    // the parent report's actions — not combined with transaction thread actions. The table view
-    // doesn't display transaction thread comments inline, so the last editable action should only
-    // come from what's visible in the parent report. ReportScreen (inbox) uses combinedReportActions
-    // because ReportActionsView merges thread comments into the visible list, and up-arrow-to-edit
-    // should be able to reach those comments.
-    const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
-    const lastReportAction = useMemo(
-        () => [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined)),
-        [actionsForLastEditable, parentReportAction],
-    );
-
-    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
-
-    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
-    const reportAncestors = useAncestors(report);
-    const targetReportAncestors = useAncestors(targetReport);
-    const {scrollOffsetRef} = useContext(ActionListContext);
-
-    /**
-     * Updates the Highlight state of the composer
-     */
-    const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
-    });
-
-    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
-
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
-    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
-    });
-
-    /**
-     * Updates the visibility state of the menu
-     */
-    const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
-
-    /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     */
-    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
-    const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
-    const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | null>(null);
-    const reportParticipantIDs = useMemo(
-        () =>
-            Object.keys(report?.participants ?? {})
-                .map(Number)
-                .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
-        [currentUserPersonalDetails.accountID, report?.participants],
-    );
+    const reportParticipantIDs = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserPersonalDetails.accountID);
 
-    const shouldShowReportRecipientLocalTime = useMemo(
-        () => canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
-        [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
-    );
-
-    const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
-    const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
-    const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
-    const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
+    const isTransactionThreadView = isReportTransactionThread(report);
+    const isExpensesReport = reportTransactions && reportTransactions.length > 1;
 
-    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
-        canEvict: false,
-    });
-
-    const iouAction = rawReportActions ? Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canEvict: false});
+    const iouAction = rawReportActions ? (Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) as OnyxTypes.ReportAction | undefined) : undefined;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
-
-    const transactionID = useMemo(() => getTransactionID(report) ?? linkedTransactionID, [report, linkedTransactionID]);
-
+    const transactionID = getTransactionID(report) ?? linkedTransactionID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
-    const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
+    const isSingleTransactionView = !!transaction && !!reportTransactions && reportTransactions.length === 1;
     const effectiveParentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
@@ -303,358 +109,36 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
+    const hasReceipt = hasReceiptTransactionUtils(transaction);
 
-    const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
+    const parentReport = getParentReport(report);
+    const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
+    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
+    const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+    const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
+    const shouldDisplayDualDropZone = !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
 
-    const shouldDisplayDualDropZone = useMemo(() => {
-        const parentReport = getParentReport(report);
-        const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
-        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
-        const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
-        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
-    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy, betas]);
-
-    // Check if this is an expense-related report (IOU, expense report, or transaction thread)
-    const isExpenseRelatedReport = useMemo(() => isTransactionThreadView || isMoneyRequestReport(report), [isTransactionThreadView, report]);
-
-    const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
-
-    // Placeholder to display in the chat input.
-    const inputPlaceholder = useMemo(() => {
-        if (includesConcierge && userBlockedFromConcierge) {
-            return translate('reportActionCompose.blockedFromConcierge');
-        }
-
-        // Only English should get AI-specific ghost text.
-        if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
-            return getRandomPlaceholder(translate);
-        }
-
-        return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction, isEnglishLocale]);
-
-    const focus = () => {
-        if (composerRef.current === null) {
-            return;
-        }
-        composerRef.current?.focus(true);
-    };
-
-    const isKeyboardVisibleWhenShowingModalRef = useRef(false);
-    const isNextModalWillOpenRef = useRef(false);
-
-    const containerRef = useRef<View>(null);
-    const measureContainer = useCallback(
-        (callback: MeasureInWindowOnSuccessCallback) => {
-            if (!containerRef.current) {
-                return;
-            }
-            containerRef.current.measureInWindow(callback);
-        },
-        // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isComposerFullSize],
-    );
-
-    const onAddActionPressed = useCallback(() => {
-        if (!willBlurTextInputOnTapOutside) {
-            isKeyboardVisibleWhenShowingModalRef.current = !!composerRef.current?.isFocused();
-        }
-        composerRef.current?.blur();
-    }, []);
-
-    const onItemSelected = useCallback(() => {
-        isKeyboardVisibleWhenShowingModalRef.current = false;
-    }, []);
-
-    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+    const updateShouldShowSuggestionMenuToFalse = () => {
         if (!suggestionsRef.current) {
             return;
         }
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    }, []);
+    };
 
-    const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
-
-    const addAttachment = useCallback((file: FileObject | FileObject[]) => {
+    const addAttachment = (file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
-
         const clearWorklet = composerRef.current?.clearWorklet;
-
         if (!clearWorklet) {
             throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
         }
-
         scheduleOnUI(clearWorklet);
-    }, []);
+    };
 
-    /**
-     * Event handler to update the state after the attachment preview is closed.
-     */
-    const onAttachmentPreviewClose = useCallback(() => {
+    const onAttachmentPreviewClose = () => {
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
         ComposerFocusManager.setReadyToFocus();
-    }, [updateShouldShowSuggestionMenuToFalse]);
-
-    /**
-     * Add a new comment to this chat
-     */
-    const submitForm = useCallback(
-        (newComment: string) => {
-            const newCommentTrimmed = newComment.trim();
-
-            kickoffWaitingIndicator();
-
-            if (attachmentFileRef.current) {
-                addAttachmentWithComment({
-                    report: targetReport,
-                    notifyReportID: reportID,
-                    ancestors: targetReportAncestors,
-                    attachments: attachmentFileRef.current,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    text: newCommentTrimmed,
-                    timezone: currentUserPersonalDetails.timezone,
-                    shouldPlaySound: true,
-                    isInSidePanel,
-                });
-                attachmentFileRef.current = null;
-            } else {
-                const taskMatch = newCommentTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-                if (taskMatch) {
-                    let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
-                    if (taskTitle) {
-                        const mention = taskMatch[1] ? taskMatch[1].trim() : '';
-                        const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
-                        const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
-                        const isValidMention = Str.isValidEmail(mentionWithDomain);
-
-                        let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
-                        let assigneeChatReport;
-                        if (mentionWithDomain) {
-                            if (isValidMention) {
-                                assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                                if (!Object.keys(assignee ?? {}).length) {
-                                    const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
-                                        accountID: generateAccountID(mentionWithDomain),
-                                        login: mentionWithDomain,
-                                    });
-                                    assignee = optimisticDataForNewAssignee.assignee;
-                                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
-                                }
-                            } else {
-                                taskTitle = `@${mentionWithDomain} ${taskTitle}`;
-                            }
-                        }
-                        createTaskAndNavigate({
-                            parentReport: report,
-                            title: taskTitle,
-                            description: '',
-                            assigneeEmail: assignee?.login ?? '',
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            currentUserEmail,
-                            assigneeAccountID: assignee?.accountID,
-                            assigneeChatReport,
-                            policyID: report?.policyID,
-                            isCreatedUsingMarkdown: true,
-                            quickAction,
-                            ancestors: reportAncestors,
-                        });
-                        return;
-                    }
-                }
-
-                // Pre-generate the reportActionID so we can correlate the Sentry send-message span with the exact message
-                const optimisticReportActionID = rand64();
-
-                // The list is inverted, so an offset near 0 means the user is at the bottom (newest messages visible).
-                const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-                if (isScrolledToBottom) {
-                    startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
-                        name: 'send-message',
-                        op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                        attributes: {
-                            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                            [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
-                        },
-                    });
-                }
-                addComment({
-                    report: targetReport,
-                    notifyReportID: reportID,
-                    ancestors: targetReportAncestors,
-                    text: newCommentTrimmed,
-                    timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    shouldPlaySound: true,
-                    isInSidePanel,
-                    reportActionID: optimisticReportActionID,
-                });
-            }
-        },
-        [
-            kickoffWaitingIndicator,
-            targetReport,
-            report,
-            reportID,
-            targetReportAncestors,
-            reportAncestors,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.timezone,
-            isInSidePanel,
-            currentUserEmail,
-            availableLoginsList,
-            personalDetails,
-            quickAction,
-            scrollOffsetRef,
-        ],
-    );
-
-    const onTriggerAttachmentPicker = useCallback(() => {
-        isNextModalWillOpenRef.current = true;
-        isKeyboardVisibleWhenShowingModalRef.current = true;
-    }, []);
-
-    const onBlur = useCallback((event: BlurEvent) => {
-        const webEvent = event as unknown as FocusEvent;
-        setIsFocused(false);
-        if (suggestionsRef.current) {
-            suggestionsRef.current.resetSuggestions();
-        }
-        if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
-            isKeyboardVisibleWhenShowingModalRef.current = true;
-        }
-    }, []);
-
-    const onFocus = useCallback(() => {
-        setIsFocused(true);
-    }, []);
-
-    useEffect(() => {
-        if (hasExceededMaxTaskTitleLength) {
-            setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
-        } else if (hasExceededMaxCommentLength) {
-            setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
-        } else {
-            setExceededMaxLength(null);
-        }
-    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
-
-    useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInput) {
-            return;
-        }
-        // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDidHideComposerInput(true);
-    }, [shouldShowComposeInput, didHideComposerInput]);
-
-    // We are returning a callback here as we want to invoke the method on unmount only
-    useEffect(
-        () => () => {
-            if (!isActiveEmojiPickerAction(report?.reportID)) {
-                return;
-            }
-            hideEmojiPicker();
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
-
-    // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
-    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report?.policyID]);
-    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
-    const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
-
-    const hasReportRecipient = !isEmptyObject(reportRecipient);
-
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
-
-    const validateMaxLength = useCallback(
-        (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-            if (taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
-                setHasExceededMaxCommentLength(false);
-                return validateTaskTitleMaxLength(title);
-            }
-            setHasExceededMaxTitleLength(false);
-            return validateCommentMaxLength(value, {reportID});
-        },
-        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
-    );
-
-    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
-
-    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
-    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
-
-    const handleSendMessage = useCallback(() => {
-        if (isSendDisabled || !debouncedValidate.flush()) {
-            return;
-        }
-
-        composerRef.current?.resetHeight();
-        if (isComposerFullSize) {
-            setIsComposerFullSize(reportID, false);
-        }
-
-        scheduleOnUI(() => {
-            const {clearWorklet} = composerRefShared.get();
-
-            if (!clearWorklet) {
-                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-            }
-
-            clearWorklet?.();
-        });
-    }, [isSendDisabled, debouncedValidate, isComposerFullSize, reportID, composerRefShared]);
-
-    onSubmitAction = handleSendMessage;
-
-    const emojiPositionValues = useMemo(
-        () => ({
-            secondaryRowHeight: styles.chatItemComposeSecondaryRow.height,
-            secondaryRowMarginTop: styles.chatItemComposeSecondaryRow.marginTop,
-            secondaryRowMarginBottom: styles.chatItemComposeSecondaryRow.marginBottom,
-            composeBoxMinHeight: styles.chatItemComposeBox.minHeight,
-            emojiButtonHeight: styles.chatItemEmojiButton.height,
-        }),
-        [
-            styles.chatItemComposeSecondaryRow.height,
-            styles.chatItemComposeSecondaryRow.marginTop,
-            styles.chatItemComposeSecondaryRow.marginBottom,
-            styles.chatItemComposeBox.minHeight,
-            styles.chatItemEmojiButton.height,
-        ],
-    );
-
-    const emojiShiftVertical = useMemo(() => {
-        const chatItemComposeSecondaryRowHeight = emojiPositionValues.secondaryRowHeight + emojiPositionValues.secondaryRowMarginTop + emojiPositionValues.secondaryRowMarginBottom;
-        const reportActionComposeHeight = emojiPositionValues.composeBoxMinHeight + chatItemComposeSecondaryRowHeight;
-        const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
-        return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
-    }, [
-        emojiPositionValues.secondaryRowHeight,
-        emojiPositionValues.secondaryRowMarginTop,
-        emojiPositionValues.secondaryRowMarginBottom,
-        emojiPositionValues.composeBoxMinHeight,
-        emojiPositionValues.emojiButtonHeight,
-    ]);
-
-    const onValueChange = useCallback(
-        (value: string) => {
-            if (value.length === 0 && isComposerFullSize) {
-                setIsComposerFullSize(reportID, false);
-            }
-            debouncedValidate(value);
-        },
-        [isComposerFullSize, reportID, debouncedValidate],
-    );
+    };
 
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
         policy,
@@ -676,159 +160,61 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         return null;
     }
 
-    const fsClass = FS.getChatFSClass(report);
-
     return (
-        <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
-            <OfflineWithFeedback pendingAction={pendingAction}>
-                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
-            </OfflineWithFeedback>
+        <View style={[isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <ComposerLocalTime reportID={reportID} />
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <OfflineWithFeedback
-                    shouldDisableOpacity
-                    pendingAction={pendingAction}
-                    style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
-                    contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
-                >
-                    <View
-                        ref={containerRef}
-                        style={[
-                            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                            styles.flexRow,
-                            styles.chatItemComposeBox,
-                            isComposerFullSize && styles.chatItemFullComposeBox,
-                            !!exceededMaxLength && styles.borderColorDanger,
-                        ]}
-                    >
-                        {PDFValidationComponent}
-                        <AttachmentPickerWithMenuItems
-                            onAttachmentPicked={(files) => validateAttachments({files})}
-                            reportID={reportID}
-                            report={report}
-                            currentUserPersonalDetails={currentUserPersonalDetails}
-                            reportParticipantIDs={reportParticipantIDs}
-                            isFullComposerAvailable={isFullComposerAvailable}
-                            isComposerFullSize={isComposerFullSize}
-                            disabled={isBlockedFromConcierge}
-                            setMenuVisibility={setMenuVisibility}
-                            isMenuVisible={isMenuVisible}
-                            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-                            onAddActionPressed={onAddActionPressed}
-                            onItemSelected={onItemSelected}
-                            onCanceledAttachmentPicker={() => {
-                                if (!shouldFocusComposerOnScreenFocus) {
-                                    return;
-                                }
-                                focus();
-                            }}
-                            actionButtonRef={actionButtonRef}
-                            shouldDisableAttachmentItem={!!exceededMaxLength}
+                <ComposerBox reportID={reportID}>
+                    {PDFValidationComponent}
+                    <ComposerActionMenu
+                        reportID={reportID}
+                        onAttachmentPicked={(files) => validateAttachments({files})}
+                    />
+                    <ComposerInput
+                        reportID={reportID}
+                        onPasteFile={(files) => validateAttachments({files})}
+                    />
+                    {shouldDisplayDualDropZone && (
+                        <DualDropZone
+                            isEditing={shouldAddOrReplaceReceipt && hasReceipt}
+                            onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
+                            onReceiptDrop={onReceiptDropped}
+                            shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                         />
-                        <ComposerWithSuggestions
-                            ref={(ref) => {
-                                composerRef.current = ref;
-                                composerRefShared.set({
-                                    clearWorklet: ref?.clearWorklet,
-                                });
-                            }}
-                            suggestionsRef={suggestionsRef}
-                            isNextModalWillOpenRef={isNextModalWillOpenRef}
-                            isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-                            reportID={reportID}
-                            policyID={report?.policyID}
-                            includeChronos={chatIncludesChronos(report)}
-                            isGroupPolicyReport={isGroupPolicyReport}
-                            lastReportAction={lastReportAction}
-                            isMenuVisible={isMenuVisible}
-                            inputPlaceholder={inputPlaceholder}
-                            isComposerFullSize={isComposerFullSize}
-                            setIsFullComposerAvailable={setIsFullComposerAvailable}
-                            onPasteFile={(files) => validateAttachments({files})}
-                            onClear={submitForm}
-                            disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-                            setIsCommentEmpty={setIsCommentEmpty}
-                            onEnterKeyPress={handleSendMessage}
-                            shouldShowComposeInput={shouldShowComposeInput}
-                            onFocus={onFocus}
-                            onBlur={onBlur}
-                            measureParentContainer={measureContainer}
-                            onValueChange={onValueChange}
-                            didHideComposerInput={didHideComposerInput}
-                            forwardedFSClass={fsClass}
-                        />
-                        {shouldDisplayDualDropZone && (
-                            <DualDropZone
-                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
-                                onReceiptDrop={onReceiptDropped}
-                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
+                    )}
+                    {!shouldDisplayDualDropZone && (
+                        <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
+                            <DropZoneUI
+                                icon={icons.MessageInABottle}
+                                dropTitle={translate('dropzone.addAttachments')}
+                                dropStyles={styles.attachmentDropOverlay(true)}
+                                dropTextStyles={styles.attachmentDropText}
+                                dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)]}
                             />
-                        )}
-                        {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
-                                <DropZoneUI
-                                    icon={icons.MessageInABottle}
-                                    dropTitle={translate('dropzone.addAttachments')}
-                                    dropStyles={styles.attachmentDropOverlay(true)}
-                                    dropTextStyles={styles.attachmentDropText}
-                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)]}
-                                />
-                            </DragAndDropConsumer>
-                        )}
-                        {canUseTouchScreen() && isMediumScreenWidth ? null : (
-                            <EmojiPickerButton
-                                isDisabled={isBlockedFromConcierge}
-                                onModalHide={(isNavigating) => {
-                                    if (isNavigating) {
-                                        return;
-                                    }
-                                    const activeElementId = DomUtils.getActiveElement()?.id;
-                                    if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
-                                        return;
-                                    }
-                                    focus();
-                                }}
-                                onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
-                                emojiPickerID={report?.reportID}
-                                shiftVertical={emojiShiftVertical}
-                            />
-                        )}
-                        <SendButton
-                            isDisabled={isSendDisabled}
-                            handleSendMessage={handleSendMessage}
-                        />
-                    </View>
-                    {ErrorModal}
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.justifyContentBetween,
-                            styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
-                        ]}
-                    >
-                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroAwareTypingIndicator reportID={reportID} />
-                        {!!exceededMaxLength && (
-                            <ExceededCommentLength
-                                maxCommentLength={exceededMaxLength}
-                                isTaskTitle={hasExceededMaxTaskTitleLength}
-                            />
-                        )}
-                    </View>
-                </OfflineWithFeedback>
-                {!isSmallScreenWidth && (
-                    <View style={[styles.mln5, styles.mrn5]}>
-                        <ImportedStateIndicator />
-                    </View>
-                )}
+                        </DragAndDropConsumer>
+                    )}
+                    <ComposerEmojiPicker reportID={reportID} />
+                    <ComposerSendButton />
+                </ComposerBox>
+                {ErrorModal}
+                <ComposerFooter>
+                    {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                    <AgentZeroAwareTypingIndicator reportID={reportID} />
+                    <ComposerExceededLength />
+                </ComposerFooter>
+                <ComposerImportedState />
             </View>
         </View>
     );
 }
 
-export default memo(ReportActionCompose);
-export {onSubmitAction};
+function ReportActionCompose({reportID}: ReportActionComposeProps) {
+    return (
+        <ComposerProvider reportID={reportID}>
+            <ReportActionComposeInner reportID={reportID} />
+        </ComposerProvider>
+    );
+}
+
+export default ReportActionCompose;
 export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
