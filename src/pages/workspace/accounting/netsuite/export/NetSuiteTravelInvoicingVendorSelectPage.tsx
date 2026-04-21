@@ -62,7 +62,7 @@ function NetSuiteTravelInvoicingVendorSelectPage({policy}: WithPolicyConnections
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteTravelInvoicingVendorSelectPage"
-            title="workspace.netsuite.travelInvoicingVendor"
+            title="workspace.common.travelInvoicingVendor"
             data={data}
             listItem={RadioListItem}
             onSelectRow={selectVendor}

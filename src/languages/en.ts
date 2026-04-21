@@ -4394,6 +4394,9 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
+            travelInvoicing: 'Export Expensify Travel Payable To',
+            travelInvoicingVendor: 'Travel vendor',
+            travelInvoicingPayableAccount: 'Travel payable account',
         },
         receiptPartners: {
             uber: {
@@ -4680,9 +4683,6 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
-            travelInvoicing: 'Export Expensify Travel Payable To',
-            travelInvoicingVendor: 'Travel vendor',
-            travelInvoicingPayableAccount: 'Travel payable account',
         },
         workspaceList: {
             joinNow: 'Join now',
@@ -4993,9 +4993,6 @@ const translations = {
             noAccountsFoundDescription: 'Please add the account in NetSuite and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in NetSuite and sync the connection again',
-            travelInvoicing: 'Export Expensify Travel Payable To',
-            travelInvoicingVendor: 'Travel vendor',
-            travelInvoicingPayableAccount: 'Travel payable account',
             noItemsFound: 'No invoice items found',
             noItemsFoundDescription: 'Please add invoice items in NetSuite and sync the connection again',
             noSubsidiariesFound: 'No subsidiaries found',

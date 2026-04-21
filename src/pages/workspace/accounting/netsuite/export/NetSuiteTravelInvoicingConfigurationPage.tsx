@@ -39,7 +39,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
     const sections: NetSuiteSectionType[] = [
         {
             title: travelVendor?.name,
-            description: translate('workspace.netsuite.travelInvoicingVendor'),
+            description: translate('workspace.common.travelInvoicingVendor'),
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -52,7 +52,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
         },
         {
             title: travelPayableAccount?.name,
-            description: translate('workspace.netsuite.travelInvoicingPayableAccount'),
+            description: translate('workspace.common.travelInvoicingPayableAccount'),
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -68,7 +68,7 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
     return (
         <ConnectionLayout
             displayName="NetSuiteTravelInvoicingConfigurationPage"
-            headerTitle="workspace.netsuite.travelInvoicing"
+            headerTitle="workspace.common.travelInvoicing"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
