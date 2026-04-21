@@ -188,16 +188,14 @@ function isPrimaryPayAction({
     currentUserLogin,
     bankAccountList,
     policy,
-    reportNameValuePairs,
-    isChatReportArchived,
     invoiceReceiverPolicy,
     reportActions,
     isSecondaryAction,
 }: IsPrimaryPayActionParams) {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    const isExpenseReport = isExpenseReportUtils(report);
+    if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});

@@ -883,8 +883,6 @@ function getSecondaryReportActions({
             currentUserLogin,
             bankAccountList,
             policy,
-            reportNameValuePairs,
-            isChatReportArchived,
             reportActions,
             isSecondaryAction: true,
         }) &&
