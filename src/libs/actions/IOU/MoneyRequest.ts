@@ -178,7 +178,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
 
-    /** Fires after the track-expense branch creates the transaction. UI uses this for cleanup + navigation. */
+    /** Only fires in the TRACK skip-confirm branch. The createDistanceRequest branch still owns its own navigation. */
     onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
 };
 

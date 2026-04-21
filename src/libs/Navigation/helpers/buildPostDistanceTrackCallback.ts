@@ -10,10 +10,6 @@ type BuildPostDistanceTrackCallbackParams = {
     backToReport: string | undefined;
 };
 
-/**
- * Factory for the `onTransactionsCreated` callback used by the 5 distance-step UI files (Distance, DistanceMap, DistanceManual, DistanceOdometer, DistanceGPS).
- * All 5 pass the same shape to `cleanupAndNavigateAfterExpenseCreate` after a TRACK skip-confirm distance submit.
- */
 function buildPostDistanceTrackCallback({report, draftTransactionIDs, transaction, backToReport}: BuildPostDistanceTrackCallbackParams) {
     return (lastTransactionID: string | undefined) => {
         cleanupAndNavigateAfterExpenseCreate({

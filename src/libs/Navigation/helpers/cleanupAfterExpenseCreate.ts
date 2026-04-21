@@ -10,10 +10,7 @@ type CleanupAfterExpenseCreateParams = {
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
-/**
- * Post-expense-creation cleanup (no navigation). Removes draft transactions and, for the move-from-track flow, pops the linked child report screen.
- * Invoked by `cleanupAndNavigateAfterExpenseCreate` for the normal post-submit flow, and by `handleFileRetry` for the retry-after-receipt-upload-failure flow (which must not re-navigate).
- */
+/** Cleanup-only — used by `handleFileRetry` where we must NOT re-navigate. Paired with `cleanupAndNavigateAfterExpenseCreate` for the normal post-submit flow. */
 function cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction}: CleanupAfterExpenseCreateParams) {
     // Defer cleanup until after modal-dismiss animation so it doesn't block the JS thread.
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase and kept alive via a dedicated RN patch

@@ -16,9 +16,6 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
-/**
- * Post-expense-creation cleanup and navigation. Call from UI after `requestMoney`/`trackExpense`/`createDistanceRequest`/`submitPerDiemExpense` returns.
- */
 function cleanupAndNavigateAfterExpenseCreate({
     report,
     draftTransactionIDs,

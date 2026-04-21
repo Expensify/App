@@ -15,12 +15,7 @@ type ResolveChatForSubmitCleanupResult = {
     optimisticChatReportID: string;
 };
 
-/**
- * Resolves the destination chat for post-submit cleanup/navigation when the confirmation page's
- * `report` may diverge from the actual submission target (e.g., user changes participant after
- * opening the flow from a specific report). Mirrors the action layer's 3-step priority
- * (policyExpenseChat → 1:1 DM → pre-generated optimistic) so cleanup lands where the submit actually did.
- */
+/** Mirrors the action layer's 3-step chat priority (policyExpenseChat → 1:1 DM → fallback) so cleanup lands on the submission target when the user changed participant after opening the confirmation page. */
 function resolveChatForSubmitCleanup({participant, currentUserAccountID, report, fallbackOptimisticChatReportID}: ResolveChatForSubmitCleanupParams): ResolveChatForSubmitCleanupResult {
     let resolvedChatReportID: string | undefined;
     if (participant.isPolicyExpenseChat && participant.reportID) {
