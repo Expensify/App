@@ -78,8 +78,6 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
-
-    /** Fires after the batch loop with the last file's transactionID. UI uses this for cleanup + navigation. */
     onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
 };
 
