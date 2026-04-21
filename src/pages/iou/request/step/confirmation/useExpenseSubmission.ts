@@ -24,15 +24,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {
-    findSelfDMReportID,
-    generateReportID,
-    getChatByParticipants,
-    getReportOrDraftReport,
-    hasViolations as hasViolationsReportUtils,
-    isMoneyRequestReport,
-    isSelectedManagerMcTest,
-} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
@@ -60,6 +52,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import resolveChatForSubmitCleanup from './resolveChatForSubmitCleanup';
 
 // Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
 // The expense callback receives GPS coordinates on success or undefined on error.
@@ -369,20 +362,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!lastTransaction) {
             return;
         }
-        let resolvedChatReportID: string | undefined;
-        if (participant.isPolicyExpenseChat && participant.reportID) {
-            resolvedChatReportID = participant.reportID;
-        } else if (participant.accountID) {
-            resolvedChatReportID = getChatByParticipants([participant.accountID, currentUserPersonalDetails.accountID])?.reportID;
-        }
-        const participantDiffersFromReport = !!resolvedChatReportID && resolvedChatReportID !== report?.reportID;
+        const resolved = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            report,
+            fallbackOptimisticChatReportID: optimisticChatReportID,
+        });
         cleanupAndNavigateAfterExpenseCreate({
-            report: participantDiffersFromReport ? undefined : report,
+            report: resolved.report,
             draftTransactionIDs,
             transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             backToReport,
-            optimisticChatReportID: resolvedChatReportID ?? optimisticChatReportID,
+            optimisticChatReportID: resolved.optimisticChatReportID,
             linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
         });
     }
@@ -429,6 +421,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 existingChatReport,
             );
             const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+            const perDiemOptimisticTransactionID = rand64();
 
             const result = submitPerDiemExpenseIOUActions({
                 report,
@@ -468,11 +461,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                optimisticTransactionID: perDiemOptimisticTransactionID,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
-                    transactionID: transaction.transactionID,
+                    transactionID: perDiemOptimisticTransactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     hasMultipleTransactions: isMoneyRequestReport(getReportOrDraftReport(activeReportID)),
                 });
@@ -567,12 +561,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!lastTransaction) {
             return;
         }
-        cleanupAndNavigateAfterExpenseCreate({
+        const resolved = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             report,
+            fallbackOptimisticChatReportID: optimisticSelfDMReportID,
+        });
+        cleanupAndNavigateAfterExpenseCreate({
+            report: resolved.report,
             draftTransactionIDs,
             transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            optimisticChatReportID: optimisticSelfDMReportID,
+            optimisticChatReportID: resolved.optimisticChatReportID,
         });
     }
 

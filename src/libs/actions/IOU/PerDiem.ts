@@ -235,6 +235,7 @@ type PerDiemExpenseInformation = {
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
+    optimisticTransactionID?: string;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -255,6 +256,7 @@ type PerDiemExpenseInformationParams = {
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticChatReportID?: string;
+    optimisticTransactionID?: string;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -304,6 +306,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        optimisticTransactionID: uiProvidedOptimisticTransactionID,
     } = perDiemExpenseInformation;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -360,7 +363,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
-    const optimisticTransactionID = NumberUtils.rand64();
+    const optimisticTransactionID = uiProvidedOptimisticTransactionID ?? NumberUtils.rand64();
     const optimisticReportID = generateReportID();
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
@@ -896,6 +899,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
         optimisticChatReportID,
+        optimisticTransactionID,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -946,6 +950,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        optimisticTransactionID,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
