@@ -300,7 +300,7 @@ function SubmitDetailsPage({
             });
         }
         cleanupAndNavigateAfterExpenseCreate({
-            report,
+            report: isSelfDM(report) ? report : reportToSubmit,
             draftTransactionIDs,
             transactionID: transaction.transactionID,
             isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
