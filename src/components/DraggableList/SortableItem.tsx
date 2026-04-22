@@ -93,7 +93,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             // dnd-kit attaches its KeyboardSensor listener on `document`, so arrow
             // keys keep reordering even after focus moves (e.g. Tab to the map).
             onBlur={(e) => {
-                if (\!isDragging || e.currentTarget.contains(e.relatedTarget as Node)) {
+                if (!isDragging || e.currentTarget.contains(e.relatedTarget as Node)) {
                     return;
                 }
                 cancelDndKeyboardDrag();
