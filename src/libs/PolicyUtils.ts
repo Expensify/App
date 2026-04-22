@@ -905,7 +905,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1095,6 +1099,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
+        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;

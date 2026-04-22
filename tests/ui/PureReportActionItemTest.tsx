@@ -757,19 +757,26 @@ describe('PureReportActionItem', () => {
     });
 
     describe('Modified expense message', () => {
-        it('clicking the workspace rules link opens the workspace rules URL', async () => {
-            const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
-            const modifiedExpenseMessage = `marked the expense as "billable" via <a href="${workspaceRulesUrl}">workspace rules</a>`;
+        it('MODIFIED_EXPENSE with policyRulesModifiedFields renders billable message and workspace rules link', async () => {
+            const policyID = 'policy123';
+
+            // Set up policy in Onyx so ModifiedExpenseContent self-subscribes to it
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    name: 'Test Policy',
+                });
+            });
 
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
-                policyID: 'policy123',
+                policyID,
                 policyRulesModifiedFields: {billable: true},
             });
 
             const report = {
                 reportID: 'testReport',
                 type: CONST.REPORT.TYPE.CHAT,
-                policyID: 'policy123',
+                policyID,
             };
 
             render(
@@ -791,7 +798,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    modifiedExpenseMessage={modifiedExpenseMessage}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -800,13 +806,18 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
+            // Verify the message content includes the "billable" modification
+            expect(screen.getByText(/billable/)).toBeOnTheScreen();
+
+            // Verify the workspace rules link is rendered and clickable
             const workspaceRulesLink = screen.getByText('workspace rules');
             expect(workspaceRulesLink).toBeOnTheScreen();
 
             fireEvent.press(workspaceRulesLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
+            // Without areRulesEnabled on policy, the link points to the help URL
+            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String));
         });
     });
 
@@ -1062,8 +1073,28 @@ describe('PureReportActionItem', () => {
     });
 
     describe('Reimbursement actions', () => {
-        it('REIMBURSEMENT_DEQUEUED action shows dequeued message', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {});
+        it('REIMBURSEMENT_DEQUEUED with admin cancellation shows admin canceled message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // "canceled the payment"
+            expect(screen.getByText(translateLocal('iou.adminCanceledRequest'))).toBeOnTheScreen();
+        });
+
+        it('REIMBURSEMENT_DEQUEUED without admin cancellation shows amount and submitter', async () => {
+            const ownerAccountID = ACTOR_ACCOUNT_ID;
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {
+                amount: 5000,
+                currency: 'USD',
+            });
+            const report = {
+                reportID: 'testReport',
+                ownerAccountID,
+            };
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -1071,7 +1102,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    report={undefined}
+                                    report={report}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1083,7 +1114,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    reimbursementDeQueuedOrCanceledActionMessage="Payment canceled"
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1092,7 +1122,8 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('Payment canceled')).toBeOnTheScreen();
+            // "canceled the $50.00 payment, because test@test.com did not enable their Expensify Wallet within 30 days"
+            expect(screen.getByText(/canceled the \$50\.00 payment/)).toBeOnTheScreen();
         });
     });
 

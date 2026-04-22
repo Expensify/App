@@ -455,13 +455,13 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policyID: string,
+    policyIDOrPolicy: string | OnyxEntry<Policy>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
-    policy: OnyxEntry<Policy> = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
     currentUserAccountID: number = deprecatedCurrentUserAccountID,
 ): boolean {
+    const policy = typeof policyIDOrPolicy === 'string' ? deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDOrPolicy}`] : policyIDOrPolicy;
     const currentDate = new Date();
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).

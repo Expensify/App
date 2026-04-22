@@ -4282,6 +4282,9 @@ ${amount} voor ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
+            travelInvoicing: 'Expensify Travel-tegoed exporteren naar',
+            travelInvoicingVendor: 'Reisaanbieder',
+            travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
         },
         receiptPartners: {
@@ -4566,9 +4569,6 @@ ${amount} voor ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd zodra ze zijn betaald',
                 },
             },
-            travelInvoicing: 'Expensify Travel-te betalen exporteren naar',
-            travelInvoicingVendor: 'Reisleverancier',
-            travelInvoicingPayableAccount: 'Reiskosten crediteurenrekening',
         },
         workspaceList: {
             joinNow: 'Nu lid worden',
@@ -4886,9 +4886,6 @@ ${amount} voor ${merchant} - ${date}`,
             noAccountsFoundDescription: 'Voeg het account toe in NetSuite en synchroniseer de verbinding opnieuw',
             noVendorsFound: 'Geen leveranciers gevonden',
             noVendorsFoundDescription: 'Voeg leveranciers toe in NetSuite en synchroniseer de verbinding opnieuw',
-            travelInvoicing: 'Expensify Travel-tegoed exporteren naar',
-            travelInvoicingVendor: 'Reisaanbieder',
-            travelInvoicingPayableAccount: 'Rekening te betalen reizen',
             noItemsFound: 'Geen factuurregels gevonden',
             noItemsFoundDescription: 'Voeg factuurregels toe in NetSuite en synchroniseer de verbinding opnieuw',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
@@ -6612,6 +6609,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 upgradeWorkspaceWarning: `Kan werkruimte niet upgraden`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Je bedrijf heeft het aanmaken van werkruimtes beperkt. Neem contact op met een admin voor hulp.',
             },
+            hr: {
+                title: 'HR-integraties',
+                description:
+                    'Koppel je HR-provider om automatisch werknemers te synchroniseren en goedkeuringsworkflows te beheren. Houd je teamoverzicht en rapportagestructuur up-to-date zonder handmatig werk.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>HR-integraties zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7820,7 +7824,6 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Weet je zeker dat je nog een rapport wilt maken in ${workspaceName}? Je kunt je lege rapporten openen in`,
-            emptyReportConfirmationPromptLink: 'Rapporten',
             emptyReportConfirmationDontShowAgain: 'Dit niet meer tonen',
             genericWorkspaceName: 'deze workspace',
         },
@@ -7879,6 +7882,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 takeControl: `nam de controle over`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `er trad een probleem op bij het synchroniseren met ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Los het probleem op in de <a href="${workspaceAccountingLink}">werkruimte-instellingen</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} keer herhaald.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `De verbinding met ${feedName} is verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om kaartimports te herstellen.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

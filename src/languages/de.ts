@@ -4298,7 +4298,10 @@ ${amount} für ${merchant} – ${date}`,
             budgetFrequency: {monthly: 'monatlich', yearly: 'jährlich'},
             budgetFrequencyUnit: {monthly: 'Monat', yearly: 'Jahr'},
             budgetTypeForNotificationMessage: {tag: 'Tag', category: 'Kategorie'},
-            deepDiveExpensifyCard: `<muted-text-label>Transaktionen der Expensify Karte werden automatisch in ein „Expensify Karte Verbindlichkeitskonto“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wird.</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Transaktionen der Expensify Karte werden automatisch in ein „Expensify Karte Verbindlichkeitskonto” exportiert, das mit <a href=”${CONST.DEEP_DIVE_EXPENSIFY_CARD}”>unserer Integration</a> erstellt wird.</muted-text-label>`,
+            travelInvoicing: 'Expensify Travel-Verbindlichkeiten exportieren nach',
+            travelInvoicingVendor: 'Reiseanbieter',
+            travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
         },
         receiptPartners: {
@@ -4589,9 +4592,6 @@ ${amount} für ${merchant} – ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
-            travelInvoicing: 'Expensify Travel-Verbindlichkeiten exportieren an',
-            travelInvoicingVendor: 'Reiseanbieter',
-            travelInvoicingPayableAccount: 'Verbindlichkeitenkonto Reisen',
         },
         workspaceList: {
             joinNow: 'Jetzt beitreten',
@@ -4909,9 +4909,6 @@ ${amount} für ${merchant} – ${date}`,
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in NetSuite hinzu und synchronisieren Sie die Verbindung erneut.',
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in NetSuite hinzu und synchronisieren Sie die Verbindung erneut',
-            travelInvoicing: 'Expensify Travel-Verbindlichkeiten exportieren an',
-            travelInvoicingVendor: 'Reiseanbieter',
-            travelInvoicingPayableAccount: 'Reisekreditorenkonto',
             noItemsFound: 'Keine Rechnungspositionen gefunden',
             noItemsFoundDescription: 'Bitte fügen Sie Rechnungsposten in NetSuite hinzu und synchronisieren Sie die Verbindung erneut',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
@@ -6647,6 +6644,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Ihr Unternehmen hat das Erstellen von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an eine*n Admin, um Hilfe zu erhalten.',
             },
+            hr: {
+                title: 'HR-Integrationen',
+                description:
+                    'Verbinden Sie Ihren HR-Anbieter, um Mitarbeitende automatisch zu synchronisieren und Genehmigungsworkflows zu verwalten. Halten Sie Ihr Teamverzeichnis und Ihre Berichtsstruktur ohne manuellen Aufwand auf dem neuesten Stand.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>HR-Integrationen sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7856,7 +7860,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             emptyReportConfirmationTitle: 'Sie haben bereits einen leeren Bericht',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Möchtest du wirklich einen weiteren Bericht in ${workspaceName} erstellen? Du kannst auf deine leeren Berichte zugreifen in`,
-            emptyReportConfirmationPromptLink: 'Berichte',
             emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },
@@ -7915,6 +7918,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 takeControl: `Kontrolle übernommen`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `Beim Synchronisieren mit ${label}${errorMessage ? ` ("${errorMessage}")` : ''} ist ein Problem aufgetreten. Bitte behebe das Problem in den <a href="${workspaceAccountingLink}">Workspace-Einstellungen</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} Mal wiederholt.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Die Verbindung für ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

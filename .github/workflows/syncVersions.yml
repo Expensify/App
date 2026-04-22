@@ -10,7 +10,7 @@ on:
 
 jobs:
   syncVersions:
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Check out
         # v6

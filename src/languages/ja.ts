@@ -4253,6 +4253,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
+            travelInvoicing: 'Expensify Travel 買掛金のエクスポート先',
+            travelInvoicingVendor: '出張ベンダー',
+            travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
         },
         receiptPartners: {
@@ -4534,9 +4537,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
-            travelInvoicing: 'Expensify Travel 買掛金のエクスポート先',
-            travelInvoicingVendor: '出張業者',
-            travelInvoicingPayableAccount: '旅費未払勘定',
         },
         workspaceList: {
             joinNow: '今すぐ参加',
@@ -4847,9 +4847,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noAccountsFoundDescription: 'NetSuite にアカウントを追加して、接続をもう一度同期してください',
             noVendorsFound: 'ベンダーが見つかりません',
             noVendorsFoundDescription: 'NetSuite に仕入先を追加して、接続をもう一度同期してください',
-            travelInvoicing: 'Expensify Travel の買掛金を書き出す送信先',
-            travelInvoicingVendor: '旅行代理店',
-            travelInvoicingPayableAccount: '旅費未払勘定',
             noItemsFound: '請求書項目が見つかりません',
             noItemsFoundDescription: 'NetSuite で請求書アイテムを追加し、接続をもう一度同期してください',
             noSubsidiariesFound: '子会社が見つかりません',
@@ -6559,6 +6556,12 @@ ${reportName}
                 upgradeWorkspaceWarning: `ワークスペースをアップグレードできません`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'あなたの会社ではワークスペースの作成が制限されています。管理者に連絡してサポートを受けてください。',
             },
+            hr: {
+                title: '人事連携',
+                description: '人事システムを連携して、従業員情報を自動で同期し、承認ワークフローを管理できます。チームの名簿とレポートラインを手作業なしで最新の状態に保てます。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>人事システム連携は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり、1か月ごと。`}からのControlプランでのみご利用いただけます</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7746,7 +7749,6 @@ ${reportName}
             chooseWorkspace: 'このレポート用のワークスペースを選択してください。',
             emptyReportConfirmationTitle: 'すでに空のレポートがあります',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成してもよろしいですか？空のレポートには次からアクセスできます`,
-            emptyReportConfirmationPromptLink: 'レポート',
             emptyReportConfirmationDontShowAgain: '今後このメッセージを表示しない',
             genericWorkspaceName: 'このワークスペース',
         },
@@ -7805,6 +7807,7 @@ ${reportName}
                 takeControl: `管理権限を取得しました`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `${label}${errorMessage ? ` ("${errorMessage}")` : ''}との同期中に問題が発生しました。<a href="${workspaceAccountingLink}">ワークスペース設定</a>で問題を解決してください。`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `（${count} 回繰り返し）`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

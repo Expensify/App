@@ -1231,6 +1231,19 @@ describe('TransactionUtils', () => {
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
             expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
         });
+
+        it('should normalize login-only attendees from comment', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [{displayName: '   ', login: '  login-only@example.com  ', avatarUrl: ''}],
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
+        });
     });
 
     describe('getAttendees', () => {
@@ -1361,6 +1374,20 @@ describe('TransactionUtils', () => {
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+        });
+
+        it('should normalize modified attendees with undefined email', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+                modifiedAttendees: [{displayName: '   ', login: '  edited@example.com  ', avatarUrl: ''}],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
         });
     });
 

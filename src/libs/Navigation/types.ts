@@ -341,11 +341,9 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
+    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT]: {
         policyID: string;
         categoryName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
         policyID: string;
@@ -765,9 +763,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_VENDOR_SELECT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
@@ -1017,12 +1012,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_RECEIVABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_INVOICE_ITEM_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TAX_POSTING_ACCOUNT_SELECT]: {
@@ -2748,6 +2741,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.HR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -3209,7 +3205,7 @@ type ScheduleCallParamList = {
 };
 
 type ReportChangeApproverParamList = {
-    [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: {
+    [SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT]: {
         reportID: string;
     };
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {
