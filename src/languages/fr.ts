@@ -7901,7 +7901,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             emptyReportConfirmationTitle: 'Vous avez déjà une note de frais vide',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Voulez-vous vraiment créer une autre note de frais dans ${workspaceName} ? Vous pouvez accéder à vos notes de frais vides dans`,
-            emptyReportConfirmationPromptLink: 'Notes de frais',
             emptyReportConfirmationDontShowAgain: 'Ne plus m’afficher ceci',
             genericWorkspaceName: 'cet espace de travail',
         },
@@ -7960,6 +7959,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 takeControl: `a pris le contrôle`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `un problème est survenu lors de la synchronisation avec ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Veuillez corriger le problème dans les <a href="${workspaceAccountingLink}">paramètres de l’espace de travail</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Répété ${count} fois.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

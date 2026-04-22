@@ -22,7 +22,6 @@ type NetSuiteSectionType = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-const vendorSetting = [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR];
 const payableAccountSetting = [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
 
 function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
@@ -32,24 +31,10 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const config = policy?.connections?.netsuite?.options?.config;
 
-    const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const travelVendor = vendors?.find((vendor) => vendor.id === config?.travelInvoicingVendorID);
+    const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
     const travelPayableAccount = payableList?.find((account) => account.id === config?.travelInvoicingPayableAccountID);
 
     const sections: NetSuiteSectionType[] = [
-        {
-            title: travelVendor?.name,
-            description: translate('workspace.common.travelInvoicingVendor'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_VENDOR_SELECT.getRoute(policyID));
-            },
-            subscribedSettings: vendorSetting,
-            pendingAction: settingsPendingAction(vendorSetting, config?.pendingFields),
-            brickRoadIndicator: areSettingsInErrorFields(vendorSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
         {
             title: travelPayableAccount?.name,
             description: translate('workspace.common.travelInvoicingPayableAccount'),

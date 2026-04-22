@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -6,24 +7,26 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateSageIntacctExportDate} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 };
 
-function DynamicSageIntacctExportDatePage({policy}: WithPolicyProps) {
+function SageIntacctDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
@@ -36,11 +39,12 @@ function DynamicSageIntacctExportDatePage({policy}: WithPolicyProps) {
         keyForList: dateType,
         isSelected: exportConfig?.exportDate === dateType,
     }));
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.path);
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE>>();
+    const backTo = route.params?.backTo;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
+        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)));
+    }, [policyID, backTo]);
 
     const headerContent = useMemo(
         () => (
@@ -63,7 +67,7 @@ function DynamicSageIntacctExportDatePage({policy}: WithPolicyProps) {
 
     return (
         <SelectionScreen
-            displayName="DynamicSageIntacctExportDatePage"
+            displayName="SageIntacctDatePage"
             title="workspace.sageIntacct.exportDate.label"
             headerContent={headerContent}
             data={data}
@@ -83,4 +87,4 @@ function DynamicSageIntacctExportDatePage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicyConnections(DynamicSageIntacctExportDatePage);
+export default withPolicyConnections(SageIntacctDatePage);

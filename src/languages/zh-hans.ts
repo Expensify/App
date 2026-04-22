@@ -7638,7 +7638,6 @@ ${reportName}
             chooseWorkspace: '为此报表选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一份空报表了',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `您确定要在 ${workspaceName} 中创建另一份报表吗？您可以在以下位置访问您的空报表`,
-            emptyReportConfirmationPromptLink: '报表',
             emptyReportConfirmationDontShowAgain: '不再显示此内容',
             genericWorkspaceName: '此工作区',
         },
@@ -7697,6 +7696,7 @@ ${reportName}
                 takeControl: `取得控制权`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `与 ${label}${errorMessage ? ` ("${errorMessage}")` : ''} 同步时出现问题。请在<a href="${workspaceAccountingLink}">工作区设置</a>中修复此问题。`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `（重复 ${count} 次。）`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

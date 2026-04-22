@@ -784,9 +784,10 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            // Without the beta, tasks SHOULD be generated (old behavior)
+            // Without the beta, tasks SHOULD be generated (old behavior) — uses SMALL (not MICRO)
+            // because MICRO + MANAGE_TEAM users bypass the beta gate and get followups directly
             expect(result?.guidedSetupData).toHaveLength(3);
             const taskReportIDs =
                 result?.guidedSetupData.reduce<string[]>((acc, item) => {

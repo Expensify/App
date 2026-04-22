@@ -7867,7 +7867,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             emptyReportConfirmationTitle: 'Hai già un report vuoto',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sei sicuro di voler creare un altro report in ${workspaceName}? Puoi accedere ai tuoi report vuoti in`,
-            emptyReportConfirmationPromptLink: 'Report',
             emptyReportConfirmationDontShowAgain: 'Non mostrarmelo più',
             genericWorkspaceName: 'questo spazio di lavoro',
         },
@@ -7926,6 +7925,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 takeControl: `ha preso il controllo`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `si è verificato un problema di sincronizzazione con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Risolvi il problema nelle <a href="${workspaceAccountingLink}">impostazioni dello spazio di lavoro</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Ripetuto ${count} volte.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connessione ${feedName} è interrotta. Per ripristinare le importazioni della carta, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

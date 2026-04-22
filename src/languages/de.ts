@@ -7879,7 +7879,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             emptyReportConfirmationTitle: 'Sie haben bereits einen leeren Bericht',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Möchtest du wirklich einen weiteren Bericht in ${workspaceName} erstellen? Du kannst auf deine leeren Berichte zugreifen in`,
-            emptyReportConfirmationPromptLink: 'Berichte',
             emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },
@@ -7938,6 +7937,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 takeControl: `Kontrolle übernommen`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `Beim Synchronisieren mit ${label}${errorMessage ? ` ("${errorMessage}")` : ''} ist ein Problem aufgetreten. Bitte behebe das Problem in den <a href="${workspaceAccountingLink}">Workspace-Einstellungen</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} Mal wiederholt.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Die Verbindung für ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>

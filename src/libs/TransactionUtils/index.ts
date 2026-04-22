@@ -10,6 +10,7 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
+import {normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -1187,7 +1188,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
  */
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
-    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+    const attendees = normalizeAttendees(Array.isArray(rawAttendees) ? rawAttendees : []);
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1202,7 +1203,7 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
-    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+    const attendees = normalizeAttendees(Array.isArray(rawAttendees) ? rawAttendees : []);
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
@@ -2106,9 +2107,13 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
     if (isDistanceRequest(transaction)) {
-        const customUnitRateID = getRateID(transaction) ?? '';
+        // When editing a distance rate, the draft transaction's customUnitRateID
+        // does not reflect the newly selected rate until setMoneyRequestDistanceRate is called, and the draft transaction's is updated.
+        // Therefore, to correctly determine the tax code for the selected rate, we must use the newly selected distance rate's customUnitRateID (newCustomUnitRateID)
+        // instead of relying on the transaction's current customUnitRateID.
+        const customUnitRateID = newCustomUnitRateID ?? getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         const customUnit = getDistanceRateCustomUnit(policy);
         if (!customUnitRate?.attributes?.taxRateExternalID && customUnit?.attributes?.taxEnabled) {
