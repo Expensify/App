@@ -49,6 +49,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     /**
      * Delete transactions by IDs
@@ -136,8 +137,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 }
 
                 const remainingSplitExpenses = childTransactions.map((childTransaction) => {
-                    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-                    return initSplitExpenseItemData(childTransaction, transactionReport);
+                    // For selfDM splits, childTransaction.reportID is UNREPORTED_REPORT_ID ('0'), which does not map to a
+                    // real report. Resolve it to the actual selfDM report ID (same approach as initSplitExpense) so that
+                    // updateSplitTransactions can route the restored transaction to the correct report instead of ending
+                    // up with an undefined reportID downstream.
+                    const resolvedReportID = childTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : childTransaction?.reportID;
+                    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedReportID}`];
+                    return initSplitExpenseItemData(childTransaction, transactionReport, {reportID: resolvedReportID});
                 });
 
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -233,6 +239,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            selfDMReportID,
         ],
     );
 

@@ -22,8 +22,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
@@ -112,25 +112,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
-        ? policy
-        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
-
-    // When currentPolicy is undefined (e.g. viewing from self-DM), find the correct policy
-    // by searching all policies for one that contains the transaction's customUnitID.
-    // If customUnitID is not yet available (e.g. optimistic transaction before server response),
-    // fall back to searching by customUnitRateID.
-    // Skip both lookups when the rate is P2P — the expense has no workspace policy to resolve.
-    const distanceCustomUnitID = transaction?.comment?.customUnit?.customUnitID;
-    const distanceCustomUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
-    const isP2PRate = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-    const policyByCustomUnitID = !isP2PRate && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
-    const policyByCustomUnitRateID =
-        !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
-            ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
-            : undefined;
-    const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
+    const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
 
     const normalizedBackTo = backTo?.replace(/^\//, '');
     const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
@@ -158,9 +140,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable =
         report &&
         transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy, parentReport);
+        isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, effectivePolicy, parentReport);
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy, true) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
     const transactionDetailsAmount = useMemo(() => {
         if (typeof transactionDetails?.amount !== 'number') {
             return 0;

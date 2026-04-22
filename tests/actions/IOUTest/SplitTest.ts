@@ -5651,7 +5651,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -5734,7 +5739,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate, policy);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -5780,7 +5790,12 @@ describe('resetSplitExpensesByDateRange', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         };
 
-        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        const draftTransactionInput: Transaction = {
+            ...transaction,
+            comment: {...transaction.comment, originalTransactionID: transactionID},
+        };
+
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -5792,7 +5807,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
-        resetSplitExpensesByDateRange(undefined, undefined, '2024-01-01', '2024-01-03');
+        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03');
         await waitForBatchedUpdates();
     });
 });

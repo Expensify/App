@@ -219,10 +219,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         await waitForBatchedUpdates();
 
         const selfDMReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
-        const splitIouActions = Object.values(selfDMReportActions ?? {}).filter((action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => isMoneyRequestAction(action));
+        const newSplitIouActions = Object.values(selfDMReportActions ?? {}).filter(
+            (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => isMoneyRequestAction(action) && action.reportActionID !== trackIouAction.reportActionID,
+        );
 
-        // Both new split IOU actions should be stored in the selfDM report
-        expect(splitIouActions.length).toBeGreaterThanOrEqual(2);
+        // Exactly two new split IOU actions (one per split expense) should be added to the selfDM report
+        expect(newSplitIouActions).toHaveLength(2);
     });
 
     it('new split transactions retain UNREPORTED_REPORT_ID when splitting a selfDM tracked expense', async () => {

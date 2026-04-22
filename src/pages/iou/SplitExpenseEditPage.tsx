@@ -14,13 +14,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
-import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
-import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -35,7 +33,7 @@ import {getTagLists} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -67,57 +65,28 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
-    const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
 
     const report = getReportOrDraftReport(reportID);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
-    const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
-        ? policy
-        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const effectivePolicyID = effectivePolicy?.id;
 
-    // When currentPolicy is undefined (e.g. viewing from self-DM), find the correct policy
-    // by searching all policies for one that contains the transaction's customUnitID.
-    // Fall back to the original transaction's customUnitID when the edit draft's customUnit
-    // was built without it (e.g. optimistic transaction before server response).
-    // If customUnitID is still not available, fall back to searching by customUnitRateID.
-    // Skip both lookups when the rate is P2P — the expense has no workspace policy to resolve.
-    const distanceCustomUnitID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitID ?? transaction?.comment?.customUnit?.customUnitID;
-    const distanceCustomUnitRateID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitRateID;
-    const isP2PRate = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-    const policyByCustomUnitID = !isP2PRate && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
-    const policyByCustomUnitRateID =
-        !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
-            ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
-            : undefined;
-    const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${effectivePolicyID}`);
 
-    const reportPolicyID = getIOURequestPolicyID(splitTransaction, currentReport);
-    const {policy: categoryPolicy} = usePolicyForTransaction({
-        transaction: splitTransaction,
-        reportPolicyID,
-        action: CONST.IOU.ACTION.EDIT,
-        iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-    });
-    const categoryPolicyID = categoryPolicy?.id;
-
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${categoryPolicyID}`);
-
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${categoryPolicyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${effectivePolicyID}`);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
-            openPolicyCategoriesPage(categoryPolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyCategoriesPage(effectivePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
         if (!policyTags) {
-            openPolicyTagsPage(categoryPolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyTagsPage(effectivePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
-    }, [categoryPolicyID, policyCategories, policyTags]);
+    }, [effectivePolicyID, policyCategories, policyTags]);
 
     // Fetch categories and tags on mount to ensure the screen has the latest data,
     // especially when the edit-split flow is opened from the search screen where these
@@ -134,32 +103,31 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const shouldShowCategory = !!categoryPolicy?.areCategoriesEnabled && !!policyCategories;
+    const shouldShowCategory = !!effectivePolicy?.areCategoriesEnabled && !!policyCategories;
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy, parentReport);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport);
 
-    // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
-    // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
-    const isSelfDMSplit = !effectivePolicy;
+    const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
+    const isSelfDMSplit = isSelfDM(draftTransactionReport);
 
-    const isCategoryRequired = !!categoryPolicy?.requiresCategory && !isSelfDMSplit;
+    const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
     const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, categoryPolicy?.areRulesEnabled);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, effectivePolicy?.areRulesEnabled);
 
-    const shouldShowTags = !!categoryPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTags = !!effectivePolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
         () =>
             getTagVisibility({
                 shouldShowTags,
-                policy: categoryPolicy,
+                policy: effectivePolicy,
                 policyTags,
                 transaction: splitExpenseDraftTransaction,
             }),
-        [shouldShowTags, categoryPolicy, policyTags, splitExpenseDraftTransaction],
+        [shouldShowTags, effectivePolicy, policyTags, splitExpenseDraftTransaction],
     );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];

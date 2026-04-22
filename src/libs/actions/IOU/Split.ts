@@ -1837,11 +1837,11 @@ function updateSplitTransactions({
                 commentActions: allCommentActionsFromOriginalTransactionThread,
                 isSourceTransactionOnHold: isTransactionOnHold,
             });
-            // Only count visible (ADD_COMMENT) actions — HOLD actions are system actions and not visible.
-            // Fall back to firstIOU.childVisibleActionCount when thread actions are unavailable in Onyx
-            // (e.g., cleared before the split completes).
-            const copiedActionCount = allCommentActionsFromOriginalTransactionThread.length || (firstIOU?.childVisibleActionCount ?? 0);
-            updatedIOUAction = updateParentActions(iouAction, copiedActionCount);
+            // Use only the count of comments we actually copied into the split thread so the parent
+            // action's childVisibleActionCount stays in sync with the thread contents. Falling back
+            // to firstIOU.childVisibleActionCount when comments aren't loaded yet would inflate the
+            // count without any corresponding comments, leaving the thread visually empty.
+            updatedIOUAction = updateParentActions(iouAction, allCommentActionsFromOriginalTransactionThread.length);
         }
 
         // When isReverseSplitOperation is true, we move all comments from the remaining transaction to the original transaction
@@ -1922,20 +1922,6 @@ function updateSplitTransactions({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
                 value: {[iouAction.reportActionID]: updatedIOUAction},
-            });
-            // Preserve the comment counter after the API responds, because the backend does not support
-            // copying comments to split transactions and returns childVisibleActionCount: 0 for the new action.
-            successDataComments.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                value: {
-                    [iouAction.reportActionID]: {
-                        childVisibleActionCount: updatedIOUAction.childVisibleActionCount,
-                        childCommenterCount: updatedIOUAction.childCommenterCount,
-                        childLastVisibleActionCreated: updatedIOUAction.childLastVisibleActionCreated,
-                        childOldestFourAccountIDs: updatedIOUAction.childOldestFourAccountIDs,
-                    },
-                },
             });
             failureDataComments.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -2270,6 +2256,18 @@ function updateSplitTransactions({
                         ...firstIOU,
                         pendingAction: null,
                     },
+                    // Revert the optimistic "resolved" state on the Concierge actionable whisper so that if
+                    // the split API call fails, the whisper reappears alongside the restored original expense.
+                    ...(whisperActionID && {
+                        [whisperActionID]: {
+                            originalMessage: {
+                                resolution:
+                                    (whisperAction && isActionOfType(whisperAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER)
+                                        ? getOriginalMessage(whisperAction)?.resolution
+                                        : null) ?? null,
+                            },
+                        },
+                    }),
                 },
             });
             onyxData.failureData?.push(...failureData);
@@ -2538,12 +2536,21 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const isSelfDMSplit = !isSearchPageTopmostFullScreenRoute && isSelfDM(params.transactionReport) && !!params.transactionReport?.reportID;
 
-    // For selfDM splits, navigate to the selfDM report BEFORE the data update and delay
+    // For selfDM splits, navigate back to the selfDM report BEFORE the data update and delay
     // updateSplitTransactions until after the navigation animation completes. This prevents
     // the brief "Not Found" flash caused by the original transaction being deleted while
     // the transaction thread is still visible in the central pane.
+    //
+    // We dismiss the modal and then goBack to the selfDM report so that every screen pushed
+    // after it (split flow modals) is popped off the stack. Otherwise
+    // the back action lands on a stale screen pointing at the deleted original transaction
+    // and shows the FullPageNotFoundView.
     if (isSelfDMSplit && params.transactionReport?.reportID) {
-        Navigation.dismissModalWithReport({reportID: params.transactionReport.reportID});
+        const selfDMReportRoute = ROUTES.REPORT_WITH_ID.getRoute(params.transactionReport.reportID);
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack(selfDMReportRoute);
+        });
         requestAnimationFrame(() => {
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         });
@@ -3068,18 +3075,20 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
  * The original amount is distributed proportionally across all dates.
  *
  * @param transaction - The transaction containing split expenses
+ * @param draftTransaction - The split draft holding the resolved reportID (self-DM/workspace)
  * @param startDate - Start date in format 'YYYY-MM-DD'
  * @param endDate - End date in format 'YYYY-MM-DD'
  * @param policy - The policy (for distance transactions)
  */
 function resetSplitExpensesByDateRange(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
     startDate: string,
     endDate: string,
     policy?: OnyxEntry<OnyxTypes.Policy>,
 ) {
-    if (!transaction || !startDate || !endDate) {
+    if (!transaction || !draftTransaction || !startDate || !endDate) {
         return;
     }
 
@@ -3105,7 +3114,7 @@ function resetSplitExpensesByDateRange(
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
             transactionID: NumberUtils.rand64(),
-            reportID: transaction?.reportID,
+            reportID: draftTransaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),
         });
 
