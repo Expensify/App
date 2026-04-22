@@ -47,7 +47,7 @@ on:
 jobs:
   verify:
     name: Verify React Native Patches
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-4vcpu-ubuntu-2404' || 'ubuntu-latest' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
       hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
