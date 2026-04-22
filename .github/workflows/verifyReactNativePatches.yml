@@ -65,8 +65,8 @@ jobs:
         if: ${{ inputs.ref_after != '' }}
         id: getOldPatchesHash
         run: |
-          HYBRID_HERMES_FLAG=$(./scripts/artifacts-utils/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
-          STANDALONE_HERMES_FLAG=$(./scripts/artifacts-utils/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
+          HYBRID_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
+          STANDALONE_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
           echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
           echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
 
@@ -85,8 +85,8 @@ jobs:
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-          HYBRID_HERMES_FLAG=$(./scripts/artifacts-utils/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
-          STANDALONE_HERMES_FLAG=$(./scripts/artifacts-utils/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
+          HYBRID_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
+          STANDALONE_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
           echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
           echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
 
