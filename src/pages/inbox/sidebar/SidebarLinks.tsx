@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,6 +37,7 @@ type SidebarLinksProps = {
 };
 
 function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+    const {isProduction} = useEnvironment();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -56,7 +58,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            const actionTargetReportActionID = option.actionTargetReportActionID;
+            const actionTargetReportActionID = !isProduction ? option.actionTargetReportActionID : undefined;
 
             // Prevent opening a new Report page if the user quickly taps on another conversation
             // before the first one is displayed.
@@ -72,7 +74,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
         },
-        [shouldUseNarrowLayout, isActiveReport],
+        [shouldUseNarrowLayout, isActiveReport, isProduction],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
