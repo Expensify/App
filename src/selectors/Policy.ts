@@ -184,6 +184,26 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
     return lastWorkspaceNumber;
 }
 
+/**
+ * Strips heavyweight nested objects (customUnits, taxRates, fieldList, rules) from policy objects.
+ * These fields can be several MB for large workspaces but are never accessed by the Search data
+ * pipeline (getSections, getReportSections, violation checks, avatar resolution).
+ */
+const searchPoliciesSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        const {customUnits, taxRates, fieldList, rules, ...lightweight} = policy;
+        result[key] = lightweight as Policy;
+    }
+    return result;
+};
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -205,4 +225,5 @@ export {
     hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToQBDSelector,
     lastWorkspaceNumberSelector,
+    searchPoliciesSelector,
 };
