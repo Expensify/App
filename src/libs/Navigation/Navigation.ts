@@ -774,7 +774,7 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
 ) => {
     const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
@@ -782,7 +782,7 @@ const dismissModalWithReport = (
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
             options?.onBeforeNavigate?.(false);
-            dismissToSuperWideRHP();
+            dismissToSuperWideRHP({afterTransition: options?.afterTransition});
             return;
         }
 
@@ -791,19 +791,19 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
             return;
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         if (getIsNarrowLayout()) {
-            navigate(reportRoute, {forceReplace: true});
+            navigate(reportRoute, {forceReplace: true, afterTransition: options?.afterTransition});
             return;
         }
 
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute);
+                navigate(reportRoute, {afterTransition: options?.afterTransition});
             },
         });
     };
