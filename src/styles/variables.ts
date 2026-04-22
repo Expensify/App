@@ -143,6 +143,7 @@ export default {
     inputPaddingTop: getValueUsingPixelRatio(15, 21),
     inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
+    editableCellHeight: 32,
     inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
     inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
@@ -338,12 +339,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -176,
+    minimalTopBarOffset: -126,
+    minimalTopBarWithFiltersOffset: -170,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 176,
+    searchListContentMarginTop: 126,
+    searchListContentWithFiltersMarginTop: 170,
     searchTopBarZIndex: 9,
-    searchTopBarHeight: 52,
-    searchRouterInputMargin: 52,
 
     scrollToNewTransactionOffset: 300,
 
@@ -373,6 +374,7 @@ export default {
     w44: 44,
     w46: 46,
     w52: 52,
+    w62: 62,
     w68: 68,
     w72: 72,
     w80: 80,

@@ -3,7 +3,7 @@
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {bulkDuplicateExpenses, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
@@ -424,19 +424,26 @@ describe('actions/Duplicate', () => {
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
+                personalDetails: allPersonalDetails,
+                participants,
                 betas: undefined,
-                participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
             });
             openReport({
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
+                personalDetails: allPersonalDetails,
+                participants,
                 betas: undefined,
-                participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
             });
@@ -2362,6 +2369,101 @@ describe('actions/Duplicate', () => {
             for (const call of requestMoneyCalls) {
                 expect(call[1]).not.toEqual(expect.objectContaining({shouldPlaySound: true}));
             }
+        });
+    });
+
+    describe('bulkDuplicateExpenses', () => {
+        let writeSpy: jest.SpyInstance;
+
+        const mockPolicy = createRandomPolicy(1);
+        const fakePolicyCategories = createRandomPolicyCategories(3);
+        const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            return Onyx.clear();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('should create a single IOU report for multiple bulk-duplicated expenses', async () => {
+            const tx1: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_1',
+                amount: -500,
+                currency: 'USD',
+            };
+            const tx2: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'bulk_2',
+                amount: -300,
+                currency: 'USD',
+            };
+            const tx3: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID: 'bulk_3',
+                amount: -200,
+                currency: 'USD',
+            };
+            delete (tx1 as Partial<Transaction>).comment;
+            delete (tx2 as Partial<Transaction>).comment;
+            delete (tx3 as Partial<Transaction>).comment;
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_2`]: tx2,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_3`]: tx3,
+            };
+
+            bulkDuplicateExpenses({
+                transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                draftTransactionIDs: [],
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints: [],
+            });
+
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY);
+            expect(requestMoneyCalls).toHaveLength(3);
+
+            const iouReportIDs = new Set(
+                requestMoneyCalls.map((call: unknown[]) => {
+                    const params = call.at(1) as Record<string, unknown>;
+                    return params.iouReportID;
+                }),
+            );
+            expect(iouReportIDs.size).toBe(1);
         });
     });
 });

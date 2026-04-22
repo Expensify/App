@@ -4,12 +4,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {openLink} from '@libs/actions/Link';
+import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
@@ -71,8 +73,8 @@ describe('PureReportActionItem', () => {
 
     beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
@@ -100,7 +102,6 @@ describe('PureReportActionItem', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 personalPolicyID={undefined}
-                                currentUserEmail={undefined}
                                 report={undefined}
                                 parentReportAction={undefined}
                                 action={action}
@@ -113,8 +114,6 @@ describe('PureReportActionItem', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 betas={undefined}
-                                draftTransactionIDs={[]}
-                                userBillingGracePeriodEnds={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -394,7 +393,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -409,8 +407,6 @@ describe('PureReportActionItem', () => {
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -453,7 +449,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -467,8 +462,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -514,7 +507,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -529,8 +521,6 @@ describe('PureReportActionItem', () => {
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -569,7 +559,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -583,8 +572,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -648,7 +635,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -661,8 +647,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -713,7 +697,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -726,8 +709,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -776,19 +757,26 @@ describe('PureReportActionItem', () => {
     });
 
     describe('Modified expense message', () => {
-        it('clicking the workspace rules link opens the workspace rules URL', async () => {
-            const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
-            const modifiedExpenseMessage = `marked the expense as "billable" via <a href="${workspaceRulesUrl}">workspace rules</a>`;
+        it('MODIFIED_EXPENSE with policyRulesModifiedFields renders billable message and workspace rules link', async () => {
+            const policyID = 'policy123';
+
+            // Set up policy in Onyx so ModifiedExpenseContent self-subscribes to it
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    name: 'Test Policy',
+                });
+            });
 
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
-                policyID: 'policy123',
+                policyID,
                 policyRulesModifiedFields: {billable: true},
             });
 
             const report = {
                 reportID: 'testReport',
                 type: CONST.REPORT.TYPE.CHAT,
-                policyID: 'policy123',
+                policyID,
             };
 
             render(
@@ -798,7 +786,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -811,9 +798,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    modifiedExpenseMessage={modifiedExpenseMessage}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -822,13 +806,18 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
+            // Verify the message content includes the "billable" modification
+            expect(screen.getByText(/billable/)).toBeOnTheScreen();
+
+            // Verify the workspace rules link is rendered and clickable
             const workspaceRulesLink = screen.getByText('workspace rules');
             expect(workspaceRulesLink).toBeOnTheScreen();
 
             fireEvent.press(workspaceRulesLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
+            // Without areRulesEnabled on policy, the link points to the help URL
+            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String));
         });
     });
 
@@ -929,11 +918,6 @@ describe('PureReportActionItem', () => {
                 translationKey: 'violations.resolvedDuplicates' as TranslationPaths,
             },
             {
-                testTitle: 'RECEIPT_SCAN_FAILED action',
-                actionName: CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
-                translationKey: 'iou.receiptScanningFailed' as TranslationPaths,
-            },
-            {
                 testTitle: 'UNAPPROVED action',
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
                 translationKey: 'iou.unapproved' as TranslationPaths,
@@ -956,6 +940,29 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal(translationKey))).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action shows message from action data', async () => {
+            // Given a RECEIPT_SCAN_FAILED message with a html message from server.
+            // Then verify server message is rendered.
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
+            action.message = [
+                {
+                    type: 'COMMENT',
+                    html: "the date couldn't be read from this receipt. Please enter it manually.",
+                    text: "the date couldn't be read from this receipt. Please enter it manually.",
+                },
+            ];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText("the date couldn't be read from this receipt. Please enter it manually.")).toBeOnTheScreen();
+
+            // Given an RECEIPT_SCAN_FAILED with no server side message
+            // Then verify generic translation phrase is rendered
+            action.message = [{type: 'COMMENT', html: '', text: ''}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('iou.receiptScanningFailed'))).toBeOnTheScreen();
         });
 
         it('HOLD_COMMENT action renders via ReportActionItemBasicMessage', async () => {
@@ -1066,8 +1073,28 @@ describe('PureReportActionItem', () => {
     });
 
     describe('Reimbursement actions', () => {
-        it('REIMBURSEMENT_DEQUEUED action shows dequeued message', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {});
+        it('REIMBURSEMENT_DEQUEUED with admin cancellation shows admin canceled message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // "canceled the payment"
+            expect(screen.getByText(translateLocal('iou.adminCanceledRequest'))).toBeOnTheScreen();
+        });
+
+        it('REIMBURSEMENT_DEQUEUED without admin cancellation shows amount and submitter', async () => {
+            const ownerAccountID = ACTOR_ACCOUNT_ID;
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {
+                amount: 5000,
+                currency: 'USD',
+            });
+            const report = {
+                reportID: 'testReport',
+                ownerAccountID,
+            };
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -1075,8 +1102,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
-                                    report={undefined}
+                                    report={report}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1088,9 +1114,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
-                                    reimbursementDeQueuedOrCanceledActionMessage="Payment canceled"
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1099,7 +1122,8 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('Payment canceled')).toBeOnTheScreen();
+            // "canceled the $50.00 payment, because test@test.com did not enable their Expensify Wallet within 30 days"
+            expect(screen.getByText(/canceled the \$50\.00 payment/)).toBeOnTheScreen();
         });
     });
 
@@ -1263,7 +1287,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1276,8 +1299,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1363,7 +1384,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport'}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1377,8 +1397,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     isClosedExpenseReportWithNoExpenses
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1399,7 +1417,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1413,8 +1430,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     missingPaymentMethod="bankAccount"
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1437,7 +1452,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1451,8 +1465,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     missingPaymentMethod="wallet"
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1478,7 +1490,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1493,8 +1504,6 @@ describe('PureReportActionItem', () => {
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1520,7 +1529,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1535,8 +1543,6 @@ describe('PureReportActionItem', () => {
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1559,13 +1565,12 @@ describe('PureReportActionItem', () => {
                 currency: 'USD',
             });
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrencyListContextProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1580,8 +1585,6 @@ describe('PureReportActionItem', () => {
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{55555: {accountData: {accountNumber: '000012345'}} as never}}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1605,13 +1608,12 @@ describe('PureReportActionItem', () => {
                 currency: 'USD',
             });
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrencyListContextProvider]}>
                     <OptionsListContextProvider>
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1626,8 +1628,6 @@ describe('PureReportActionItem', () => {
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{77777: {accountData: {accountNumber: '000067890'}} as never}}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1708,7 +1708,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1721,8 +1720,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1754,7 +1751,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -1767,8 +1763,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2283,7 +2277,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
                                     parentReportAction={undefined}
                                     action={action}
@@ -2296,8 +2289,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2342,7 +2333,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -2355,8 +2345,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                     reportNameValuePairsOrigin="harvest"
                                     reportNameValuePairsOriginalID="origReport123"
                                 />
@@ -2399,7 +2387,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
                                     report={undefined}
                                     parentReportAction={undefined}
                                     action={action}
@@ -2413,8 +2400,6 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2424,6 +2409,41 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal('travel.tripSummary'))).toBeOnTheScreen();
+        });
+    });
+
+    describe('ChatMessageContent moderation and actionable buttons', () => {
+        it('flagged message shows "Reveal message" button when moderation decision is hidden', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.message = [{type: 'COMMENT', html: 'bad message', text: 'bad message', moderationDecision: {decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN}}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Reveal message')).toBeOnTheScreen();
+        });
+
+        it('clicking "Reveal message" toggles to "Hide message"', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.message = [{type: 'COMMENT', html: 'bad message', text: 'bad message', moderationDecision: {decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN}}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Reveal message'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Hide message')).toBeOnTheScreen();
+        });
+
+        it('actionable track expense whisper renders track expense buttons', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER, {
+                transactionID: 'tx123',
+            });
+            action.message = [{type: 'COMMENT', html: 'Track this expense', text: 'Track this expense'}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
         });
     });
 });

@@ -53,9 +53,17 @@ import {
 import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasCustomUnitOutOfPolicyViolation, hasTransactionBeenRejected, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
+import {
+    hasCustomUnitOutOfPolicyViolation,
+    hasTransactionBeenRejected,
+    isDeletedTransaction,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {initBulkEditDraftTransaction} from '@userActions/IOU';
+import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -70,7 +78,6 @@ import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -79,6 +86,7 @@ import usePermissions from './usePermissions';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
+import useUndeleteTransactions from './useUndeleteTransactions';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -97,8 +105,7 @@ function getRestrictedPolicyID(
         .map((item) => item.policyID)
         .find(
             (policyID): policyID is string =>
-                !!policyID &&
-                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+                !!policyID && shouldRestrictUserBillableActions(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed),
         );
 }
 
@@ -166,11 +173,17 @@ function shouldShowBulkDuplicateOption({
 
         const report = reportID ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : undefined;
 
-        if (isPerDiemRequest(transaction) && report?.policyID && defaultExpensePolicyID !== report.policyID) {
-            return false;
+        if (isPerDiemRequest(transaction)) {
+            const policyID = report?.policyID;
+            if (!policyID || defaultExpensePolicyID !== policyID) {
+                return false;
+            }
         }
 
         if (isDistanceRequest(transaction) && reportID) {
+            if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID && activePolicyExpenseChat) {
+                return false;
+            }
             const chatReportID = report?.chatReportID ?? report?.parentReportID;
             const chatReport = chatReportID
                 ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])
@@ -191,7 +204,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults, currentSearchKey} = useSearchStateContext();
@@ -218,6 +230,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const undeleteTransactions = useUndeleteTransactions();
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
@@ -259,6 +272,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'MoneyBag',
         'ArrowSplit',
         'ExpenseCopy',
+        'RotateLeft',
         'QBOSquare',
         'XeroSquare',
         'NetSuiteSquare',
@@ -402,7 +416,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !policy.achAccount?.bankAccountID) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 
@@ -821,7 +835,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const isDuplicateOptionVisible = useMemo(
         () =>
-            !isProduction &&
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys,
                 selectedTransactions,
@@ -835,7 +848,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 searchData: currentSearchResults?.data,
             }),
         [
-            isProduction,
             selectedTransactionsKeys,
             selectedTransactions,
             allTransactions,
@@ -853,6 +865,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
+
+        const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
@@ -1017,6 +1031,35 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
+        }
+
+        if (allSelectedAreDeleted) {
+            const deletedTransactionOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [
+                {
+                    icon: expensifyIcons.RotateLeft,
+                    text: translate('search.bulkActions.undelete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => {
+                        const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
+                        undeleteTransactions(selectedTransactionsKeys.map((id) => selectedTransactions[id]?.transaction).filter((t) => t !== undefined));
+                        clearSelectedTransactions(undefined, selectedTransactionsKeys.length >= totalTransactionsInResults);
+                    },
+                },
+                exportButtonOption,
+            ];
+
+            if (isDuplicateOptionVisible) {
+                deletedTransactionOptions.push({
+                    text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
+                    icon: expensifyIcons.ExpenseCopy,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: invokeDuplicateHandler,
+                });
+            }
+
+            return deletedTransactionOptions;
         }
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -1317,12 +1360,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         if (isDuplicateOptionVisible) {
+            const exceedsBulkDuplicateLimit = selectedTransactionsKeys.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
-                onSelected: invokeDuplicateHandler,
+                onSelected: () => {
+                    if (exceedsBulkDuplicateLimit) {
+                        showConfirmModal({
+                            title: translate('common.duplicateExpense'),
+                            prompt: translate('iou.bulkDuplicateLimit'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    invokeDuplicateHandler();
+                },
             });
         }
 
@@ -1407,6 +1462,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         invokeDuplicateHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
+        undeleteTransactions,
+        currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,

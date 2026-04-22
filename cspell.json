@@ -218,6 +218,7 @@
         "endcapture",
         "enddate",
         "endfor",
+        "endgroup",
         "enroute",
         "entityid",
         "Entra",
@@ -648,6 +649,7 @@
         "RPID",
         "RRGGBB",
         "rstrip",
+        "recyclerview",
         "RTER",
         "s3uqn2oe4m85tufi6mqflbfbuajrm2i3",
         "SAASPASS",
@@ -885,6 +887,7 @@
         "Crédit",
         "Danske",
         "Depósitos",
+        "effectful",
         "Erste",
         "Générale",
         "Geral",
@@ -908,7 +911,8 @@
         "Wintrust",
         "Zürcher",
         "CARDFROZEN",
-        "CARDUNFROZEN"
+        "CARDUNFROZEN",
+        "Kolkata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

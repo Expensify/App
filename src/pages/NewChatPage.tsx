@@ -24,30 +24,22 @@ import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    filterAndOrderOptions,
-    filterSelectedOptions,
-    formatSectionsFromSearchTerm,
-    getHeaderMessage,
-    getPersonalDetailSearchTerms,
-    getUserToInviteOption,
-    getValidOptions,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getUserToInviteOption, getValidOptions} from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {sortedActionsSelector} from '@src/selectors/SortedReportActions';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -76,7 +68,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
-    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const sortedActions = useSortedActions();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -141,7 +133,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         !!options.userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
     );
 
     useFocusEffect(() => {
@@ -247,19 +239,17 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+    const allPersonalDetails = usePersonalDetails();
 
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
 
-    const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
@@ -282,20 +272,12 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const sections: Array<Section<OptionWithKey>> = [];
 
-    const formatResults = formatSectionsFromSearchTerm(
-        debouncedSearchTerm,
-        selectedOptions as OptionData[],
-        recentReports,
-        personalDetails,
-        privateIsArchivedMap,
-        currentUserAccountID,
-        allPolicies,
-        allPersonalDetails,
-        undefined,
-        undefined,
-        reportAttributesDerived,
-    );
-    sections.push({...formatResults.section, title: undefined, sectionIndex: 0});
+    const selectedSection =
+        debouncedSearchTerm === ''
+            ? selectedOptions
+            : selectedOptions.filter((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, debouncedSearchTerm.trim().toLowerCase()));
+
+    sections.push({data: selectedSection, title: undefined, sectionIndex: 0});
 
     sections.push({
         title: translate('common.recents'),
@@ -379,7 +361,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (option?.reportID) {
             Navigation.dismissModal({
-                callback: () => {
+                afterTransition: () => {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
                 },
             });
@@ -398,7 +380,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, betas))();
+            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas))();
         });
     };
 
@@ -438,7 +420,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const createGroup = () => {
-        if (!personalData || !personalData.login || !personalData.accountID) {
+        if (!personalData?.login || !personalData.accountID) {
             return;
         }
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({

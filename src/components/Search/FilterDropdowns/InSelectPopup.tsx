@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {searchInServer} from '@libs/actions/Report';
@@ -18,6 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
@@ -58,6 +60,8 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [inReportIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: inSelector});
+    const sortedActions = useSortedActions();
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -99,6 +103,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
               currentUserEmail,
               personalDetails,
               policyCollection: allPolicies,
+              sortedActions,
               conciergeReportID,
           });
 
@@ -178,6 +183,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
         headerMessage,
     };
 
+    const itemCount = sections.flatMap((section) => section.data).length || 1;
     return (
         <BasePopup
             label={translate('common.in')}
@@ -185,14 +191,13 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
-            style={[styles.getUserSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, true)]}
+            style={[styles.getCommonSelectionListPopoverHeight(itemCount, variables.optionRowHeight, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, true)]}
         >
             <SelectionListWithSections
                 sections={sections}
                 onSelectRow={handleParticipantSelection}
                 ListItem={InviteMemberListItem}
                 canSelectMultiple
-                style={{listStyle: styles.pb2}}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 textInputOptions={textInputOptions}
                 isLoadingNewOptions={isLoadingNewOptions}
