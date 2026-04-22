@@ -1837,11 +1837,17 @@ function updateSplitTransactions({
                 commentActions: allCommentActionsFromOriginalTransactionThread,
                 isSourceTransactionOnHold: isTransactionOnHold,
             });
-            // Use only the count of comments we actually copied into the split thread so the parent
-            // action's childVisibleActionCount stays in sync with the thread contents. Falling back
-            // to firstIOU.childVisibleActionCount when comments aren't loaded yet would inflate the
-            // count without any corresponding comments, leaving the thread visually empty.
-            updatedIOUAction = updateParentActions(iouAction, allCommentActionsFromOriginalTransactionThread.length);
+            // Prefer the count of comments we actually copied into the split thread so the parent
+            // action's childVisibleActionCount stays in sync with the thread contents. When the
+            // source thread's report actions aren't available in Onyx but the source IOU reports a
+            // non-zero count, fall back to that count so the split doesn't drop to 0 while the
+            // backend still has the original comments.
+            const sourceThreadActionsUnavailable = isEmptyObject(transactionReportActions);
+            const commentCount =
+                sourceThreadActionsUnavailable && (firstIOU?.childVisibleActionCount ?? 0) > 0
+                    ? (firstIOU?.childVisibleActionCount ?? 0)
+                    : allCommentActionsFromOriginalTransactionThread.length;
+            updatedIOUAction = updateParentActions(iouAction, commentCount);
         }
 
         // When isReverseSplitOperation is true, we move all comments from the remaining transaction to the original transaction
