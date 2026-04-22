@@ -1861,12 +1861,6 @@ function createGroupChat(
         resourceID: reportID,
     };
 
-    // Clear group chat data after navigation dismissed so we don't see stale data
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        clearGroupChat();
-    });
-
     API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
         checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
     });
@@ -1974,7 +1968,7 @@ function createTransactionThreadReport(
  * @param reportID The ID of the report to navigate to
  * @param shouldDismissModal Whether to dismiss the modal before navigating
  */
-function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
+function navigateToReport(reportID: string | undefined, shouldDismissModal = true, afterTransition?: () => void) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
             afterTransition: () => {
@@ -1982,11 +1976,11 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
                     return;
                 }
 
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
             },
         });
     } else if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
@@ -2055,7 +2049,7 @@ function navigateToAndCreateGroupChat(
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
-    navigateToReport(newChat.reportID);
+    navigateToReport(newChat.reportID, true, clearGroupChat);
 }
 
 /**
