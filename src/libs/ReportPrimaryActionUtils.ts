@@ -197,7 +197,6 @@ function isPrimaryPayAction({
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
-
     const isExpenseReport = isExpenseReportUtils(report);
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
