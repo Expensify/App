@@ -57,7 +57,7 @@ import {
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
-import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrl, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -444,10 +444,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     if (isInNarrowPaneModal) {
                         Navigation.navigateBackToLastSuperWideRHPScreen();
-                        return;
+                    } else {
+                        onBackButtonPress();
                     }
 
-                    onBackButtonPress();
+                    // Clear the URL after the navigation transition completes.
+                    // The originating screen gets unmounted (popped) so its DeleteTransactionNavigateBackHandler
+                    // never fires, leaving the URL stale and suppressing the NotFound guard on stale nav entries.
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => {
+                        requestAnimationFrame(() => {
+                            clearDeleteTransactionNavigateBackUrl();
+                        });
+                    });
                 });
             },
         },
