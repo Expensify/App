@@ -6,17 +6,21 @@ import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
-import type BankInfoSubStepProps from '@pages/ReimbursementAccount/USD/BankInfo/types';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+type PlaidProps = SubStepProps & {
+    setUSDBankAccountStep: (step: string | null) => void;
+};
+
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({onNext}: BankInfoSubStepProps) {
+function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
@@ -57,10 +61,12 @@ function Plaid({onNext}: BankInfoSubStepProps) {
             return;
         }
         setBankAccountSubStep(null);
-    }, [isFocused, prevIsFocused, plaidData?.bankAccounts]);
+        setUSDBankAccountStep(null);
+    }, [isFocused, prevIsFocused, plaidData?.bankAccounts, setUSDBankAccountStep]);
 
     const handlePlaidExit = () => {
         setBankAccountSubStep(null);
+        setUSDBankAccountStep(null);
     };
 
     return (

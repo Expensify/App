@@ -5,7 +5,7 @@ import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
 import {nanoid} from 'nanoid/non-secure';
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account, SidePanel} from '@src/types/onyx';
+import type {SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
@@ -42,6 +42,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
+import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
     NavigationRef,
@@ -70,15 +71,6 @@ const SET_UP_2FA_SCREENS = new Set<string>([
 
 const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
 
-let account: OnyxEntry<Account>;
-// We have used `connectWithoutView` here because it is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
-
 let sidePanelNVP: OnyxEntry<SidePanel>;
 // `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
 // Also it is not directly connected to any UI
@@ -95,10 +87,6 @@ function isTwoFactorSetupScreen(screen: string | undefined): boolean {
 
 function isMFAFlowScreen(screen: string | undefined): boolean {
     return screen ? MFA_FLOW_SCREENS.has(screen) : false;
-}
-
-function shouldShowRequire2FAPage() {
-    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -231,7 +219,7 @@ function getActiveRoute(): string {
         return '';
     }
 
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRoute = navigationRef.current?.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }
@@ -331,9 +319,18 @@ function navigate(route: Route, options?: LinkToOptions) {
         }
     }
 
-    const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
-    linkTo(navigationRef.current, targetRoute, options);
-    closeSidePanelOnNarrowScreen(route);
+    const runImmediately = !options?.waitForTransition;
+    TransitionTracker.runAfterTransitions({
+        callback: () => {
+            const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
+            linkTo(navigationRef.current, targetRoute, options);
+            closeSidePanelOnNarrowScreen(route);
+            if (options?.afterTransition) {
+                TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
+            }
+        },
+        runImmediately,
+    });
 }
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
@@ -398,10 +395,15 @@ type GoBackOptions = {
      * In that case we want to goUp to a country picker with any params so we don't compare them.
      */
     compareParams?: boolean;
+    // Callback to execute after the navigation transition animation completes.
+    afterTransition?: () => void | undefined;
+    // If true, waits for ongoing transitions to finish before going back. Defaults to false (goes back immediately).
+    waitForTransition?: boolean;
 };
 
-const defaultGoBackOptions: Required<GoBackOptions> = {
+const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'waitForTransition'>> = {
     compareParams: true,
+    waitForTransition: false,
 };
 
 /**
@@ -490,22 +492,26 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
         return;
     }
 
-    if (backToRoute) {
-        goUp(backToRoute, options);
-        return;
-    }
+    const runImmediately = !options?.waitForTransition;
+    TransitionTracker.runAfterTransitions({
+        callback: () => {
+            if (backToRoute) {
+                goUp(backToRoute, options);
+            } else if (shouldPopToSidebar) {
+                popToSidebar();
+            } else if (!navigationRef.current?.canGoBack()) {
+                Log.hmmm('[Navigation] Unable to go back');
+                return;
+            } else {
+                navigationRef.current?.goBack();
+            }
 
-    if (shouldPopToSidebar) {
-        popToSidebar();
-        return;
-    }
-
-    if (!navigationRef.current?.canGoBack()) {
-        Log.hmmm('[Navigation] Unable to go back');
-        return;
-    }
-
-    navigationRef.current?.goBack();
+            if (options?.afterTransition) {
+                TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
+            }
+        },
+        runImmediately,
+    });
 }
 
 /**
@@ -552,6 +558,8 @@ function popToSidebar() {
  * Reset the navigation state to Home page.
  */
 function resetToHome() {
+    clearFullscreenPreInsertedFlag();
+
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();
     navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
@@ -587,11 +595,17 @@ function goBackToHome() {
 
 /**
  * Update route params for the specified route.
+ *
+ * @param targetKey - Optional navigator key to target the dispatch at. When provided,
+ *   the SET_PARAMS action is delivered directly to that navigator, which is required for
+ *   routes nested inside split navigators (where the default dispatch would fail if a
+ *   modal is focused). Can be obtained via `navigation.getState()?.key` in a component.
  */
-function setParams(params: Record<string, unknown>, routeKey = '') {
+function setParams(params: Record<string, unknown>, routeKey = '', targetKey?: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
+        ...(targetKey && {target: targetKey}),
     });
 }
 
@@ -712,7 +726,7 @@ function getTopmostSuperWideRHPReportParams(
     }
     const topmostRightModalNavigator = state.routes?.at(-1);
 
-    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (topmostRightModalNavigator?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
 
@@ -741,25 +755,33 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  *
  * @param options - Configuration object
  * @param options.ref - Navigation ref to use (defaults to navigationRef)
- * @param options.callback - Optional callback to execute after the modal has finished closing.
- *                           The callback fires when RightModalNavigator unmounts.
+ * @param options.afterTransition - Optional callback to execute after the navigation transition animation completes.
  *
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
+function dismissModal({ref = navigationRef, afterTransition, waitForTransition}: {ref?: NavigationRef; afterTransition?: () => void; waitForTransition?: boolean} = {}) {
     clearSelectedTextIfComposerBlurred();
-    isNavigationReady().then(() => {
-        if (callback) {
-            const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
-                subscription.remove();
-                callback();
-            });
-        }
+    const runImmediately = !waitForTransition;
+    const performDismiss = () => {
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
 
-        ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-    });
-};
+                if (afterTransition) {
+                    TransitionTracker.runAfterTransitions({callback: afterTransition, waitForUpcomingTransition: true});
+                }
+            },
+            runImmediately,
+        });
+    };
+
+    if (ref.isReady()) {
+        performDismiss();
+    } else {
+        isNavigationReady().then(performDismiss);
+    }
+}
 
 /**
  * Dismisses the modal and opens the given report.
@@ -772,7 +794,7 @@ const dismissModalWithReport = (
     ref = navigationRef,
     options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
 ) => {
-    isNavigationReady().then(() => {
+    const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
@@ -796,12 +818,19 @@ const dismissModalWithReport = (
             navigate(reportRoute, {forceReplace: true});
             return;
         }
-        dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            navigate(reportRoute);
+
+        dismissModal({
+            afterTransition: () => {
+                navigate(reportRoute);
+            },
         });
-    });
+    };
+
+    if (ref.isReady()) {
+        dismissAndOpenReport();
+    } else {
+        isNavigationReady().then(dismissAndOpenReport);
+    }
 };
 
 function popRootToTop() {
@@ -884,7 +913,7 @@ function clearPreloadedRoutes() {
  *
  * @param modalStackNames - names of the modal stacks we want to dismiss to
  */
-function dismissToModalStack(modalStackNames: Set<string>) {
+function dismissToModalStack(modalStackNames: Set<string>, options: {afterTransition?: () => void} = {}) {
     const rootState = navigationRef.getRootState();
     if (!rootState) {
         return;
@@ -900,32 +929,36 @@ function dismissToModalStack(modalStackNames: Set<string>) {
     const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
 
     if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
-        dismissModal();
+        dismissModal(options);
         return;
     }
 
     navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
+
+    if (options?.afterTransition) {
+        TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
+    }
 }
 
 /**
  * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
  */
-function dismissToPreviousRHP() {
-    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
+function dismissToPreviousRHP(options: {afterTransition?: () => void} = {}) {
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS, options);
 }
 
-function navigateBackToLastSuperWideRHPScreen() {
-    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
+function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => void} = {}) {
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS, options);
 }
 
-function dismissToSuperWideRHP() {
+function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
     // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
     if (getIsNarrowLayout()) {
-        dismissModal();
+        dismissModal(options);
         return;
     }
     // On wide layouts, dismiss back to the Super Wide RHP modal stack
-    navigateBackToLastSuperWideRHPScreen();
+    navigateBackToLastSuperWideRHPScreen(options);
 }
 
 /**
@@ -941,7 +974,7 @@ function dismissToSuperWideRHP() {
  *             useLinking detects the stale Home+RHP entry and replaces it with a Search
  *             push, yielding correct browser history [Home, Search].
  */
-function revealRouteBeforeDismissingModal(route: Route) {
+function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void}) {
     if (getIsNarrowLayout()) {
         Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
         return;
@@ -957,9 +990,131 @@ function revealRouteBeforeDismissingModal(route: Route) {
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route},
         });
+        // Nested rAF: the first frame commits the route insertion, the second
+        // frame starts the dismiss. This ensures React processes the two dispatches
+        // in separate renders so the dismiss animation is preserved.
         requestAnimationFrame(() => {
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
         });
+    });
+}
+
+// Module-level state tracking the pre-inserted fullscreen route. This follows the same
+// pattern as other module-level navigation state in this file (e.g. pendingRoute).
+// It is only mutated from preInsertFullscreenUnderRHP / clearFullscreenPreInsertedFlag /
+// removePreInsertedFullscreenIfNeeded, which are always called from the JS thread.
+let isFullscreenPreInsertedUnderRHP = false;
+let preInsertedFullscreenRouteName: string | undefined;
+
+/**
+ * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
+ * The route renders behind the fullscreen RHP so that when the user later submits,
+ * we can simply dismiss the RHP to reveal the already-mounted screen.
+ *
+ * This is the mobile counterpart of revealRouteBeforeDismissingModal; the difference
+ * is that the insert happens eagerly (on confirmation screen mount) rather than at
+ * submission time, giving React time to mount the destination component tree while
+ * the user is still filling in details.
+ */
+function preInsertFullscreenUnderRHP(route: Route) {
+    if (!getIsNarrowLayout()) {
+        return;
+    }
+
+    if (isFullscreenPreInsertedUnderRHP) {
+        return;
+    }
+
+    if (!canNavigate('preInsertFullscreenUnderRHP', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to pre-insert fullscreen under RHP. Can't navigate.`, {route});
+        return;
+    }
+
+    const stateFromPath = getStateFromPath(route);
+    const targetRouteName = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name))?.name;
+
+    const stateBefore = navigationRef.current.getRootState();
+    const routeCountBefore = stateBefore.routes.length;
+    const lastKeyBefore = stateBefore.routes.at(-1)?.key;
+
+    navigationRef.current.dispatch({
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        payload: {route},
+    });
+
+    const stateAfter = navigationRef.current.getRootState();
+    if (stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
+        Log.hmmm(`[Navigation] preInsertFullscreenUnderRHP dispatch was ignored`, {route});
+        return;
+    }
+
+    isFullscreenPreInsertedUnderRHP = true;
+    preInsertedFullscreenRouteName = targetRouteName;
+
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
+}
+
+function getIsFullscreenPreInsertedUnderRHP() {
+    return isFullscreenPreInsertedUnderRHP;
+}
+
+function getPreInsertedFullscreenRouteName() {
+    return preInsertedFullscreenRouteName;
+}
+
+function clearFullscreenPreInsertedFlag() {
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+}
+
+/**
+ * Removes a pre-inserted fullscreen route when the user backs out without submitting.
+ * If the RHP is still on top, the pre-inserted route is popped from under it.
+ * If the RHP is already gone (back-dismissed), the pre-inserted route is the topmost
+ * fullscreen and is popped directly.
+ */
+function removePreInsertedFullscreenIfNeeded() {
+    if (!isFullscreenPreInsertedUnderRHP) {
+        return;
+    }
+
+    const routeNameToRemove = preInsertedFullscreenRouteName;
+
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
+
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const topRoute = rootState.routes.at(-1);
+    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+    if (isRHPStillOnTop && routeNameToRemove) {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
+            payload: {expectedRouteName: routeNameToRemove},
+        });
+        return;
+    }
+
+    // RHP already dismissed - the pre-inserted fullscreen is now the topmost route; pop it.
+    // Deferred to the next frame to avoid dispatching during a React commit.
+    // Capture the route key now so the rAF callback can match on identity, not just name.
+    const targetRouteKey = rootState.routes.at(-1)?.key;
+    requestAnimationFrame(() => {
+        const currentState = navigationRef.getRootState();
+        const topmostRoute = currentState?.routes.at(-1);
+        if (!topmostRoute || topmostRoute.key !== targetRouteKey || topmostRoute.name !== routeNameToRemove) {
+            return;
+        }
+        if (!navigationRef.current?.canGoBack()) {
+            return;
+        }
+        navigationRef.current.goBack();
     });
 }
 
@@ -1021,6 +1176,11 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,
+    preInsertFullscreenUnderRHP,
+    getIsFullscreenPreInsertedUnderRHP,
+    getPreInsertedFullscreenRouteName,
+    clearFullscreenPreInsertedFlag,
+    removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
@@ -1028,4 +1188,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen};

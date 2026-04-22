@@ -27,7 +27,7 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 jest.mock('@react-navigation/core', () => ({
     ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
-    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
 }));
 
 jest.mock('@react-navigation/native', () => ({

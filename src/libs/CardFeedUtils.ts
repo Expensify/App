@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {AdditionalCardProps} from '@components/Search/SearchList/ListItem/CardListItem';
+import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
@@ -21,6 +21,7 @@ import {
     isCard,
     isCardClosed,
     isCardHiddenFromSearch,
+    isCSVUploadFeed,
     isCustomFeed,
     isDirectFeed,
     isPersonalCard,
@@ -628,12 +629,14 @@ function getCombinedCardFeedsFromAllFeeds(
 
             // When we have card data, filter out stale feeds:
             // - Direct feeds without oAuthAccountDetails AND no assigned cards
-            // - "Gray zone" feeds (not commercial, not direct) without assigned cards
+            // - "Gray zone" feeds (not commercial, not direct, not CSV upload) without assigned cards
+            // CSV upload feeds are always shown when they exist in settings, since their
+            // unassigned cards are loaded on-demand when the feed is selected.
             if (feedKeysWithCards) {
                 if (isDirectFeed(feedName) && !oAuthAccountDetails && !feedHasCards(feedName, domainID, feedKeysWithCards)) {
                     continue;
                 }
-                if (!isCustomFeed(feedName) && !isDirectFeed(feedName) && !feedHasCards(feedName, domainID, feedKeysWithCards)) {
+                if (!isCustomFeed(feedName) && !isDirectFeed(feedName) && !isCSVUploadFeed(feedName) && !feedHasCards(feedName, domainID, feedKeysWithCards)) {
                     continue;
                 }
             }
@@ -641,7 +644,7 @@ function getCombinedCardFeedsFromAllFeeds(
             const combinedCardFeed: CombinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
-                customFeedName,
+                customFeedName: customFeedName ?? feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,
                 feed: feedName,
                 status,
@@ -673,12 +676,10 @@ export {
     getWorkspaceCardFeedKey,
     getFeedInfo,
     getLinkedPolicyName,
-    generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
-    getCardFeedStatus,
     getWorkspaceCardFeedsStatus,
 };

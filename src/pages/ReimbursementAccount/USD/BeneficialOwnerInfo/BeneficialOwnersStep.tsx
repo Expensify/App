@@ -1,46 +1,37 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useState} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
+import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SafeString from '@src/utils/SafeString';
-import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
+import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
+import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
+import DateOfBirthUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/DateOfBirthUBO';
+import LegalNameUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/LegalNameUBO';
+import SocialSecurityNumberUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/SocialSecurityNumberUBO';
 import CompanyOwnersListUBO from './subSteps/CompanyOwnersListUBO';
 
 type BeneficialOwnersStepProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
-
-    /** Handles submit button press (URL-based navigation) */
-    onSubmit?: () => void;
-
-    /** Name of the current sub page */
-    currentSubPage?: string;
-
-    /** ID of current policy */
-    policyID?: string;
-
-    /** Back to URL for preserving navigation context */
-    backTo?: string;
 };
 
-const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
-const SUB_PAGE_NAMES = CONST.BANK_ACCOUNT.BENEFICIAL_OWNERS_STEP.SUB_PAGE_NAMES;
+type BeneficialOwnerSubStepProps = SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void};
+
+const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
+const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 
-const OUTER_SUB_PAGES = new Set<string>([SUB_PAGE_NAMES.IS_USER_UBO, SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO, SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS, SUB_PAGE_NAMES.UBOS_LIST]);
-
-function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, policyID, backTo}: BeneficialOwnersStepProps) {
+function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -48,53 +39,27 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const defaultValues = {
+        ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
+        hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
+        beneficialOwnerKeys: reimbursementAccount?.achData?.beneficialOwnerKeys ?? reimbursementAccountDraft?.beneficialOwnerKeys ?? [],
+    };
 
-    // Read state from Onyx draft so it survives URL-based navigation (component remounts)
-    const isUserUBO = reimbursementAccountDraft?.ownsMoreThan25Percent ?? reimbursementAccount?.achData?.ownsMoreThan25Percent ?? false;
-    const beneficialOwners = reimbursementAccount?.achData?.beneficialOwners;
-    const isAnyoneElseUBO = beneficialOwners?.length ? true : (reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false);
-    const beneficialOwnerKeys: string[] = reimbursementAccountDraft?.beneficialOwnerKeys ?? reimbursementAccount?.achData?.beneficialOwnerKeys ?? [];
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? '';
-    const isEditingCreatedBeneficialOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
+    // We're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
+    // if we were to set them based on values saved in BE then there would be no option to enter different UBOs
+    // user would always see the same UBOs that was saved in BE when returning to this step and trying to change something
+    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState<string[]>(defaultValues.beneficialOwnerKeys);
+    const [beneficialOwnerBeingModifiedID, setBeneficialOwnerBeingModifiedID] = useState('');
+    const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
+    const [isUserUBO, setIsUserUBO] = useState(defaultValues.ownsMoreThan25Percent);
+    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(defaultValues.hasOtherBeneficialOwners);
+    const [currentUBOSubStep, setCurrentUBOSubStep] = useState(1);
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
-
-    const hasCompletedBeneficialOwnersStep = reimbursementAccount?.achData?.ownsMoreThan25Percent !== undefined;
-
-    // Redirect to the correct sub-page if no subPage is in the URL
-    useEffect(() => {
-        if (currentSubPage) {
-            return;
-        }
-
-        let subPage: string = SUB_PAGE_NAMES.IS_USER_UBO;
-        if (isUserUBO || (isAnyoneElseUBO && beneficialOwnerKeys.length > 0)) {
-            subPage = SUB_PAGE_NAMES.UBOS_LIST;
-        } else if (hasCompletedBeneficialOwnersStep) {
-            subPage = SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO;
-        }
-
-        Navigation.setParams({subPage} as Record<string, unknown>);
-    }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length, isUserUBO, hasCompletedBeneficialOwnersStep]);
-
-    const navigateToSubPage = useCallback(
-        (subPage: string) => {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
-        },
-        [policyID, backTo],
-    );
-
-    const navigateBackToSubPage = useCallback(
-        (subPage: string) => {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
-        },
-        [policyID, backTo],
-    );
 
     const submit = () => {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
-        const beneficialOwnersData = beneficialOwnerKeys.map((ownerKey) =>
+        const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {
                     acc[fieldName] = reimbursementAccountDraft ? SafeString(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
@@ -108,56 +73,76 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
             getBankAccountIDAsNumber(reimbursementAccount?.achData),
             {
                 ownsMoreThan25Percent: isUserUBO,
-                beneficialOwners: JSON.stringify(beneficialOwnersData),
+                beneficialOwners: JSON.stringify(beneficialOwners),
                 beneficialOwnerKeys,
             },
             policyID,
         );
-        markSubmitting();
     };
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {
+        // Each beneficial owner is assigned a unique key that will connect it to values in saved ONYX.
+        // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: newBeneficialOwners, beneficialOwners: JSON.stringify(newBeneficialOwners)});
-    };
 
+        setBeneficialOwnerKeys(newBeneficialOwners);
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
+    };
     const handleBeneficialOwnerDetailsFormSubmit = () => {
         const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;
 
-        if (shouldAddBeneficialOwner && beneficialOwnerBeingModifiedID) {
+        if (shouldAddBeneficialOwner) {
             addBeneficialOwner(beneficialOwnerBeingModifiedID);
         }
 
+        // Because beneficialOwnerKeys array is not yet updated at this point we need to check against lower MAX_NUMBER_OF_UBOS (account for the one that is being added)
         const isLastUBOThatCanBeAdded = beneficialOwnerKeys.length === (isUserUBO ? MAX_NUMBER_OF_UBOS - 2 : MAX_NUMBER_OF_UBOS - 1);
-        const nextSubPage = isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? SUB_PAGE_NAMES.UBOS_LIST : SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS;
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isEditingCreatedOwner: false});
-        navigateToSubPage(nextSubPage);
+        setCurrentUBOSubStep(isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? SUBSTEP.UBOS_LIST : SUBSTEP.ARE_THERE_MORE_UBOS);
+        setIsEditingCreatedBeneficialOwner(false);
     };
+
+    const {
+        componentToRender: BeneficialOwnerDetailsForm,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        resetScreenIndex,
+        goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+    } = useSubStep<BeneficialOwnerSubStepProps>({
+        bodyContent,
+        startFrom: 0,
+        onFinished: handleBeneficialOwnerDetailsFormSubmit,
+    });
 
     const prepareBeneficialOwnerDetailsForm = () => {
         const beneficialOwnerID = Str.guid();
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: beneficialOwnerID});
-        navigateToSubPage(SUB_PAGE_NAMES.LEGAL_NAME);
+        setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
+        // Reset Beneficial Owner Details Form to first subStep
+        resetScreenIndex();
+        setCurrentUBOSubStep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
     const handleNextUBOSubstep = (value: boolean) => {
-        if (currentSubPage === SUB_PAGE_NAMES.IS_USER_UBO) {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownsMoreThan25Percent: value});
+        if (currentUBOSubStep === SUBSTEP.IS_USER_UBO) {
+            setIsUserUBO(value);
 
             // User is an owner but there are 4 other owners already added, so we remove last one
             if (value && beneficialOwnerKeys.length === 4) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: beneficialOwnerKeys.slice(0, 3)});
+                setBeneficialOwnerKeys((previousBeneficialOwners) => previousBeneficialOwners.slice(0, 3));
             }
 
-            navigateToSubPage(SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO);
+            setCurrentUBOSubStep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             return;
         }
 
-        if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO) {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {hasOtherBeneficialOwners: value});
+        if (currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO) {
+            setIsAnyoneElseUBO(value);
 
             if (!canAddMoreUBOS && value) {
-                navigateToSubPage(SUB_PAGE_NAMES.UBOS_LIST);
+                setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
                 return;
             }
 
@@ -166,61 +151,65 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
                 return;
             }
 
+            // User is not an owner and no one else is an owner
             if (!isUserUBO && !value) {
                 submit();
                 return;
             }
 
+            // User is an owner and no one else is an owner
             if (isUserUBO && !value) {
-                navigateToSubPage(SUB_PAGE_NAMES.UBOS_LIST);
+                setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
                 return;
             }
         }
 
-        if (currentSubPage === SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS) {
+        // Are there more UBOs
+        if (currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS) {
             if (value) {
                 prepareBeneficialOwnerDetailsForm();
                 return;
             }
-            navigateToSubPage(SUB_PAGE_NAMES.UBOS_LIST);
+            setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
+            return;
+        }
+
+        // User reached the limit of UBOs
+        if (currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && !canAddMoreUBOS) {
+            setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
         }
     };
 
     const handleBackButtonPress = () => {
-        if (currentSubPage === SUB_PAGE_NAMES.IS_USER_UBO) {
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
+        // User goes back to previous step
+        if (currentUBOSubStep === SUBSTEP.IS_USER_UBO) {
             onBackButtonPress();
-        } else if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO) {
-            navigateBackToSubPage(SUB_PAGE_NAMES.IS_USER_UBO);
-        } else if (currentSubPage === SUB_PAGE_NAMES.UBOS_LIST && !canAddMoreUBOS) {
-            navigateBackToSubPage(SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO);
-        } else if (currentSubPage === SUB_PAGE_NAMES.UBOS_LIST && isAnyoneElseUBO) {
-            navigateBackToSubPage(SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS);
-        } else if (currentSubPage === SUB_PAGE_NAMES.UBOS_LIST && isUserUBO && !isAnyoneElseUBO) {
-            navigateBackToSubPage(SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO);
+            // User reached limit of UBOs and goes back to initial question about additional UBOs
+        } else if (currentUBOSubStep === SUBSTEP.UBOS_LIST && !canAddMoreUBOS) {
+            setCurrentUBOSubStep(SUBSTEP.IS_ANYONE_ELSE_UBO);
+            // User goes back to last radio button
+        } else if (currentUBOSubStep === SUBSTEP.UBOS_LIST && isAnyoneElseUBO) {
+            setCurrentUBOSubStep(SUBSTEP.ARE_THERE_MORE_UBOS);
+        } else if (currentUBOSubStep === SUBSTEP.UBOS_LIST && isUserUBO && !isAnyoneElseUBO) {
+            setCurrentUBOSubStep(SUBSTEP.IS_ANYONE_ELSE_UBO);
+            // User moves between subSteps of beneficial owner details form
+        } else if (currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && screenIndex > 0) {
+            prevScreen();
         } else {
-            Navigation.goBack();
+            setCurrentUBOSubStep((currentSubstep) => currentSubstep - 1);
         }
     };
 
     const handleUBOEdit = (beneficialOwnerID: string) => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: beneficialOwnerID, isEditingCreatedOwner: true});
-        navigateToSubPage(SUB_PAGE_NAMES.LEGAL_NAME);
+        setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
+        setIsEditingCreatedBeneficialOwner(true);
+        setCurrentUBOSubStep(SUBSTEP.UBO_DETAILS_FORM);
     };
-
-    // If the current sub page is not an outer page, render the details form
-    if (currentSubPage && !OUTER_SUB_PAGES.has(currentSubPage)) {
-        return (
-            <BeneficialOwnerDetailsFormPages
-                policyID={policyID}
-                beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                setBeneficialOwnerBeingModifiedID={(id: string) => setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: id})}
-                isEditingCreatedBeneficialOwner={isEditingCreatedBeneficialOwner}
-                onFinished={handleBeneficialOwnerDetailsFormSubmit}
-                backTo={backTo}
-            />
-        );
-    }
 
     return (
         <InteractiveStepWrapper
@@ -229,11 +218,11 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
             handleBackButtonPress={handleBackButtonPress}
-            shouldShowOfflineIndicatorInWideScreen={currentSubPage === SUB_PAGE_NAMES.UBOS_LIST}
+            shouldShowOfflineIndicatorInWideScreen={currentUBOSubStep === SUBSTEP.UBOS_LIST}
             startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            {currentSubPage === SUB_PAGE_NAMES.IS_USER_UBO && (
+            {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep
                     title={translate('beneficialOwnerInfoStep.doYouOwn25percent', companyName)}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
@@ -243,7 +232,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
                 />
             )}
 
-            {currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO && (
+            {currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <YesNoStep
                     title={translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent', companyName)}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
@@ -253,7 +242,17 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
                 />
             )}
 
-            {currentSubPage === SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS && (
+            {currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && (
+                <BeneficialOwnerDetailsForm
+                    isEditing={isEditing}
+                    beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
+                    setBeneficialOwnerBeingModifiedID={setBeneficialOwnerBeingModifiedID}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                />
+            )}
+
+            {currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <YesNoStep
                     title={translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent', companyName)}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
@@ -263,7 +262,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
                 />
             )}
 
-            {currentSubPage === SUB_PAGE_NAMES.UBOS_LIST && (
+            {currentUBOSubStep === SUBSTEP.UBOS_LIST && (
                 <CompanyOwnersListUBO
                     beneficialOwnerKeys={beneficialOwnerKeys}
                     handleUBOsConfirmation={submit}

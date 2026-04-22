@@ -32,7 +32,7 @@ type MatchTypeItem = ListItem & {
 };
 
 function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
-    const {policyID, merchantIndex} = route.params;
+    const {policyID, ruleID, merchantIndex} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -49,7 +49,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchantMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
+        Navigation.goBack(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, ruleID));
     };
 
     const submit = () => {

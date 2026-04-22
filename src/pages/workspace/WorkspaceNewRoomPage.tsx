@@ -61,6 +61,7 @@ function EmptyWorkspaceView() {
 
 type WorkspaceNewRoomPageRef = {
     focus?: () => void;
+    isValidInput?: () => boolean;
 };
 
 type WorkspaceNewRoomPageProps = {
@@ -86,6 +87,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 
     useImperativeHandle(ref, () => ({
         focus: () => roomPageInputRef.current?.focus(),
+        isValidInput: () => !!roomPageInputRef.current,
     }));
 
     const workspaceOptions = useMemo(
@@ -323,3 +325,4 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 }
 
 export default WorkspaceNewRoomPage;
+export type {WorkspaceNewRoomPageRef};

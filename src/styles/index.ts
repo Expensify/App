@@ -19,7 +19,6 @@ import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
-import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -91,7 +90,7 @@ type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
-type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
+type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | 'lineCap'>;
 
 type MapDirectionLayerStyle = Pick<LineLayer, 'layout' | 'paint'>;
 
@@ -541,6 +540,10 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
         },
 
+        textXLarge: {
+            fontSize: variables.fontSizeXLarge,
+        },
+
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -940,6 +943,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.componentSizeXSmall,
         },
 
+        threeDotsMenuIconWidth: {
+            width: variables.componentSizeXSmall,
+        },
+
         touchableButtonImage: {
             alignItems: 'center',
             height: variables.componentSizeNormal,
@@ -1097,6 +1104,56 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.bordersBold,
+        },
+
+        /**
+         * Matches the border and padding of editableCell so column headers stay
+         * visually aligned with their editable cells.
+         */
+        editableCellHeader: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            paddingHorizontal: 4,
+        },
+
+        editableCell: {
+            width: '100%',
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            padding: 4,
+            height: 'auto',
+            minHeight: variables.editableCellHeight,
+            overflow: 'hidden',
+            justifyContent: 'center',
+        },
+
+        editableCellHover: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
+        editableCellFocus: {
+            borderColor: theme.borderFocus,
+            backgroundColor: theme.appBG,
+        },
+
+        /** Suppresses all visual styling on TextInput when rendered inside EditableCell */
+        editableCellInputStyle: {
+            padding: 0,
+            borderWidth: 0,
+            borderColor: 'transparent',
+            borderRadius: 0,
+            backgroundColor: 'transparent',
+            height: '100%',
+            minHeight: 0,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        editableCellSymbolStyle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
         },
 
         borderColorFocus: {
@@ -2489,6 +2546,20 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadiusNormal,
         },
 
+        searchTableTopRadius: {
+            borderTopLeftRadius: variables.componentBorderRadius,
+            borderTopRightRadius: variables.componentBorderRadius,
+        },
+
+        searchTableBottomRadius: {
+            borderBottomLeftRadius: variables.componentBorderRadius,
+            borderBottomRightRadius: variables.componentBorderRadius,
+        },
+
+        searchTableRowHeight: {
+            minHeight: variables.tableRowHeight,
+        },
+
         borderBottom: {
             borderBottomWidth: 1,
             borderColor: theme.border,
@@ -2540,15 +2611,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchResultsHeaderBar: {
-            display: 'flex',
-            height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverZIndex,
-            position: 'relative',
-            paddingLeft: 20,
-            paddingRight: 12,
-        },
-
-        newSearchResultsHeaderBar: {
             display: 'flex',
             position: 'relative',
         },
@@ -2791,6 +2853,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             alignItems: 'center',
             paddingHorizontal: 20,
+        },
+
+        numberWithSymbolFormInputContainerLandscape: {
+            width: 400,
         },
 
         avatarSectionWrapper: {
@@ -3474,17 +3540,16 @@ const staticStyles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.bordersBold,
-            height: 54,
-        },
-
-        newSearchAutocompleteInputResults: {
-            borderWidth: 1,
-            borderColor: theme.border,
         },
 
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+        },
+
+        searchInputSkeleton: {
+            height: 54,
+            justifyContent: 'center',
         },
 
         searchTableHeaderActive: {
@@ -3499,23 +3564,28 @@ const staticStyles = (theme: ThemeColors) =>
             height: 16,
         },
 
-        searchListContentContainerStyles: {
-            paddingTop: variables.searchListContentMarginTop,
-        },
-
         searchListHeaderContainerStyle: {
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
             paddingBottom: 12,
-            backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
+        },
+
+        searchListHeaderTableStyle: {
+            backgroundColor: theme.highlightBG,
+            borderTopLeftRadius: variables.componentBorderRadius,
+            borderTopRightRadius: variables.componentBorderRadius,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+            minHeight: 36,
+            paddingBottom: 8,
         },
 
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
+            paddingRight: 48,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -3703,6 +3773,21 @@ const staticStyles = (theme: ThemeColors) =>
         receiptPlaceholder: {
             height: 52,
             marginRight: 8,
+            width: variables.w44,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        receiptsSubmitButtonLandscape: {
+            position: 'absolute',
+            left: 20,
+            bottom: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPlaceholderLandscape: {
+            height: 52,
+            marginBottom: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
             backgroundColor: theme.hoverComponentBG,
@@ -4614,7 +4699,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
+            // aspectRatio is calculated first and then maxWidth/maxHeight clamps the dimensions, thus both have to be specified
             maxWidth: variables.receiptPreviewMaxWidth,
+            maxHeight: (variables.receiptPreviewMaxWidth * 9) / 16,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -4782,6 +4869,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 32,
         },
 
+        listTableHeaderCompact: {
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+        },
+
         tableHeaderIconSpacing: {
             marginRight: variables.iconSizeExtraSmall,
             marginBottom: 1,
@@ -4878,38 +4970,38 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
+        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
+        searchBulkActionsButton: {
+            marginVertical: -3,
+        },
+
         filtersBar: {
             flexDirection: 'row',
             gap: 8,
             marginTop: 3,
         },
 
-        searchFiltersBarContainer: {
-            marginTop: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-
         searchActionsBarContainer: {
-            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
             flexDirection: 'row',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
             zIndex: 10,
         },
 
         searchActionsBarCreateButton: {
-            marginLeft: 'auto',
             alignSelf: 'flex-start',
         },
 
-        searchPageInputTouchableWrapper: {height: 32, width: 200},
-        searchPageInputPlaceholder: {
+        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
+        searchPageInputWidePlaceholder: {
             // Extra 2 to account for the borders
             height: 34,
             width: 202,
         },
+        searchPageInputNarrowTouchableWrapper: {height: variables.componentSizeLarge},
 
         walletStaticIllustration: {
             width: 262,
@@ -5042,7 +5134,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: '35%',
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -6255,15 +6346,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             width,
         }),
 
-        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
+        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean, isInLandscapeMode: boolean, shouldShowLabel: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
             const PADDING = 32;
-            const LIST_BOTTOM_PADDING = 12;
             const GAP = 8;
             const BUTTON_HEIGHT = 40;
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING + LIST_BOTTOM_PADDING;
-            const MAX_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT - (PADDING + GAP + BUTTON_HEIGHT);
+            const LABEL_HEIGHT = 26;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
+            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+            const MAX_HEIGHT = popoverHeight - (PADDING + GAP + BUTTON_HEIGHT) - (shouldShowLabel ? LABEL_HEIGHT + GAP : 0);
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
@@ -6273,20 +6365,55 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height};
         },
 
-        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean, isSearchable = true) => {
-            const BUTTON_HEIGHT = 40;
-            const SEARCHBAR_HEIGHT = isSearchable ? 50 : 0;
-            const SEARCHBAR_MARGIN = isSearchable ? 14 : 0;
-            const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
+        getCommonSelectionListPopoverHeight: (
+            itemCount: number,
+            itemHeight: number,
+            windowHeight: number,
+            shouldUseNarrowLayout: boolean,
+            isInLandscapeMode: boolean,
+            isSearchable = true,
+        ) => {
+            const MODAL_PADDING = 32;
+            const BUTTON_HEIGHT = 48;
+            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const TITLE_HEIGHT = shouldUseNarrowLayout ? 34 : 0;
+            const PADDING = shouldUseNarrowLayout ? 0 : MODAL_PADDING;
+            const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + BUTTON_HEIGHT + TITLE_HEIGHT + PADDING;
+
+            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight - MODAL_PADDING : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
-            const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9);
+            const height = Math.min(ESTIMATED_LIST_HEIGHT, popoverHeight, windowHeight * 0.9);
             const width = shouldUseNarrowLayout ? sizing.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
 
             return {height, ...width};
+        },
+
+        getCardSelectionListPopoverHeight: (
+            itemCount: number,
+            sectionHeaderCount: number,
+            windowHeight: number,
+            shouldUseNarrowLayout: boolean,
+            isInLandscapeMode: boolean,
+            isSearchable = true,
+        ) => {
+            const MODAL_PADDING = 32;
+            const BUTTON_HEIGHT = 48;
+            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const TITLE_HEIGHT = shouldUseNarrowLayout ? 34 : 0;
+            const PADDING = shouldUseNarrowLayout ? 0 : MODAL_PADDING;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeight + sectionHeaderCount * 28 + SEARCHBAR_HEIGHT + BUTTON_HEIGHT + TITLE_HEIGHT + PADDING;
+
+            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight - MODAL_PADDING : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
+            // and never expand over the max height
+            const height = Math.min(ESTIMATED_LIST_HEIGHT, popoverHeight, windowHeight * 0.9);
+
+            return {height};
         },
 
         testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
@@ -6334,12 +6461,25 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
 
+        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
+            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+        }),
+
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
             paddingHorizontal: 16,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
+        }),
+
+        searchActionsBar: (shouldUseNarrowLayout: boolean) => ({
+            alignItems: 'center',
+            height: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
+            justifyContent: 'center',
+            width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
+            backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
+            borderRadius: 999,
         }),
     }) satisfies DynamicStyles;
 
@@ -6461,6 +6601,7 @@ const plainStyles = (theme: ThemeColors) =>
         mapDirection: {
             lineColor: theme.success,
             lineWidth: 7,
+            lineCap: 'round',
         },
 
         mapDirectionLayer: {
@@ -6505,15 +6646,9 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
             }) satisfies ViewStyle,
 
-        homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout
-                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+        homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout
-                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
@@ -6525,8 +6660,5 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
-const defaultStyles = styles(defaultTheme);
-
 export default styles;
-export {defaultStyles};
 export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};

@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import {generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,7 +44,7 @@ function PersonalCardUpgradePage() {
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
-            policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             policyOwnerEmail: '',
             transitionFromOldDot: false,

@@ -1,5 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
+import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -20,28 +21,20 @@ import FullScreenLoaderContextProvider from './components/FullScreenLoaderContex
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
-import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
-import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
-import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
-import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
+import {EditingCellProvider} from './components/Table/EditableCell';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
-import FullScreenContextProvider from './components/VideoPlayerContexts/FullScreenContextProvider';
-import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
-import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
-import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
-import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -51,14 +44,14 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
-import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
-import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
-import TravelCVVContextProvider from './pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
+
+// This is needed to close pop-up window during logout for users logged in via SSO
+maybeCompleteAuthSession();
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -111,30 +104,19 @@ function App() {
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ScrollOffsetContextProvider,
-                                        AttachmentModalContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,
                                         CustomStatusBarAndBackgroundContextProvider,
                                         ActiveElementRoleProvider,
                                         ActionSheetAwareScrollViewProvider,
-                                        PlaybackContextProvider,
-                                        FullScreenContextProvider,
-                                        VolumeContextProvider,
-                                        VideoPopoverMenuContextProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
-                                        KeyboardDismissibleFlatListContextProvider,
-                                        SearchRouterContextProvider,
-                                        ProductTrainingContextProvider,
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
                                         SidePanelContextProvider,
-                                        ExpensifyCardContextProvider,
-                                        TravelCVVContextProvider,
-                                        KYCWallContextProvider,
-                                        WideRHPContextProvider,
+                                        EditingCellProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
