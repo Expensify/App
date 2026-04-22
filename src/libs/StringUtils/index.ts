@@ -121,6 +121,15 @@ function normalizeCRLF(value?: string): string | undefined {
 }
 
 /**
+ * Remove all line breaks from a string
+ * @param text - The input string
+ * @returns The string with all line breaks removed
+ */
+function removeLineBreaks(text = '') {
+    return text.replaceAll(CONST.REGEX.LINE_BREAK, '');
+}
+
+/**
  * Replace all line breaks with white spaces
  */
 function lineBreaksToSpaces(text = '', useNonBreakingSpace = false) {
@@ -211,6 +220,7 @@ export default {
     normalizeAccents,
     normalizeCRLF,
     lineBreaksToSpaces,
+    removeLineBreaks,
     getFirstLine,
     removeDoubleQuotes,
     removePreCodeBlock,

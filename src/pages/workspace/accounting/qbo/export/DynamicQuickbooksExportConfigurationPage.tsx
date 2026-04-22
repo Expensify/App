@@ -80,7 +80,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         ...(isTravelInvoicingEnabled
             ? [
                   {
-                      description: translate('workspace.qbo.travelInvoicing'),
+                      description: translate('workspace.common.travelInvoicing'),
                       onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
                       title: travelPayableAccount?.name,
                       subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],

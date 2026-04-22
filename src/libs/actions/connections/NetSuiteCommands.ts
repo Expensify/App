@@ -1062,17 +1062,6 @@ function updateNetSuiteCustomFormIDOptions(
     API.write(commandName, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingVendor(policyID: string, vendorID: string, oldVendorID?: string) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR, vendorID, oldVendorID);
-    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
-        policyID,
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
-        configUpdate: JSON.stringify({[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR]: vendorID}),
-        idempotencyKey: CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR,
-    };
-    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, onyxData);
-}
-
 function updateNetSuiteTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
@@ -1123,6 +1112,5 @@ export {
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,
-    updateNetSuiteTravelInvoicingVendor,
     updateNetSuiteTravelInvoicingPayableAccount,
 };

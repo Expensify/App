@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
@@ -51,6 +52,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
@@ -106,6 +108,24 @@ function MoneyRequestReportPreviewContent({
     originalReportID,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
+
+    const [isTransitionPending, setIsTransitionPending] = useState(() => {
+        const pending = getPendingSubmitFollowUpAction();
+        return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && (pending?.reportID === chatReportID || pending?.reportID === iouReportID);
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!isTransitionPending) {
+                return;
+            }
+            const handle = TransitionTracker.runAfterTransitions({
+                callback: () => setIsTransitionPending(false),
+                waitForUpcomingTransition: true,
+            });
+            return () => handle.cancel();
+        }, [isTransitionPending]),
+    );
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
@@ -118,7 +138,7 @@ function MoneyRequestReportPreviewContent({
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
     // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
     // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
-    const shouldShowPreviewLoading = shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
+    const shouldShowPreviewLoading = isTransitionPending || shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportPreviewContent',
         hasOnceLoadedReportActions: chatReportMetadata?.hasOnceLoadedReportActions,
@@ -587,7 +607,7 @@ function MoneyRequestReportPreviewContent({
                 style={styles.mt1}
             >
                 <View
-                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
+                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles, isTransitionPending && styles.w100]}
                     onLayout={onCarouselLayout}
                     testID="carouselWidthSetter"
                 >

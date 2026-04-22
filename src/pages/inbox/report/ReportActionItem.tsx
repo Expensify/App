@@ -83,7 +83,6 @@ function ReportActionItem({
     const [iouReportOfLinkedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportOfLinkedReportID}`);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -115,7 +114,6 @@ function ReportActionItem({
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
-            cardList={cardList}
             linkedReport={linkedReport}
             iouReportOfLinkedReport={iouReportOfLinkedReport}
             emojiReactions={emojiReactions}

@@ -140,7 +140,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,
-                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        participants:
+                            displayReport.participantsList
+                                ?.filter((u) => u.accountID !== personalDetail.accountID)
+                                .map((u) => ({
+                                    login: u.login ?? '',
+                                    accountID: u.accountID,
+                                })) ?? [],
+                        personalDetails,
                         newReportObject: report,
                         betas,
                     });
