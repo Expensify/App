@@ -635,6 +635,7 @@ function mergeTransactionRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldTransactionThreadID}`,
                 value: {
+                    parentReportID: targetTransaction.reportID,
                     parentReportActionID: oldIOUAction.reportActionID,
                 },
             });
