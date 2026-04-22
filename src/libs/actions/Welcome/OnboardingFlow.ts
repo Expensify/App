@@ -1,19 +1,14 @@
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/native';
+import {getStateFromPath} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
-import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type {Video} from '@userActions/Report';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
@@ -77,26 +72,6 @@ Onyx.connectWithoutView({
         onboardingData = value;
     },
 });
-
-/**
- * Start a new onboarding flow or continue from the last visited onboarding page.
- */
-function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
-    const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, undefined, false);
-    const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
-    if (focusedRoute?.name === currentRoute?.name) {
-        return;
-    }
-    const rootState = navigationRef.getRootState();
-    const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
-    navigationRef.resetRoot({
-        ...rootState,
-        ...adaptedState,
-        stale: true,
-        routes: [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])],
-    } as PartialState<NavigationState>);
-}
 
 function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
     const {
@@ -298,13 +273,6 @@ const getOnboardingMessages = (locale?: Locale) => {
         description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
     };
 
-    const inviteAccountantTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.INVITE_ACCOUNTANT,
-        autoCompleted: false,
-        title: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.title', {workspaceMembersLink}),
-        description: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
-    };
-
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         message: translate(resolvedLocale, 'onboarding.messages.onboardingEmployerOrSubmitMessage'),
         tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
@@ -349,7 +317,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             width: 1280,
             height: 960,
         },
-        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
+        tasks: [testDriveAdminTask, createReportTask, setupCategoriesTask],
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {
@@ -393,4 +361,4 @@ const getOnboardingMessages = (locale?: Locale) => {
 };
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
-export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};
+export {getOnboardingInitialPath, getOnboardingMessages};

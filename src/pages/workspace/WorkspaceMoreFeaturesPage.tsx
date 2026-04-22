@@ -28,7 +28,15 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canPolicyAccessFeature, getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    canPolicyAccessFeature,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    hasAccountingConnections,
+    hasAccountingFeatureConnection,
+    isControlPolicy,
+    isTimeTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -37,6 +45,7 @@ import {
     enableCompanyCards,
     enableExpensifyCard,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyReceiptPartners,
     enablePolicyRules,
@@ -90,7 +99,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
@@ -144,6 +153,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Gears',
         'ReceiptPartners',
         'Clock',
+        'Members',
     ]);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -497,6 +507,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+            },
+        });
+    }
+
+    if (isBetaEnabled(CONST.BETAS.GUSTO)) {
+        integrateItems.push({
+            icon: illustrations.Members,
+            titleTranslationKey: 'workspace.hr.title',
+            subtitleTranslationKey: 'workspace.hr.subtitle',
+            isActive: ((policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false,
+            pendingAction: policy?.pendingFields?.isHREnabled,
+            disabled: !!policy?.connections?.gusto,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                enablePolicyHR(policyID, isEnabled);
+            },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
             },
         });
     }

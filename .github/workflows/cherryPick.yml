@@ -34,9 +34,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Validate pull request URL
+        if: ${{ inputs.PULL_REQUEST_URL != '' }}
+        run: |
+          REPO_FULL_NAME=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')
+          if [[ "$REPO_FULL_NAME" != ${{ github.repository }} ]] && [[ ! "$REPO_FULL_NAME" =~ Expensify/Mobile-Expensify* ]]; then
+            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: $REPO_FULL_NAME"
+            exit 1
+          fi
+
+      - name: Verify PR is merged
+        if: ${{ inputs.PULL_REQUEST_URL != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+        run: |
+          if gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json mergedAt | jq --exit-status '.mergedAt'; then
+            echo "PR is merged: ${{ inputs.PULL_REQUEST_URL }}"
+          else
+            echo "::error::❌ PR is not merged: ${{ inputs.PULL_REQUEST_URL }}"
+            exit 1
+          fi
+
   createNewVersion:
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
+    needs: [validate]
     with:
       # In order to submit a new build for production review, it must have a higher PATCH version than the previously-submitted build.
       # The typical case is that with each staging deploy, we bump the BUILD version, and with each prod deploy we bump the PATCH version.
@@ -58,14 +83,6 @@ jobs:
         run: |
           echo "REPO_FULL_NAME=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
           echo "PR_NUMBER=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')" >> "$GITHUB_OUTPUT"
-
-      - name: Verify pull request URL
-        if: ${{ inputs.PULL_REQUEST_URL != '' }}
-        run: |
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ ! "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ Expensify/Mobile-Expensify* ]]; then
-            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
-            exit 1
-          fi
 
       - name: Set conflict branch name
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
@@ -262,7 +279,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successful\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
+                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successfully started\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
               }]
             }
         env:
@@ -422,6 +439,23 @@ jobs:
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
                 text: `💥 Failed to CP ${{ inputs.PULL_REQUEST_URL }} to ${{ inputs.TARGET }} 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: "Announce CP cancellation in #deployer"
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        if: ${{ cancelled() }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'warning',
+                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* was cancelled\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nWorkflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
               }]
             }
         env:

@@ -9,6 +9,7 @@ import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -35,7 +36,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -45,10 +46,12 @@ function IOURequestStepUpgrade({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
+    const isTrack = iouType === CONST.IOU.TYPE.TRACK;
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
@@ -106,12 +109,15 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute, {compareParams: false});
 
-                setTransactionReport(transactionID, {reportID: expenseReportID}, true);
-                // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                setCustomUnitRateID(transactionID, '-1', undefined, undefined);
-                Navigation.setParams({reportID: expenseReportID});
+                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
+                if (!isTrack) {
+                    setTransactionReport(transactionID, {reportID: expenseReportID}, true);
+                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step
+                    setCustomUnitRateID(transactionID, '-1', undefined, undefined);
+                    Navigation.setParams({reportID: expenseReportID});
+                }
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, isTrack ? reportID : expenseReportID, iouType, action));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
@@ -148,9 +154,10 @@ function IOURequestStepUpgrade({
             return;
         }
 
+        const email = currentUserPersonalDetails?.email ?? '';
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
-            policyName: undefined,
+            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -165,7 +172,7 @@ function IOURequestStepUpgrade({
             introSelected,
             activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            currentUserEmailParam: email,
             onboardingPurposeSelected,
             betas,
             isSelfTourViewed,

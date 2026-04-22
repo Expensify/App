@@ -112,11 +112,11 @@ describe('useChartInteractions', () => {
         expect(typeof result.current.setPointPositions).toBe('function');
     });
 
-    it('starts with activeDataIndex of -1 and isTooltipActive false', () => {
+    it('starts with matchedIndex of -1 and isTooltipActive false', () => {
         const {result} = renderHook(() => useChartInteractions(defaultProps));
 
-        expect(result.current.activeDataIndex).toBe(-1);
-        expect(result.current.isTooltipActive).toBe(false);
+        expect(result.current.matchedIndex.get()).toBe(-1);
+        expect(result.current.isTooltipActive.get()).toBe(false);
     });
 
     it('setPointPositions does not throw for typical canvas coordinates', () => {
@@ -142,7 +142,7 @@ describe('useChartInteractions', () => {
             return useChartInteractions({...defaultProps, chartBottom, yZero});
         });
 
-        expect(result.current.isTooltipActive).toBe(false);
+        expect(result.current.isTooltipActive.get()).toBe(false);
     });
 
     it('accepts optional isCursorOverLabel and resolveLabelTouchX', () => {

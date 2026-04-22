@@ -10,7 +10,7 @@ type SearchPageHeaderNarrowProps = {
     isMobileSelectionModeEnabled: boolean;
     cancelSearch?: () => void;
 };
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
+
 function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled, cancelSearch}: SearchPageHeaderNarrowProps) {
     const {translate} = useLocalize();
 
@@ -21,8 +21,9 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
     return (
         <TopBar
             shouldShowLoadingBar={shouldShowLoadingBar}
-            breadcrumbLabel={translate('common.reports')}
+            breadcrumbLabel={translate('common.spend')}
             shouldDisplaySearch={false}
+            shouldDisplayHelpButton
             cancelSearch={cancelSearch}
         />
     );

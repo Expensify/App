@@ -5,7 +5,6 @@ import type CONST from '@src/CONST';
 
 type BaseRegisterResult = {
     keyInfo: RegistrationKeyInfo;
-    authenticationMethod: AuthTypeInfo;
 };
 
 type RegisterResult =
@@ -16,6 +15,7 @@ type RegisterResult =
     | ({
           success: false;
           reason: MultifactorAuthenticationReason;
+          message?: string;
       } & Partial<BaseRegisterResult>);
 
 type AuthorizeParams = {
@@ -32,6 +32,7 @@ type AuthorizeResultSuccess = {
 type AuthorizeResultFailure = {
     success: false;
     reason: MultifactorAuthenticationReason;
+    message?: string;
 };
 
 type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
@@ -50,7 +51,7 @@ type UseBiometricsReturn = {
     getLocalCredentialID: () => Promise<string | undefined>;
 
     /** Check if device supports the authentication method */
-    doesDeviceSupportAuthenticationMethod: () => boolean;
+    doesDeviceSupportAuthenticationMethod: () => Promise<boolean>;
 
     /** Reason to use when doesDeviceSupportAuthenticationMethod() returns false (platform-specific) */
     deviceCheckFailureReason: MultifactorAuthenticationReason;

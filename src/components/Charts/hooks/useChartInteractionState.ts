@@ -1,7 +1,5 @@
-import {useState} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
-import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {useSharedValue} from 'react-native-reanimated';
 
 /**
  * Chart interaction state structure - compatible with Victory's handleTouch function
@@ -41,10 +39,7 @@ type ChartInteractionState = {
  * Creates shared state for chart interactions (hover, tap, press).
  * Compatible with Victory Native's handleTouch function exposed via actionsRef.
  */
-function useChartInteractionState(): {
-    state: ChartInteractionState;
-    isActive: boolean;
-} {
+function useChartInteractionState(): {state: ChartInteractionState} {
     const isActiveValue = useSharedValue(false);
     const matchedIndex = useSharedValue(-1);
     const xValue = useSharedValue(0);
@@ -54,18 +49,6 @@ function useChartInteractionState(): {
     const yIndex = useSharedValue(-1);
     const cursorX = useSharedValue(0);
     const cursorY = useSharedValue(0);
-
-    const [isActive, setIsActive] = useState(false);
-
-    useAnimatedReaction(
-        () => isActiveValue.get(),
-        (val, oldVal) => {
-            if (val === oldVal) {
-                return;
-            }
-            scheduleOnRN(setIsActive, val);
-        },
-    );
 
     const state: ChartInteractionState = {
         isActive: isActiveValue,
@@ -87,7 +70,7 @@ function useChartInteractionState(): {
         },
     };
 
-    return {state, isActive};
+    return {state};
 }
 
 export {useChartInteractionState};

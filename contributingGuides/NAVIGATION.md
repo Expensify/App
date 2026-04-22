@@ -31,6 +31,7 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters)
     - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
     - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
+    - [Backward compatibility for changed paths](#backward-compatibility-for-changed-paths)
   - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
@@ -702,7 +703,7 @@ A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to 
 
 Do not use dynamic routes when:
 - Your use case falls under the [current limitations](#current-limitations-work-in-progress):
-  - You need path parameters in dynamic suffixes (e.g. `a/:reportID`).
+  - You need optional path parameters in dynamic suffixes (e.g. `a/:reportID?`).
 - The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
 
 ### Dynamic routes configuration
@@ -751,9 +752,9 @@ KEYBOARD_SHORTCUTS: {
 
 ### Current limitations (work in progress)
 
-- **Path parameters:** Suffixes must not include path params (e.g. `a/:reportID`). Query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+- **Optional path parameters:** Suffixes must not include optional path params (e.g. `a/:reportID?`). Required path parameters (e.g. `flag/:reportActionID`) and query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 
-If you try to use dynamic routes for this case now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+If you try to use dynamic routes with optional path parameters now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
 
 ### Multi-segment dynamic routes
 
@@ -892,9 +893,7 @@ and [`src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx
 ### How to add a new dynamic route
 
 1. Add to `DYNAMIC_ROUTES` in [`src/ROUTES.ts`](../src/ROUTES.ts): define `path` and
-`entryScreens` (screen names that may open this route).
-If the suffix needs query parameters, also define `getRoute`
-and `queryParams` - see
+`entryScreens` (screen names that may open this route). If the suffix needs path parameters, define `path` with `:param` placeholders and a `getRoute` function. If the suffix needs query parameters, also define `getRoute` and `queryParams` - see
 [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 2. Add a screen constant in [`src/SCREENS.ts`](../src/SCREENS.ts).
 The name must start with the `DYNAMIC_` prefix
@@ -932,6 +931,46 @@ If you are migrating an existing flow that uses `backTo` (or multiple static rou
 6. Remove old static route constants and old screen bindings that are replaced by the single dynamic screen.
 
 For the legacy approach (e.g. separating routes per screen instance) and edge cases like RHP underlay, see [How to remove backTo from URL](#how-to-remove-backto-from-url) and [Separating routes for each screen instance](#separating-routes-for-each-screen-instance).
+
+### Backward compatibility for changed paths
+
+When migrating a static route to a dynamic route, the resulting URL often changes because dynamic routes build the target path on top of the entry screen's URL. Here is a concrete example:
+
+**Static routes** — the entry screen and the target screen have independent, unrelated paths:
+
+| | Path |
+|---|---|
+| Entry screen | `/r/:reportID/details` |
+| Target screen | `/r/:reportID/settings/name` |
+
+The target path `/r/:reportID/settings/name` stands on its own; it does not contain the entry screen's `/details` segment.
+
+**Dynamic routes** — the target URL is formed by appending a suffix to the entry screen's URL:
+
+| | Path |
+|---|---|
+| Entry screen (base path) | `/r/:reportID/details` |
+| Dynamic suffix | `settings/name` |
+| Target screen | `/r/:reportID/details/settings/name` |
+
+Because the suffix `settings/name` is appended to `/r/:reportID/details`, the resulting URL now includes the entry screen's path as a prefix. The old static URL (`/r/:reportID/settings/name`) no longer matches the new dynamic one (`/r/:reportID/details/settings/name`).
+
+If the new path does not match the old one, you **must** add a redirect mapping to [`src/libs/Navigation/linkingConfig/OldRoutes.ts`](../src/libs/Navigation/linkingConfig/OldRoutes.ts) so that bookmarks, shared links, and browser history still work.
+
+Each entry in `OldRoutes.ts` maps an old path pattern to the new path. Use `*` as a wildcard for dynamic segments and `$1`, `$2`, etc. in the replacement to reference captured segments:
+
+```ts
+const oldRoutes: Record<string, string> = {
+    '/r/*/settings/name': '/r/$1/details/settings/name',
+    '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
+};
+```
+
+- A `*` in the **middle** of a pattern matches a single path segment (everything except `/`).
+- A `*` at the **end** of a pattern matches the entire remaining path (including `/`).
+- `$1`, `$2`, ... in the replacement string correspond to the captured wildcards in order.
+
+After adding a mapping, add test cases in [`tests/navigation/getMatchingNewRouteTest.ts`](../tests/navigation/getMatchingNewRouteTest.ts) to verify that the old path redirects to the new one and that query parameters are preserved.
 
 ## How to remove backTo from URL
 
@@ -1102,7 +1141,7 @@ In Expensify, we use an extended implementation of this function because:
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
 -   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-remove-backto-from-url))
--   For dynamic routes, state is built from the current path and [entryScreens](#entry-screens-access-control) access control.
+-   For dynamic routes, when the page is refreshed the navigation state only contains the deepest screen. To make back navigation work, all intermediate dynamic screens must be inserted into the state in the correct order so the app knows which screen to return to.
 
 Here are examples how the state is generated based on route:
 
@@ -1215,6 +1254,77 @@ As you can see after opening the workspace settings of the specific workspace, w
 ```
 
 In the above example, we can see that when building a state from a link leading to a screen in RHP, screens that appear below the overlay are also built.
+
+-   `settings/profile/address/country?country=US`
+
+```json
+{
+    "stale": false,
+    "type": "stack",
+    "key": "stack-key-7",
+    "index": 1,
+    "routes": [
+        {
+            "name": "SettingsSplitNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-8",
+                "index": 1,
+                "routes": [
+                    {
+                        "name": "Settings_Root",
+                        "key": "Settings_Root-key"
+                    },
+                    {
+                        "name": "Settings_Profile",
+                        "key": "Settings_Profile-key"
+                    }
+                ]
+            },
+            "key": "SettingsSplitNavigator-key"
+        },
+        {
+            "name": "RightModalNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-9",
+                "index": 0,
+                "routes": [
+                    {
+                        "name": "Settings",
+                        "state": {
+                            "stale": false,
+                            "type": "stack",
+                            "key": "stack-key-10",
+                            "index": 1,
+                            "routes": [
+                                {
+                                    "name": "Settings_Address",
+                                    "path": "/settings/profile/address",
+                                    "key": "Settings_Address-key"
+                                },
+                                {
+                                    "name": "Dynamic_Address_Country",
+                                    "path": "/settings/profile/address/country?country=US",
+                                    "params": {
+                                        "country": "US"
+                                    },
+                                    "key": "Dynamic_Address_Country-key"
+                                }
+                            ]
+                        },
+                        "key": "Settings-key"
+                    }
+                ]
+            },
+            "key": "RightModalNavigator-key"
+        }
+    ]
+}
+```
+Since `country` is a dynamic suffix, the `Dynamic_Address_Country` screen is layered on top of the static `Settings_Address` screen in the initial state, ensuring correct back navigation after a refresh.
 
 ## Setting the correct screen underneath RHP
 

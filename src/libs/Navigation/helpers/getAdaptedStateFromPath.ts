@@ -10,12 +10,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
-import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
@@ -54,8 +56,13 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+    const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
+
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
-    if (isRouteWithBackToParam(route)) {
+    // Dynamic screens are skipped here because they never carry their own backTo - they only
+    // inherit it from the screen underneath. Letting backTo dictate the full-screen route for
+    // a dynamic screen would resolve the wrong page.
+    if (isRouteWithBackToParam(route) && !isDynamicScreen) {
         const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
@@ -185,15 +192,18 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
-        if (dynamicRouteSuffix) {
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+        const suffixMatch = findMatchingDynamicSuffix(route.path);
+        if (suffixMatch) {
+            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
+            // suffix and the registered pattern so query params can be resolved correctly.
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 return undefined;
             }
 
-            // Get navigation state for the base path without dynamic suffix
+            // Parse the base path (without dynamic suffix) into a navigation state
+            // to determine which full-screen route should be visible underneath the overlay.
             const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
@@ -285,16 +295,28 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     if (!fullScreenRoute) {
         const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
+        let currentState = state;
+        if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
+            currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+
+            // getDynamicRouteAdaptedState may have already resolved the full screen route.
+            // In that case, skip the default full screen route injection below - the state is already complete.
+            const hasFullScreenRoute = currentState.routes.some((route) => isFullScreenName(route.name));
+            if (hasFullScreenRoute) {
+                return currentState;
+            }
+        }
+
         if (focusedRoute) {
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
-                return getRoutesWithIndex([matchingRootRoute, ...state.routes]);
+                return getRoutesWithIndex([matchingRootRoute, ...currentState.routes]);
             }
         }
 
-        const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+        const onboardingNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
 
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
@@ -306,16 +328,16 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
         }
 
-        const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+        const isRightModalNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
         if (isRightModalNavigator) {
-            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...state.routes]);
+            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...currentState.routes]);
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
 
         // If not, add the default full screen route.
-        return getRoutesWithIndex([defaultFullScreenRoute, ...state.routes]);
+        return getRoutesWithIndex([defaultFullScreenRoute, ...currentState.routes]);
     }
 
     return state;
@@ -336,7 +358,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 // We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    normalizedPath = getRedirectedPath(normalizedPath);
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.

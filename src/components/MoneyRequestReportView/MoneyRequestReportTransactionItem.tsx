@@ -5,6 +5,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -12,13 +13,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {CardList, Policy, Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -67,8 +69,8 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    /** Custom card names mapping cardID to display name */
-    customCardNames?: Record<number, string>;
+    /** List of cards for the user */
+    nonPersonalAndWorkspaceCards: CardList;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -87,10 +89,11 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isEditingCell} = useEditingCellState();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -99,6 +102,22 @@ function MoneyRequestReportTransactionItem({
     const pendingAction = getTransactionPendingAction(transaction);
     // Filter violations based on user visibility and dismissal state at the row level.
     const filteredViolations = useTransactionViolations(transaction.transactionID);
+
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({transactionID: transaction.transactionID, reportID: transaction.reportID});
 
     const viewRef = useRef<View>(null);
 
@@ -124,6 +143,12 @@ function MoneyRequestReportTransactionItem({
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {
+                    // If a cell was being edited when the user tapped the row, suppress navigation
+                    // so the second tap doesn't immediately open the transaction detail.
+                    if (wasEditingOnMouseDownRef.current) {
+                        wasEditingOnMouseDownRef.current = false;
+                        return;
+                    }
                     handleOnPress(transaction.transactionID);
                 }}
                 accessibilityLabel={translate('iou.viewDetails')}
@@ -134,7 +159,12 @@ function MoneyRequestReportTransactionItem({
                 style={[styles.transactionListItemStyle]}
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                onPressIn={() => {
+                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    if (canUseTouchScreen()) {
+                        ControlSelection.block();
+                    }
+                }}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={() => {
                     handleLongPress(transaction.transactionID);
@@ -165,7 +195,19 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
-                        customCardNames={customCardNames}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        canEditDate={canEditDate}
+                        canEditMerchant={canEditMerchant}
+                        canEditDescription={canEditDescription}
+                        canEditCategory={canEditCategory}
+                        canEditAmount={canEditAmount}
+                        canEditTag={canEditTag}
+                        onEditDate={onEditDate}
+                        onEditMerchant={onEditMerchant}
+                        onEditDescription={onEditDescription}
+                        onEditCategory={onEditCategory}
+                        onEditAmount={onEditAmount}
+                        onEditTag={onEditTag}
                     />
                 )}
             </PressableWithFeedback>

@@ -51,6 +51,7 @@ const defaultSearchContextData: SearchContextData = {
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
+    hasSelectedTransactions: false,
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
@@ -61,7 +62,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowActionsBarLoading: false,
+    shouldShowFiltersBarLoading: false,
     currentSearchResults: undefined,
     shouldUseLiveData: false,
 };
@@ -72,7 +73,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
-    setShouldShowActionsBarLoading: () => {},
+    setShouldShowFiltersBarLoading: () => {},
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
@@ -103,7 +104,7 @@ function SearchContextProvider({children}: SearchContextProps) {
     const areTransactionsEmpty = useRef(true);
     const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
-    const [shouldShowActionsBarLoading, setShouldShowActionsBarLoading] = useState(false);
+    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
@@ -175,15 +176,35 @@ function SearchContextProvider({children}: SearchContextProps) {
                     }
                     return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
                 })
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID,
-                }));
+                .map(
+                    ({
+                        reportID,
+                        action = CONST.SEARCH.ACTION_TYPES.VIEW,
+                        total = CONST.DEFAULT_NUMBER_ID,
+                        policyID,
+                        allActions = [action],
+                        currency,
+                        chatReportID,
+                        managerID,
+                        ownerAccountID,
+                        parentReportActionID,
+                        parentReportID,
+                        type,
+                    }) => ({
+                        reportID,
+                        action,
+                        total,
+                        policyID,
+                        allActions,
+                        currency,
+                        chatReportID,
+                        managerID,
+                        ownerAccountID,
+                        parentReportActionID,
+                        parentReportID,
+                        type,
+                    }),
+                );
         } else if (data.length && data.every(isTransactionListItemType)) {
             matchingReports = data
                 .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
@@ -199,6 +220,11 @@ function SearchContextProvider({children}: SearchContextProps) {
                         allActions: item.allActions ?? [action],
                         currency: item.currency,
                         chatReportID: item.report?.chatReportID,
+                        managerID: item.report?.managerID,
+                        ownerAccountID: item.report?.ownerAccountID,
+                        parentReportActionID: item.report?.parentReportActionID,
+                        parentReportID: item.report?.parentReportID,
+                        type: item.report?.type,
                     };
                 });
         }
@@ -307,11 +333,12 @@ function SearchContextProvider({children}: SearchContextProps) {
             currentSimilarSearchHash,
             currentSearchResults,
             shouldUseLiveData,
-            shouldShowActionsBarLoading,
+            shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
             currentSearchQueryJSON,
+            hasSelectedTransactions: searchContextData.selectedTransactionIDs.length > 0 || Object.values(searchContextData.selectedTransactions).some((t) => t.isSelected),
         }),
         [
             searchContextData,
@@ -321,7 +348,7 @@ function SearchContextProvider({children}: SearchContextProps) {
             currentSimilarSearchHash,
             currentSearchResults,
             shouldUseLiveData,
-            shouldShowActionsBarLoading,
+            shouldShowFiltersBarLoading,
             lastSearchType,
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
@@ -335,13 +362,13 @@ function SearchContextProvider({children}: SearchContextProps) {
             setSelectedTransactions,
             setCurrentSelectedTransactionReportID,
             clearSelectedTransactions,
-            setShouldShowActionsBarLoading,
+            setShouldShowFiltersBarLoading,
             setLastSearchType,
             setShouldShowSelectAllMatchingItems,
             selectAllMatchingItems,
             setShouldResetSearchQuery,
         }),
-        // setShouldShowActionsBarLoading, setLastSearchType, setShouldShowSelectAllMatchingItems,
+        // shouldShowFiltersBarLoading, setLastSearchType, setShouldShowSelectAllMatchingItems,
         // and selectAllMatchingItems are stable useState setters — excluded from deps intentionally.
         // setCurrentSelectedTransactionReportID only uses setSearchContextData (stable setter).
         [removeTransaction, setSelectedTransactions, clearSelectedTransactions, setShouldResetSearchQuery],

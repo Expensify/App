@@ -2,35 +2,60 @@
 title: Adding Attendees
 description: Learn how to add attendees to your expenses and resolve category limit errors by splitting the cost across participants.
 keywords: [New Expensify, add attendees, expense attendees, split expense, category limit, attendee allocation]
+internalScope: Audience is all members. Covers adding attendees to an expense. Does not cover category limit policies member management. 
 ---
 
-You can add attendees to an expense to indicate who participated in a meal, meeting, or event. This is especially helpful when your company has per-person category limits, as Expensify can split the cost evenly across all attendees to help avoid violations.
+# Adding Attendees
 
----
-
-# Add Attendees to an Expense
-
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
-2. Open the expense and click the **Attendees** caret to expand attendee options.
-3. Select participants from your **Recents**, **Contacts**, or use the **Search bar** to find someone by name or email.
-4. To add someone new, manually enter their name or email. They’ll be saved to your Contacts for future use.
-5. Click on each attendee to add them. A checkmark (✅) will show who’s been selected.
-6. Click **Save**.
+Adding attendees to an expense shows who participated in a meal, meeting, or event. Expensify automatically splits the total cost across all attendees, making it easier to track per-person spending and stay within company limits.
 
 ---
 
-# Resolve Category Limit Errors by Adding Attendees
+## Who can add attendees to an expense
 
-If an expense exceeds a category limit set by your admin, you can resolve the issue by adding attendees.
-
-1. Click the **Attendees** caret to open the attendee selector.
-2. Add the attendees involved in the expense.
-3. Expensify will automatically split the total cost across all attendees.
-4. Once added, a dot will appear between the **Attendees** field and the **per-person amount**, making it easy for approvers to verify the distribution.
+All members can add attendees to their own expenses.
 
 ---
 
-# Audit Trail for Attendees
+## How to add attendees to an expense 
 
-🕵️ **Note:** Expensify automatically records attendee changes on the expense report. These system messages cannot be edited, ensuring a clear and secure history of all attendee updates.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Expenses**.
+2. Open the expense and click **Attendees**. 
+3. Select attendees from **Recents**, **Contacts**, or enter a name, email, or phone number.
+4. Select each attendee to add a checkmark next to their name. 
+5. Click **Save**.
 
+The selected attendees are added to the expense.
+
+---
+
+## What happens after you add attendees to an expense
+
+ - The total expense is automatically split evenly across all attendees
+ - The per-attendee amount updates instantly on the expense
+ - If your Workspace has per-attendee category limits, adding attendees can reduce the per-attendee amount and help resolve limit violations
+ - Approvers can review attendee details during the approval process
+ - All attendee changes are recorded in the expense history for auditing
+
+---
+
+# How to view attendees on a report
+
+When any expense in a report has attendees, the report automatically shows two additional columns:
+
+- **Attendees:** displays the attendees added to each expense.
+- **Per attendee:** shows the total amount divided equally among all attendees.
+
+These columns appear in both the report and search results.
+
+---
+
+# FAQ
+
+## Is there an audit trail for attendee changes?
+
+Yes. Expensify automatically records all attendee updates in the expense history. These system records cannot be edited.
+
+## Can I edit attendees on an expense before it's submitted? 
+
+Yes. Open the expense, click **Attendees**, update the list, and click **Save**.

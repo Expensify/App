@@ -106,7 +106,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toBeUndefined();
     });
 
@@ -128,7 +128,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -150,7 +150,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -172,7 +172,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -194,7 +194,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -214,7 +214,7 @@ describe('useSearchSelector sortedActions integration', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        const firstCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[7];
+        const firstCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[8];
         expect(firstCallConfig?.sortedActions).toEqual(initialData.sortedActions);
 
         const updatedData = buildMockSortedActions(['1', '2', '3']);
@@ -223,11 +223,11 @@ describe('useSearchSelector sortedActions integration', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const latestCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[7];
+        const latestCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[8];
         expect(latestCallConfig?.sortedActions).toEqual(updatedData.sortedActions);
     });
 
-    it('does not pass sortedActions to getSearchOptions for SEARCH context', async () => {
+    it('passes sortedActions to getSearchOptions for SEARCH context', async () => {
         const mockData = buildMockSortedActions(['1']);
 
         await act(async () => {
@@ -246,6 +246,6 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(mockGetSearchOptions).toHaveBeenCalled();
         const lastSearchCall = mockGetSearchOptions.mock.calls.at(-1);
         const searchConfig = lastSearchCall?.[0];
-        expect(searchConfig).not.toHaveProperty('sortedActions');
+        expect(searchConfig).toHaveProperty('sortedActions');
     });
 });

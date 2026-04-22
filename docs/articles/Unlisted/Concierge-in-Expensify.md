@@ -34,7 +34,7 @@ You can reach Concierge by email at concierge@expensify.com or directly in the a
 
 - **Expensify Classic (web):** Click the chat icon in the navigation tabs on the left.  
 - **Expensify Classic (mobile):** Tap the chat icon in the upper right corner.  
-- **New Expensify:** Press the big green **+** button, select **New Chat**, and type *Concierge* into the composer box.  
+- **New Expensify:** Press the **+** button, select **New Chat**, and type *Concierge* into the composer box.  
 
 # Common Concierge use cases
 

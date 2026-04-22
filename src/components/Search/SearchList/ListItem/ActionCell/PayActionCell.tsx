@@ -4,16 +4,15 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useNetwork from '@hooks/useNetwork';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canIOUBePaid} from '@libs/actions/IOU';
+import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {hasOnlyNonReimbursableTransactions, isInvoiceReport} from '@libs/ReportUtils';
+import {isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,21 +29,18 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents}: PayActionCellProps) {
     const styles = useThemeStyles();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere =
-        !canBePaid &&
-        canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy) &&
-        !hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
 
     const {currency} = iouReport ?? {};
 
@@ -55,11 +51,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
 
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-            return;
-        }
-
-        if (shouldBlockDirectPayment(type)) {
-            showNonReimbursablePaymentErrorModal();
             return;
         }
 
@@ -97,7 +88,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}
             />
-            {nonReimbursablePaymentErrorDecisionModal}
         </SearchScopeProvider>
     );
 }

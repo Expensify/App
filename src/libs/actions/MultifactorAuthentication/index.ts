@@ -71,9 +71,9 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
  * Please consult before using this pattern.
  */
 
-async function registerAuthenticationKey({keyInfo, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
+async function registerAuthenticationKey({keyInfo}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo), authenticationMethod});
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo)});
 
         const {jsonCode, message} = response ?? {};
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
