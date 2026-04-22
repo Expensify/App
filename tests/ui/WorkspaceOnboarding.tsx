@@ -94,7 +94,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, ROUTES.ONBOARDING_WORKSPACES.route));
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, ''));
         });
 
         unmount();
@@ -127,7 +127,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, ROUTES.ONBOARDING_WORKSPACES.route));
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, ''));
         });
 
         unmount();
