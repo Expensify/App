@@ -1966,9 +1966,12 @@ function createTransactionThreadReport(
  * Navigates to a report, handling modal dismissal and delayed navigation for composer focus.
  *
  * @param reportID The ID of the report to navigate to
- * @param shouldDismissModal Whether to dismiss the modal before navigating
+ * @param options.shouldDismissModal Whether to dismiss the modal before navigating (defaults to true)
+ * @param options.afterTransition Callback to run after the navigate transition completes
  */
-function navigateToReport(reportID: string | undefined, shouldDismissModal = true, afterTransition?: () => void) {
+function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void}) {
+    const shouldDismissModal = options?.shouldDismissModal ?? true;
+
     if (shouldDismissModal) {
         Navigation.dismissModal({
             afterTransition: () => {
@@ -1976,11 +1979,11 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
                     return;
                 }
 
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition: options?.afterTransition});
             },
         });
     } else if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition: options?.afterTransition});
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
@@ -2028,7 +2031,7 @@ function navigateToAndOpenReport(
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
-    navigateToReport(report?.reportID, shouldDismissModal);
+    navigateToReport(report?.reportID, {shouldDismissModal});
 }
 
 function navigateToAndCreateGroupChat(
@@ -2049,7 +2052,7 @@ function navigateToAndCreateGroupChat(
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
-    navigateToReport(newChat.reportID, true, clearGroupChat);
+    navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
 
 /**
