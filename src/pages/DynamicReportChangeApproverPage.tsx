@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +23,7 @@ import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -36,9 +37,9 @@ const APPROVER_TYPE = {
 
 type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 
-type ReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
+type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
-function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportChangeApproverPageProps) {
+function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: DynamicReportChangeApproverPageProps) {
     const reportID = report?.reportID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -53,6 +54,11 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const hasAutoAppliedRef = useRef(false);
     const hasNavigatedToAddApproverRef = useRef(false);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
+
+    const goBack = () => {
+        Navigation.goBack(backPath);
+    };
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -140,13 +146,13 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 
     return (
         <ScreenWrapper
-            testID="ReportChangeApproverPage"
+            testID="DynamicReportChangeApproverPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('iou.changeApprover.title')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={goBack}
             />
             <SelectionList
                 data={approverTypes}
@@ -176,6 +182,6 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     );
 }
 
-export default withReportOrNotFound()(ReportChangeApproverPage);
+export default withReportOrNotFound()(DynamicReportChangeApproverPage);
 export {APPROVER_TYPE};
 export type {ApproverType};

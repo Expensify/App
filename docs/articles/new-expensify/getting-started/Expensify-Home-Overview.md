@@ -73,9 +73,9 @@ If there’s nothing that needs action, the **For you** section may appear empty
 
 The **Spend over time** section displays a line chart showing your workspace spending trends over time.
 
-This section is available to Workspace Admins, Auditors, and approvers on paid workspaces that have transaction data. Click **View** to open the full **Spend over time** chart on the Search page.
+This section is available to Workspace Admins, Auditors, and approvers on paid workspaces that have expenses across at least two time periods (e.g., two or more months). Click **View** to open the full **Spend over time** chart on the Search page.
 
-If you don't hold one of these roles or your workspace has no transactions yet, this section won't appear.
+If you don't hold one of these roles, or your workspace doesn't have expenses across at least two time periods, this section won't appear.
 
 ---
 
@@ -129,7 +129,7 @@ The **Time-sensitive** section only appears when there is an urgent issue or lim
 
 ## Why don’t I see the Spend over time section?
 
-The **Spend over time** section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace that has existing transactions. If you don't hold one of these roles, or your workspace has no transactions yet, this section won't be visible.
+The **Spend over time** section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace that has expenses across at least two time periods (e.g., two or more months). If you don't hold one of these roles, or your workspace doesn't have enough data to display a trend, this section won't be visible.
 
 ## Why don’t I see the Discover section?
 
