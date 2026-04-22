@@ -75,6 +75,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH;
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
+    const onboardingWorkspacesPath = route.params?.backTo ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params.backTo) : '';
+
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
@@ -150,12 +152,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const skipJoiningWorkspaces = () => {
         if (isVsb) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, route.params?.backTo ?? ROUTES.ONBOARDING_WORKSPACES.route));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, onboardingWorkspacesPath));
             return;
         }
 
         if (isSmb) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, route.params?.backTo ?? ROUTES.ONBOARDING_WORKSPACES.route));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, onboardingWorkspacesPath));
             return;
         }
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));

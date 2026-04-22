@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingEmployeesProps} from './types';
 
@@ -34,6 +34,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles}: BaseOnboardingEmployee
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES);
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path);
+    const onboardingBasePath = dynamicBackPath.startsWith(ROUTES.ONBOARDING_ROOT.route) ? dynamicBackPath : ROUTES.ONBOARDING_PURPOSE.route;
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
 
@@ -74,7 +75,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles}: BaseOnboardingEmployee
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-                    const onboardingEmployeesPath = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, dynamicBackPath);
+                    const onboardingEmployeesPath = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path, onboardingBasePath);
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path, onboardingEmployeesPath));
                 }}
                 pressOnEnter
