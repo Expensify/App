@@ -1348,6 +1348,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type);
         const firstOriginalTransactionID = firstTransaction?.comment?.originalTransactionID;
         const firstOriginalTransaction =
             (firstOriginalTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
@@ -1355,6 +1356,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             (firstOriginalTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined);
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, firstOriginalTransaction);
         const shouldShowEditSplitOnDeleteAction =
+            canShowDeleteAction &&
             selectedTransactionsKeys.length === 1 &&
             isExpenseSplit &&
             !isExpenseUnreported(firstTransaction) &&
@@ -1399,7 +1401,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
+        if (canShowDeleteAction) {
             options.push({
                 icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
                 text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('search.bulkActions.delete'),

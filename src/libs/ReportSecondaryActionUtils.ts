@@ -624,11 +624,16 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? []);
 }
 
-function shouldShowEditSplitInDeleteAction(reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>): boolean {
+function shouldShowEditSplitInDeleteAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    reportActions: ReportAction[] | undefined,
+    originalTransaction: OnyxEntry<Transaction>,
+): boolean {
     if (reportTransactions.length !== 1) {
         return false;
     }
@@ -640,7 +645,7 @@ function shouldShowEditSplitInDeleteAction(reportTransactions: Transaction[], or
 
     const {isExpenseSplit, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
-    return isExpenseSplit && isPerDiemRequestTransactionUtils(sourceTransaction);
+    return isExpenseSplit && isPerDiemRequestTransactionUtils(sourceTransaction) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -979,7 +984,7 @@ function getSecondaryReportActions({
 
     if (
         isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
-        !shouldShowEditSplitInDeleteAction(reportTransactions, originalTransaction)
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -1094,7 +1099,7 @@ function getSecondaryTransactionThreadActions(
 
     if (
         isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
-        !shouldShowEditSplitInDeleteAction([reportTransaction], originalTransaction)
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
