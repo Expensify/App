@@ -1,32 +1,36 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {changeMappingsValueFromDefaultToTag, updateSageIntacctReimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
 };
 
-function DynamicSageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConnectionsProps) {
+function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const {config} = policy?.connections?.intacct ?? {};
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.path);
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION>>();
+    const backTo = route.params.backTo;
 
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({
         value: expenseType,
@@ -36,8 +40,8 @@ function DynamicSageIntacctReimbursableExpensesDestinationPage({policy}: WithPol
     }));
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
+        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)));
+    }, [backTo, policyID]);
 
     const selectDestination = useCallback(
         (row: MenuListItem) => {
@@ -55,7 +59,7 @@ function DynamicSageIntacctReimbursableExpensesDestinationPage({policy}: WithPol
 
     return (
         <SelectionScreen
-            displayName="DynamicSageIntacctReimbursableExpensesDestinationPage"
+            displayName="SageIntacctReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             data={data}
             listItem={RadioListItem}
@@ -74,4 +78,4 @@ function DynamicSageIntacctReimbursableExpensesDestinationPage({policy}: WithPol
     );
 }
 
-export default withPolicyConnections(DynamicSageIntacctReimbursableExpensesDestinationPage);
+export default withPolicyConnections(SageIntacctReimbursableExpensesDestinationPage);

@@ -19,6 +19,7 @@
  */
 import {AppState} from 'react-native';
 import type {OnyxKey} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import Log from './Log';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
@@ -184,4 +185,64 @@ AppState.addEventListener('change', (nextState) => {
     }
 });
 
-export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
+/**
+ * Decide whether to defer the API write behind a pending layout transition
+ * (Search pre-insert or dismiss-modal) or execute it immediately.
+ *
+ * Priority order (first match wins):
+ *   1. SEARCH channel  - checked via the caller-provided `shouldDeferForSearch` flag
+ *   2. DISMISS_MODAL   - checked automatically via `hasDeferredWrite`
+ *   3. Immediate exec  - no active channel, run now
+ *
+ * Callers pre-compute `shouldDeferForSearch` using their own eligibility logic.
+ * The dismiss-modal channel is detected automatically via `hasDeferredWrite`.
+ */
+function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey; onDeferred?: () => void}) {
+    const {shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred} = options;
+
+    if (shouldDeferForSearch) {
+        onDeferred?.();
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    // Retries skip deferral to avoid infinite loops (retry -> defer -> flush -> retry).
+    // The trade-off is that a retry's optimistic data may be applied mid-animation,
+    // but this is acceptable: retries are rare and the alternative is a stuck write.
+    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+        onDeferred?.();
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    // handleSearchDismiss reserves the SEARCH channel before calling
+    // createTransaction(..., false, false). shouldDeferForSearch is false
+    // (gated by shouldHandleNavigation) but the channel is waiting for a
+    // write - honor it so the reserved channel doesn't linger unused.
+    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        onDeferred?.();
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    apiWrite();
+}
+
+/**
+ * Clear all channels and flushed watch keys. Only for use in tests.
+ * Exported from production code (rather than a test helper) so jest.mock
+ * can auto-resolve it alongside the other exports. Gated behind __DEV__
+ * so the function is a no-op in production (bundler dead-code eliminates the branch).
+ */
+function resetForTesting() {
+    if (!__DEV__) {
+        return;
+    }
+    for (const channel of channels.values()) {
+        clearChannelTimeout(channel);
+    }
+    channels.clear();
+    flushedWatchKeys.clear();
+}
+
+export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey, deferOrExecuteWrite, resetForTesting};

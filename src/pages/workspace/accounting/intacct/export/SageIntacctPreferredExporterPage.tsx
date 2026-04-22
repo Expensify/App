@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -6,24 +7,26 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateSageIntacctExporter} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type CardListItem = ListItem & {
     value: string;
 };
 
-function DynamicSageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
+function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
@@ -33,11 +36,12 @@ function DynamicSageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const policyID = policy?.id;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.path);
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREFERRED_EXPORTER>>();
+    const backTo = route.params?.backTo;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
+        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)));
+    }, [policyID, backTo]);
 
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
@@ -96,7 +100,7 @@ function DynamicSageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="DynamicSageIntacctPreferredExporterPage"
+            displayName="SageIntacctPreferredExporterPage"
             data={data}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -113,4 +117,4 @@ function DynamicSageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicyConnections(DynamicSageIntacctPreferredExporterPage);
+export default withPolicyConnections(SageIntacctPreferredExporterPage);
