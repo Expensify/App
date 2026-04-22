@@ -43,8 +43,16 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' }}
         id: getOldPatchesHash
         run: |
-            echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-            echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+            HYBRID_HERMES_FLAG=""
+            if grep -q '^[[:space:]]*hermesV1Enabled[[:space:]]*=[[:space:]]*true' Mobile-Expensify/Android/gradle.properties 2>/dev/null; then
+              HYBRID_HERMES_FLAG="--hermes-v1"
+            fi
+            STANDALONE_HERMES_FLAG=""
+            if grep -q '^[[:space:]]*hermesV1Enabled[[:space:]]*=[[:space:]]*true' android/gradle.properties 2>/dev/null; then
+              STANDALONE_HERMES_FLAG="--hermes-v1"
+            fi
+            echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+            echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         if: ${{ github.event_name != 'workflow_dispatch' }}
@@ -61,8 +69,16 @@ jobs:
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-            echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-            echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+            HYBRID_HERMES_FLAG=""
+            if grep -q '^[[:space:]]*hermesV1Enabled[[:space:]]*=[[:space:]]*true' Mobile-Expensify/Android/gradle.properties 2>/dev/null; then
+              HYBRID_HERMES_FLAG="--hermes-v1"
+            fi
+            STANDALONE_HERMES_FLAG=""
+            if grep -q '^[[:space:]]*hermesV1Enabled[[:space:]]*=[[:space:]]*true' android/gradle.properties 2>/dev/null; then
+              STANDALONE_HERMES_FLAG="--hermes-v1"
+            fi
+            echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+            echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         if: ${{ github.event_name != 'workflow_dispatch' }}
@@ -169,6 +185,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+          ARTIFACT_ID: react-android
 
       - name: Build and publish React Native artifacts
         working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
