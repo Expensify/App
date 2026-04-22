@@ -1,12 +1,9 @@
 #!/bin/bash
 
 # Resolves the hermes flag argument ("--hermes-v1" or empty) for a given
-# platform and build type, based on the relevant config file
-# (gradle.properties for Android, Podfile for iOS).
-#
-# Used by CI workflows to forward the right flag to compute-patches-hash.sh.
-#
-# Usage: resolve-hermes-flag.sh <android|ios> <standalone|hybrid>
+# platform and build type by inspecting the relevant config file
+# (gradle.properties for Android, Podfile for iOS). Used by CI workflows
+# to forward the right flag to compute-patches-hash.sh.
 
 set -euo pipefail
 
