@@ -80,7 +80,7 @@ function ReportFooter() {
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
 
-    if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
+    if (!isCurrentReportLoadedFromOnyx || !report) {
         return null;
     }
 
@@ -91,7 +91,7 @@ function ReportFooter() {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                    <ReportActionCompose reportID={reportIDFromRoute} />
+                    <ReportActionCompose reportID={report.reportID} />
                 </SwipeableView>
             </View>
         );
@@ -101,7 +101,7 @@ function ReportFooter() {
     if (isArchivedRoom) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                <ArchivedReportFooter reportID={reportIDFromRoute} />
+                <ArchivedReportFooter reportID={report.reportID} />
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
@@ -115,7 +115,7 @@ function ReportFooter() {
     if (isAnonymousUser) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                <AnonymousReportFooter reportID={reportIDFromRoute} />
+                <AnonymousReportFooter reportID={report.reportID} />
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />

@@ -26,9 +26,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigationState: () => true,
     usePreventRemove: jest.fn(),
     useRoute: () => ({
-        key: 'test-key',
-        name: 'Report' as never,
-        params: {reportID: FAKE_REPORT_ID},
+        params: {},
     }),
 }));
 
@@ -196,7 +194,7 @@ const renderComponent = () => {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList />
+                    <MoneyRequestReportActionsList reportID={FAKE_REPORT_ID} />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,
@@ -212,13 +210,17 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({
+            key: 'test-key',
+            name: 'Report' as never,
+            params: {reportID: FAKE_REPORT_ID},
+        });
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         await TestHelper.signInWithTestUser(FAKE_ACCOUNT_ID, FAKE_EMAIL);
     });
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
