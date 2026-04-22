@@ -240,7 +240,7 @@ function ReportFetchHandler() {
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
         fetchReport();
-    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
+    }, [route.name, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.

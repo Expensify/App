@@ -226,7 +226,7 @@ function ReportNavigateAwayHandler() {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, isCurrentRouteOwnWorkspaceChatRef]);
 
     return null;
 }
