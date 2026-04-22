@@ -20,7 +20,7 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 };
 
 function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, ...restProps}: InvertedFlashListProps<T>) {
-    const {displayedData, onStartReached} = useFlashListScrollKey<T>({
+    const {displayedData, onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
@@ -36,6 +36,7 @@ function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReac
             data={displayedData}
             keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
         />
     );
 }

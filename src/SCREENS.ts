@@ -131,6 +131,8 @@ const SCREENS = {
         HELP: 'Settings_Help',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
+        DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',
+        DYNAMIC_EXIT_SURVEY_REASON: 'Dynamic_ExitSurvey_Reason',
         DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
 
         PROFILE: {
@@ -226,9 +228,7 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
-            REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
-            CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
 
         DELEGATE: {
@@ -427,7 +427,7 @@ const SCREENS = {
         SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
         SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
-        SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
+        DYNAMIC_SETTINGS_CATEGORY_EDIT: 'Dynamic_Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
         SETTINGS_CATEGORIES_IMPORT: 'Settings_Categories_Import',
         SETTINGS_CATEGORIES_IMPORTED: 'Settings_Categories_Imported',
@@ -537,6 +537,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Configuration',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Vendor_Select',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Payable_Account_Select',
+            NETSUITE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Configuration',
+            NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Payable_Account_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Account_Select',
@@ -546,8 +548,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
             QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
             QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',
-            QUICKBOOKS_ONLINE_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Online_Auto_Sync',
-            QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Online_Accounting_Method',
+            DYNAMIC_QUICKBOOKS_ONLINE_AUTO_SYNC: 'Dynamic_Policy_Accounting_Quickbooks_Online_Auto_Sync',
+            DYNAMIC_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'Dynamic_Policy_Accounting_Quickbooks_Online_Accounting_Method',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
@@ -611,8 +613,8 @@ const SCREENS = {
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Payable_Account_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Journal_Posting_Preference_Select',
             DYNAMIC_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Receivable_Account_Select',
-            NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Preference_Select',
-            NETSUITE_INVOICE_ITEM_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Select',
+            DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Invoice_Item_Preference_Select',
+            DYNAMIC_NETSUITE_INVOICE_ITEM_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Invoice_Item_Select',
             NETSUITE_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Tax_Posting_Account_Select',
             NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Provincial_Tax_Posting_Account_Select',
             NETSUITE_ADVANCED: 'Policy_Accounting_NetSuite_Advanced',
@@ -657,6 +659,7 @@ const SCREENS = {
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
+        HR: 'Workspace_HR',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -970,7 +973,7 @@ const SCREENS = {
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
     REPORT_CHANGE_APPROVER: {
-        ROOT: 'Report_Change_Approver_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
     },
     TEST_TOOLS_MODAL: {

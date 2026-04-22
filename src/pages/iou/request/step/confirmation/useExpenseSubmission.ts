@@ -2,6 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -10,6 +11,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -21,6 +23,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
@@ -109,6 +112,7 @@ type UseExpenseSubmissionParams = {
     isCategorizingTrackExpense: boolean;
     isSharingTrackExpense: boolean;
     isUnreported: boolean;
+    isPolicyExpenseChat: boolean;
 
     // Onyx values
     draftTransactionIDs: string[] | undefined;
@@ -142,6 +146,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isCategorizingTrackExpense,
         isSharingTrackExpense,
         isUnreported,
+        isPolicyExpenseChat,
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
@@ -175,6 +180,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const policyRecentlyUsedCurrencies = policyRecentlyUsedCurrenciesOnyx ?? [];
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -216,7 +222,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+        ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
+        : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
@@ -376,6 +384,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
+                shouldHandleNavigation: shouldHandleNav,
             });
         } else {
             const isExpenseReport = isMoneyRequestReport(report);
@@ -429,6 +438,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                shouldHandleNavigation: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
@@ -454,6 +464,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
+            const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
                 report,
                 isDraftPolicy,
@@ -502,7 +513,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                currentUserEmailParam: email,
                 introSelected,
                 activePolicyID,
                 quickAction,
@@ -510,6 +521,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             });
         }
     }
@@ -606,9 +618,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
 
-        // Split (startSplitBill, splitBill, splitBillAndOpenReport) and invoice (sendInvoice)
-        // flows handle their own navigation internally and don't participate in the
-        // dismiss-modal fast path. shouldHandleNavigation is not threaded through to them.
+        // Split (startSplitBill, splitBill, splitBillAndOpenReport) flows handle their own
+        // navigation internally and don't participate in the dismiss-modal fast path.
+        // shouldHandleNavigation is not threaded through to them.
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
@@ -738,6 +750,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                shouldHandleNavigation,
             });
             markSubmitExpenseEnd();
             return;
