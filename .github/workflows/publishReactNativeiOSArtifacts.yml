@@ -22,6 +22,9 @@ on:
       - patches/react-native/@react-native+*.patch
       - Mobile-Expensify
 
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+
 jobs:
   verifyPatches:
     uses: ./.github/workflows/verifyReactNativePatches.yml
@@ -48,8 +51,6 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
       cancel-in-progress: true
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout Code
         # v6
@@ -85,12 +86,14 @@ jobs:
         with:
           name: slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
           path: node_modules/react-native/.build/output/spm/${{ matrix.flavor }}/Build/Products
+          retention-days: 1
 
       - name: Upload headers
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: headers-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
           path: node_modules/react-native/.build/headers
+          retention-days: 1
 
   composeXCFramework:
     name: Compose XCFramework
@@ -104,8 +107,6 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-compose-${{ matrix.is_hybrid }}-${{ matrix.flavor }}
       cancel-in-progress: true
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout Code
         # v6
@@ -155,12 +156,14 @@ jobs:
         with:
           name: reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}-${{ matrix.is_hybrid }}
           path: node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}/reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz
+          retention-days: 1
 
       - name: Upload dSYM artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: reactnative-core-dSYM-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}-${{ matrix.is_hybrid }}
           path: node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}/reactnative-core-dSYM-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz
+          retention-days: 1
 
   publishReactNativeiOSArtifacts:
     name: Publish React Native iOS Artifacts
@@ -171,6 +174,9 @@ jobs:
       matrix:
         is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
     concurrency:
+      # Publish runs sequentially per is_hybrid. Cancelling an in-flight publish
+      # can leave Maven metadata out of sync with the uploaded artifact, so we
+      # let the current run finish and queue the next one instead.
       group: ${{ github.workflow }}-publish-${{ matrix.is_hybrid }}
       cancel-in-progress: false
     steps:

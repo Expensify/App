@@ -36,7 +36,7 @@ jobs:
 
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     needs: verifyPatches
     if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
