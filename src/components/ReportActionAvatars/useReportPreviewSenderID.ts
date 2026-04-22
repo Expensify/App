@@ -52,6 +52,14 @@ function getTransactionDirectionSign(transaction: Transaction): number | undefin
     return undefined;
 }
 
+function hasPendingScanStateAndUnknownDirection(transaction: Transaction): boolean {
+    return (
+        transaction.receipt?.source !== undefined &&
+        (transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING) &&
+        getTransactionDirectionSign(transaction) === undefined
+    );
+}
+
 function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
     const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
 
@@ -135,13 +143,21 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         // We have to do it this way because there can be a case when actions are not available
         // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
         const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
+        const transactionsWithUnknownDirection = (transactions ?? []).filter((transaction, index) => transactionSigns.at(index) === undefined);
         const hasUnknownDirection = transactionSigns.some((sign) => sign === undefined);
+        const unknownDirectionComesOnlyFromPendingScans = transactionsWithUnknownDirection.length > 0 && transactionsWithUnknownDirection.every(hasPendingScanStateAndUnknownDirection);
 
-        if (hasUnknownDirection) {
+        if (hasUnknownDirection && !unknownDirectionComesOnlyFromPendingScans) {
             return undefined;
         }
 
-        const areAmountsSignsTheSame = new Set(transactionSigns).size < 2;
+        const knownTransactionSigns = transactionSigns.filter((sign): sign is number => sign !== undefined);
+
+        if (knownTransactionSigns.length === 0) {
+            return undefined;
+        }
+
+        const areAmountsSignsTheSame = new Set(knownTransactionSigns).size < 2;
 
         if (!areAmountsSignsTheSame) {
             return undefined;
