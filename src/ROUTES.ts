@@ -267,6 +267,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    PRIVATE_DOMAIN: {
+        path: 'private-domain',
+        entryScreens: [SCREENS.ONBOARDING.PERSONAL_DETAILS, '*'],
+    },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
@@ -3253,12 +3257,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
-    },
-    ONBOARDING_PRIVATE_DOMAIN: {
-        route: 'onboarding/private-domain',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',

@@ -124,7 +124,7 @@ describe('getOnboardingFlow', () => {
     it('returns 5-step flow for private domain + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', hasAccessibleDomainPolicies: true})).toEqual([
             O.PERSONAL_DETAILS,
-            O.PRIVATE_DOMAIN,
+            O.DYNAMIC_PRIVATE_DOMAIN,
             O.WORKSPACES,
             O.ACCOUNTING,
             O.INTERESTED_FEATURES,
@@ -134,7 +134,7 @@ describe('getOnboardingFlow', () => {
     it('returns 6-step flow for private domain + SMB', () => {
         expect(getOnboardingFlow({signupQualifier: 'smb', hasAccessibleDomainPolicies: true})).toEqual([
             O.PERSONAL_DETAILS,
-            O.PRIVATE_DOMAIN,
+            O.DYNAMIC_PRIVATE_DOMAIN,
             O.WORKSPACES,
             O.EMPLOYEES,
             O.ACCOUNTING,
@@ -145,7 +145,7 @@ describe('getOnboardingFlow', () => {
     it('returns 7-step flow for private domain + individual + MANAGE_TEAM', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', hasAccessibleDomainPolicies: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
             O.PERSONAL_DETAILS,
-            O.PRIVATE_DOMAIN,
+            O.DYNAMIC_PRIVATE_DOMAIN,
             O.WORKSPACES,
             O.PURPOSE,
             O.EMPLOYEES,
@@ -157,7 +157,7 @@ describe('getOnboardingFlow', () => {
     it('returns 5-step flow for private domain + individual + PERSONAL_SPEND', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', hasAccessibleDomainPolicies: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
             O.PERSONAL_DETAILS,
-            O.PRIVATE_DOMAIN,
+            O.DYNAMIC_PRIVATE_DOMAIN,
             O.WORKSPACES,
             O.PURPOSE,
             O.WORKSPACE_OPTIONAL,
@@ -167,7 +167,7 @@ describe('getOnboardingFlow', () => {
     it('returns 4-step flow for private domain + individual + EMPLOYER', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', hasAccessibleDomainPolicies: true, purposeSelected: ONBOARDING_CHOICES.EMPLOYER})).toEqual([
             O.PERSONAL_DETAILS,
-            O.PRIVATE_DOMAIN,
+            O.DYNAMIC_PRIVATE_DOMAIN,
             O.WORKSPACES,
             O.PURPOSE,
         ]);
@@ -250,7 +250,7 @@ describe('getOnboardingStepCounter', () => {
     it('returns correct step/total/percentage for private domain + individual + MANAGE_TEAM (7-step flow)', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', hasAccessibleDomainPolicies: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
         expect(getOnboardingStepCounter(O.PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 1, total: 7}, progressBarPercentage: 14});
-        expect(getOnboardingStepCounter(O.PRIVATE_DOMAIN, ctx)).toEqual({stepCounter: {step: 2, total: 7}, progressBarPercentage: 29});
+        expect(getOnboardingStepCounter(O.DYNAMIC_PRIVATE_DOMAIN, ctx)).toEqual({stepCounter: {step: 2, total: 7}, progressBarPercentage: 29});
         expect(getOnboardingStepCounter(O.WORKSPACES, ctx)).toEqual({stepCounter: {step: 3, total: 7}, progressBarPercentage: 43});
         expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 4, total: 7}, progressBarPercentage: 57});
         expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 5, total: 7}, progressBarPercentage: 71});
@@ -270,12 +270,12 @@ describe('getOnboardingStepCounter', () => {
 
         it('PRIVATE_DOMAIN resolves to WORK_EMAIL_VALIDATION step in public domain flows', () => {
             const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
-            expect(getOnboardingStepCounter(O.PRIVATE_DOMAIN, ctx)).toEqual(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx));
+            expect(getOnboardingStepCounter(O.DYNAMIC_PRIVATE_DOMAIN, ctx)).toEqual(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx));
         });
 
         it('PRIVATE_DOMAIN is its own step in private domain flows', () => {
             const ctx: OnboardingFlowContext = {signupQualifier: 'vsb', hasAccessibleDomainPolicies: true};
-            expect(getOnboardingStepCounter(O.PRIVATE_DOMAIN, ctx)).toBeDefined();
+            expect(getOnboardingStepCounter(O.DYNAMIC_PRIVATE_DOMAIN, ctx)).toBeDefined();
             expect(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx)).toBeUndefined();
         });
     });
@@ -330,7 +330,7 @@ describe('getOnboardingStepCounter', () => {
                 expectedPurposePct: 57,
                 prefixPages: [
                     {page: O.PERSONAL_DETAILS, step: 1, pct: 14},
-                    {page: O.PRIVATE_DOMAIN, step: 2, pct: 29},
+                    {page: O.DYNAMIC_PRIVATE_DOMAIN, step: 2, pct: 29},
                     {page: O.WORKSPACES, step: 3, pct: 43},
                 ],
             },
@@ -350,7 +350,7 @@ describe('getOnboardingStepCounter', () => {
 
         it('PRIVATE_DOMAIN resolves to WORK_EMAIL_VALIDATION step in indeterminate public merge flow', () => {
             const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false};
-            expect(getOnboardingStepCounter(O.PRIVATE_DOMAIN, ctx)).toEqual(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx));
+            expect(getOnboardingStepCounter(O.DYNAMIC_PRIVATE_DOMAIN, ctx)).toEqual(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx));
         });
     });
 

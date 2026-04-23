@@ -24,7 +24,7 @@ const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.WORK_EMAIL]: ONBOARDING.WORK_EMAIL,
     [ONBOARDING.WORK_EMAIL_VALIDATION]: ONBOARDING.WORK_EMAIL_VALIDATION,
-    [ONBOARDING.PRIVATE_DOMAIN]: ONBOARDING.PRIVATE_DOMAIN,
+    [ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
     [ONBOARDING.PERSONAL_DETAILS]: ONBOARDING.PERSONAL_DETAILS,
     [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
     [ONBOARDING.PURPOSE]: ONBOARDING.PURPOSE,
@@ -61,8 +61,8 @@ const maxSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.
 const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.PERSONAL_DETAILS).length));
 
 function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingScreen {
-    // In public domain flows, PRIVATE_DOMAIN is used as a variant of WORK_EMAIL_VALIDATION
-    if (page === ONBOARDING.PRIVATE_DOMAIN && context.isFromPublicDomain) {
+    // In public domain flows, the dynamic private-domain step is used as a variant of WORK_EMAIL_VALIDATION.
+    if (page === ONBOARDING.DYNAMIC_PRIVATE_DOMAIN && context.isFromPublicDomain) {
         return ONBOARDING.WORK_EMAIL_VALIDATION;
     }
     return screenResolution[page];
@@ -80,7 +80,7 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
+        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
     }
     return [];
 }
