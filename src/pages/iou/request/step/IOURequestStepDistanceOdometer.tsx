@@ -13,6 +13,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -132,6 +133,7 @@ function IOURequestStepDistanceOdometer({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const delegateAccountID = useDelegateAccountID();
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
@@ -455,6 +457,7 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
                     recentWaypoints,
+                    delegateAccountID,
                 });
             }
             Navigation.goBack();

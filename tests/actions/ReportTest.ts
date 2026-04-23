@@ -7089,4 +7089,21 @@ describe('actions/Report', () => {
                 });
         });
     });
+
+    describe('buildOptimisticModifiedExpenseReportAction', () => {
+        const transactionThread = {reportID: 'thread123'} as OnyxTypes.Report;
+        const oldTransaction = {transactionID: 'tx123', amount: 100, currency: 'USD'} as OnyxTypes.Transaction;
+        const transactionChanges = {amount: 200};
+        const policy = {id: 'policy123'} as OnyxTypes.Policy;
+
+        it('forwards delegateAccountID when provided', () => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges, false, policy, 12345);
+            expect(result.delegateAccountID).toBe(12345);
+        });
+
+        it('does not set delegateAccountID when undefined is provided and no fallback exists', () => {
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges, false, policy, undefined);
+            expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
 });

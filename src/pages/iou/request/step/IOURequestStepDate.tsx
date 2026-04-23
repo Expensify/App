@@ -6,6 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -57,6 +58,7 @@ function IOURequestStepDate({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -109,6 +111,7 @@ function IOURequestStepDate({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
             });
         }
 

@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -68,6 +69,7 @@ function IOURequestStepTaxRatePage({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -92,6 +94,7 @@ function IOURequestStepTaxRatePage({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
         };
 
         if (shouldClearTax && isEditing) {

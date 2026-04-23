@@ -153,6 +153,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating a money request category
             updateMoneyRequestCategory({
+                delegateAccountID: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
@@ -233,6 +234,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
                 // When updating a money request category
                 updateMoneyRequestCategory({
+                    delegateAccountID: undefined,
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
@@ -280,6 +282,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
                 // When updating the money request category
                 updateMoneyRequestCategory({
+                    delegateAccountID: undefined,
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
@@ -338,6 +341,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating a money request category
             updateMoneyRequestCategory({
+                delegateAccountID: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
@@ -393,6 +397,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             mockFetch?.pause?.();
 
             updateMoneyRequestAmountAndCurrency({
+                delegateAccountID: undefined,
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
@@ -463,6 +468,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             mockFetch?.pause?.();
 
             updateMoneyRequestAmountAndCurrency({
+                delegateAccountID: undefined,
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
@@ -565,6 +571,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestAmountAndCurrency({
+                delegateAccountID: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -600,6 +607,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the transaction attendees
             updateMoneyRequestAttendees({
+                delegateAccountID: undefined,
                 transactionID: transaction.transactionID,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
                 parentReport: undefined,
@@ -640,6 +648,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             updateMoneyRequestAttendees({
+                delegateAccountID: undefined,
                 transactionID: transaction.transactionID,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
                 parentReport: undefined,
@@ -700,6 +709,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the expense tag
             updateMoneyRequestTag({
+                delegateAccountID: undefined,
                 transactionID: '1',
                 transactionThreadReport,
                 parentReport: iouReport,
@@ -792,6 +802,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
+                delegateAccountID: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -883,6 +894,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
+                delegateAccountID: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -998,6 +1010,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
+                delegateAccountID: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1071,6 +1084,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
+                delegateAccountID: undefined,
                 transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
@@ -1115,6 +1129,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
+                delegateAccountID: undefined,
                 transaction: fakeTransaction2,
                 transactionThreadReport,
                 parentReport,

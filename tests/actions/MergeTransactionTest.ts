@@ -171,6 +171,7 @@ describe('mergeTransactionRequest', () => {
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
             selfDMReport: undefined,
+            delegateAccountID: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -315,6 +316,7 @@ describe('mergeTransactionRequest', () => {
             currentUserEmailParam: 'user@example.com',
             isASAPSubmitBetaEnabled: false,
             selfDMReport: undefined,
+            delegateAccountID: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -476,6 +478,7 @@ describe('mergeTransactionRequest', () => {
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
             selfDMReport: undefined,
+            delegateAccountID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -578,6 +581,7 @@ describe('mergeTransactionRequest', () => {
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
             selfDMReport: undefined,
+            delegateAccountID: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -697,6 +701,7 @@ describe('mergeTransactionRequest', () => {
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
             selfDMReport: undefined,
+            delegateAccountID: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -852,6 +857,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 selfDMReport: undefined,
+                delegateAccountID: undefined,
             });
 
             await mockFetch?.resume?.();
@@ -1047,6 +1053,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 selfDMReport: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1195,6 +1202,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 selfDMReport,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();

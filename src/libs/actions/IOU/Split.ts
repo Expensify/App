@@ -1476,6 +1476,7 @@ function updateSplitTransactions({
             if (Object.keys(transactionChanges).length > 0) {
                 const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
                 const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
+                // delegateAccountID: will be threaded in PR 11; buildOptimisticModifiedExpenseReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
@@ -1492,6 +1493,7 @@ function updateSplitTransactions({
                     iouReportNextStep,
                     isSplitTransaction: true,
                     isOffline,
+                    delegateAccountID: undefined,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;

@@ -10,6 +10,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -86,6 +87,7 @@ function IOURequestStepCategory({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
@@ -152,6 +154,7 @@ function IOURequestStepCategory({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     hash: currentSearchHash,
+                    delegateAccountID,
                 });
                 navigateBack();
                 return;

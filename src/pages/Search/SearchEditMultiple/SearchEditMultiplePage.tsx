@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ import {getTransactionEditContext, withSnapshotReportActions, withSnapshotReport
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
     const styles = useThemeStyles();
     const {currentSearchHash, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -169,6 +171,7 @@ function SearchEditMultiplePage() {
             allPolicies: policies,
             introSelected,
             betas,
+            delegateAccountID,
         });
         // Bulk edit can start from report (ID-based selection) or search (map-based selection),
         // so clear both stores to keep deselection behavior consistent.

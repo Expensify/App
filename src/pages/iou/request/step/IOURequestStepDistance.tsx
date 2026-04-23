@@ -14,6 +14,7 @@ import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -112,6 +113,7 @@ function IOURequestStepDistance({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const delegateAccountID = useDelegateAccountID();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -487,6 +489,7 @@ function IOURequestStepDistance({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                 });
             }
             transactionWasSaved.current = true;
@@ -522,6 +525,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        delegateAccountID,
     ]);
 
     const renderItem = useCallback(

@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -48,6 +49,7 @@ function IOURequestStepAttendees({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const delegateAccountID = useDelegateAccountID();
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -69,6 +71,7 @@ function IOURequestStepAttendees({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                 });
             }
         }
@@ -90,6 +93,7 @@ function IOURequestStepAttendees({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        delegateAccountID,
     ]);
 
     const navigateBack = () => {

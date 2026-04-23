@@ -7,6 +7,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -81,6 +82,7 @@ function IOURequestStepDistanceRate({
     const currentRateID = getRateID(currentTransaction);
     const transactionCurrency = getCurrency(currentTransaction);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
@@ -190,6 +192,7 @@ function IOURequestStepDistanceRate({
                     updatedTaxAmount: taxAmount,
                     updatedTaxCode: taxRateExternalID,
                     updatedTaxValue: taxValue,
+                    delegateAccountID,
                 });
             }
         }

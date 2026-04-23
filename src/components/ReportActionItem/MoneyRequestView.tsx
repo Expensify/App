@@ -21,6 +21,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -238,6 +239,7 @@ function MoneyRequestView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
@@ -518,6 +520,7 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
         });
     };
 
@@ -538,6 +541,7 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
         });
     };
 
@@ -665,6 +669,7 @@ function MoneyRequestView({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
             });
         });
     };

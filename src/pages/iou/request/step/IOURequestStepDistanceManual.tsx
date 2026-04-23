@@ -10,6 +10,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -101,6 +102,7 @@ function IOURequestStepDistanceManual({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const delegateAccountID = useDelegateAccountID();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -209,6 +211,7 @@ function IOURequestStepDistanceManual({
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
                         recentWaypoints,
+                        delegateAccountID,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -299,8 +302,10 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             isSelfTourViewed,
             amountOwed,
+            userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            delegateAccountID,
         ],
     );
 

@@ -166,6 +166,8 @@ function getIouParamsForTransaction({
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        // delegateAccountID: will be threaded in PR 11; buildOptimisticModifiedExpenseReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        delegateAccountID: undefined as number | undefined,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,
