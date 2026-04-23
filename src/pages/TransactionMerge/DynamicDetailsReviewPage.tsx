@@ -46,7 +46,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {transactionID, isOnSearch = false} = route.params;
+    const {transactionID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -142,9 +142,9 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute()), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute()));
         }
-    }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
+    }, [mergeTransaction, conflictFields]);
 
     const mergeFields = useMemo(
         () =>
