@@ -9015,8 +9015,12 @@ ${reportName}
             forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
             resetTwoFactorAuth: '2 要素認証をリセット',
+            error: 'この変更を保存できませんでした。もう一度お試しください。',
         },
-        groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
+        groups: {
+            title: 'グループ',
+            memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`}),
+        },
     },
     proactiveAppReview: {
         title: '新しい Expensify をお楽しみいただけていますか？',
