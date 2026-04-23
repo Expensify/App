@@ -18,13 +18,11 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
     const styles = useThemeStyles();
     const accountID = tnode.attributes.accountid ? parseInt(tnode.attributes.accountid, 10) : CONST.DEFAULT_NUMBER_ID;
     const [personalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(accountID)});
+    const isOptimistic = isOptimisticPersonalDetail(accountID, personalDetail);
 
     if (!accountID) {
-        // Fallback: render without tooltip if no accountID
         return <TNodeChildrenRenderer tnode={tnode} />;
     }
-
-    const isOptimistic = isOptimisticPersonalDetail(accountID, personalDetail);
 
     return (
         <UserDetailsTooltip accountID={accountID}>

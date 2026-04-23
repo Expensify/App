@@ -7523,7 +7523,7 @@ function buildOptimisticSubmittedReportAction(
  *
  * @param chatReport
  * @param iouReport
- * @param personalDetailsList - personal details used to check test transactions
+ * @param managerPersonalDetail - manager's personal detail used to check test transactions
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  * @param [childReportID]
@@ -7532,7 +7532,7 @@ function buildOptimisticSubmittedReportAction(
 function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
     iouReport: Report,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    managerPersonalDetail: PersonalDetails | null | undefined,
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
@@ -7544,7 +7544,7 @@ function buildOptimisticReportPreview(
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
-    const isTestTransaction = isTestTransactionReport(iouReport, personalDetailsList);
+    const isTestTransaction = isTestTransactionReport(iouReport, managerPersonalDetail);
     const isTestDriveTransaction = !!transaction?.receipt?.isTestDriveReceipt;
     const isScanRequest = transaction ? isScanRequestTransactionUtils(transaction) : false;
     return {
@@ -12819,12 +12819,11 @@ function isSelectedManagerMcTest(email: string | null | undefined): boolean {
 /**
  *  Helper method to check if the report is a test transaction report
  */
-function isTestTransactionReport(report: OnyxEntry<Report>, personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean {
-    // TODO: Remove fallback once all callers pass personalDetailsList (https://github.com/Expensify/App/issues/66413)
-    const resolvedPersonalDetails = personalDetailsList ?? allPersonalDetails;
+function isTestTransactionReport(report: OnyxEntry<Report>, managerPersonalDetail: PersonalDetails | null | undefined): boolean {
+    // TODO: Remove fallback once all callers pass managerPersonalDetail (https://github.com/Expensify/App/issues/66413)
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const personalDetail = resolvedPersonalDetails?.[managerID];
-    return isSelectedManagerMcTest(personalDetail?.login);
+    const resolvedPersonalDetail = managerPersonalDetail ?? allPersonalDetails?.[managerID];
+    return isSelectedManagerMcTest(resolvedPersonalDetail?.login);
 }
 
 function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {

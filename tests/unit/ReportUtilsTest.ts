@@ -17122,31 +17122,27 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isTestTransactionReport uses explicit personalDetailsList', () => {
-        it('should use the passed personalDetailsList to determine if the manager is mctest', () => {
+    describe('isTestTransactionReport uses explicit managerPersonalDetail', () => {
+        it('should use the passed managerPersonalDetail to determine if the manager is mctest', () => {
             const managerAccountID = 77777;
             const report: Report = {
                 reportID: '500',
                 managerID: managerAccountID,
             };
 
-            const personalDetailsWithMcTest: PersonalDetailsList = {
-                [managerAccountID]: {
-                    accountID: managerAccountID,
-                    login: CONST.EMAIL.MANAGER_MCTEST,
-                    displayName: 'McTest User',
-                },
+            const mcTestDetail: PersonalDetails = {
+                accountID: managerAccountID,
+                login: CONST.EMAIL.MANAGER_MCTEST,
+                displayName: 'McTest User',
             };
-            const personalDetailsWithoutMcTest: PersonalDetailsList = {
-                [managerAccountID]: {
-                    accountID: managerAccountID,
-                    login: 'owner@expensify.com',
-                    displayName: 'Real User',
-                },
+            const realUserDetail: PersonalDetails = {
+                accountID: managerAccountID,
+                login: 'owner@expensify.com',
+                displayName: 'Real User',
             };
 
-            expect(isTestTransactionReport(report, personalDetailsWithMcTest)).toBe(true);
-            expect(isTestTransactionReport(report, personalDetailsWithoutMcTest)).toBe(false);
+            expect(isTestTransactionReport(report, mcTestDetail)).toBe(true);
+            expect(isTestTransactionReport(report, realUserDetail)).toBe(false);
         });
     });
 });

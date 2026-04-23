@@ -1297,7 +1297,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isTimeRequest = isTimeRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-    // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+    // TODO: Pass managerPersonalDetail in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report, undefined);
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
@@ -2286,7 +2286,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+        // TODO: Pass managerPersonalDetail in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
         reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, undefined, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
@@ -2974,7 +2974,7 @@ function createSplitsAndOnyxData({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            // TODO: Pass managerPersonalDetail in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, undefined);
         }
 
