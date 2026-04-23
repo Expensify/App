@@ -1,13 +1,11 @@
 import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
@@ -72,7 +70,7 @@ const SECTIONS = [
     },
 ];
 
-function Default(props: SelectionListProps<ListItem>) {
+function Default(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -111,8 +109,8 @@ Default.args = {
     initiallyFocusedOptionKey: 'option-2',
 };
 
-function WithTextInput(props: SelectionListProps<ListItem>) {
-    const [searchText, setSearchText] = useState('');
+function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
+    const [searchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -145,8 +143,6 @@ function WithTextInput(props: SelectionListProps<ListItem>) {
             {...props}
             sections={sections}
             ListItem={RadioListItem}
-            textInputValue={searchText}
-            onChangeText={setSearchText}
             onSelectRow={onSelectRow}
         />
     );
@@ -160,10 +156,9 @@ WithTextInput.args = {
     inputMode: CONST.INPUT_MODE.NUMERIC,
     initiallyFocusedOptionKey: 'option-2',
     onSelectRow: () => {},
-    onChangeText: () => {},
 };
 
-function WithHeaderMessage(props: SelectionListProps<ListItem>) {
+function WithHeaderMessage(props: SelectionListWithSectionsProps<ListItem>) {
     return (
         <WithTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -178,7 +173,7 @@ WithHeaderMessage.args = {
     sections: [],
 };
 
-function WithAlternateText(props: SelectionListProps<ListItem>) {
+function WithAlternateText(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -219,41 +214,33 @@ WithAlternateText.args = {
     ...Default.args,
 };
 
-function MultipleSelection(props: SelectionListProps<ListItem>) {
+function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+    const styles = useThemeStyles();
 
-    const memo = useMemo(() => {
-        const allIds: string[] = [];
+    const sections = props.sections.map((section) => {
+        const data = section.data.map((item, index) => {
+            const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
+            const isAdmin = index === 0;
 
-        const sections = props.sections.map((section) => {
-            const data = section.data.map((item, index) => {
-                if (item.keyForList) {
-                    allIds.push(item.keyForList);
-                }
-                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = index === 0;
-
-                return {
-                    ...item,
-                    isSelected,
-                    alternateText: `${item.keyForList}@email.com`,
-                    accountID: Number(item.keyForList),
-                    login: item.text,
-                    rightElement: isAdmin && (
-                        <Badge
-                            text="Admin"
-                            textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.alignSelfCenter}
-                        />
-                    ),
-                };
-            });
-
-            return {...section, data};
+            return {
+                ...item,
+                isSelected,
+                alternateText: `${item.keyForList}@email.com`,
+                accountID: Number(item.keyForList),
+                login: item.text,
+                rightElement: isAdmin && (
+                    <Badge
+                        text="Admin"
+                        textStyles={styles.textStrong}
+                        badgeStyles={styles.alignSelfCenter}
+                    />
+                ),
+            };
         });
 
-        return {sections, allIds};
-    }, [props.sections, selectedIds]);
+        return {...section, data};
+    });
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -263,22 +250,13 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
         setSelectedIds(newSelectedIds);
     };
 
-    const onSelectAll = () => {
-        if (selectedIds.length === memo.allIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(memo.allIds);
-        }
-    };
-
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            sections={memo.sections}
+            sections={sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
-            onSelectAll={onSelectAll}
         />
     );
 }
@@ -286,44 +264,35 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
 MultipleSelection.args = {
     ...Default.args,
     canSelectMultiple: true,
-    onSelectAll: () => {},
 };
 
-function WithSectionHeader(props: SelectionListProps<ListItem>) {
+function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+    const styles = useThemeStyles();
 
-    const memo = useMemo(() => {
-        const allIds: string[] = [];
+    const sections = props.sections.map((section, sectionIndex) => {
+        const data = section.data.map((item, itemIndex) => {
+            const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
+            const isAdmin = itemIndex === 0;
 
-        const sections = props.sections.map((section, sectionIndex) => {
-            const data = section.data.map((item, itemIndex) => {
-                if (item.keyForList) {
-                    allIds.push(item.keyForList);
-                }
-                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = itemIndex === 0;
-
-                return {
-                    ...item,
-                    isSelected,
-                    alternateText: `${item.keyForList}@email.com`,
-                    accountID: Number(item.keyForList),
-                    login: item.text,
-                    rightElement: isAdmin && (
-                        <Badge
-                            text="Admin"
-                            textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.alignSelfCenter}
-                        />
-                    ),
-                };
-            });
-
-            return {...section, data, title: `Section ${sectionIndex + 1}`};
+            return {
+                ...item,
+                isSelected,
+                alternateText: `${item.keyForList}@email.com`,
+                accountID: Number(item.keyForList),
+                login: item.text,
+                rightElement: isAdmin && (
+                    <Badge
+                        text="Admin"
+                        textStyles={styles.textStrong}
+                        badgeStyles={styles.alignSelfCenter}
+                    />
+                ),
+            };
         });
 
-        return {sections, allIds};
-    }, [props.sections, selectedIds]);
+        return {...section, data, title: `Section ${sectionIndex + 1}`};
+    });
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -333,22 +302,13 @@ function WithSectionHeader(props: SelectionListProps<ListItem>) {
         setSelectedIds(newSelectedIds);
     };
 
-    const onSelectAll = () => {
-        if (selectedIds.length === memo.allIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(memo.allIds);
-        }
-    };
-
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            sections={memo.sections}
+            sections={sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
-            onSelectAll={onSelectAll}
         />
     );
 }
@@ -357,8 +317,9 @@ WithSectionHeader.args = {
     ...MultipleSelection.args,
 };
 
-function WithConfirmButton(props: SelectionListProps<ListItem>) {
+function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+    const styles = useThemeStyles();
 
     const memo = useMemo(() => {
         const allIds: string[] = [];
@@ -380,8 +341,8 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
                     rightElement: isAdmin && (
                         <Badge
                             text="Admin"
-                            textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.alignSelfCenter}
+                            textStyles={styles.textStrong}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     ),
                 };
@@ -391,7 +352,7 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
         });
 
         return {sections, allIds};
-    }, [props.sections, selectedIds]);
+    }, [props.sections, selectedIds, styles.alignSelfCenter, styles.textStrong]);
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -401,14 +362,6 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
         setSelectedIds(newSelectedIds);
     };
 
-    const onSelectAll = () => {
-        if (selectedIds.length === memo.allIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(memo.allIds);
-        }
-    };
-
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -416,7 +369,6 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
-            onSelectAll={onSelectAll}
         />
     );
 }

@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import {deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
@@ -57,6 +57,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
+    const reportActionsRef = useRef(reportActions);
+    reportActionsRef.current = reportActions;
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
@@ -365,16 +367,35 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatIOUReportArchived,
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
+                    currentUserEmail: email ?? '',
                 });
             } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(childReport, selfDMReport, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
+            deleteAppReport({
+                report: childReport,
+                selfDMReport,
+                currentUserEmailParam: email ?? '',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions,
+                allTransactionViolations,
+                bankAccountList,
+                hash: currentSearchHash,
+            });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(
+                    report,
+                    reportAction,
+                    ancestorsRef.current,
+                    isReportArchived,
+                    isOriginalReportArchived,
+                    email ?? '',
+                    visibleReportActionsData ?? undefined,
+                    reportActionsRef.current ?? undefined,
+                );
             });
         }
 

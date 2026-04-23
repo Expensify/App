@@ -21,13 +21,16 @@ const onyxDerivedTestSetup = () => {
 };
 
 describe('OnyxDerived', () => {
+    beforeAll(async () => {
+        onyxDerivedTestSetup();
+    });
+
     beforeEach(async () => {
         await Onyx.clear();
     });
 
     describe('reportAttributes', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
             await IntlStore.load(CONST.LOCALES.EN);
             await waitForBatchedUpdates();
         });
@@ -35,7 +38,7 @@ describe('OnyxDerived', () => {
         beforeEach(async () => {
             // The reportAttributes locale connection uses initWithStoredValues: false,
             // so it doesn't fire after Onyx.clear(). Setting this triggers recomputation.
-            await Onyx.set(ONYXKEYS.ARE_TRANSLATIONS_LOADING, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
         });
 
@@ -123,17 +126,20 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
-            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
-                sourceValues: {
-                    [ONYXKEYS.COLLECTION.REPORT]: {
-                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
-                    },
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
+            const reportAttributesComputedValue = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {
+                    sourceValues: {
+                        [ONYXKEYS.COLLECTION.REPORT]: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
+                        },
+                        [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                        },
                     },
                 },
-            }).reports;
+            ).reports;
 
             // Then the computed report attributes should contain both reports
             expect(Object.keys(reportAttributesComputedValue)).toEqual([reportID1, reportID2]);
@@ -399,7 +405,6 @@ describe('OnyxDerived', () => {
 
     describe('nonPersonalAndWorkspaceCardList', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
             // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
             await Onyx.set(ONYXKEYS.CARD_LIST, {});
             await waitForBatchedUpdates();
@@ -507,10 +512,6 @@ describe('OnyxDerived', () => {
     });
 
     describe('personalAndWorkspaceCardList', () => {
-        beforeAll(async () => {
-            onyxDerivedTestSetup();
-        });
-
         it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
             // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included
             const nonPersonalCard1 = createRandomExpensifyCard(1, {fundID: '123'});
@@ -589,7 +590,6 @@ describe('OnyxDerived', () => {
 
     describe('todos', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
             // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
             await Onyx.set(ONYXKEYS.SESSION, {});
             await waitForBatchedUpdates();

@@ -4,12 +4,13 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import * as Task from '@src/libs/actions/Task';
-import {clearApprovalWorkflowApprover, createApprovalWorkflow, setApprovalWorkflowApprover} from '@src/libs/actions/Workflow';
+import {clearApprovalWorkflowApprover, createApprovalWorkflow, removeApprovalWorkflow, setApprovalWorkflowApprover, updateApprovalWorkflow} from '@src/libs/actions/Workflow';
 import {calculateApprovers} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import createRandomPolicy from '../utils/collections/policies';
+import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -307,7 +308,7 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            expect(completeTaskMock).toHaveBeenCalledWith(addExpenseApprovalsTaskReport, false, false, undefined);
+            expect(completeTaskMock).toHaveBeenCalledWith(addExpenseApprovalsTaskReport, false, false, undefined, undefined);
         });
 
         it('should not auto-complete the task if it is already approved', async () => {
@@ -429,6 +430,412 @@ describe('actions/Workflow', () => {
             await waitForBatchedUpdates();
 
             expect(completeTaskMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('removeApprovalWorkflow', () => {
+        it('should keep ADVANCED approval mode when default approver has forwardsTo chain', async () => {
+            mockFetch.pause();
+
+            // Given a policy with two workflows:
+            // - Default workflow: employee1 submits to owner, owner forwards to employee2 (multi-level)
+            // - Second workflow: employee3 submits to employee1
+            const policy = {
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: employee2Email,
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee3Email]: {
+                        email: employee3Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee1Email,
+                    },
+                },
+            } as unknown as Policy;
+
+            // The second workflow to remove: employee3 submits to employee1
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing the second workflow
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode should stay ADVANCED because default approver has forwardsTo chain
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep ADVANCED approval mode when default approver has overLimitForwardsTo but no forwardsTo', async () => {
+            mockFetch.pause();
+
+            // Given a policy with two workflows:
+            // - Default workflow: employee1 submits to owner (single-level, no forwardsTo but has overLimitForwardsTo)
+            // - Second workflow: employee3 submits to employee2
+            const policy = {
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        overLimitForwardsTo: employee1Email,
+                        approvalLimit: 500000,
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee3Email]: {
+                        email: employee3Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee2Email,
+                    },
+                },
+            } as unknown as Policy;
+
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode should stay ADVANCED because default approver has overLimitForwardsTo
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should set BASIC approval mode when no forwardsTo chain and only default workflow remains', async () => {
+            mockFetch.pause();
+
+            // Given a policy with two workflows:
+            // - Default workflow: employee1 submits to owner (single-level, no forwardsTo)
+            // - Second workflow: employee3 submits to employee2
+            const policy = {
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee3Email]: {
+                        email: employee3Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee2Email,
+                    },
+                },
+            } as unknown as Policy;
+
+            // The second workflow to remove: employee3 submits to employee2
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing the second workflow
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode should be BASIC because no forwardsTo chain and only default workflow remains
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('updateApprovalWorkflow', () => {
+        it('should set BASIC approval mode when second approver is removed from default workflow', async () => {
+            mockFetch.pause();
+
+            // Given a policy with a default workflow that has two approvers:
+            // owner forwards to employee2 (multi-level)
+            const policy = {
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: employee2Email,
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            } as unknown as Policy;
+
+            // The updated workflow: only one approver (owner), second approver removed
+            const approvalWorkflow = {
+                members: [
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email},
+                ],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: true,
+                action: 'update',
+                originalApprovers: [{email: ownerEmail}, {email: employee2Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When updating the workflow to remove the second approver
+            updateApprovalWorkflow(approvalWorkflow, [], [{email: employee2Email, displayName: employee2Email}], policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode should be BASIC because no forwardsTo chain remains
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep ADVANCED approval mode when default approver has overLimitForwardsTo after removing second approver', async () => {
+            mockFetch.pause();
+
+            // Given a policy where default approver has both forwardsTo and overLimitForwardsTo
+            const policy = {
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: employee2Email,
+                        overLimitForwardsTo: employee1Email,
+                        approvalLimit: 500000,
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            } as unknown as Policy;
+
+            // Remove employee2 as second approver (forwardsTo will be cleared)
+            // but overLimitForwardsTo to employee1 remains
+            const approvalWorkflow = {
+                members: [
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email},
+                ],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false, overLimitForwardsTo: employee1Email, approvalLimit: 500000}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: true,
+                action: 'update',
+                originalApprovers: [{email: ownerEmail}, {email: employee2Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflow(approvalWorkflow, [], [{email: employee2Email, displayName: employee2Email}], policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode should stay ADVANCED because overLimitForwardsTo still exists
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep ADVANCED approval mode when second approver remains in default workflow', async () => {
+            mockFetch.pause();
+
+            // Given a policy with a default workflow that has two approvers
+            const policy = {
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: employee2Email,
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            } as unknown as Policy;
+
+            // The updated workflow: change second approver from employee2 to employee1
+            const approvalWorkflow = {
+                members: [{email: employee2Email, displayName: employee2Email}],
+                approvers: [
+                    {email: ownerEmail, displayName: ownerEmail, isCircularReference: false},
+                    {email: employee1Email, displayName: employee1Email, isCircularReference: false},
+                ],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: true,
+                action: 'update',
+                originalApprovers: [{email: ownerEmail}, {email: employee2Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When updating the workflow (replacing second approver)
+            updateApprovalWorkflow(approvalWorkflow, [], [{email: employee2Email, displayName: employee2Email}], policy);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode should stay ADVANCED because forwardsTo chain still exists
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 });

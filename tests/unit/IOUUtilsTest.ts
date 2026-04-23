@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU';
+import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -13,7 +13,6 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -36,78 +35,12 @@ function initCurrencyList() {
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    navigationRef: {
+        getCurrentRoute: jest.fn(() => undefined),
+    },
 }));
 
 describe('IOUUtils', () => {
-    describe('isIOUReportPendingCurrencyConversion', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-            });
-        });
-
-        test('Submitting an expense offline in a different currency will show the pending conversion message', () => {
-            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'AED',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
-            });
-        });
-
-        test('Submitting an expense online in a different currency will not show the pending conversion message', () => {
-            const iouReport = ReportUtils.buildOptimisticIOUReport(2, 3, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'AED',
-                    reportID: iouReport.reportID,
-                },
-            });
-
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
-                ...usdPendingTransaction,
-                pendingAction: null,
-            };
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = {
-                ...aedPendingTransaction,
-                pendingAction: null,
-            };
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
-            });
-        });
-    });
-
     describe('calculateAmount', () => {
         beforeAll(() => initCurrencyList());
 
@@ -192,9 +125,13 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(8900, 7.7)).toBe(685);
         });
 
-        test('Clamps percentage between 0 and 100', () => {
-            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(0);
-            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(20000);
+        test('Supports negative and over-100 percentages for multi-split scenarios', () => {
+            // Negative percentages (person owes money back to the group)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(-2000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -25)).toBe(-5000);
+            // Over-100 percentages (person pays more than their share)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(30000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 125)).toBe(25000);
         });
 
         test('Preserves negative sign for negative amounts (negative expense splits)', () => {
@@ -206,6 +143,14 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 0)).toBe(0);
             // Full amount should also be negative
             expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 100)).toBe(-20000);
+        });
+
+        test('Handles negative percentages with negative amounts (double negative)', () => {
+            // When both the amount and percentage are negative, the result is positive
+            // This represents someone owing money back on a refund
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, -25)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, -50)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, -33.3)).toBe(3330);
         });
     });
 
@@ -257,10 +202,30 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitPercentagesFromAmounts([0, 0], 0)).toEqual([0, 0]);
         });
 
-        test('Uses absolute values of amounts and total', () => {
+        test('Preserves sign for negative amounts in multi-split scenario', () => {
+            const totalInCents = 10000;
+            const amounts = [-2500, 7500, 5000]; // -25% + 75% + 50% = 100%
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // First amount should be negative percentage
+            expect(percentages.at(0)).toBe(-25);
+            // Second amount should be positive
+            expect(percentages.at(1)).toBe(75);
+            // Third amount should be positive
+            expect(percentages.at(2)).toBe(50);
+            // Sum should be 100 (accounting for signs)
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Handles all negative amounts with negative total', () => {
             const totalInCents = -2300;
             const amounts = [-766, -766, -768];
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // When both total and amounts are negative (same sign), percentages should be positive
+            expect(percentages.at(0)).toBeGreaterThan(0);
+            expect(percentages.at(1)).toBeGreaterThan(0);
+            expect(percentages.at(2)).toBeGreaterThan(0);
 
             // Equal amounts should have equal percentages
             expect(percentages.at(0)).toBe(percentages.at(1));
@@ -343,6 +308,18 @@ describe('IOUUtils', () => {
 
         test('Return multiple tags when hasMultipleTagLists is true', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+        });
+
+        test('Should not produce a leading colon when transactionTags is empty and tagIndex > 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 1, true)).toBe(':Alpha');
+        });
+
+        test('Should produce correct result when transactionTags is empty and tagIndex is 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 0, true)).toBe('Alpha');
+        });
+
+        test('Should fill sparse slots when tagIndex exceeds current array length', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
     });
 });
@@ -707,10 +684,19 @@ describe('navigateToConfirmationPage', () => {
         );
     });
 
-    it('should navigate to confirmation step with SUBMIT iouType when shouldNavigateToSubmit = true in default case', () => {
-        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined, true);
+    it('should navigate to confirmation step with SUBMIT iouType when iouType is CREATE', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    });
+
+    it('should use reportIDParam when iouType is CREATE and reportIDParam is provided', () => {
+        const reportIDParam = '555';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined, false, reportIDParam);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportIDParam, undefined),
+        );
     });
 
     it('should navigate to confirmation step with provided iouType directly when shouldNavigateToSubmit = false in default case', () => {
@@ -852,5 +838,109 @@ describe('getExistingTransactionID', () => {
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
 
         expect(IOUUtils.getExistingTransactionID(moneyRequestAction)).toBe('txn123');
+    });
+
+    describe('resolveOptimisticChatReportID', () => {
+        it('should return existing report ID when report has a reportID', () => {
+            const existingReport = {reportID: 'existing-123'} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], existingReport);
+
+            expect(result.chatReportID).toBe('existing-123');
+            expect(result.optimisticChatReportID).toBeUndefined();
+        });
+
+        it('should generate optimistic ID when no existing report is provided', () => {
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2]);
+
+            expect(result.optimisticChatReportID).toBeDefined();
+            expect(result.chatReportID).toBe(result.optimisticChatReportID);
+        });
+
+        it('should generate optimistic ID when existing report has no reportID', () => {
+            const emptyReport = {} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], emptyReport);
+
+            expect(result.optimisticChatReportID).toBeDefined();
+            expect(result.chatReportID).toBe(result.optimisticChatReportID);
+        });
+
+        it('should return consistent chatReportID that is always defined', () => {
+            const result1 = IOUUtils.resolveOptimisticChatReportID([1, 2], {reportID: 'report-1'} as Report);
+            const result2 = IOUUtils.resolveOptimisticChatReportID([1, 2]);
+
+            expect(result1.chatReportID).toBeDefined();
+            expect(result2.chatReportID).toBeDefined();
+        });
+    });
+
+    describe('resolveReportForMoneyRequest', () => {
+        const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
+
+        const makeOutstandingReport = (reportID: string): Report => ({
+            ...createRandomReport(Number(reportID), undefined),
+            reportID,
+            policyID: policyForResolve.id,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        const makeRouteReport = (reportID: string): Report => ({
+            ...createRandomReport(Number(reportID), undefined),
+            reportID,
+            policyID: policyForResolve.id,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+
+        const makeTransaction = (reportID: string): Transaction => ({...createRandomTransaction(Number(reportID)), reportID});
+
+        it('returns undefined when the transaction is unreported', () => {
+            const transaction = makeTransaction(CONST.REPORT.UNREPORTED_REPORT_ID);
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})).toBeUndefined();
+        });
+
+        it('returns the picked report when it is outstanding (user-selected report wins)', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
+            const transaction = makeTransaction('500');
+            const nonOutstandingPick: Report = {
+                ...makeOutstandingReport('500'),
+                policyID: 'someOtherPolicy',
+            };
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: nonOutstandingPick, routeReport, policy: policyForResolve})).toBeUndefined();
+        });
+
+        it('returns the route report when no different transaction report has been picked', () => {
+            const transaction = makeTransaction('100');
+            const transactionReport = makeRouteReport('100');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('100');
+        });
+
+        it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport: undefined, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
+            const transaction = makeTransaction('500');
+            const processingPick: Report = {
+                ...makeOutstandingReport('500'),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const routeReport = makeRouteReport('100');
+            const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
+        });
     });
 });

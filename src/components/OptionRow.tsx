@@ -2,11 +2,13 @@ import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -112,13 +114,19 @@ function OptionRow({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark'] as const);
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
     const pressableRef = useRef<View | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
     useEffect(() => {
         setIsDisabled(isOptionDisabled);
     }, [isOptionDisabled]);
+
+    const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
+        const decimals = getCurrencyDecimals(currencyParam);
+        return convertToFrontendAmountAsString(amountAsInt, decimals);
+    };
 
     const text = option.text ?? '';
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
@@ -177,6 +185,7 @@ function OptionRow({
                     <PressableWithFeedback
                         id={keyForList}
                         ref={pressableRef}
+                        sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.BASE_LIST_ITEM}
                         onPress={(e) => {
                             if (!onSelectRow) {
                                 return;
@@ -264,6 +273,7 @@ function OptionRow({
                                         amount={option.amountInputProps.amount}
                                         currency={option.amountInputProps.currency}
                                         prefixCharacter={option.amountInputProps.prefixCharacter}
+                                        onFormatAmount={onFormatAmount}
                                         disableKeyboard={false}
                                         isCurrencyPressable={false}
                                         hideFocusedState={false}
@@ -312,6 +322,7 @@ function OptionRow({
                                             disabled={isDisabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={CONST.ROLE.BUTTON}
+                                            sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.USER_SELECTION_CHECKBOX}
                                             style={[styles.ml2, styles.optionSelectCircle]}
                                         >
                                             <SelectCircle

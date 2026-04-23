@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +15,7 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
@@ -28,23 +30,27 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
+    useDocumentTitle(translate('workspace.common.subscription'));
     useEffect(() => {
         openSubscriptionPage();
     }, []);
     const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const shouldShowPage = !!subscriptionPlan || (amountOwed ?? 0) > 0;
 
     useEffect(() => {
-        if (subscriptionPlan ?? isAppLoading) {
+        if (shouldShowPage || isAppLoading) {
             return;
         }
         Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
-    }, [isAppLoading, subscriptionPlan]);
+    }, [isAppLoading, shouldShowPage]);
 
-    if (!subscriptionPlan && isAppLoading) {
-        return <FullScreenLoadingIndicator />;
+    if (!shouldShowPage && isAppLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettingsPage', isAppLoading: !!isAppLoading, shouldShowPage};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
-    if (!subscriptionPlan) {
+    if (!shouldShowPage) {
         return null;
     }
 

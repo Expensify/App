@@ -22,7 +22,7 @@ function DebugJSON({data}: DebugJSONProps) {
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
     const json = useMemo(() => DebugUtils.stringifyJSON(data), [data]);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     return (
         <ScrollView

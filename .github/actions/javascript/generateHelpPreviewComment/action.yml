@@ -14,5 +14,5 @@ outputs:
   BODY:
     description: 'Generated comment body including preview link and updated articles'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: './index.js'

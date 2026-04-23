@@ -20,7 +20,7 @@ function PinButton({report}: PinButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Pin'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pin']);
 
     return (
         <Tooltip text={report.isPinned ? translate('common.unPin') : translate('common.pin')}>

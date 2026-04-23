@@ -1,7 +1,8 @@
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
@@ -10,9 +11,9 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -70,6 +70,7 @@ function AttachmentModalBaseContent({
     footerActionButtons,
     customAttachmentContent,
     attachmentViewContainerStyles,
+    pdfRotation,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -166,29 +167,16 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        if (onConfirm) {
-            onConfirm(Object.assign(files ?? {}, {source} as FileObject));
-        }
-
         onClose?.();
+
+        // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
+        requestAnimationFrame(() => {
+            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                onClose?.();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
-        return unsubscribeEscapeKey;
-    }, [onClose]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
 
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {
@@ -272,6 +260,7 @@ function AttachmentModalBaseContent({
                             transaction={transaction}
                             isUploaded={!isEmptyObject(report)}
                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                            rotation={pdfRotation}
                         />
                     </AttachmentCarouselPagerActionsContext.Provider>
                 </AttachmentCarouselPagerStateContext.Provider>
@@ -291,6 +280,7 @@ function AttachmentModalBaseContent({
         isWorkspaceAvatar,
         maybeIcon,
         onNavigate,
+        pdfRotation,
         report,
         reportID,
         setAttachmentError,
@@ -330,7 +320,15 @@ function AttachmentModalBaseContent({
                 subTitleLink={currentAttachmentLink ?? ''}
             />
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            testID="attachment-loading-spinner"
+                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                        />
+                    </View>
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}

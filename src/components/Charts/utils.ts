@@ -1,6 +1,8 @@
-import type {SkFont} from '@shopify/react-native-skia';
+import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
+import variables from '@styles/variables';
+import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -44,13 +46,113 @@ function getChartColor(index: number): string {
 /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
 const DEFAULT_CHART_COLOR = getChartColor(5);
 
+/** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
+const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
+
 /**
- * Measure pixel width of a string via glyph widths.
- * (measureText is not implemented on React Native Web)
+ * Builds a Skia paragraph for chart labels.
+ * Encapsulates the shared font configuration (families, weight, size, optional color).
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ *
+ * Reuses a cached ParagraphBuilder per fontMgr (via reset()) to avoid allocating a new
+ * builder on every call.
  */
-function measureTextWidth(text: string, font: SkFont): number {
-    const glyphIDs = font.getGlyphIDs(text);
-    return font.getGlyphWidths(glyphIDs).reduce((sum, w) => sum + w, 0);
+function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
+    let builder = builderCache.get(fontMgr);
+    if (!builder) {
+        builder = Skia.ParagraphBuilder.Make({}, fontMgr);
+        builderCache.set(fontMgr, builder);
+    } else {
+        builder.reset();
+    }
+    return builder
+        .pushStyle({
+            fontFamilies: CHART_FONT_FAMILIES,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Calculates the additional offset to apply to the label to center it on the tick mark.
+ * @param angleRad - The angle of the label in radians.
+ * @returns The additional offset in pixels.
+ *
+ * @description
+ * Skia's paragraph.paint(canvas, x, y) treats `y` as the top of the paragraph bounding box,
+ * not the text baseline. The baseline sits at `LineMetrics.baseline` pixels below `y`, and
+ * the visual top of the glyphs is at `y + baseline - ascent`. When `baseline > ascent` there
+ * is a small gap (leading) between `y` and where the text actually appears.
+ * This offset empirically corrects the hit-area center to match the visual center of the
+ * rendered label. The sign and magnitude differ per rotation because the gap projects
+ * geometrically differently after the transform:
+ * 0°  - small downward shift (top of bounding box is above visual center)
+ * 45° - shift hit area DOWN (rotation flips the projection)
+ * 90° - small downward shift
+ */
+function getAdditionalOffset(angleRad: number): number {
+    if (angleRad === 0) {
+        return variables.iconSizeExtraSmall / 3;
+    }
+    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
+        return variables.iconSizeExtraSmall / 1.5;
+    }
+    return variables.iconSizeExtraSmall / 3;
+}
+/**
+ * Checks whether every character in `text` can be rendered by at least one font
+ * in the chart font chain (CHART_FONT_FAMILIES).
+ *
+ * For each character, iterates through each registered font family and calls
+ * `Typeface.getGlyphIDs()`. A glyph ID of 0 means the font has no glyph for
+ * that code point. If at least one font in the chain returns a non-zero
+ * ID for every character, the text is considered fully renderable.
+ *
+ * Returns `true` when `text` is empty/nullish (nothing to render).
+ */
+function canFontRenderText(text: string | undefined, fontMgr: SkTypefaceFontProvider): boolean {
+    if (!text) {
+        return true;
+    }
+
+    const typefaces = CHART_FONT_FAMILIES.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
+
+    for (const char of text) {
+        const isRenderable = typefaces.some((typeface) => typeface?.getGlyphIDs(char).some((id) => id !== 0));
+        if (!isRenderable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Measures the rendered pixel width of a string using the Paragraph API.
+ * Supports multi-font fallback via fontMgr (e.g. NotoSansSymbols for currency glyphs).
+ */
+function measureTextWidth(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
+    const para = buildChartParagraph(text, fontMgr, fontSize);
+    para.layout(MAX_X_AXIS_LABEL_WIDTH);
+    return para.getLongestLine();
+}
+
+/**
+ * Returns ascent and descent for the chart font at the given size.
+ * Uses a representative string so Skia resolves the actual glyph metrics.
+ */
+function getFontLineMetrics(fontMgr: SkTypefaceFontProvider, fontSize: number): {ascent: number; descent: number} {
+    const para = buildChartParagraph('Ag', fontMgr, fontSize);
+    para.layout(MAX_X_AXIS_LABEL_WIDTH);
+    const metrics = para.getLineMetrics().at(0);
+    return {
+        ascent: metrics ? Math.abs(metrics.ascent) : fontSize,
+        descent: metrics ? Math.abs(metrics.descent) : 0,
+    };
 }
 
 /**
@@ -152,7 +254,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
@@ -165,6 +267,9 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieS
             (acc, slice, index) => {
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
+                const angle = acc.angle + sweepAngle / 2;
+                const tooltipX = pieGeometry.centerX + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
@@ -173,6 +278,8 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieS
                     startAngle: acc.angle,
                     endAngle: acc.angle + sweepAngle,
                     originalIndex: slice.originalIndex,
+                    ordinalIndex: index,
+                    tooltipPosition: {x: tooltipX, y: tooltipY},
                 });
                 acc.angle += sweepAngle;
                 return acc;
@@ -283,11 +390,138 @@ function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: Labe
     }
     return Infinity;
 }
+// Point-in-convex-polygon test using cross products
+// Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
+function isCursorInSkewedLabel(cursorX: number, cursorY: number, corners: Array<{x: number; y: number}>): boolean {
+    'worklet';
+
+    let sign = 0;
+    for (let i = 0; i < corners.length; i++) {
+        const a = corners.at(i);
+        const b = corners.at((i + 1) % corners.length);
+        if (a == null || b == null) {
+            continue;
+        }
+        const cross = (b.x - a.x) * (cursorY - a.y) - (b.y - a.y) * (cursorX - a.x);
+        if (cross !== 0) {
+            const crossSign = cross > 0 ? 1 : -1;
+            if (sign === 0) {
+                sign = crossSign;
+            } else if (crossSign !== sign) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/** Params for axis-aligned and 45° label hit-test; 90° uses yMin90/yMax90. */
+type ChartLabelHitTestParams = {
+    cursorX: number;
+    cursorY: number;
+    targetX: number;
+    labelY: number;
+    angleRad: number;
+    halfWidth: number;
+    padding: number;
+    /** For 45°: corners [rightUpper, rightLower, leftLower, leftUpper]. */
+    corners45?: Array<{x: number; y: number}>;
+    /** For 90° vertical label: vertical bounds. */
+    yMin90: number;
+    yMax90: number;
+};
+
+/**
+ * Shared hit-test for chart x-axis labels at 0°, 45°, or 90°.
+ * Used by BarChart and LineChart to detect cursor over rotated labels.
+ */
+function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90}: ChartLabelHitTestParams): boolean {
+    'worklet';
+
+    if (angleRad === 0) {
+        return cursorY >= labelY - padding && cursorY <= labelY + padding && cursorX >= targetX - halfWidth && cursorX <= targetX + halfWidth;
+    }
+    if (angleRad < 1 && corners45?.length === 4) {
+        return isCursorInSkewedLabel(cursorX, cursorY, corners45);
+    }
+    // 90°
+    return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
+}
+
+/**
+ * Computes the D3 nice step size for a given range and tick count.
+ * Mirrors D3's tickStep logic (1 / 2 / 5 / 10 multiples of the magnitude).
+ */
+function getNiceStep(range: number, tickCount: number): number {
+    const intervals = tickCount - 1;
+    const roughStep = range / intervals;
+    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+    const normalized = roughStep / magnitude;
+    // D3 nice steps: 1, 2, 5, 10 (powers of 10)
+    if (normalized >= 5) {
+        return 5 * magnitude;
+    }
+    if (normalized >= 2) {
+        return 2 * magnitude;
+    }
+    return magnitude;
+}
+
+/**
+ * Predicts the highest Y-axis tick value that Victory-native will generate.
+ *
+ * Victory (via D3) applies a "nice" algorithm that rounds the domain upper bound up
+ * to the next clean tick step. Pass rawMin when negative values are present so that
+ * the step is computed from the full range (rawMax − rawMin) rather than rawMax alone.
+ */
+function getNiceUpperBound(rawMax: number, tickCount: number, rawMin = 0): number {
+    const range = rawMax - rawMin;
+    if (range <= 0 || tickCount <= 1) {
+        return rawMax;
+    }
+    const niceStep = getNiceStep(range, tickCount);
+    return Math.ceil(rawMax / niceStep) * niceStep;
+}
+
+/**
+ * Predicts the lowest Y-axis tick value that Victory-native will generate.
+ *
+ * Mirrors D3's nice algorithm for the lower domain bound: floors rawMin to the
+ * nearest nice step derived from the full range (rawMax − rawMin).
+ */
+function getNiceLowerBound(rawMin: number, tickCount: number, rawMax = 0): number {
+    if (rawMin >= 0) {
+        return rawMin;
+    }
+    const range = rawMax - rawMin;
+    if (range <= 0 || tickCount <= 1) {
+        return rawMin;
+    }
+    const niceStep = getNiceStep(range, tickCount);
+    return Math.floor(rawMin / niceStep) * niceStep;
+}
+
+/**
+ * Returns the pixel width needed for Y-axis labels given the data extremes.
+ *
+ * Both nice bounds are measured because negative labels (e.g. "−2 000 zł") are
+ * typically wider than their positive counterparts. Pass rawDataMin = 0 when
+ * there are no negative values.
+ */
+function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: number, formatValue: (value: number) => string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
+    const niceMax = getNiceUpperBound(rawDataMax, tickCount, rawDataMin);
+    const niceMin = getNiceLowerBound(rawDataMin, tickCount, rawDataMax);
+    return Math.max(measureTextWidth(formatValue(niceMax), fontMgr, fontSize), measureTextWidth(formatValue(niceMin), fontMgr, fontSize));
+}
 
 export {
     getChartColor,
     DEFAULT_CHART_COLOR,
+    buildChartParagraph,
+    canFontRenderText,
+    getAdditionalOffset,
     measureTextWidth,
+    getFontLineMetrics,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
     calculateMinDomainPadding,
@@ -302,4 +536,11 @@ export {
     labelOverhang,
     edgeLabelsFit,
     edgeMaxLabelWidth,
+    isCursorInSkewedLabel,
+    isCursorOverChartLabel,
+    getNiceUpperBound,
+    getNiceLowerBound,
+    getYAxisLabelWidth,
 };
+
+export type {ChartLabelHitTestParams};

@@ -1,16 +1,25 @@
-import {LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
+import {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
+    calculateMinDomainPadding,
     edgeLabelsFit,
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getAdditionalOffset,
+    getChartColor,
+    getNiceLowerBound,
+    getNiceUpperBound,
     isAngleInSlice,
+    isCursorInSkewedLabel,
+    isCursorOverChartLabel,
     labelOverhang,
     maxVisibleCount,
     normalizeAngle,
     processDataIntoSlices,
+    rotatedLabelCenterCorrection,
+    rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
 
@@ -227,8 +236,8 @@ describe('isAngleInSlice', () => {
 
 describe('findSliceAtPosition', () => {
     const makeSlices = (): PieSlice[] => [
-        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0},
-        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1},
+        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0, ordinalIndex: 0, tooltipPosition: {x: 0, y: 0}},
+        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1, ordinalIndex: 1, tooltipPosition: {x: 0, y: 0}},
     ];
 
     const center = 100;
@@ -266,7 +275,7 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], 0)).toEqual([]);
+        expect(processDataIntoSlices([], 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
@@ -274,12 +283,12 @@ describe('processDataIntoSlices', () => {
             {label: 'A', total: 0},
             {label: 'B', total: 0},
         ];
-        expect(processDataIntoSlices(data, 0)).toEqual([]);
+        expect(processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -295,7 +304,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Small', total: 10},
             {label: 'Large', total: 90},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -306,7 +315,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Positive', total: 75},
             {label: 'Negative', total: -25},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -321,7 +330,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Medium', total: 50},
             {label: 'Large', total: 100},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -334,7 +343,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 33},
             {label: 'C', total: 34},
         ];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -346,7 +355,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 30},
             {label: 'C', total: 20},
         ];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
@@ -360,10 +369,368 @@ describe('processDataIntoSlices', () => {
             {label: 'C', total: 20},
             {label: 'D', total: 10},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
         const colors = slices.map((s) => s.color);
         const uniqueColors = new Set(colors);
 
         expect(uniqueColors.size).toBe(4);
+    });
+});
+
+describe('isCursorInSkewedLabel', () => {
+    // Axis-aligned unit square: clockwise rightUpper -> rightLower -> leftLower -> leftUpper
+    const unitSquare = [
+        {x: 1, y: 0},
+        {x: 1, y: 1},
+        {x: 0, y: 1},
+        {x: 0, y: 0},
+    ];
+
+    it('returns true when cursor is inside the quadrilateral', () => {
+        expect(isCursorInSkewedLabel(0.5, 0.5, unitSquare)).toBe(true);
+    });
+
+    it('returns false when cursor is to the left of the polygon', () => {
+        expect(isCursorInSkewedLabel(-0.5, 0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is to the right of the polygon', () => {
+        expect(isCursorInSkewedLabel(1.5, 0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is above the polygon', () => {
+        expect(isCursorInSkewedLabel(0.5, -0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is below the polygon', () => {
+        expect(isCursorInSkewedLabel(0.5, 1.5, unitSquare)).toBe(false);
+    });
+
+    it('returns true when cursor is on an edge (boundary)', () => {
+        expect(isCursorInSkewedLabel(1, 0.5, unitSquare)).toBe(true);
+        expect(isCursorInSkewedLabel(0.5, 0, unitSquare)).toBe(true);
+    });
+
+    it('returns true when cursor is at a vertex', () => {
+        expect(isCursorInSkewedLabel(0, 0, unitSquare)).toBe(true);
+        expect(isCursorInSkewedLabel(1, 1, unitSquare)).toBe(true);
+    });
+
+    it('returns true when cursor is inside a skewed (45°) parallelogram', () => {
+        // Parallelogram: rightUpper (5,0), rightLower (6,1), leftLower (1,1), leftUpper (0,0)
+        const skewed = [
+            {x: 5, y: 0},
+            {x: 6, y: 1},
+            {x: 1, y: 1},
+            {x: 0, y: 0},
+        ];
+        expect(isCursorInSkewedLabel(3, 0.5, skewed)).toBe(true);
+    });
+
+    it('returns false when cursor is outside a skewed parallelogram', () => {
+        const skewed = [
+            {x: 5, y: 0},
+            {x: 6, y: 1},
+            {x: 1, y: 1},
+            {x: 0, y: 0},
+        ];
+        expect(isCursorInSkewedLabel(10, 10, skewed)).toBe(false);
+        expect(isCursorInSkewedLabel(-1, 0.5, skewed)).toBe(false);
+    });
+
+    it('returns true for empty corners (no edges to cross)', () => {
+        expect(isCursorInSkewedLabel(0, 0, [])).toBe(true);
+    });
+});
+
+describe('isCursorOverChartLabel', () => {
+    const baseParams = {
+        targetX: 10,
+        labelY: 20,
+        halfWidth: 5,
+        padding: 2,
+        yMin90: 15,
+        yMax90: 25,
+    };
+
+    describe('0° (horizontal label)', () => {
+        const params = () => ({...baseParams, angleRad: 0, cursorX: 10, cursorY: 20});
+
+        it('returns true when cursor is inside the horizontal label box', () => {
+            expect(isCursorOverChartLabel({...params()})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 12, cursorY: 21})).toBe(true);
+        });
+
+        it('returns false when cursor is to the left of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 2})).toBe(false);
+        });
+
+        it('returns false when cursor is to the right of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 18})).toBe(false);
+        });
+
+        it('returns false when cursor is above the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(false);
+        });
+
+        it('returns false when cursor is below the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(false);
+        });
+
+        it('returns true when cursor is on the horizontal boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 5, cursorY: 20})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 15, cursorY: 20})).toBe(true);
+        });
+
+        it('returns true when cursor is on the vertical boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 10, cursorY: 18})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 10, cursorY: 22})).toBe(true);
+        });
+    });
+
+    describe('45° (skewed label)', () => {
+        const unitSquare = [
+            {x: 1, y: 0},
+            {x: 1, y: 1},
+            {x: 0, y: 1},
+            {x: 0, y: 0},
+        ];
+
+        it('returns true when cursor is inside the skewed quadrilateral', () => {
+            expect(
+                isCursorOverChartLabel({
+                    ...baseParams,
+                    angleRad: Math.PI / 4,
+                    cursorX: 0.5,
+                    cursorY: 0.5,
+                    corners45: unitSquare,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when cursor is outside the skewed quadrilateral', () => {
+            expect(
+                isCursorOverChartLabel({
+                    ...baseParams,
+                    angleRad: Math.PI / 4,
+                    cursorX: -1,
+                    cursorY: 0.5,
+                    corners45: unitSquare,
+                }),
+            ).toBe(false);
+        });
+    });
+
+    describe('90° (vertical label)', () => {
+        const params = () => ({...baseParams, angleRad: Math.PI / 2, cursorX: 10, cursorY: 20});
+
+        it('returns true when cursor is inside the vertical label band', () => {
+            expect(isCursorOverChartLabel({...params()})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorY: 18})).toBe(true);
+        });
+
+        it('returns false when cursor is to the left of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 5})).toBe(false);
+        });
+
+        it('returns false when cursor is to the right of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 15})).toBe(false);
+        });
+
+        it('returns false when cursor is above the vertical bounds', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 10})).toBe(false);
+        });
+
+        it('returns false when cursor is below the vertical bounds', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 30})).toBe(false);
+        });
+
+        it('returns true when cursor is on vertical boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(true);
+        });
+    });
+});
+
+describe('getChartColor', () => {
+    it('returns a non-empty string for index 0', () => {
+        const color = getChartColor(0);
+        expect(typeof color).toBe('string');
+        expect(color.length).toBeGreaterThan(0);
+    });
+
+    it('returns different colors for consecutive indices', () => {
+        expect(getChartColor(0)).not.toBe(getChartColor(1));
+        expect(getChartColor(1)).not.toBe(getChartColor(2));
+    });
+
+    it('wraps around to the same color after the full palette (30 entries)', () => {
+        expect(getChartColor(0)).toBe(getChartColor(30));
+        expect(getChartColor(5)).toBe(getChartColor(35));
+    });
+
+    it('handles large indices via modulo wrapping', () => {
+        expect(getChartColor(0)).toBe(getChartColor(300));
+    });
+});
+
+describe('getAdditionalOffset', () => {
+    // variables.iconSizeExtraSmall = 12
+    it('returns iconSizeExtraSmall / 3 for 0° (horizontal)', () => {
+        expect(getAdditionalOffset(0)).toBeCloseTo(12 / 3);
+    });
+
+    it('returns iconSizeExtraSmall / 1.5 for diagonal angles (0 < angle < DIAGONAL_ANGLE_RADIAN_THRESHOLD)', () => {
+        expect(getAdditionalOffset(Math.PI / 4)).toBeCloseTo(12 / 1.5);
+        // Just below the threshold
+        expect(getAdditionalOffset(DIAGONAL_ANGLE_RADIAN_THRESHOLD - 0.001)).toBeCloseTo(12 / 1.5);
+    });
+
+    it('returns iconSizeExtraSmall / 3 for 90° (vertical, angle >= DIAGONAL_ANGLE_RADIAN_THRESHOLD)', () => {
+        expect(getAdditionalOffset(Math.PI / 2)).toBeCloseTo(12 / 3);
+        expect(getAdditionalOffset(DIAGONAL_ANGLE_RADIAN_THRESHOLD)).toBeCloseTo(12 / 3);
+    });
+});
+
+describe('rotatedLabelCenterCorrection', () => {
+    const ascent = 12;
+    const descent = 4;
+
+    it('returns 0 at 0° because sin(0) = 0', () => {
+        expect(rotatedLabelCenterCorrection(ascent, descent, 0)).toBe(0);
+    });
+
+    it('returns (ascent - descent) / 2 at 90° because sin(90°) = 1', () => {
+        expect(rotatedLabelCenterCorrection(ascent, descent, Math.PI / 2)).toBeCloseTo((ascent - descent) / 2);
+    });
+
+    it('returns a positive value at 45° when ascent > descent', () => {
+        const result = rotatedLabelCenterCorrection(ascent, descent, Math.PI / 4);
+        expect(result).toBeCloseTo(((ascent - descent) * SIN_45) / 2);
+        expect(result).toBeGreaterThan(0);
+    });
+
+    it('returns 0 when ascent equals descent (symmetric font metrics)', () => {
+        expect(rotatedLabelCenterCorrection(10, 10, Math.PI / 4)).toBeCloseTo(0);
+    });
+
+    it('returns a negative value when descent > ascent', () => {
+        expect(rotatedLabelCenterCorrection(4, 12, Math.PI / 2)).toBeLessThan(0);
+    });
+});
+
+describe('rotatedLabelYOffset', () => {
+    const ascent = 12;
+    const descent = 4;
+
+    it('returns ascent at 0°', () => {
+        expect(rotatedLabelYOffset(ascent, descent, 0)).toBe(ascent);
+    });
+
+    it('returns descent at 90°', () => {
+        expect(rotatedLabelYOffset(ascent, descent, Math.PI / 2)).toBe(descent);
+    });
+
+    it('returns ascent * cos(angle) for intermediate angles', () => {
+        expect(rotatedLabelYOffset(ascent, descent, Math.PI / 4)).toBeCloseTo(ascent * Math.cos(Math.PI / 4));
+    });
+
+    it('is always smaller at 45° than at 0° for positive ascent', () => {
+        expect(rotatedLabelYOffset(ascent, descent, Math.PI / 4)).toBeLessThan(rotatedLabelYOffset(ascent, descent, 0));
+    });
+});
+
+describe('calculateMinDomainPadding', () => {
+    it('returns 0 for a single data point', () => {
+        expect(calculateMinDomainPadding(400, 1)).toBe(0);
+    });
+
+    it('returns 0 for zero data points', () => {
+        expect(calculateMinDomainPadding(400, 0)).toBe(0);
+    });
+
+    it('returns half the chart width for 2 points with no inner padding (line chart)', () => {
+        // minPaddingRatio = 1 / (2 * (1 + 0)) = 0.5 → ceil(100 * 0.5) = 50
+        expect(calculateMinDomainPadding(100, 2, 0)).toBe(50);
+    });
+
+    it('returns correct padding for multiple equally spaced points', () => {
+        // 5 points, no innerPadding: ratio = 1 / (2 * 4) = 0.125 → ceil(400 * 0.125) = 50
+        expect(calculateMinDomainPadding(400, 5, 0)).toBe(50);
+    });
+
+    it('uses innerPadding=0 as default', () => {
+        expect(calculateMinDomainPadding(400, 5)).toBe(calculateMinDomainPadding(400, 5, 0));
+    });
+
+    it('produces a smaller padding with inner padding (bar chart)', () => {
+        // innerPadding reduces the effective spacing between bars
+        const withoutPadding = calculateMinDomainPadding(400, 5, 0);
+        const withPadding = calculateMinDomainPadding(400, 5, 0.3);
+        expect(withPadding).toBeLessThan(withoutPadding);
+    });
+});
+
+describe('getNiceUpperBound', () => {
+    it('returns rawMax unchanged when range is zero', () => {
+        expect(getNiceUpperBound(0, 5)).toBe(0);
+        expect(getNiceUpperBound(100, 5, 100)).toBe(100);
+    });
+
+    it('returns rawMax unchanged when tickCount <= 1', () => {
+        expect(getNiceUpperBound(100, 1)).toBe(100);
+        expect(getNiceUpperBound(90, 0)).toBe(90);
+    });
+
+    it('rounds up to next step boundary when rawMax is already on a step', () => {
+        // range=100, step=20 → ceil(100/20)*20=100
+        expect(getNiceUpperBound(100, 5)).toBe(100);
+    });
+
+    it('rounds up when rawMax falls between step boundaries', () => {
+        // range=90, step=20 → ceil(90/20)*20=ceil(4.5)*20=5*20=100
+        expect(getNiceUpperBound(90, 5)).toBe(100);
+    });
+
+    it('scales correctly for larger values', () => {
+        // range=1000, step=200 → ceil(1000/200)*200=1000
+        expect(getNiceUpperBound(1000, 5)).toBe(1000);
+        // range=900, step=200 → ceil(900/200)*200=ceil(4.5)*200=1000
+        expect(getNiceUpperBound(900, 5)).toBe(1000);
+    });
+
+    it('uses rawMin to compute the range when negative values are present', () => {
+        // rawMax=100, rawMin=-100 → range=200, roughStep=50, magnitude=10, normalized=5 → step=50
+        // ceil(100/50)*50=100
+        expect(getNiceUpperBound(100, 5, -100)).toBe(100);
+    });
+});
+
+describe('getNiceLowerBound', () => {
+    it('returns rawMin unchanged for non-negative values', () => {
+        expect(getNiceLowerBound(0, 5)).toBe(0);
+        expect(getNiceLowerBound(10, 5)).toBe(10);
+        expect(getNiceLowerBound(100, 5)).toBe(100);
+    });
+
+    it('returns rawMin unchanged when range is zero or tickCount <= 1', () => {
+        expect(getNiceLowerBound(-100, 1, 0)).toBe(-100);
+        expect(getNiceLowerBound(-100, 5, -100)).toBe(-100);
+    });
+
+    it('returns rawMin unchanged when rawMin is already on a step boundary', () => {
+        // range=100, step=20 → floor(-100/20)*20=-5*20=-100
+        expect(getNiceLowerBound(-100, 5, 0)).toBe(-100);
+    });
+
+    it('rounds down when rawMin falls between step boundaries', () => {
+        // range=90, step=20 → floor(-90/20)*20=floor(-4.5)*20=-5*20=-100
+        expect(getNiceLowerBound(-90, 5, 0)).toBe(-100);
+    });
+
+    it('uses rawMax to compute the range for mixed positive/negative data', () => {
+        // rawMin=-50, rawMax=100 → range=150, roughStep=37.5, magnitude=10, normalized=3.75 >= 2 → step=20
+        // floor(-50/20)*20=floor(-2.5)*20=-3*20=-60
+        expect(getNiceLowerBound(-50, 5, 100)).toBe(-60);
     });
 });

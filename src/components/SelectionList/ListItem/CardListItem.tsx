@@ -5,7 +5,6 @@ import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,6 +16,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
+import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
 type AdditionalCardProps = {

@@ -1,8 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
@@ -68,6 +69,12 @@ type NumberWithSymbolFormProps = {
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
 
+    /** Style applied to the outer ScrollView */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to refocus the input when clicking on the ScrollView empty space */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     /** Whether the amount is negative */
     isNegative?: boolean;
 
@@ -77,11 +84,14 @@ type NumberWithSymbolFormProps = {
     /** Function to clear the negative amount */
     clearNegative?: () => void;
 
-    /** Whether to allow flipping amount */
+    /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
 
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
+
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
 
     /** Whether the input is disabled or not */
     disabled?: boolean;
@@ -91,6 +101,26 @@ type NumberWithSymbolFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
+
+    /** Whether to show the flip (+/-) button */
+    shouldShowFlipButton?: boolean;
+
+    /** Whether to show the currency selection button */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Callback when currency button is pressed */
+    onCurrencyButtonPress?: () => void;
+
+    /**
+     * Label on the trailing dropdown button (e.g. currency code). When set, used instead of `currency` so the same control can show a unit or other suffix.
+     */
+    currencyButtonLabel?: string;
+
+    /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
+    currencyButtonAccessibilityLabel?: string;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -139,6 +169,7 @@ function NumberWithSymbolForm({
     style,
     containerStyle,
     symbolTextStyle,
+    shouldUseDynamicFontSize = false,
     autoGrow = true,
     disableKeyboard = true,
     prefixCharacter = '',
@@ -146,6 +177,8 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -154,9 +187,16 @@ function NumberWithSymbolForm({
     ref,
     disabled,
     onSubmitEditing,
+    shouldShowFlipButton = false,
+    shouldShowCurrencyButton = false,
+    onCurrencyButtonPress,
+    currencyButtonLabel,
+    currencyButtonAccessibilityLabel,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    const isInLandscapeMode = useIsInLandscapeMode();
+
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
@@ -178,6 +218,9 @@ function NumberWithSymbolForm({
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
+
+    const currencyOrUnitButtonText = currencyButtonLabel ?? currency;
+    const onTrailingDropdownPress = onCurrencyButtonPress ?? onSymbolButtonPress;
 
     const {setMouseDown, setMouseUp} = useMouseActions();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -380,6 +423,64 @@ function NumberWithSymbolForm({
         return StyleUtils.getAmountInputFontSize(totalLength);
     }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
 
+    /**
+     * Handles pressing the flip button (+/-) to toggle negative sign
+     * Only available in displayAsTextInput mode for manual expense flow
+     */
+    const handleFlipPress = useCallback(() => {
+        // Toggle the minus sign prefix in the value
+        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        setCurrentNumber(newValue);
+        onInputChange?.(newValue);
+    }, [currentNumber, onInputChange]);
+
+    /**
+     * Creates the right-hand side component for text input mode
+     * Renders flip (+/-) button and/or currency selection button when enabled
+     * Only shown when clear button is not visible (see TextInput conditional rendering)
+     */
+    const textInputRightHandSideComponent = useMemo(() => {
+        return (
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
+                    <Button
+                        small
+                        icon={icons.PlusMinus}
+                        onPress={handleFlipPress}
+                        onMouseDown={(e) => e.preventDefault()}
+                        isContentCentered
+                        accessibilityLabel={translate('iou.flip')}
+                        isDisabled={disabled}
+                    />
+                )}
+                {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={icons.DownArrow}
+                        onPress={onTrailingDropdownPress}
+                        isContentCentered
+                        text={currencyOrUnitButtonText}
+                        accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
+                        isDisabled={disabled}
+                    />
+                )}
+            </View>
+        );
+    }, [
+        shouldShowFlipButton,
+        allowNegativeInput,
+        disabled,
+        shouldShowCurrencyButton,
+        styles,
+        icons,
+        handleFlipPress,
+        onTrailingDropdownPress,
+        currencyOrUnitButtonText,
+        currencyButtonAccessibilityLabel,
+        translate,
+    ]);
+
     if (displayAsTextInput) {
         return (
             <TextInput
@@ -394,15 +495,16 @@ function NumberWithSymbolForm({
                         // eslint-disable-next-line no-param-reassign
                         ref.current = newRef;
                     }
+                    textInput.current = newRef;
                 }}
                 disabled={disabled}
-                prefixCharacter={symbol}
+                prefixCharacter={hideSymbol ? '' : symbol}
                 prefixStyle={styles.colorMuted}
-                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
                 // See https://github.com/Expensify/App/issues/51868 for more information
                 autoCapitalize="words"
-                inputMode={CONST.INPUT_MODE.DECIMAL}
+                inputMode={!props.keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
                 errorText={errorText}
                 style={style}
                 autoFocus={props.autoFocus}
@@ -410,6 +512,7 @@ function NumberWithSymbolForm({
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
     }
@@ -451,8 +554,8 @@ function NumberWithSymbolForm({
             }}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
-            symbolTextStyle={[symbolTextStyle, dynamicAmountStyle]}
-            style={[style, dynamicAmountStyle]}
+            symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
+            style={[style, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             containerStyle={containerStyle}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
@@ -477,13 +580,92 @@ function NumberWithSymbolForm({
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
+            keyboardType={props.keyboardType}
+            shouldAllowFocusInLandscapeMode
         />
     );
 
+    if (isInLandscapeMode) {
+        return (
+            <>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
+                    style={[styles.flex1, styles.ph5]}
+                >
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.numberWithSymbolFormInputContainerLandscape]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
+                            {isSymbolPressable && (
+                                <Button
+                                    shouldShowRightIcon
+                                    small
+                                    iconRight={icons.DownArrow}
+                                    onPress={onSymbolButtonPress}
+                                    style={styles.minWidth18}
+                                    isContentCentered
+                                    text={currency}
+                                    accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                                />
+                            )}
+                            {allowFlippingAmount && (
+                                <Button
+                                    shouldShowRightIcon
+                                    small
+                                    iconRight={icons.PlusMinus}
+                                    onPress={toggleNegative}
+                                    style={styles.minWidth18}
+                                    isContentCentered
+                                    text={translate('iou.flip')}
+                                    accessibilityLabel={translate('iou.flip')}
+                                />
+                            )}
+                        </View>
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
+                    </View>
+
+                    {shouldShowBigNumberPad ? (
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            id={NUM_PAD_CONTAINER_VIEW_ID}
+                        >
+                            {shouldShowBigNumberPad ? (
+                                <BigNumberPad
+                                    id={NUM_PAD_VIEW_ID}
+                                    numberPressed={updateValueNumberPad}
+                                    longPressHandlerStateChanged={updateLongPressHandlerState}
+                                />
+                            ) : null}
+                        </View>
+                    ) : null}
+                </ScrollView>
+
+                {!!footer && <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}>{footer}</View>}
+            </>
+        );
+    }
+
     return (
         <ScrollView
-            contentContainerStyle={styles.flexGrow1}
-            style={!shouldWrapInputInContainer && styles.flexGrow0}
+            contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
+            style={[
+                !shouldWrapInputInContainer && styles.flexGrow0,
+                // Hide pointer cursor when refocus feature is enabled (empty space shouldn't look clickable)
+                shouldRefocusOnScrollViewClick && styles.cursorAuto,
+            ]}
+            onMouseDown={(e) => {
+                if (!shouldRefocusOnScrollViewClick) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                textInput.current?.focus();
+            }}
         >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

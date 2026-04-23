@@ -226,4 +226,30 @@ describe('canEditMultipleTransactions', () => {
 
         expect(result).toBe(true);
     });
+
+    it('returns false when selecting an unreported expense and a split expense', () => {
+        const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
+
+        const unreportedTransaction: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+        const splitTransaction: Transaction = {...transaction2, comment: {source: CONST.IOU.TYPE.SPLIT}};
+
+        // Unreported first, split second
+        const result = canEditMultipleTransactions([unreportedTransaction, splitTransaction], reportActions, reports, policies);
+        expect(result).toBe(false);
+
+        // Split first, unreported second
+        const resultReversed = canEditMultipleTransactions([splitTransaction, unreportedTransaction], reportActions, reports, policies);
+        expect(resultReversed).toBe(false);
+    });
+
+    it('returns false when selecting an unreported expense and an approved expense', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
+
+        const unreportedTransaction: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+        report2.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+
+        const result = canEditMultipleTransactions([unreportedTransaction, transaction2], reportActions, reports, policies);
+        expect(result).toBe(false);
+    });
 });

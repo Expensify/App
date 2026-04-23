@@ -13,14 +13,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   review:
-    if: github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')
+    needs: [validate]
+    if: |
+      needs.validate.outputs.IS_AUTHORIZED == 'true'
+      && github.event.pull_request.draft != true
+      && !contains(github.event.pull_request.title, 'Revert')
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
 
@@ -46,7 +57,7 @@ jobs:
         run: |
           "$GITHUB_WORKSPACE/.github/scripts/extractAllowedRules.sh" \
             "$GITHUB_WORKSPACE/.claude/skills/coding-standards/rules" \
-            "$GITHUB_WORKSPACE/.claude/allowed-rules.txt"
+            "$RUNNER_TEMP/allowed-rules.txt"
 
       - name: Load code review JSON schema
         id: schema
@@ -55,21 +66,23 @@ jobs:
       - name: Run Claude Code (code)
         id: code-review
         if: steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@ea36d6abdedc17fc2a671b36060770b208a6f8f1 # v1.0.51
+        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
         with:
+          display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
             --model claude-opus-4-6
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*)" --json-schema '${{ steps.schema.outputs.json }}'
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.schema.outputs.json }}'
 
       - name: Post code review results
         if: steps.code-review.outcome == 'success' && steps.filter.outputs.code == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
+          ALLOWED_RULES_FILE: ${{ runner.temp }}/allowed-rules.txt
         run: |
           if [ -z "$STRUCTURED_OUTPUT" ]; then
             echo "::error::Claude Code Action returned empty structured output"
@@ -89,8 +102,9 @@ jobs:
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@ea36d6abdedc17fc2a671b36060770b208a6f8f1 # v1.0.51
+        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
         with:
+          display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"

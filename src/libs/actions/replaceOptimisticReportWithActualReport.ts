@@ -195,13 +195,19 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    openReport({reportID: parentReportID, introSelected: undefined});
+                    // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                    // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                    // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
                 });
             } else {
                 callback();
 
                 // We are already on the parent one expense report, so just call the API to fetch report data
-                openReport({reportID: parentReportID, introSelected: undefined});
+                // betas is safe to pass as undefined because introSelected is undefined, so the code path
+                // that uses betas is never reached. Passing it explicitly so the compiler flags this when
+                // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
+                openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
             }
             return;
         }

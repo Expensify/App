@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -57,7 +58,7 @@ function ChooseTransferAccountPage() {
     };
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const selectedAccountID = walletTransfer?.selectedAccountID;
     const bankAccountOptions = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
@@ -96,7 +97,8 @@ function ChooseTransferAccountPage() {
     }, [bankAccountOptions, selectedAccountID]);
 
     if (isLoadingOnyxValue(walletTransferResult)) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'ChooseTransferAccountPage', walletTransferLoaded: false};
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

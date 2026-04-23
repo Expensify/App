@@ -130,4 +130,47 @@ describe('OnboardingWorkspaces Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should not show the back button on join workspace after Add work email flow', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the back button on join workspace for the standard personal details flow', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });

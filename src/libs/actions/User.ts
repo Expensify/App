@@ -33,8 +33,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {getIsOffline} from '@libs/NetworkState';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -48,18 +48,20 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy} from '@src/types/onyx';
+import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
+import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
@@ -72,13 +74,6 @@ Onyx.connect({
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentEmail = value?.email ?? '';
     },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
 });
 
 type DomainOnyxUpdate =
@@ -194,9 +189,10 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod};
-
-    API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    getDeviceInfoWithID().then((deviceInfo) => {
+        const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    });
 }
 
 /**
@@ -621,7 +617,11 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
+function triggerNotifications<TKey extends OnyxKey>(
+    onyxUpdates: Array<OnyxServerUpdate<TKey>>,
+    currentUserAccountIDParam: number,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -633,7 +633,7 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail);
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes);
             }
         }
     }
@@ -773,7 +773,7 @@ const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
-    if (isOffline()) {
+    if (getIsOffline()) {
         Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
         return;
     }
@@ -796,7 +796,7 @@ function pingPusher() {
 }
 
 function checkForLatePongReplies() {
-    if (isOffline()) {
+    if (getIsOffline()) {
         Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
         return;
     }
@@ -860,7 +860,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -915,7 +915,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam);
+                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1053,12 +1053,15 @@ function generateStatementPDF(period: string) {
 
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
+ * @param skipNavigation - When true, do not navigate (caller handles navigation, e.g. via useEffect when primaryContactMethod updates).
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    policies: OnyxCollection<Policy>,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo?: string,
+    skipNavigation?: boolean,
 ) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: Array<
@@ -1156,7 +1159,7 @@ function setContactMethodAsDefault(
         },
     ];
 
-    for (const policy of Object.values(allPolicies ?? {})) {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
             continue;
         }
@@ -1213,10 +1216,12 @@ function setContactMethodAsDefault(
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    if (!skipNavigation) {
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    }
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_THEME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1231,7 +1236,9 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 
     API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
-    Navigation.goBack();
+    if (shouldGoBack) {
+        Navigation.goBack();
+    }
 }
 
 /**
@@ -1320,14 +1327,13 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
+function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof name>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
@@ -1335,8 +1341,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureData: Array<OnyxUpdate<typeof name>> | undefined = shouldRevertValue
+    const failureData: AnyOnyxUpdate[] | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -1527,7 +1532,14 @@ type RespondToProactiveAppReviewParams = {
 /**
  * Respond to the proactive app review prompt and optionally create a Concierge message
  */
-function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
+function respondToProactiveAppReview(
+    response: 'positive' | 'negative' | 'skip',
+    currentProactiveAppReview: AppReview | null | undefined,
+    userEmail: string | undefined,
+    userAccountID: number,
+    message?: string,
+    conciergeChatReportID?: string,
+) {
     const params: RespondToProactiveAppReviewParams = {response};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -1540,7 +1552,13 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
         const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, conciergeChatReportID);
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction({
+            text: message,
+            actorAccountID: conciergeAccountID,
+            reportID: conciergeChatReportID,
+            currentUserEmail: userEmail,
+            currentUserAccountID: userAccountID,
+        });
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 
@@ -1836,6 +1854,10 @@ function openTroubleshootSettingsPage() {
     API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
 }
 
+function openMultifactorAuthenticationRevokePage() {
+    API.read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1854,6 +1876,18 @@ function updateDraftMerchantRule(ruleData: Partial<MerchantRuleForm>) {
 
 function clearDraftMerchantRule() {
     Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, null);
+}
+
+function setDraftSpendRule(ruleData: Partial<SpendRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, ruleData);
+}
+
+function updateDraftSpendRule(ruleData: Partial<SpendRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.SPEND_RULE_FORM, ruleData);
+}
+
+function clearDraftSpendRule() {
+    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
 export {
@@ -1907,7 +1941,11 @@ export {
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
+    setDraftSpendRule,
+    updateDraftSpendRule,
+    clearDraftSpendRule,
     openTroubleshootSettingsPage,
+    openMultifactorAuthenticationRevokePage,
 };
 
 export {type LockAccountOnyxKey};

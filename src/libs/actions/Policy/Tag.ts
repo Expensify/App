@@ -29,20 +29,30 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {completeTask} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-/**
- * Checks if a task report is incomplete (not approved)
- */
-function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
-    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
-}
+type CreatePolicyTagParams = {
+    policyData: PolicyData;
+    tagName: string;
+    setupTagsTaskReport: OnyxEntry<Report>;
+    setupTagsTaskParentReport: OnyxEntry<Report>;
+    isSetupTagsTaskParentReportArchived: boolean;
+    setupTagsHasOutstandingChildTask: boolean;
+    setupTagsParentReportAction: OnyxEntry<ReportAction>;
+    setupCategoriesAndTagsTaskReport: OnyxEntry<Report>;
+    setupCategoriesAndTagsTaskParentReport: OnyxEntry<Report>;
+    isSetupCategoriesAndTagsTaskParentReportArchived: boolean;
+    setupCategoriesAndTagsHasOutstandingChildTask: boolean;
+    setupCategoriesAndTagsParentReportAction: OnyxEntry<ReportAction>;
+    currentUserAccountID: number;
+    policyHasCustomCategories: boolean;
+};
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -120,13 +130,22 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKE
     return onyxData;
 }
 
-function createPolicyTag(
-    policyData: PolicyData,
-    tagName: string,
-    setupTagsTaskReport?: OnyxEntry<Report>,
-    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
-    policyHasCustomCategories?: boolean,
-) {
+function createPolicyTag({
+    policyData,
+    tagName,
+    setupTagsTaskReport,
+    setupTagsTaskParentReport,
+    isSetupTagsTaskParentReportArchived,
+    setupTagsHasOutstandingChildTask,
+    setupTagsParentReportAction,
+    setupCategoriesAndTagsTaskReport,
+    setupCategoriesAndTagsTaskParentReport,
+    isSetupCategoriesAndTagsTaskParentReportArchived,
+    setupCategoriesAndTagsHasOutstandingChildTask,
+    setupCategoriesAndTagsParentReportAction,
+    currentUserAccountID,
+    policyHasCustomCategories,
+}: CreatePolicyTagParams) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
@@ -194,12 +213,34 @@ function createPolicyTag(
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
-    if (isTaskIncomplete(setupTagsTaskReport)) {
-        completeTask(setupTagsTaskReport, false, false, undefined);
+    const isTaskForCurrentWorkspace = (taskReport: OnyxEntry<Report>) => !taskReport?.policyID || taskReport.policyID === policyID;
+
+    // Complete the "Set up tags" onboarding task
+    if (setupTagsTaskReport && currentUserAccountID && isTaskForCurrentWorkspace(setupTagsTaskReport)) {
+        getFinishOnboardingTaskOnyxData(
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupTagsHasOutstandingChildTask ?? false,
+            setupTagsParentReportAction,
+            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+            undefined,
+        );
     }
 
-    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
-        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
+    // Complete the combined "Set up categories and tags" task only if categories already exist
+    if (setupCategoriesAndTagsTaskReport && policyHasCustomCategories && currentUserAccountID && isTaskForCurrentWorkspace(setupCategoriesAndTagsTaskReport)) {
+        getFinishOnboardingTaskOnyxData(
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
+            setupCategoriesAndTagsParentReportAction,
+            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+            undefined,
+        );
     }
 }
 
@@ -811,7 +852,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature();
     }
 }
 
@@ -834,10 +875,6 @@ function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
 
 function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
-}
-
-function setImportedSpreadsheetFileURI(fileURI: string) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
 }
 
 function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
@@ -1037,7 +1074,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-    if (!policyTag || !policyTag.name) {
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1307,6 +1344,5 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
-    setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

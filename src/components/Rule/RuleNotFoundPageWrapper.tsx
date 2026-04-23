@@ -25,7 +25,7 @@ function RuleNotFoundPageWrapper({children, hash, shouldPreventShow}: RuleNotFou
     const shouldShowNotFoundPage = !!hash && !doesRuleExist;
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator reasonAttributes={{context: 'RuleNotFoundPageWrapper'}} />;
     }
 
     if (!shouldPreventShow && shouldShowNotFoundPage) {

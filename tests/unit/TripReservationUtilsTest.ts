@@ -2278,6 +2278,7 @@ const connectingAirPnrData = asDefined(airPnrConnecting.data.airPnr);
 const hotelPnrData = asDefined(hotelPnr.data.hotelPnr);
 const carPnrData = asDefined(carPnr.data.carPnr);
 const railPnrData = asDefined(railPnr.data.railPnr);
+const railInwardJourney = asDefined(railPnrData.inwardJourney);
 
 describe('TripReservationUtils', () => {
     describe('getAirReservations', () => {
@@ -2311,7 +2312,7 @@ describe('TripReservationUtils', () => {
             expect(seatNumber).not.toContain('legIdx');
         });
 
-        it('should skip flights with cancelled leg status (CANCELLED_STATUS)', () => {
+        it('should include flights with cancelled leg status (CANCELLED_STATUS) and mark them as cancelled', () => {
             const firstLeg = asDefined(directAirPnrData.legs.at(0));
             const cancelledLegPnr: Pnr = {
                 ...airPnrDirect,
@@ -2329,10 +2330,11 @@ describe('TripReservationUtils', () => {
                 },
             };
             const result = getAirReservations(cancelledLegPnr, cancelledLegPnr.data.pnrTravelers);
-            expect(result).toHaveLength(0);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.isCancelled).toBe(true);
         });
 
-        it('should skip flights with CANCELLED flight status', () => {
+        it('should include flights with CANCELLED flight status and mark them as cancelled', () => {
             const firstLeg = asDefined(directAirPnrData.legs.at(0));
             const firstFlight = asDefined(firstLeg.flights.at(0));
             const cancelledFlightPnr: Pnr = {
@@ -2356,10 +2358,11 @@ describe('TripReservationUtils', () => {
                 },
             };
             const result = getAirReservations(cancelledFlightPnr, cancelledFlightPnr.data.pnrTravelers);
-            expect(result).toHaveLength(0);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.isCancelled).toBe(true);
         });
 
-        it('should skip flights with VOIDED flight status', () => {
+        it('should include flights with VOIDED flight status and mark them as cancelled', () => {
             const firstLeg = asDefined(directAirPnrData.legs.at(0));
             const firstFlight = asDefined(firstLeg.flights.at(0));
             const voidedFlightPnr: Pnr = {
@@ -2383,10 +2386,11 @@ describe('TripReservationUtils', () => {
                 },
             };
             const result = getAirReservations(voidedFlightPnr, voidedFlightPnr.data.pnrTravelers);
-            expect(result).toHaveLength(0);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.isCancelled).toBe(true);
         });
 
-        it('should still return non-cancelled flights when only some legs are cancelled', () => {
+        it('should return all flights when only some legs are cancelled, marking cancelled ones', () => {
             const firstLeg = asDefined(connectingAirPnrData.legs.at(0));
             const secondLeg = connectingAirPnrData.legs.at(1);
             const partiallyCancelledPnr: Pnr = {
@@ -2406,12 +2410,15 @@ describe('TripReservationUtils', () => {
                 },
             };
             const result = getAirReservations(partiallyCancelledPnr, partiallyCancelledPnr.data.pnrTravelers);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.reservation.start?.shortName).toBe('EWR');
-            expect(result.at(0)?.reservation.end?.shortName).toBe('LAX');
+            expect(result).toHaveLength(3);
+            const cancelledFlights = result.filter((r) => r.isCancelled);
+            expect(cancelledFlights).toHaveLength(2);
+            const activeFlights = result.filter((r) => !r.isCancelled);
+            expect(activeFlights).toHaveLength(1);
+            expect(activeFlights.at(0)?.reservation.start?.shortName).toBe('EWR');
         });
 
-        it('should still return non-cancelled flights when only some flights in a leg have cancelled status', () => {
+        it('should return all flights when only some flights in a leg have cancelled status, marking cancelled ones', () => {
             const firstLeg = asDefined(connectingAirPnrData.legs.at(0));
             const firstFlight = asDefined(firstLeg.flights.at(0));
             const secondFlight = firstLeg.flights.at(1);
@@ -2439,11 +2446,11 @@ describe('TripReservationUtils', () => {
                 },
             };
             const result = getAirReservations(partialFlightCancelPnr, partialFlightCancelPnr.data.pnrTravelers);
-            expect(result).toHaveLength(2);
-            expect(result.at(0)?.reservation.start?.shortName).toBe('MSP');
-            expect(result.at(0)?.reservation.end?.shortName).toBe('EWR');
-            expect(result.at(1)?.reservation.start?.shortName).toBe('EWR');
-            expect(result.at(1)?.reservation.end?.shortName).toBe('LAX');
+            expect(result).toHaveLength(3);
+            const cancelledFlight = result.find((r) => r.isCancelled);
+            expect(cancelledFlight).toBeDefined();
+            const activeFights = result.filter((r) => !r.isCancelled);
+            expect(activeFights).toHaveLength(2);
         });
     });
     describe('getReservationsFromTripReport', () => {
@@ -2484,7 +2491,7 @@ describe('TripReservationUtils', () => {
             expect(resultWithSingleReservation.at(0)?.reservation.type).toEqual(CONST.RESERVATION_TYPE.HOTEL);
         });
 
-        it('should filter out cancelled PNRs from results', () => {
+        it('should include cancelled PNRs and mark them with isCancelled', () => {
             const cancelledHotelPnr: Pnr = {
                 ...hotelPnr,
                 pnrId: 'PNR_HOTEL_CANCELLED',
@@ -2507,13 +2514,16 @@ describe('TripReservationUtils', () => {
             };
 
             const result = getReservationsFromTripReport(report, []);
-            expect(result).toHaveLength(2);
-            expect(result.every((r) => r.reservation.reservationID !== 'PNR_HOTEL_CANCELLED')).toBe(true);
-            expect(result.at(0)?.reservation.reservationID).toEqual('PNR_AIR_789');
-            expect(result.at(1)?.reservation.reservationID).toEqual('PNR_CAR_789');
+            expect(result).toHaveLength(3);
+            const cancelledReservation = result.find((r) => r.reservation.reservationID === 'PNR_HOTEL_CANCELLED');
+            expect(cancelledReservation?.isCancelled).toBe(true);
+            const activeReservations = result.filter((r) => !r.isCancelled);
+            expect(activeReservations).toHaveLength(2);
+            expect(activeReservations.some((r) => r.reservation.reservationID === 'PNR_AIR_789')).toBe(true);
+            expect(activeReservations.some((r) => r.reservation.reservationID === 'PNR_CAR_789')).toBe(true);
         });
 
-        it('should filter out PNRs with cancelled bookingStatus', () => {
+        it('should include PNRs with cancelled bookingStatus and mark them with isCancelled', () => {
             const cancelledByBookingStatus: Pnr = {
                 ...carPnr,
                 pnrId: 'PNR_CAR_CANCELLED',
@@ -2533,13 +2543,16 @@ describe('TripReservationUtils', () => {
             };
 
             const result = getReservationsFromTripReport(report, []);
-            expect(result).toHaveLength(2);
-            expect(result.every((r) => r.reservation.reservationID !== 'PNR_CAR_CANCELLED')).toBe(true);
-            expect(result.at(0)?.reservation.reservationID).toEqual('PNR_AIR_789');
-            expect(result.at(1)?.reservation.reservationID).toEqual('PNR_HOTEL_789');
+            expect(result).toHaveLength(3);
+            const cancelledReservation = result.find((r) => r.reservation.reservationID === 'PNR_CAR_CANCELLED');
+            expect(cancelledReservation?.isCancelled).toBe(true);
+            const activeReservations = result.filter((r) => !r.isCancelled);
+            expect(activeReservations).toHaveLength(2);
+            expect(activeReservations.some((r) => r.reservation.reservationID === 'PNR_AIR_789')).toBe(true);
+            expect(activeReservations.some((r) => r.reservation.reservationID === 'PNR_HOTEL_789')).toBe(true);
         });
 
-        it('should return empty when all PNRs are cancelled', () => {
+        it('should include all reservations when all PNRs are cancelled, marking them with isCancelled', () => {
             const cancelledHotelPnr: Pnr = {
                 ...hotelPnr,
                 data: {
@@ -2568,7 +2581,8 @@ describe('TripReservationUtils', () => {
             };
 
             const result = getReservationsFromTripReport(report, []);
-            expect(result).toHaveLength(0);
+            expect(result).toHaveLength(2);
+            expect(result.every((r) => r.isCancelled)).toBe(true);
         });
     });
 
@@ -2828,7 +2842,7 @@ describe('TripReservationUtils', () => {
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                         inwardJourney: {
-                            ...railPnrData.inwardJourney,
+                            ...railInwardJourney,
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                     },
@@ -2849,7 +2863,7 @@ describe('TripReservationUtils', () => {
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                         inwardJourney: {
-                            ...railPnrData.inwardJourney,
+                            ...railInwardJourney,
                             journeyStatus: 'CONFIRMED',
                         },
                     },
@@ -2889,6 +2903,38 @@ describe('TripReservationUtils', () => {
             expect(isPnrCancelled(carPnr)).toBe(false);
             expect(isPnrCancelled(airPnrDirect)).toBe(false);
             expect(isPnrCancelled(railPnr)).toBe(false);
+        });
+
+        it('should not crash when rail PNR has undefined inwardJourney (one-way trip)', () => {
+            const oneWayRail: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        inwardJourney: undefined,
+                    },
+                },
+            };
+            expect(isPnrCancelled(oneWayRail)).toBe(false);
+        });
+
+        it('should return true when rail PNR has undefined inwardJourney and outwardJourney is cancelled', () => {
+            const cancelledOneWayRail: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        inwardJourney: undefined,
+                        outwardJourney: {
+                            ...railPnrData.outwardJourney,
+                            journeyStatus: CONST.PNR_STATUS.CANCELLED,
+                        },
+                    },
+                },
+            };
+            expect(isPnrCancelled(cancelledOneWayRail)).toBe(true);
         });
     });
 });

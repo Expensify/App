@@ -1,18 +1,15 @@
 import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useState} from 'react';
-import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
-import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
+import {isSupportedLocale} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,7 +82,7 @@ const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'var
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false});
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
@@ -107,20 +104,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
         IntlStore.load(localeToApply);
         setLocale(localeToApply, nvpPreferredLocale);
-
-        // For locales without emoji support, fallback on English
-        const normalizedLocale = isFullySupportedLocale(localeToApply) ? localeToApply : CONST.LOCALES.DEFAULT;
-
-        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
-            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT),
-        });
-
-        importEmojiLocale(normalizedLocale).then(() => {
-            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
-            buildEmojisTrie(normalizedLocale);
-        });
     }, [localeToApply, nvpPreferredLocale]);
 
     // Sync currentLocale from IntlStore after translations finish loading.
@@ -188,6 +171,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         preferredLocale: currentLocale,
     };
 
+    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 

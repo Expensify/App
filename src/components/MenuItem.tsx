@@ -18,6 +18,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -46,6 +47,8 @@ import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
+import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -92,6 +95,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the badge should use condensed (smaller) sizing */
         isBadgeCondensed?: boolean;
+
+        /** Whether the badge should be shown as error */
+        isBadgeError?: boolean;
 
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -177,6 +183,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** A description text to show under the title */
         description?: string;
 
+        /** Optional component to render before the description text (e.g. a badge pill) */
+        descriptionAddon?: ReactNode;
+
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
@@ -238,6 +247,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
+
+        /** Any additional styles to apply to the subtitle */
+        subtitleStyle?: StyleProp<TextStyle>;
 
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
@@ -332,6 +344,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** The function that should be called when this component is LongPressed or right-clicked. */
         onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
+
+        /** Whether the accessibility hint should announce that a context menu is available. */
+        shouldShowContextMenuHint?: boolean;
 
         /** Array of objects that map display names to their corresponding tooltip */
         titleWithTooltips?: DisplayNameWithTooltip[] | undefined;
@@ -460,6 +475,7 @@ function MenuItem({
     isBadgeSuccess,
     isBadgeStrong,
     isBadgeCondensed,
+    isBadgeError,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -497,6 +513,7 @@ function MenuItem({
     furtherDetailsStyle,
     furtherDetailsComponent,
     description,
+    descriptionAddon,
     helperText,
     helperTextStyle,
     errorText,
@@ -512,6 +529,7 @@ function MenuItem({
     titleComponent,
     titleContainerStyle,
     subtitle,
+    subtitleStyle,
     shouldShowBasicTitle,
     rightLabelIcon,
     label,
@@ -546,6 +564,7 @@ function MenuItem({
     excludedMarkdownRules = [],
     shouldCheckActionAllowedOnPress = true,
     onSecondaryInteraction,
+    shouldShowContextMenuHint = false,
     titleWithTooltips,
     displayInDefaultIconColor = false,
     contentFit = 'cover',
@@ -597,7 +616,23 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MenuItem',
+    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
+    const isNewWindowIcon = iconRight === icons.NewWindow;
+    let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
+    if (isNewWindowIcon) {
+        enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
+    }
+
+    const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
+    const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
+    const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel: combinedAccessibilityLabel,
+        contextMenuHint,
+    });
+    const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -618,12 +653,40 @@ function MenuItem({
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
-        icon && !Array.isArray(icon) ? styles.ml3 : {},
-        title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        styles.flex1,
+        title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
+        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        descriptionAddon ? styles.ml2 : {},
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
+
+    const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
+        styles.flexRow,
+        styles.alignItemsCenter,
+        descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        title ? descriptionVerticalMargin : {},
+    ]);
+
+    const renderDescriptionView = () => {
+        if (!description && !descriptionAddon) {
+            return null;
+        }
+        return (
+            <View style={descriptionContainerStyle}>
+                {descriptionAddon}
+                {!!description && (
+                    <Text
+                        style={descriptionTextStyles}
+                        numberOfLines={numberOfLinesDescription}
+                    >
+                        {description}
+                    </Text>
+                )}
+            </View>
+        );
+    };
 
     const html = useMemo(() => {
         if (!title || !shouldParseTitle) {
@@ -734,12 +797,6 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
-    const isNewWindowIcon = iconRight === icons.NewWindow;
-    let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
-    if (isNewWindowIcon) {
-        enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
-    }
-
     return (
         <View
             style={rootWrapperStyle}
@@ -791,8 +848,10 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
-                                accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                                accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
+                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
@@ -869,7 +928,10 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator color={theme.textSupporting} />
+                                                                    <ActivityIndicator
+                                                                        color={theme.textSupporting}
+                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
+                                                                    />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
@@ -917,14 +979,7 @@ function MenuItem({
                                                             titleContainerStyle,
                                                         ]}
                                                     >
-                                                        {!!description && shouldShowDescriptionOnTop && (
-                                                            <Text
-                                                                style={descriptionTextStyles}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
-                                                        )}
+                                                        {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View
                                                                 style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
@@ -955,14 +1010,7 @@ function MenuItem({
                                                                 )}
                                                             </View>
                                                         )}
-                                                        {!!description && !shouldShowDescriptionOnTop && (
-                                                            <Text
-                                                                style={descriptionTextStyles}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
-                                                        )}
+                                                        {!shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
@@ -1016,6 +1064,7 @@ function MenuItem({
                                                         success={isBadgeSuccess}
                                                         isStrong={isBadgeStrong}
                                                         isCondensed={isBadgeCondensed}
+                                                        error={isBadgeError}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1023,7 +1072,7 @@ function MenuItem({
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                                 {(subtitle === 0 || !!subtitle) && (
                                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
+                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[]), subtitleStyle]}>{subtitle}</Text>
                                                     </View>
                                                 )}
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
@@ -1045,7 +1094,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
@@ -1069,18 +1118,23 @@ function MenuItem({
                                                     <View
                                                         style={[
                                                             styles.pointerEventsAuto,
-                                                            StyleUtils.getMenuItemIconStyle(isCompact),
+                                                            StyleUtils.getMenuItemIconStyle(true),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
-                                                            hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
+                                                            styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
-                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
-                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            fill={
+                                                                shouldDimIconRight
+                                                                    ? theme.icon
+                                                                    : StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                            }
+                                                            width={variables.iconSizeNormal}
+                                                            height={variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}

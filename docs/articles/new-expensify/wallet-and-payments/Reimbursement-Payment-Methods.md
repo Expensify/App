@@ -18,6 +18,8 @@ Workspace Admins can choose between two reimbursement methods when paying an app
 
 The payment method is selected when the Workspace Admin clicks **Pay** on an approved report.
 
+**Note:** For reports containing only non-reimbursable expenses (e.g. company card expenses), direct reimbursement is not available. The only payment option is **Pay elsewhere**.
+
 [Learn about report statuses and actions](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
 ---
@@ -88,7 +90,6 @@ Once confirmed, Expensify processes the transfers and the report statuses update
 ## ACH reimbursement timelines 
 - **Rapid Reimbursement:** Eligible payments are typically received by the member in one business day. Applies to payments under $100 when total withdrawals are under $10,000 in the past 24 hours.
 - **Standard ACH reimbursement:** All other ACH payments are typically received by the member in four to five business days.
- - **Standard ACH reimbursement:** All other ACH payments are typically received by the member in four to five business days.
 
 Rapid Reimbursement is applied automatically when eligibility requirements are met.
 
@@ -103,11 +104,11 @@ Global reimbursement timelines vary by country. However, most reimbursements are
 Workspace business bank accounts can be connected in:
 
 - [USD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States) (United States)
-- [SGD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Singapore) (Singapore)
+- [CAD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Canada) (Canada)
 - [GBP](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-Kingdom) (United Kingdom)
 - [EUR](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Europe) (European Union)
 - [AUD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Australia) (Australia)
-- [SGD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement--Singapore) (Singapore)
+- [SGD](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Singapore) (Singapore)
 
 Members can receive funds in 190+ countries after adding a supported personal bank account.
 
@@ -128,6 +129,10 @@ Expensify does not issue checks. Workspace Admins can select **Pay elsewhere** a
 ## What is the difference between ACH reimbursement and global reimbursement?
 
 ACH reimbursement applies to US-based USD payments. Global reimbursement supports international payments and multiple currencies.
+
+## Why is direct reimbursement not available for some reports?
+
+If a report contains only non-reimbursable expenses (e.g. company card expenses), direct reimbursement (ACH or global reimbursement) is not offered. Only **Pay elsewhere** is available, because non-reimbursable expenses are paid by the company directly and do not require reimbursement to the employee.
 
 ## When is Pay elsewhere used?
 

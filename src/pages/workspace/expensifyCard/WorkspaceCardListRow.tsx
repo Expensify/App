@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
+import {useSession} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -24,6 +26,15 @@ type WorkspacesListRowProps = {
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
+
+    /** Display name of the user who froze the card */
+    frozenByDisplayName?: string;
+
+    /** AccountID of the user who froze the card */
+    frozenByAccountID?: number;
+
+    /** Date when the card was frozen */
+    frozenDate?: string;
 
     /** Card limit */
     limit: number;
@@ -41,107 +52,134 @@ type WorkspacesListRowProps = {
     limitType: CardLimitType | undefined;
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual, isHovered, limitType}: WorkspacesListRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
+function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, frozenByDisplayName, frozenByAccountID, frozenDate, currency, isVirtual, isHovered, limitType}: WorkspacesListRowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'FreezeCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const session = useSession();
     const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
+    const formattedFrozenDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const frozenByAdminPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedFrozenDate});
+    const frozenByText = useMemo(() => {
+        if (!formattedFrozenDate) {
+            return undefined;
+        }
+
+        if (frozenByAccountID === session?.accountID) {
+            return translate('cardPage.youFroze', {date: formattedFrozenDate});
+        }
+
+        return `${frozenByAdminPrefix}${frozenByDisplayName ?? translate('common.someone')}`;
+    }, [formattedFrozenDate, frozenByAccountID, frozenByAdminPrefix, frozenByDisplayName, session?.accountID, translate]);
+
     return (
-        <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
-            <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
-                <Avatar
-                    source={cardholder?.avatar ?? icons.FallbackAvatar}
-                    avatarID={cardholder?.accountID}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.DEFAULT}
-                />
-                <View style={[styles.flex1, styles.h100]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
-                    >
-                        {cardholderName}
-                    </Text>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textLabelSupporting]}
-                    >
-                        {name}
-                    </Text>
+        <View style={[styles.flexColumn, styles.br3, styles.p4]}>
+            <View style={[styles.flexRow, styles.gap3]}>
+                <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
+                    <Avatar
+                        source={cardholder?.avatar ?? icons.FallbackAvatar}
+                        avatarID={cardholder?.accountID}
+                        type={CONST.ICON_TYPE_AVATAR}
+                        size={CONST.AVATAR_SIZE.DEFAULT}
+                    />
+                    <View style={[styles.flex1, styles.h100]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
+                        >
+                            {cardholderName}
+                        </Text>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting]}
+                        >
+                            {name}
+                        </Text>
+                    </View>
                 </View>
-            </View>
-            {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textNormalThemeText]}
-                    >
-                        {cardType}
-                    </Text>
-                </View>
-            )}
-            {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textNormalThemeText]}
-                    >
-                        {translate(getTranslationKeyForLimitType(limitType))}
-                    </Text>
-                </View>
-            )}
-            <View
-                style={[
-                    styles.flexRow,
-                    styles.gap2,
-                    shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
-                    shouldUseNarrowLayout ? styles.alignItemsStart : styles.alignItemsCenter,
-                    shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
-                ]}
-            >
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textNormalThemeText]}
-                >
-                    {lastFourPAN}
-                </Text>
-            </View>
-            <View
-                style={[
-                    !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn,
-                    shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
-                    !shouldUseNarrowLayout && styles.gap2,
-                    !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
-                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
-                ]}
-            >
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textNormalThemeText]}
-                >
-                    {convertToShortDisplayString(limit, currency)}
-                </Text>
-                {shouldUseNarrowLayout && (
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textLabelSupporting]}
-                    >
-                        {cardType}
-                    </Text>
+                {!shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textNormalThemeText]}
+                        >
+                            {cardType}
+                        </Text>
+                    </View>
                 )}
+                {!shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textNormalThemeText]}
+                        >
+                            {translate(getTranslationKeyForLimitType(limitType))}
+                        </Text>
+                    </View>
+                )}
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.gap2,
+                        shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
+                        shouldUseNarrowLayout ? styles.alignItemsStart : styles.alignItemsCenter,
+                        shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
+                    ]}
+                >
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textNormalThemeText]}
+                    >
+                        {lastFourPAN}
+                    </Text>
+                </View>
+                <View
+                    style={[
+                        !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn,
+                        shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
+                        !shouldUseNarrowLayout && styles.gap2,
+                        !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
+                        shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
+                    ]}
+                >
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textNormalThemeText]}
+                    >
+                        {convertToShortDisplayString(limit, currency)}
+                    </Text>
+                    {shouldUseNarrowLayout && (
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting]}
+                        >
+                            {cardType}
+                        </Text>
+                    )}
+                </View>
+                <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <Icon
+                        src={icons.ArrowRight}
+                        fill={theme.icon}
+                        additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                        medium
+                        isButtonIcon
+                    />
+                </View>
             </View>
-            <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <Icon
-                    src={icons.ArrowRight}
-                    fill={theme.icon}
-                    additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                    medium
-                    isButtonIcon
-                />
-            </View>
+            {!!frozenByText && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
+                    <Icon
+                        src={icons.FreezeCard}
+                        fill={theme.icon}
+                        small
+                    />
+                    <Text style={[styles.textLabelSupporting, styles.colorMuted, styles.ml2]}>{frozenByText}</Text>
+                </View>
+            )}
         </View>
     );
 }

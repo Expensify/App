@@ -9,3 +9,16 @@ Contributors are eligible to be paid via Expensify 18 months after they were ass
 - View [Receive Payments](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments) for details on receiving payments in the US and internationally, including via Wise (formerly TransferWise), Paypal, Venmo and more.  
 
 After approval it can take between 1 business day and a week, depending on the country and service you use.  
+
+## For issues with deposits
+If you're having an issue with the deposit, ie. a report gets _stuck_ in a state like Approved, start a chat with Concierge to ask for help. Provide as many details below as possible
+
+> - Report ID:
+> - Reimbursement ID:
+> - Amount of reimbursement:
+> - Date reimbursement was initiated:
+> - Date reimbursement was expected:
+> - Last 4-digits of the deposit account:
+> - Location of reimbursement account
+> - Have you received reimbursements to the connected deposit account successfully in the past?
+

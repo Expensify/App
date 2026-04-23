@@ -30,8 +30,8 @@ type VideoPlayerThumbnailProps = {
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Play'] as const);
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const icons = useMemoizedLazyExpensifyIcons(['Play']);
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
@@ -59,7 +59,15 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                             return;
                         }
                         onShowContextMenu(() => {
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+                            showContextMenuForReport(
+                                event,
+                                anchor,
+                                report?.reportID,
+                                action,
+                                checkIfContextMenuActive,
+                                isArchivedNonExpenseReport(report, isReportArchived),
+                                originalReportID,
+                            );
                         });
                     }}
                     shouldUseHapticsOnLongPress

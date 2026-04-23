@@ -36,7 +36,8 @@ function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: Issue
     const cardList = useNonPersonalCardList();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
-    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails);
+    const shouldShowAddMissingDetailsButton =
+        !!expensifyCard?.cardID && isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails, expensifyCard?.state);
     const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -48,7 +49,9 @@ function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: Issue
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute())}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID)));
+                    }}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addShippingDetails')}

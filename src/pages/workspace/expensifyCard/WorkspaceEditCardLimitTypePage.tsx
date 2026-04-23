@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -46,6 +46,7 @@ type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
     const {policyID, cardID, backTo} = route.params;
 
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -86,10 +87,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const validFromDefaultValue = useMemo(() => {
         const validFrom = card?.nameValuePairs?.validFrom;
         if (!validFrom) {
-            return undefined;
+            return format(minDate, CONST.DATE.FNS_FORMAT_STRING);
         }
         return DateUtils.formatUTCDateTimeToDateInTimezone(validFrom, assigneeTimeZone);
-    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone]);
+    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone, minDate]);
 
     const validThruDefaultValue = useMemo(() => {
         const validThru = card?.nameValuePairs?.validThru;
@@ -199,7 +200,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             });
         }
 
-        if (card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (card?.nameValuePairs?.isVirtual) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
                 label: translate('workspace.card.issueNewCard.singleUse'),
@@ -278,7 +279,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                             alternateNumberOfSupportedLines={2}
                         />
 
-                        {!!card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS) && (
+                        {!!card?.nameValuePairs?.isVirtual && (
                             <>
                                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
                                 <View style={[styles.ph5]}>

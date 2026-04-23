@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,18 +30,44 @@ function EnablePaymentsPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
+    const wasLoadingRef = useRef(false);
+    const [hasFreshData, setHasFreshData] = useState(false);
+
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        if (isEmptyObject(userWallet)) {
-            openEnablePaymentsPage();
-        }
-    }, [isOffline, userWallet]);
+        openEnablePaymentsPage();
+    }, [isOffline]);
 
-    if (isEmptyObject(userWallet)) {
-        return <FullScreenLoadingIndicator />;
+    // Only render step content after the fresh data loading cycle (isLoading: true → false) completes,
+    // to avoid acting on stale cached values from a previous session.
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        if (userWallet?.isLoading) {
+            wasLoadingRef.current = true;
+            return;
+        }
+
+        if (!wasLoadingRef.current) {
+            return;
+        }
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- we need to trigger a re-render when fresh data arrives to stop showing the loading indicator
+        setHasFreshData(true);
+    }, [isOffline, userWallet?.isLoading]);
+
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {

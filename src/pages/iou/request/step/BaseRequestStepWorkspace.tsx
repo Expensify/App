@@ -44,6 +44,9 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const selectedWorkspace = transaction?.participants?.[0];
     const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const initiallyFocusedKey = selectedWorkspace?.policyID ?? customUnitPolicy?.id;
@@ -78,7 +81,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
 
     const selectWorkspace = (item: WorkspaceListItem) => {
         const policyID = item.policyID;
-        if (shouldRestrictUserBillableActions(policyID)) {
+        if (shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             return;
         }

@@ -160,6 +160,10 @@ modules/*/lib/
 
 # Playwright
 .playwright-output/
+.playwright-mcp/
+
+# agent-device
+agent-device-output/
 
 # cspell cache
 .cspellcache

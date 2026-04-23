@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -42,7 +43,7 @@ function UserListItem<TItem extends ListItem>({
     forwardedFSClass,
     shouldDisableHoverStyle,
 }: UserListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -60,8 +61,8 @@ function UserListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
+    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
         selector: reportExistsSelector,
     });
 
@@ -73,6 +74,11 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
+    // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
+    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
+    const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
+
+    const contactAccessibilityLabel = getAccessibilityLabel(item);
     return (
         <BaseListItem
             item={item}
@@ -96,13 +102,19 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
             {(hovered?: boolean) => {
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
 
                 return (
-                    <>
+                    <View
+                        accessible={shouldDisableAccessibleGrouping || undefined}
+                        accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                        role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                    >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                             <PressableWithFeedback
                                 accessibilityLabel={item.text ?? ''}
@@ -194,7 +206,7 @@ function UserListItem<TItem extends ListItem>({
                                 </View>
                             </PressableWithFeedback>
                         )}
-                    </>
+                    </View>
                 );
             }}
         </BaseListItem>

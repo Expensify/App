@@ -1,5 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
+import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
@@ -109,6 +110,9 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
 type CompanyAddress = {
     /** Street address */
     addressStreet: string;
+
+    /** Street address line 2 */
+    addressStreet2?: string;
 
     /** City */
     city: string;
@@ -1070,6 +1074,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingPayableAccountID?: string;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -1342,6 +1349,24 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/** Gusto connection data */
+type GustoConnectionData = Record<string, never>;
+
+/** Gusto connection config */
+type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Gusto approval mode */
+        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
 /**
  * Data imported from QuickBooks Desktop.
  */
@@ -1472,6 +1497,9 @@ type Connections = {
 
     /** Certinia integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
+
+    /** Gusto integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1878,7 +1906,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
                 /**
-                 * The maximum report total allowed to trigger auto approval.
+                 * The maximum per-expense amount allowed to trigger auto approval.
                  */
                 limit?: number;
                 /**
@@ -1894,9 +1922,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
-
-        /** Alert message for the policy */
-        alertMessage?: string;
 
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;
@@ -2033,6 +2058,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
 
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -2111,7 +2139,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -2130,11 +2158,15 @@ type PolicyConnectionSyncProgress = {
 
     /** Timestamp of the connection */
     timestamp: string;
+
+    /** Optional result payload shown after a completed sync */
+    result?: GustoSyncResult;
 };
 
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,

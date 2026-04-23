@@ -8,7 +8,7 @@ This doc explains when and how to use the `SelectionList` and `SelectionListWith
 There are two main components:
 
 - [**`SelectionList`**](../src/components/SelectionList/BaseSelectionList.tsx) - For displaying a single array of data (no sections)
-- [**`SelectionListWithSections`**](../src/components/SelectionListWithSections/BaseSelectionListWithSections.tsx) - For displaying data organized into multiple sections
+- [**`SelectionListWithSections`**](../src/components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections.tsx) - For displaying data organized into multiple sections
 
 ## When to Use Each Component
 
@@ -59,13 +59,18 @@ There are two main components:
 ```tsx
 <SelectionListWithSections
     sections={[
-        { title: 'Recent', data: recentContacts },
-        { title: 'All Contacts', data: allContacts },
+        { title: 'Recent', data: recentContacts, sectionIndex: 0 },
+        { title: 'All Contacts', data: allContacts, sectionIndex: 1 },
     ]}
     ListItem={UserListItem}
     onSelectRow={handleSelectContact}
     shouldShowTextInput
-    textInputLabel="Search contacts"
+    textInputOptions={{
+        label: "Search items",
+        value: searchText,
+        onChangeText: setSearchText,
+        headerMessage
+    }}
 />
 ```
 

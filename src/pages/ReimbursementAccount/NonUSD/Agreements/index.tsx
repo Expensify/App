@@ -1,6 +1,7 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
@@ -9,20 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type AgreementsProps = {
-    /** Handles back button press */
-    onBackButtonPress: () => void;
-
-    /** Handles submit button press */
-    onSubmit: () => void;
-
-    /** Array of step names */
-    stepNames?: readonly string[];
-
-    /** Currency of the policy */
-    policyCurrency: string;
-};
-
 const INPUT_KEYS = {
     provideTruthfulInformation: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
     agreeToTermsAndConditions: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS,
@@ -30,18 +17,21 @@ const INPUT_KEYS = {
     authorizedToBindClientToAgreement: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: AgreementsProps) {
+function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
+    const isDocusignStepRequired = requiresDocusignStep(currency);
+    const isSubmittingRef = useRef(false);
 
     const submit = () => {
         if (isDocusignStepRequired) {
             onSubmit();
             return;
         }
+
+        isSubmittingRef.current = true;
 
         finishCorpayBankAccountOnboarding({
             inputs: JSON.stringify({
@@ -64,7 +54,8 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         }
@@ -72,7 +63,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
         return () => {
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, policyCurrency, isDocusignStepRequired]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, currency, isDocusignStepRequired]);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -87,7 +78,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
             isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
-            currency={policyCurrency ?? ''}
+            currency={currency ?? ''}
             startStepIndex={5}
             stepNames={stepNames}
         />

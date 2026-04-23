@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -69,7 +70,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         );
 
         updateBeneficialOwnersForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
+            getBankAccountIDAsNumber(reimbursementAccount?.achData),
             {
                 ownsMoreThan25Percent: isUserUBO,
                 beneficialOwners: JSON.stringify(beneficialOwners),
@@ -109,6 +110,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         moveTo,
         resetScreenIndex,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<BeneficialOwnerSubStepProps>({
         bodyContent,
         startFrom: 0,

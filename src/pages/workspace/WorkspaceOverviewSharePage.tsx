@@ -30,7 +30,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -88,7 +88,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
                         </View>
                         <View style={[styles.renderHTML, styles.mh5, styles.mb9]}>
-                            <RenderHTML html={translate('workspace.common.shareNote.content', {adminsRoomLink})} />
+                            <RenderHTML html={translate('workspace.common.shareNote.content', adminsRoomLink)} />
                         </View>
 
                         <View style={[styles.workspaceSectionMobile, styles.ph9]}>

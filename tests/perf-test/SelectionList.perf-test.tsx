@@ -2,11 +2,11 @@ import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
+import type ReactNative from 'react-native';
 import {measureRenders} from 'reassure';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import variables from '@styles/variables';
 
@@ -15,7 +15,20 @@ type SelectionListWrapperProps = {
     canSelectMultiple?: boolean;
 };
 
-jest.mock('@components/Icon/Expensicons');
+// FlashList requires layout events to render items; mock it with FlatList for tests.
+jest.mock('@shopify/flash-list', () => {
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        FlashList: ({data, ...props}: React.ComponentProps<typeof RN.FlatList>) => (
+            <RN.FlatList
+                data={data}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                initialNumToRender={data?.length}
+            />
+        ),
+    };
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -76,16 +89,11 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    const sections = [
-        {
-            data: Array.from({length: 1000}, (element, index) => ({
-                text: `Item ${index}`,
-                keyForList: `item-${index}`,
-                isSelected: selectedIds.includes(`item-${index}`),
-            })),
-            isDisabled: false,
-        },
-    ];
+    const data = Array.from({length: 1000}, (element, index) => ({
+        text: `Item ${index}`,
+        keyForList: `item-${index}`,
+        isSelected: selectedIds.includes(`item-${index}`),
+    }));
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -105,10 +113,10 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
     return (
         <SelectionList
-            textInputLabel="Perf test"
-            sections={sections}
+            textInputOptions={{label: 'Perf test'}}
+            data={data}
             onSelectRow={onSelectRow}
-            initiallyFocusedOptionKey="item-0"
+            initiallyFocusedItemKey="item-0"
             ListItem={RadioListItem}
             canSelectMultiple={canSelectMultiple}
         />

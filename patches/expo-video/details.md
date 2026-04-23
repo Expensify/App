@@ -1,13 +1,5 @@
 # `expo-video` patches
 
-### [expo-video+3.0.12+001+prevent_double_pause.patch](expo-video+3.0.12+001+prevent_double_pause.patch)
+### [expo-video+55.0.3+001+catch_play_abort_error.patch](expo-video+55.0.3+001+catch_play_abort_error.patch)
 
-- Reason:
-
-    ```
-    This patch edits the onPause eventListener in expo-video's videoPlayer. It still pauses all mounted videos, but now excludes the video that invoked the listener, preventing it from being paused twice.
-    ```
-
-- Upstream PR/issue: https://github.com/expo/expo/issues/40743
-- E/App issue: 🛑
-- PR Introducing Patch: https://github.com/Expensify/App/pull/66793
+- Reason: When rapidly seeking a video via the progress bar on web, `HTMLVideoElement.play()` returns a Promise that gets rejected with `AbortError` if `pause()` is called before it resolves. This patch wraps all 5 `video.play()` call sites in `VideoPlayer.web.js` with `.catch()` to silently swallow `AbortError` while re-throwing any other errors. This is the [standard fix recommended by Chrome](https://developer.chrome.com/blog/play-request-was-interrupted).

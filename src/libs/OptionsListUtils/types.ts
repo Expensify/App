@@ -8,7 +8,9 @@ import type {
     Login,
     PersonalDetails,
     PersonalDetailsList,
+    PolicyTagLists,
     Report,
+    ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
     TransactionViolation,
@@ -166,6 +168,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    isTimeRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
@@ -173,6 +176,7 @@ type GetValidReportsConfig = {
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -195,6 +199,7 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
     | 'shouldAlwaysIncludeDM'
+    | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
 };
@@ -217,6 +222,7 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -235,7 +241,6 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
-    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

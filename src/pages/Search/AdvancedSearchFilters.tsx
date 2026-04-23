@@ -1,15 +1,13 @@
-import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
-import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -19,20 +17,19 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
-import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
+import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
     buildFilterQueryWithSortDefaults,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
-    isCannedSearchQuery,
+    getDateRangeDisplayValueFromFormValue,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
@@ -63,16 +60,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'common.type' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE),
-    },
-    groupBy: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.groupBy' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
-    },
-    view: {
-        getTitle: getFilterViewDisplayTitle,
-        description: 'search.view.label' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW),
     },
     status: {
         getTitle: getStatusFilterDisplayTitle,
@@ -123,11 +110,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY),
-    },
-    groupCurrency: {
-        getTitle: getFilterDisplayTitle,
-        description: 'common.groupCurrency' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_CURRENCY),
     },
     merchant: {
         getTitle: getFilterDisplayTitle,
@@ -198,11 +180,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
-    },
-    limit: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.filters.limit' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT),
     },
     is: {
         getTitle: getFilterDisplayTitle,
@@ -338,9 +315,11 @@ function getFilterDisplayTitle(
         const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
         const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+        const keyRange = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
         const dateOn = filters[keyOn];
         const dateAfter = filters[keyAfter];
         const dateBefore = filters[keyBefore];
+        const dateRange = filters[keyRange];
         const dateValue = [];
 
         if (dateOn) {
@@ -353,6 +332,12 @@ function getFilterDisplayTitle(
 
         if (dateBefore) {
             dateValue.push(translate('search.filters.date.before', dateBefore));
+        }
+        if (dateRange) {
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(dateRange);
+            if (rangeDisplay) {
+                dateValue.push(`${translate('common.range')}: ${rangeDisplay}`);
+            }
         }
 
         return dateValue.join(', ');
@@ -389,42 +374,73 @@ function getFilterDisplayTitle(
 
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
+        const reportFieldValues: Record<string, {text?: string; on?: string; after?: string; before?: string; range?: string}> = {};
 
         for (const [fieldKey, fieldValue] of Object.entries(filters)) {
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+            if (!fieldValue || fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 continue;
             }
 
-            const fieldName = fieldKey
+            const suffix = fieldKey
+                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
                 .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
-                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX, '');
+
+            if (!suffix) {
+                continue;
+            }
+
+            if (!reportFieldValues[suffix]) {
+                reportFieldValues[suffix] = {};
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                reportFieldValues[suffix].text = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
+                reportFieldValues[suffix].on = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+                reportFieldValues[suffix].after = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+                reportFieldValues[suffix].before = fieldValue as string;
+            } else if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX)) {
+                reportFieldValues[suffix].range = fieldValue as string;
+            }
+        }
+
+        for (const [suffix, fieldDateValues] of Object.entries(reportFieldValues)) {
+            const fieldName = suffix
                 .split('-')
                 .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
                 .join(' ');
 
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
-                const dateString = isSearchDatePreset(fieldValue as string)
-                    ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
-                    : translate('search.filters.date.on', fieldValue as string);
-
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+            if (fieldDateValues.text) {
+                values.push(translate('search.filters.reportField', fieldName, fieldDateValues.text));
             }
 
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
-                const dateString = translate('search.filters.date.after', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+            if (fieldDateValues.on) {
+                const onString = isSearchDatePreset(fieldDateValues.on)
+                    ? translate(`search.filters.date.presets.${fieldDateValues.on}`)
+                    : translate('search.filters.date.on', fieldDateValues.on);
+                values.push(translate('search.filters.reportField', fieldName, onString.toLowerCase()));
             }
 
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
-                const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
-                values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+            if (fieldDateValues.after) {
+                const afterString = translate('search.filters.date.after', fieldDateValues.after).toLowerCase();
+                values.push(translate('search.filters.reportField', fieldName, afterString));
             }
 
-            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-                const valueString = translate('search.filters.reportField', fieldName, fieldValue as string);
-                values.push(valueString);
+            if (fieldDateValues.before) {
+                const beforeString = translate('search.filters.date.before', fieldDateValues.before).toLowerCase();
+                values.push(translate('search.filters.reportField', fieldName, beforeString));
+            }
+
+            if (fieldDateValues.range) {
+                const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldDateValues.range);
+                if (rangeDisplay) {
+                    values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
+                }
             }
         }
 
@@ -474,11 +490,6 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.action.${filterValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>}`) : undefined;
     }
 
-    if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-        const filterValue = filters[key];
-        return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
-    }
-
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
         const filterValue = filters[key];
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
@@ -486,12 +497,12 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value}`)).join(', ') : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value}`)).join(', ') : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
@@ -504,14 +515,6 @@ function getFilterDisplayTitle(
 
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
-}
-
-function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
-    if (!filterValue) {
-        return translate('search.view.table');
-    }
-    return translate(`search.view.${filterValue as ValueOf<typeof CONST.SEARCH.VIEW>}`);
 }
 
 function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
@@ -582,18 +585,11 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [allSearchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const searchCards = filterCardsHiddenFromSearch(allSearchCards);
     const personalDetails = usePersonalDetails();
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
-    const taxRates = getAllTaxRates(policies);
-
-    const {currentType, typeFiltersKeys, workspaces} = useAdvancedSearchFilters();
+    const {currentType, typeFiltersKeys, workspaces, taxRates, searchCards, policies} = useAdvancedSearchFilters();
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();
@@ -601,7 +597,7 @@ function AdvancedSearchFilters() {
             buildFilterQueryWithSortDefaults(
                 searchAdvancedFilters,
                 {view: currentQueryJSON?.view, groupBy: currentQueryJSON?.groupBy},
-                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
+                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder},
             ) ?? ''
         );
     }, [searchAdvancedFilters]);
@@ -614,21 +610,6 @@ function AdvancedSearchFilters() {
             }),
             {forceReplace: true},
         );
-    };
-
-    const onSaveSearch = () => {
-        const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
-            // If the search is already saved, we only display the results as we don't need to save it.
-            applyFiltersAndNavigate();
-            return;
-        }
-
-        saveSearch({
-            queryJSON,
-        });
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => applyFiltersAndNavigate());
     };
 
     const filters = typeFiltersKeys.map((section) => {
@@ -655,8 +636,6 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
@@ -669,8 +648,6 @@ function AdvancedSearchFilters() {
             };
         });
     });
-
-    const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     const sections: SectionType[] = [
         {
@@ -741,15 +718,6 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {!!displaySearchButton && (
-                <Button
-                    text={translate('search.saveSearch')}
-                    onPress={onSaveSearch}
-                    style={[styles.mh4, styles.mt4]}
-                    large
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
-                />
-            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}

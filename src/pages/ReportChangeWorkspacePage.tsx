@@ -1,12 +1,14 @@
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -72,7 +74,10 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -80,14 +85,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
+            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
                     moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
@@ -107,6 +112,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     employeeList,
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
+                    reportNextStep,
                 });
             } else {
                 changeReportPolicy(
@@ -125,13 +131,16 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         },
         [
             policies,
-            ownerBillingGraceEndPeriod,
+            userBillingGracePeriods,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
             route.params,
             reportID,
             report,
             parentReport,
             formatPhoneNumber,
             reportTransactions,
+            filteredReportActions,
             isReportLastVisibleArchived,
             session?.accountID,
             session?.email,
@@ -189,7 +198,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'ReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                            />
+                        </View>
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}

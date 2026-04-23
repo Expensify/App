@@ -4,10 +4,15 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {CompanyAddress, Unit} from '@src/types/onyx/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+type WorkspaceAddressStreetLines = {
+    streetLineOne: string;
+    streetLineTwo: string;
+};
 
 /**
  * @returns BrickRoad for the given reportID using reportAttributes
@@ -39,6 +44,19 @@ function getChatTabBrickRoadReportID(orderedReportIDs: string[], reportAttribute
 function getChatTabBrickRoad(orderedReportIDs: string[], reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): BrickRoad | undefined {
     const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
     return reportID ? getBrickRoadForPolicy(reportID, reportAttributes) : undefined;
+}
+
+/**
+ * Resolve workspace street lines while supporting both legacy newline street format and explicit street line 2.
+ */
+function getWorkspaceAddressStreetLines(addressStreet: CompanyAddress['addressStreet'] = '', addressStreet2?: CompanyAddress['addressStreet2']): WorkspaceAddressStreetLines {
+    const [legacyStreetLineOne, legacyStreetLineTwo] = (addressStreet ?? '').split('\n');
+    const trimmedStreetLineTwo = addressStreet2?.trim();
+    return {
+        streetLineOne: legacyStreetLineOne?.trim() ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+        streetLineTwo: trimmedStreetLineTwo || legacyStreetLineTwo?.trim() || '',
+    };
 }
 
 /**
@@ -116,5 +134,5 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText};
-export type {BrickRoad};
+export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText, getWorkspaceAddressStreetLines};
+export type {BrickRoad, WorkspaceAddressStreetLines};

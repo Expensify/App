@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import type {UnitItemType} from '@components/UnitPicker';
@@ -76,11 +76,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        if (!customUnit || !customUnit.attributes) {
+        if (!customUnit?.attributes) {
             return;
         }
         const attributes = {...customUnit?.attributes, taxEnabled: isOn};
-        enableDistanceRequestTax(policyID, customUnit.name, customUnit.customUnitID, attributes);
+        enableDistanceRequestTax(policyID, customUnit.name, customUnit.customUnitID, attributes, customUnit.attributes);
     };
 
     return (

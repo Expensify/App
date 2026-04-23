@@ -6,8 +6,8 @@ import {
     DefaultServerFailureScreen,
     NoEligibleMethodsFailureScreen,
     OutOfTimeFailureScreen,
-    UnsupportedDeviceFailureScreen,
 } from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import UnsupportedDeviceFailureScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/UnsupportedDeviceFailureScreen';
 import DefaultSuccessScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/SuccessScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
@@ -124,7 +124,7 @@ export {
 
 export default {
     // Allowed methods are hardcoded here; keep in sync with allowedAuthenticationMethods in useNavigateTo3DSAuthorizationChallenge.
-    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
+    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: authorizeTransaction,
 
     // AuthorizeTransaction's callback navigates to the outcome screen, but if it knows the user is going to see an error outcome, we explicitly deny the transaction to make sure the user can't re-approve it on another device
@@ -163,8 +163,12 @@ export default {
 
         // Client-side errors (not returned by the backend API)
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.REQUESTED_TRANSACTION_UNAVAILABLE]: <AlreadyReviewedFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE]: <UnsupportedDeviceFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED]: (
+            <NoEligibleMethodsFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />
+        ),
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED]: (
+            <UnsupportedDeviceFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />
+        ),
     },
     modals: {
         cancelConfirmation: AuthorizeTransactionCancelConfirmModal,

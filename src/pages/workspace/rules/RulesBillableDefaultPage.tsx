@@ -80,7 +80,7 @@ function RulesBillableDefaultPage({
                     data={billableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
-                        setPolicyBillableMode(policyID, item.value);
+                        setPolicyBillableMode(policyID, item.value, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect

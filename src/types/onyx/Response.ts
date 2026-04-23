@@ -1,5 +1,5 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 
 /** Model of commands data */

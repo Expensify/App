@@ -14,15 +14,18 @@ import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportS
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
@@ -33,6 +36,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
@@ -45,6 +49,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -60,10 +65,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
-    const [width, setWidth] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
 
     const features: Feature[] = useMemo(() => {
@@ -183,13 +189,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 enabled: selectedFeatures.includes(feature.id),
             }));
 
+            const email = currentUserPersonalDetails.email ?? '';
             // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
             // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: '',
+                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -201,9 +208,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                       introSelected,
                       activePolicyID,
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                      currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                      currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,
+                      betas,
                       isSelfTourViewed,
+                      hasActiveAdminPolicies,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -222,9 +231,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 firstName: currentUserPersonalDetails?.firstName,
                 lastName: currentUserPersonalDetails?.lastName,
                 selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
-                shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
                 shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
+                isSelfTourViewed,
                 betas,
             });
 
@@ -276,6 +285,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         isSelfTourViewed,
         conciergeReportID,
         betas,
+        hasActiveAdminPolicies,
+        lastWorkspaceNumber,
+        translate,
     ]);
 
     // Create items for enabled features
@@ -316,8 +328,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
     }, []);
 
-    const gap = styles.gap3.gap;
-
     const renderItem = useCallback(
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
@@ -330,7 +340,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
+                    style={[
+                        styles.onboardingInterestedFeaturesItem,
+                        // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
+                        isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
+                        isSelected && styles.activeComponentBG,
+                    ]}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -351,7 +366,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </PressableWithoutFeedback>
             );
         },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect, width, gap],
+        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect],
     );
 
     const renderSection = useCallback(
@@ -377,7 +392,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={90}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
                 shouldDisplayHelpButton={false}
             />
@@ -390,14 +406,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </Text>
             </View>
 
-            <ScrollView
-                onLayout={(e) => {
-                    setWidth(e.nativeEvent.layout.width);
-                }}
-                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-            >
-                {sections.map(renderSection)}
-            </ScrollView>
+            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>{sections.map(renderSection)}</ScrollView>
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button

@@ -32,7 +32,7 @@ Below are the most common messages you may see, what they mean, and how to resol
 
 ## The Account Name Is a Close Match but Not Exact
 
-The name on the bank account is similar to the name in Expensify, but not an exact match.
+The name on the bank account is similar to the name in Expensify, but not an exact match. (Also sometimes shown as "There may be a match on the Account Name").
 
 Example:
 - Bank account: Robert Smith  

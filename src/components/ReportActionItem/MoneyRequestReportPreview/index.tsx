@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -12,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -26,7 +26,6 @@ import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
-    policies,
     iouReportID,
     policyID,
     chatReportID,
@@ -39,6 +38,7 @@ function MoneyRequestReportPreview({
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
     shouldShowBorder,
+    originalReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -46,8 +46,8 @@ function MoneyRequestReportPreview({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const invoiceReceiverPolicy =
-        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
@@ -122,9 +122,7 @@ function MoneyRequestReportPreview({
         selector: hasOnceLoadedReportActionsSelector,
     });
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
-    const isFocused = useIsFocused();
-    // We only want to highlight the new expenses if the screen is focused.
-    const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
+    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
@@ -148,6 +146,7 @@ function MoneyRequestReportPreview({
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
+            originalReportID={originalReportID}
         />
     );
 
@@ -180,6 +179,7 @@ function MoneyRequestReportPreview({
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
             forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+            originalReportID={originalReportID}
         />
     );
 }

@@ -1,6 +1,7 @@
 import {getLastClosedReportAction} from '@selectors/ReportAction';
 import lodashEscape from 'lodash/escape';
 import React from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,23 +10,23 @@ import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import Banner from './Banner';
 
 type ArchivedReportFooterProps = {
-    /** The archived report */
-    report: Report;
-    /** Current user's account id */
-    currentUserAccountID: number;
+    /** The reportID of the archived report */
+    reportID: string;
 };
 
-function ArchivedReportFooter({report, currentUserAccountID}: ArchivedReportFooterProps) {
+function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const [personalDetails = getEmptyObject<PersonalDetailsList>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: getLastClosedReportAction});
+    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false, selector: getLastClosedReportAction});
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];

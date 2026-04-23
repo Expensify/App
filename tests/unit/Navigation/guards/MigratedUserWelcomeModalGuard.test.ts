@@ -63,7 +63,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
         expect(result.type).toBe('REDIRECT');
         if (result.type === 'REDIRECT') {
-            expect(result.route).toBe(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(ROUTES.SEARCH_ROOT.route));
+            expect(result.route).toBe(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
         }
     });
 

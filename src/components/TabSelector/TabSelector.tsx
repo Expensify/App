@@ -5,12 +5,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
 import TabSelectorBase from './TabSelectorBase';
+import ScrollableTabSelectorContextProvider from './TabSelectorContext';
 import type {TabSelectorBaseItem, TabSelectorProps} from './types';
 
 function TabSelector({
     state,
     navigation,
     onTabPress = () => {},
+    onLongTabPress,
     position,
     onFocusTrapContainerElementChanged,
     shouldShowLabelWhenInactive = true,
@@ -60,16 +62,19 @@ function TabSelector({
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <TabSelectorBase
-                tabs={tabs}
-                activeTabKey={activeRouteName}
-                onTabPress={handleTabPress}
-                position={position}
-                shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                renderProductTrainingTooltip={renderProductTrainingTooltip}
-                equalWidth={equalWidth}
-            />
+            <ScrollableTabSelectorContextProvider activeTabKey={activeRouteName}>
+                <TabSelectorBase
+                    tabs={tabs}
+                    activeTabKey={activeRouteName}
+                    onTabPress={handleTabPress}
+                    onLongTabPress={onLongTabPress}
+                    position={position}
+                    shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                    shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
+                    renderProductTrainingTooltip={renderProductTrainingTooltip}
+                    equalWidth={equalWidth}
+                />
+            </ScrollableTabSelectorContextProvider>
         </FocusTrapContainerElement>
     );
 }

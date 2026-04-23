@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -20,13 +21,22 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    canPolicyAccessFeature,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    hasAccountingConnections,
+    hasAccountingFeatureConnection,
+    isControlPolicy,
+    isTimeTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -35,6 +45,7 @@ import {
     enableCompanyCards,
     enableExpensifyCard,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyReceiptPartners,
     enablePolicyRules,
@@ -81,13 +92,14 @@ type SectionObject = {
 };
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.moreFeatures');
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
@@ -99,6 +111,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -139,7 +153,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Gears',
         'ReceiptPartners',
         'Clock',
-    ] as const);
+        'Members',
+    ]);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -247,7 +262,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         icon: illustrations.PerDiem,
         titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
         subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
-        isActive: policy?.arePerDiemRatesEnabled ?? false,
+        isActive: (policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)) ?? false,
         pendingAction: policy?.pendingFields?.arePerDiemRatesEnabled,
         action: (isEnabled: boolean) => {
             if (!policyID) {
@@ -298,7 +313,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyWorkflows(policyID, isEnabled);
+                enablePolicyWorkflows(policyID, isEnabled, policy?.approvalMode, policy?.autoReporting, policy?.harvesting, policy?.reimbursementChoice);
             },
             disabled: isSmartLimitEnabled,
             disabledAction: onDisabledWorkflowPress,
@@ -324,7 +339,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                enablePolicyRules(policyID, isEnabled, undefined, policyData);
+                enablePolicyRules(policy, isEnabled, undefined, policyData);
             },
             onPress: () => {
                 if (!policyID) {
@@ -409,7 +424,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTaxes(policyID, isEnabled);
+                if (isEnabled) {
+                    enablePolicyTaxes(policyID, true, policy?.taxRates);
+                    return;
+                }
+                enablePolicyTaxes(policyID, false);
             },
             onPress: () => {
                 if (!policyID) {
@@ -488,6 +507,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+            },
+        });
+    }
+
+    if (isBetaEnabled(CONST.BETAS.GUSTO)) {
+        integrateItems.push({
+            icon: illustrations.Members,
+            titleTranslationKey: 'workspace.hr.title',
+            subtitleTranslationKey: 'workspace.hr.subtitle',
+            isActive: ((policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false,
+            pendingAction: policy?.pendingFields?.isHREnabled,
+            disabled: !!policy?.connections?.gusto,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                enablePolicyHR(policyID, isEnabled);
+            },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
             },
         });
     }
@@ -699,7 +745,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableExpensifyCardWarningModalOpen(false);
-                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                     }}
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
@@ -711,7 +757,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableCompanyCardsWarningModalOpen(false);
-                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                     }}
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}

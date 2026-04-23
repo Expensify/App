@@ -10,6 +10,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
@@ -87,6 +89,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             personalDetails,
             firstApprover,
             localeCompare,
+            currentUserLogin: currentUserPersonalDetails?.login,
         });
 
         return {
@@ -123,6 +126,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             errors: null,
             originalApprovers: currentApprovalWorkflow.approvers,
         });
+        // Intentional: synchronizes the initial workflow snapshot when the current workflow changes.
+        // This runs alongside setApprovalWorkflow above and is part of the same logical update.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
 
@@ -182,7 +188,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                             />
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
+                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}} />}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

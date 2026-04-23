@@ -1,10 +1,13 @@
-import {findFocusedRoute} from '@react-navigation/native';
+import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
-    normalizedConfigs: {},
+    normalizedConfigs: {
+        DynamicScreen: {path: 'suffix-a'},
+    },
+    screensWithOnyxTabNavigator: new Set(),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -12,9 +15,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
-jest.mock('@react-navigation/native', () => ({
-    findFocusedRoute: jest.fn(),
-}));
+jest.mock('@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard', () => jest.fn());
 
 jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
     const SIDEBAR_TO_SPLIT = {SETTINGS_ROOT: 'SettingsSplitNavigator'};
@@ -34,51 +35,92 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
 
 jest.mock('@src/ROUTES', () => ({
     DYNAMIC_ROUTES: {
-        VERIFY_ACCOUNT: {path: 'verify-account', entryScreens: []},
-        CUSTOM_FLOW: {path: 'custom-flow', entryScreens: []},
+        SUFFIX_A: {path: 'suffix-a', entryScreens: []},
+        SUFFIX_B: {path: 'suffix-b', entryScreens: []},
+        MULTI_SEG: {path: 'deep/suffix-a', entryScreens: []},
     },
     HOME: 'home',
 }));
 
 describe('getMatchingFullScreenRoute - dynamic suffix', () => {
     const mockGetStateFromPath = getStateFromPath as jest.Mock;
-    const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
+    const mockFindFocusedRouteWithOnyxTabGuard = findFocusedRouteWithOnyxTabGuard as jest.Mock;
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should return last route when path has dynamic suffix and base path state has full screen as last route', () => {
+    it('should return last route when path has a single dynamic suffix and base path state has full screen as last route', () => {
         const route = {
             name: 'DynamicScreen',
-            path: '/settings/wallet/verify-account',
+            path: '/base/suffix-a',
         };
         const fullScreenRoute = {name: SCREENS.HOME};
         const basePathState = {
-            routes: [{name: 'Settings'}, fullScreenRoute],
+            routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
 
-        mockGetStateFromPath.mockReturnValue(basePathState);
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
 
         const result = getMatchingFullScreenRoute(route);
 
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/settings/wallet');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
         expect(result).toEqual(fullScreenRoute);
     });
 
-    it('should recursively find full screen route when base path has nested state with non-full-screen last route', () => {
+    it('should strip the outermost suffix from a layered path before resolving the matching full screen route', () => {
         const route = {
             name: 'DynamicScreen',
-            path: '/workspace/123/custom-flow',
+            path: '/base/suffix-a/suffix-b',
+        };
+        const fullScreenRoute = {name: SCREENS.HOME};
+        const basePathState = {
+            routes: [{name: 'BaseScreen'}, fullScreenRoute],
+            index: 1,
+        };
+
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/suffix-a' ? basePathState : undefined));
+
+        const result = getMatchingFullScreenRoute(route);
+
+        expect(mockGetStateFromPath).toHaveBeenCalledTimes(1);
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base/suffix-a');
+        expect(result).toEqual(fullScreenRoute);
+    });
+
+    it('should strip the outermost suffix when the inner suffix is multi-segment', () => {
+        const route = {
+            name: 'DynamicScreen',
+            path: '/base/deep/suffix-a/suffix-b',
+        };
+        const fullScreenRoute = {name: SCREENS.HOME};
+        const basePathState = {
+            routes: [{name: 'BaseScreen'}, fullScreenRoute],
+            index: 1,
+        };
+
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/deep/suffix-a' ? basePathState : undefined));
+
+        const result = getMatchingFullScreenRoute(route);
+
+        expect(mockGetStateFromPath).toHaveBeenCalledTimes(1);
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base/deep/suffix-a');
+        expect(result).toEqual(fullScreenRoute);
+    });
+
+    it('should recursively find full screen route when the stripped base path has nested state with non-full-screen last route', () => {
+        const route = {
+            name: 'DynamicScreen',
+            path: '/base/suffix-a',
         };
         const nestedFocusedRoute = {name: SCREENS.HOME};
         const basePathState = {
             routes: [
                 {
-                    name: 'Workspace',
+                    name: 'BaseNavigator',
                     state: {
-                        routes: [{name: 'SomeNestedScreen', path: '/workspace/123'}],
+                        routes: [{name: 'SomeNestedScreen', path: '/base'}],
                         index: 0,
                     },
                 },
@@ -86,13 +128,13 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             index: 0,
         };
 
-        mockGetStateFromPath.mockReturnValue(basePathState);
-        mockFindFocusedRoute.mockReturnValue(nestedFocusedRoute);
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockFindFocusedRouteWithOnyxTabGuard.mockReturnValue(nestedFocusedRoute);
 
         const result = getMatchingFullScreenRoute(route);
 
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/workspace/123');
-        expect(mockFindFocusedRoute).toHaveBeenCalledWith(basePathState);
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
+        expect(mockFindFocusedRouteWithOnyxTabGuard).toHaveBeenCalledWith(basePathState);
         expect(result).toBeDefined();
         expect(result?.name).toBe(SCREENS.HOME);
     });
@@ -100,18 +142,18 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
     it('should return undefined when path has dynamic suffix but base path resolves to NOT_FOUND', () => {
         const route = {
             name: 'DynamicScreen',
-            path: '/invalid/base/verify-account',
+            path: '/invalid/base/suffix-a/suffix-b',
         };
         const invalidRouteState = {
-            routes: [{name: SCREENS.NOT_FOUND, path: '/invalid/base'}],
+            routes: [{name: SCREENS.NOT_FOUND, path: '/invalid/base/suffix-a'}],
             index: 0,
         };
 
-        mockGetStateFromPath.mockReturnValue(invalidRouteState);
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/invalid/base/suffix-a' ? invalidRouteState : undefined));
 
         const result = getMatchingFullScreenRoute(route);
 
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/invalid/base');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/invalid/base/suffix-a');
         expect(result).toBeUndefined();
     });
 
@@ -130,14 +172,40 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
     it('should return undefined when path has dynamic suffix but base path state is undefined', () => {
         const route = {
             name: 'DynamicScreen',
-            path: '/broken/path/verify-account',
+            path: '/broken/path/suffix-a/suffix-b',
         };
 
         mockGetStateFromPath.mockReturnValue(undefined);
 
         const result = getMatchingFullScreenRoute(route);
 
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/broken/path');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/broken/path/suffix-a');
         expect(result).toBeUndefined();
+    });
+
+    it('should ignore backTo for a dynamic screen and resolve full screen route via dynamic suffix instead', () => {
+        const route = {
+            name: 'DynamicScreen',
+            path: '/base/suffix-a',
+            params: {backTo: '/some/other/path'},
+        };
+        const fullScreenRoute = {name: SCREENS.HOME};
+        const basePathState = {
+            routes: [{name: 'BaseScreen'}, fullScreenRoute],
+            index: 1,
+        };
+
+        mockGetStateFromPath.mockImplementation((path: string) => {
+            if (path === '/base') {
+                return basePathState;
+            }
+            return {routes: [{name: 'WrongScreen'}], index: 0};
+        });
+
+        const result = getMatchingFullScreenRoute(route);
+
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
+        expect(mockGetStateFromPath).not.toHaveBeenCalledWith('/some/other/path');
+        expect(result).toEqual(fullScreenRoute);
     });
 });

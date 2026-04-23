@@ -15,6 +15,7 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,6 +67,7 @@ describe('OnboardingPurpose Page', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
@@ -155,6 +157,7 @@ describe('OnboardingPurpose Page', () => {
                 lastName: 'User',
             });
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, introSelectedValue);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
         });
 
         const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
@@ -174,6 +177,7 @@ describe('OnboardingPurpose Page', () => {
                     firstName: 'Test',
                     lastName: 'User',
                     introSelected: introSelectedValue,
+                    isSelfTourViewed: true,
                 }),
             );
         });

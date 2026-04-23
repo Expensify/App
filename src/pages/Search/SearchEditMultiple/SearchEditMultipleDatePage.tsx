@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidDate} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';

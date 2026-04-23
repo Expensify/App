@@ -1,8 +1,10 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -12,6 +14,7 @@ import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 
@@ -28,6 +31,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
@@ -46,9 +50,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {
-                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
                     } else {
-                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
+                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
                     }
                 })}
                 style={styles.flex1}

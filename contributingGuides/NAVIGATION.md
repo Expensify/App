@@ -26,8 +26,12 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dynamic routes configuration](#dynamic-routes-configuration)
     - [Entry screens (access control)](#entry-screens-access-control)
     - [Current limitations (work in progress)](#current-limitations-work-in-progress)
+    - [Multi-segment dynamic routes](#multi-segment-dynamic-routes)
+    - [Suffix layering (stacking dynamic routes)](#suffix-layering-stacking-dynamic-routes)
+    - [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters)
     - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
     - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
+    - [Backward compatibility for changed paths](#backward-compatibility-for-changed-paths)
   - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
@@ -699,8 +703,7 @@ A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to 
 
 Do not use dynamic routes when:
 - Your use case falls under the [current limitations](#current-limitations-work-in-progress):
-  - You need to stack multiple dynamic route suffixes (e.g. `/a/verify-account/another-flow`).
-  - Your suffix includes path or query parameters (e.g. `verify-account/:id` or `verify-account?tab=details`).
+  - You need optional path parameters in dynamic suffixes (e.g. `a/:reportID?`).
 - The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
 
 ### Dynamic routes configuration
@@ -708,12 +711,12 @@ Do not use dynamic routes when:
 `DYNAMIC_ROUTES` in `src/ROUTES.ts`: each entry has:
 
 - `path`: The URL suffix (e.g. `'verify-account'`).
-- `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)).
+- `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)). Use `['*']` to allow all screens.
 
-`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
+`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
 
 ```ts
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -729,24 +732,192 @@ When parsing a URL, `src/libs/Navigation/helpers/getStateFromPath.ts` resolves t
 
 When adding or extending a dynamic route, list every screen that should be able to open it (e.g. `SCREENS.SETTINGS.WALLET.ROOT` for Verify Account from Wallet).
 
+#### Wildcard access (`'*'`)
+
+Setting `entryScreens` to `['*']` grants access to the dynamic route from any screen. This bypasses per-screen authorization entirely for that route.
+
+```ts
+KEYBOARD_SHORTCUTS: {
+    path: 'keyboard-shortcuts',
+    entryScreens: ['*'],
+},
+```
+
+> [!CAUTION]
+> **Use `'*'` only when the dynamic route genuinely needs to be reachable from every screen.**
+> If only a subset of screens should access the route, list them explicitly.
+> Overusing `'*'` weakens the access control that `entryScreens` provides
+> and makes it harder to reason about which screens can trigger a given flow.
+> When in doubt, prefer an explicit list.
+
 ### Current limitations (work in progress)
 
-- **Stacking:** Multiple dynamic route suffixes on top of each other (e.g. `/a/verify-account/another-flow`) are not supported. Only one dynamic suffix per path is allowed.
-- **Suffix shape:** Suffixes must be a single path segment. Compound suffixes with extra path segments (e.g. `a/b`) are not supported.
-- **Parameters:** Suffixes must not include path params (e.g. `a/:reportID`) or query params (e.g. `a?foo=bar`). Use a single literal segment like `verify-account` only.
+- **Optional path parameters:** Suffixes must not include optional path params (e.g. `a/:reportID?`). Required path parameters (e.g. `flag/:reportActionID`) and query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 
-If you try to use dynamic routes for these cases now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+If you try to use dynamic routes with optional path parameters now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+
+### Multi-segment dynamic routes
+
+Dynamic route suffixes are not limited to a single path segment -
+they can span multiple segments separated by `/`.
+For example, the suffix `add-bank-account/verify-account` is a valid
+multi-segment suffix that combines two segments into one dynamic route.
+
+When the URL is parsed, the matching algorithm
+iterates from the longest candidate suffix to the shortest,
+so overlapping registrations are resolved deterministically.
+For instance, if both `verify-account` and `add-bank-account/verify-account`
+are registered, a path ending with `/add-bank-account/verify-account`
+will always match the longer, more specific suffix.
+
+### Suffix layering (stacking dynamic routes)
+
+Dynamic route suffixes can be stacked on top of each other,
+producing URLs like `/base-path/suffix-a/suffix-b`.
+Each suffix in the chain is resolved recursively: the parser strips the outermost suffix first,
+resolves the remaining path (which may itself contain another dynamic suffix),
+and repeats until it reaches a static base path.
+
+For example, given the path `/settings/wallet/verify-account/country`:
+
+1. The outermost suffix `country` is identified and stripped, leaving `/settings/wallet/verify-account`.
+2. `/settings/wallet/verify-account` still contains a dynamic suffix `verify-account`, which is stripped to get `/settings/wallet`.
+3. `/settings/wallet` is a static path - standard React Navigation parsing returns the base state.
+4. The parser walks back up: it checks that the focused screen of `/settings/wallet` is listed in `VERIFY_ACCOUNT.entryScreens`.
+5. Then it checks that the focused screen of the resolved `/settings/wallet/verify-account` state is listed in `COUNTRY.entryScreens`.
+6. If all authorization checks pass, the final navigation state is built for the full path.
+
+#### Authorization per layer
+
+Each suffix independently validates access via its own `entryScreens` array.
+The focused screen resolved from the layer directly beneath must be listed
+in the current suffix's `entryScreens`. If any layer fails authorization,
+the path falls back to standard React Navigation parsing and a warning is logged.
+
+#### Configuration example
+
+```ts
+DYNAMIC_ROUTES: {
+    VERIFY_ACCOUNT: {
+        path: 'verify-account',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.TRAVEL.MY_TRIPS],
+    },
+    ADDRESS_COUNTRY: {
+        path: 'country',
+        entryScreens: [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT],
+        getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+        queryParams: ['country'],
+    },
+},
+```
+
+With this configuration, `country` can be opened on top of `verify-account`
+because `DYNAMIC_VERIFY_ACCOUNT` is listed in `ADDRESS_COUNTRY.entryScreens`.
+Back navigation removes one suffix at a time:
+`/settings/wallet/verify-account/country` → `/settings/wallet/verify-account` → `/settings/wallet`.
+
+#### Multi-segment suffixes in layered paths
+
+Suffix layering works with multi-segment suffixes as well.
+For example, if `deep/verify-account` and `country` are both registered,
+the path `/settings/wallet/deep/verify-account/country` will first strip `country`,
+then strip `deep/verify-account`, and resolve `/settings/wallet` as the base.
+The matching algorithm always tests the longest candidate suffix first,
+so overlapping registrations are resolved deterministically.
+
+### Dynamic routes with query parameters
+
+Dynamic route suffixes can carry query parameters
+(e.g. `country?country=US`).
+This is useful when a dynamic screen needs initial data passed
+through the URL - for example, a country selector that
+pre-selects the current country.
+
+#### How to add query parameters to a dynamic route
+
+1. In `DYNAMIC_ROUTES` (in [`src/ROUTES.ts`](../src/ROUTES.ts)), add a `getRoute` function
+that returns the suffix with query parameters and a `queryParams`
+array listing every parameter key that the suffix may add:
+
+```ts
+ADDRESS_COUNTRY: {
+    path: 'country',
+    entryScreens: [SCREENS.SETTINGS.PROFILE.ADDRESS, /* ... */],
+    getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+    queryParams: ['country'],
+},
+```
+
+2. Navigate using `createDynamicRoute` with the output of `getRoute`:
+
+```ts
+Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode)));
+// Produces e.g. /settings/profile/address/country?country=US
+```
+
+3. In the page component, read query params from `route.params` as usual:
+
+```ts
+const currentCountry = route.params?.country ?? '';
+```
+
+> [!CAUTION]
+> **`queryParams` array is mandatory.**
+> When you define a `getRoute` function that adds query parameters
+> after `?` in a dynamic route, you **must** also define a `queryParams`
+> array containing **every** parameter key that `getRoute` may produce.
+> The `queryParams` array is used to strip suffix-specific parameters when navigating back.
+> Without it, query parameters will leak into the parent path
+> and break back navigation.
+
+> [!CAUTION]
+> **Query parameter names must not collide with inherited entry screen parameters.**
+> Do not use a query parameter name in a dynamic suffix that
+> already exists as a parameter of any entry screen listed
+> in `entryScreens`.
+> For example, if an entry screen has a `country` query parameter,
+> do not add `country` as a query parameter in your dynamic route.
+> When both paths carry the same parameter key,
+> `createDynamicRoute` will throw an error:
+> `Query param "X" exists in both base path and dynamic suffix.`
+> `This is not allowed.`
+> This guard prevents non-deterministic parameter handling
+> and accidental overwriting of inherited parameters.
+
+The Address Country flow is the reference implementation for
+dynamic routes with query parameters:
+see [`src/components/CountrySelector.tsx`](../src/components/CountrySelector.tsx) (navigation call)
+and [`src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx`](../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx)
+(page component).
 
 ### How to add a new dynamic route
 
-1. Add to `DYNAMIC_ROUTES` in `src/ROUTES.ts`: define `path` and `entryScreens` (screen names that may open this route).
-2. Add a screen constant in `src/SCREENS.ts`. The name must start with the `DYNAMIC_` prefix (e.g. `SETTINGS.DYNAMIC_VERIFY_ACCOUNT`) so dynamic screens can be distinguished from static ones.
-3. Register in linking config in `src/libs/Navigation/linkingConfig/config.ts`: map the new screen to `DYNAMIC_ROUTES.<KEY>.path`.
-4. Implement the page component: Use `createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path)` to navigate to the flow and `useDynamicBackPath(DYNAMIC_ROUTES.<KEY>.path)` to get the back path. Pass these into your base UI (e.g. `VerifyAccountPageBase` with `navigateBackTo` / `navigateForwardTo`).
-5. Register the screen in the appropriate modal/stack navigator (e.g. `src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`).
-6. Types: Add the screen to the navigator param list in `src/libs/Navigation/types.ts` (no params for the new screen).
+1. Add to `DYNAMIC_ROUTES` in [`src/ROUTES.ts`](../src/ROUTES.ts): define `path` and
+`entryScreens` (screen names that may open this route). If the suffix needs path parameters, define `path` with `:param` placeholders and a `getRoute` function. If the suffix needs query parameters, also define `getRoute` and `queryParams` - see
+[Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+2. Add a screen constant in [`src/SCREENS.ts`](../src/SCREENS.ts).
+The name must start with the `DYNAMIC_` prefix
+(e.g. `SETTINGS.DYNAMIC_VERIFY_ACCOUNT`) so dynamic screens
+can be distinguished from static ones.
+3. Register in linking config in
+[`src/libs/Navigation/linkingConfig/config.ts`](../src/libs/Navigation/linkingConfig/config.ts):
+map the new screen to `DYNAMIC_ROUTES.<KEY>.path`.
+4. Implement the page component:
+Use `createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path)` to navigate
+to the flow and `useDynamicBackPath(DYNAMIC_ROUTES.<KEY>.path)`
+to get the back path. Pass these into your base UI
+(e.g. `VerifyAccountPageBase` with `navigateBackTo` /
+`navigateForwardTo`).
+5. Register the screen in the appropriate modal/stack navigator
+(e.g. [`src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`](../src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx)).
+6. Types: Add the screen to the navigator param list in
+[`src/libs/Navigation/types.ts`](../src/libs/Navigation/types.ts) (no params for the new screen).
 
-The Verify Account flow (Wallet → Dynamic Verify Account) is the reference implementation: see `src/pages/settings/DynamicVerifyAccountPage.tsx` and the Wallet entry point in `src/pages/settings/Wallet/WalletPage/index.tsx`.
+The Verify Account flow (Wallet → Dynamic Verify Account) is the
+reference implementation:
+see [`src/pages/settings/DynamicVerifyAccountPage.tsx`](../src/pages/settings/DynamicVerifyAccountPage.tsx) and the
+Wallet entry point in
+[`src/pages/settings/Wallet/WalletPage/index.tsx`](../src/pages/settings/Wallet/WalletPage/index.tsx).
 
 ### Migrating from backTo to dynamic routes
 
@@ -760,6 +931,46 @@ If you are migrating an existing flow that uses `backTo` (or multiple static rou
 6. Remove old static route constants and old screen bindings that are replaced by the single dynamic screen.
 
 For the legacy approach (e.g. separating routes per screen instance) and edge cases like RHP underlay, see [How to remove backTo from URL](#how-to-remove-backto-from-url) and [Separating routes for each screen instance](#separating-routes-for-each-screen-instance).
+
+### Backward compatibility for changed paths
+
+When migrating a static route to a dynamic route, the resulting URL often changes because dynamic routes build the target path on top of the entry screen's URL. Here is a concrete example:
+
+**Static routes** — the entry screen and the target screen have independent, unrelated paths:
+
+| | Path |
+|---|---|
+| Entry screen | `/r/:reportID/details` |
+| Target screen | `/r/:reportID/settings/name` |
+
+The target path `/r/:reportID/settings/name` stands on its own; it does not contain the entry screen's `/details` segment.
+
+**Dynamic routes** — the target URL is formed by appending a suffix to the entry screen's URL:
+
+| | Path |
+|---|---|
+| Entry screen (base path) | `/r/:reportID/details` |
+| Dynamic suffix | `settings/name` |
+| Target screen | `/r/:reportID/details/settings/name` |
+
+Because the suffix `settings/name` is appended to `/r/:reportID/details`, the resulting URL now includes the entry screen's path as a prefix. The old static URL (`/r/:reportID/settings/name`) no longer matches the new dynamic one (`/r/:reportID/details/settings/name`).
+
+If the new path does not match the old one, you **must** add a redirect mapping to [`src/libs/Navigation/linkingConfig/OldRoutes.ts`](../src/libs/Navigation/linkingConfig/OldRoutes.ts) so that bookmarks, shared links, and browser history still work.
+
+Each entry in `OldRoutes.ts` maps an old path pattern to the new path. Use `*` as a wildcard for dynamic segments and `$1`, `$2`, etc. in the replacement to reference captured segments:
+
+```ts
+const oldRoutes: Record<string, string> = {
+    '/r/*/settings/name': '/r/$1/details/settings/name',
+    '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
+};
+```
+
+- A `*` in the **middle** of a pattern matches a single path segment (everything except `/`).
+- A `*` at the **end** of a pattern matches the entire remaining path (including `/`).
+- `$1`, `$2`, ... in the replacement string correspond to the captured wildcards in order.
+
+After adding a mapping, add test cases in [`tests/navigation/getMatchingNewRouteTest.ts`](../tests/navigation/getMatchingNewRouteTest.ts) to verify that the old path redirects to the new one and that query parameters are preserved.
 
 ## How to remove backTo from URL
 
@@ -930,7 +1141,7 @@ In Expensify, we use an extended implementation of this function because:
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
 -   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-remove-backto-from-url))
--   For dynamic routes, state is built from the current path and [entryScreens](#entry-screens-access-control) access control.
+-   For dynamic routes, when the page is refreshed the navigation state only contains the deepest screen. To make back navigation work, all intermediate dynamic screens must be inserted into the state in the correct order so the app knows which screen to return to.
 
 Here are examples how the state is generated based on route:
 
@@ -1043,6 +1254,77 @@ As you can see after opening the workspace settings of the specific workspace, w
 ```
 
 In the above example, we can see that when building a state from a link leading to a screen in RHP, screens that appear below the overlay are also built.
+
+-   `settings/profile/address/country?country=US`
+
+```json
+{
+    "stale": false,
+    "type": "stack",
+    "key": "stack-key-7",
+    "index": 1,
+    "routes": [
+        {
+            "name": "SettingsSplitNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-8",
+                "index": 1,
+                "routes": [
+                    {
+                        "name": "Settings_Root",
+                        "key": "Settings_Root-key"
+                    },
+                    {
+                        "name": "Settings_Profile",
+                        "key": "Settings_Profile-key"
+                    }
+                ]
+            },
+            "key": "SettingsSplitNavigator-key"
+        },
+        {
+            "name": "RightModalNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-9",
+                "index": 0,
+                "routes": [
+                    {
+                        "name": "Settings",
+                        "state": {
+                            "stale": false,
+                            "type": "stack",
+                            "key": "stack-key-10",
+                            "index": 1,
+                            "routes": [
+                                {
+                                    "name": "Settings_Address",
+                                    "path": "/settings/profile/address",
+                                    "key": "Settings_Address-key"
+                                },
+                                {
+                                    "name": "Dynamic_Address_Country",
+                                    "path": "/settings/profile/address/country?country=US",
+                                    "params": {
+                                        "country": "US"
+                                    },
+                                    "key": "Dynamic_Address_Country-key"
+                                }
+                            ]
+                        },
+                        "key": "Settings-key"
+                    }
+                ]
+            },
+            "key": "RightModalNavigator-key"
+        }
+    ]
+}
+```
+Since `country` is a dynamic suffix, the `Dynamic_Address_Country` screen is layered on top of the static `Settings_Address` screen in the initial state, ensuring correct back navigation after a refresh.
 
 ## Setting the correct screen underneath RHP
 

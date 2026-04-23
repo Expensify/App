@@ -34,9 +34,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
+
+let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
@@ -68,10 +71,11 @@ function OnboardingModalNavigator() {
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!accountID) {
+        if (!accountID || signUpEventPublishedForAccountID === accountID) {
             return;
         }
 
+        signUpEventPublishedForAccountID = accountID;
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
     }, [accountID]);
 
@@ -113,10 +117,7 @@ function OnboardingModalNavigator() {
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>
-                    <View
-                        onClick={(e) => e.stopPropagation()}
-                        style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)]}
-                    >
+                    <OnboardingModalNavigatorContentWrapper onboardingIsMediumOrLargerScreenWidth={onboardingIsMediumOrLargerScreenWidth}>
                         <Stack.Navigator
                             screenOptions={defaultScreenOptions}
                             initialRouteName={initialRouteName}
@@ -174,7 +175,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceInvite}
                             />
                         </Stack.Navigator>
-                    </View>
+                    </OnboardingModalNavigatorContentWrapper>
                 </FocusTrapForScreens>
             </View>
         </NoDropZone>

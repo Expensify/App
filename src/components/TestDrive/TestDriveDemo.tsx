@@ -1,5 +1,6 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
@@ -14,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,6 +33,9 @@ function TestDriveDemo() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
@@ -45,9 +50,20 @@ function TestDriveDemo() {
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+    const hasCalledOpenReportRef = useRef(false);
 
     useEffect(() => {
-        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+        if (hasSeenTour) {
+            return;
+        }
+        if (!viewTourTaskReport) {
+            if (conciergeReportID && !hasCalledOpenReportRef.current) {
+                hasCalledOpenReportRef.current = true;
+                openReport({reportID: conciergeReportID, introSelected, betas});
+            }
+            return;
+        }
+        if (viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
             return;
         }
 
@@ -58,9 +74,22 @@ function TestDriveDemo() {
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
+            delegateEmail,
             false,
         );
-    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction]);
+    }, [
+        hasSeenTour,
+        viewTourTaskReport,
+        viewTourTaskParentReport,
+        isViewTourTaskParentReportArchived,
+        currentUserPersonalDetails.accountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        delegateEmail,
+        conciergeReportID,
+        introSelected,
+        betas,
+    ]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -100,6 +129,7 @@ function TestDriveDemo() {
                         <EmbeddedDemo
                             url={getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin)}
                             iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
+                            iframeProps={{sandbox: CONST.STORYLANE.IFRAME_SANDBOX}}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>

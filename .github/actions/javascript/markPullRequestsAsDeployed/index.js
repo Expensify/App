@@ -12844,6 +12844,8 @@ async function run() {
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
+    const androidSentryUrl = core.getInput('ANDROID_SENTRY_URL');
+    const iosSentryUrl = core.getInput('IOS_SENTRY_URL');
     function getDeployMessage(deployer, deployVerb) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
@@ -12856,6 +12858,15 @@ async function run() {
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
         if (note) {
             message += `\n\n_Note:_ ${note}`;
+        }
+        if (androidSentryUrl || iosSentryUrl) {
+            message += `\n\n**Bundle Size Analysis (Sentry):**`;
+            if (androidSentryUrl) {
+                message += `\n- [Android](${androidSentryUrl})`;
+            }
+            if (iosSentryUrl) {
+                message += `\n- [iOS](${iosSentryUrl})`;
+            }
         }
         return message;
     }
@@ -13225,11 +13236,11 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
+    static fetchAllPullRequests(pullRequestNumbers, repo = CONST_1.default.APP_REPO) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            repo,
             state: 'all',
             sort: 'created',
             direction: 'desc',

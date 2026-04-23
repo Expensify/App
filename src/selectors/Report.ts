@@ -15,6 +15,10 @@ function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<type
     return isClosedAction(lastClosedReportAction) ? getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
 }
 
+function getReportChatType(report: OnyxEntry<Report>) {
+    return report?.chatType;
+}
+
 function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
@@ -23,4 +27,4 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
 
-export {getArchiveReason, getReportOwnerAccountID, getReportPolicyID};
+export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID};
