@@ -602,7 +602,7 @@ describe('DateUtils', () => {
             // 2026-04-19T15:00:00+07:00 — venue is UTC+7, device timezone is UTC
             const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00');
             // Should display 3:00 PM in the venue's +07:00 timezone, not converted to device-local time
-            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, GMT+7');
         });
 
         it('should format without year when date is in the current year', () => {
@@ -610,7 +610,7 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2026-06-01T00:00:00Z'));
             const result = DateUtils.getFormattedCancellationDate('2026-06-15T10:30:00+00:00');
-            expect(result).toBe('Monday, Jun 15 10:30 AM');
+            expect(result).toBe('Monday, Jun 15 10:30 AM, UTC');
         });
 
         it('should return empty string for falsy input', () => {
@@ -622,7 +622,7 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
             const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00');
-            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
     });
 });
