@@ -10,24 +10,24 @@ import useOnyx from './useOnyx';
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
-/** Waiting for trial data to load */
-const DELAY_LOADING = 'loading';
-/** No trial yet, waiting for workspace creation */
-const DELAY_WAITING = 'waiting';
-/** Trial just started, 5-minute timer running */
-const DELAY_TIMING = 'timing';
-/** Ready to show modal */
-const DELAY_NO_DELAY = 'no_delay';
+/** Onyx values not yet resolved */
+const READINESS_LOADING = 'loading';
+/** Onyx loaded, no trial yet */
+const READINESS_PRE_TRIAL = 'preTrial';
+/** Trial just appeared, 5-minute settle window before showing the modal */
+const READINESS_TRIAL_STARTUP_GRACE = 'trialStartupGrace';
+/** Eligible to show the modal */
+const READINESS_READY = 'ready';
 
-const DELAY_STATE = {
-    LOADING: DELAY_LOADING,
-    WAITING: DELAY_WAITING,
-    TIMING: DELAY_TIMING,
-    NO_DELAY: DELAY_NO_DELAY,
+const READINESS_STATE = {
+    LOADING: READINESS_LOADING,
+    PRE_TRIAL: READINESS_PRE_TRIAL,
+    TRIAL_STARTUP_GRACE: READINESS_TRIAL_STARTUP_GRACE,
+    READY: READINESS_READY,
 } as const;
 
 type TrialReminderVariant = ValueOf<typeof CONST.TRIAL_REMINDER_VARIANT>;
-type DelayState = ValueOf<typeof DELAY_STATE>;
+type ReadinessState = ValueOf<typeof READINESS_STATE>;
 
 type TrialReminderVariation = {
     id: string;
@@ -51,6 +51,27 @@ const TRIAL_REMINDER_VARIATIONS = [
     {id: 'day29', dayOfTrial: 29, variant: CONST.TRIAL_REMINDER_VARIANT.NEAR_END},
     {id: 'last24h', dayOfTrial: -1, variant: CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN},
 ] as const;
+
+/**
+ * Returns the timestamp (ms) when the current variation's window started. A dismissal whose timestamp
+ * is at or after this is considered to apply to the current variation.
+ */
+function getVariationWindowStart(variationId: string, firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): number | null {
+    if (variationId === 'last24h') {
+        if (!lastDayFreeTrial) {
+            return null;
+        }
+        return new Date(`${lastDayFreeTrial}Z`).getTime() - TWENTY_FOUR_HOURS_IN_SECONDS * 1000;
+    }
+    if (!firstDayFreeTrial) {
+        return null;
+    }
+    const variation = TRIAL_REMINDER_VARIATIONS.find((v) => v.id === variationId);
+    if (!variation || variation.dayOfTrial <= 0) {
+        return null;
+    }
+    return new Date(`${firstDayFreeTrial}Z`).getTime() + (variation.dayOfTrial - 1) * TWENTY_FOUR_HOURS_IN_SECONDS * 1000;
+}
 
 function computeCurrentVariation(firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): TrialReminderVariation | null {
     if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
@@ -97,33 +118,40 @@ function useTrialPaymentReminder() {
     const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [dismissedVariation, dismissedVariationResult] = useOnyx(ONYXKEYS.NVP_TRIAL_PAYMENT_REMINDER_DISMISSED);
+    const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
 
-    const [delayState, setDelayState] = useState<DelayState>(DELAY_STATE.LOADING);
+    const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
 
     useEffect(() => {
         if (isLoadingOnyxValue(firstDayFreeTrialResult)) {
             return;
         }
 
-        if (delayState === DELAY_STATE.LOADING) {
-            setDelayState(firstDayFreeTrial ? DELAY_STATE.NO_DELAY : DELAY_STATE.WAITING);
+        if (readinessState === READINESS_STATE.LOADING) {
+            // Onyx resolves asynchronously after mount, so the initial LOADING → READY/PRE_TRIAL transition
+            // must be driven by an effect once the Onyx value settles.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setReadinessState(firstDayFreeTrial ? READINESS_STATE.READY : READINESS_STATE.PRE_TRIAL);
             return;
         }
 
-        if (delayState === DELAY_STATE.WAITING && firstDayFreeTrial) {
-            setDelayState(DELAY_STATE.TIMING);
+        if (readinessState === READINESS_STATE.PRE_TRIAL && firstDayFreeTrial) {
+            // PRE_TRIAL → TRIAL_STARTUP_GRACE fires when firstDayFreeTrial appears mid-session
+            // (trial was just created); this can only be detected by reacting to the Onyx change,
+            // hence setState inside the effect.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setReadinessState(READINESS_STATE.TRIAL_STARTUP_GRACE);
         }
-    }, [delayState, firstDayFreeTrial, firstDayFreeTrialResult]);
+    }, [readinessState, firstDayFreeTrial, firstDayFreeTrialResult]);
 
-    // Run 5-minute timer when in 'timing' state
+    // Run the 5-minute grace timer after a trial is created
     useEffect(() => {
-        if (delayState !== DELAY_STATE.TIMING) {
+        if (readinessState !== READINESS_STATE.TRIAL_STARTUP_GRACE) {
             return;
         }
-        const timer = setTimeout(() => setDelayState(DELAY_STATE.NO_DELAY), FIVE_MINUTES_MS);
+        const timer = setTimeout(() => setReadinessState(READINESS_STATE.READY), FIVE_MINUTES_MS);
         return () => clearTimeout(timer);
-    }, [delayState]);
+    }, [readinessState]);
 
     const remainingSecondsRef = useRef(0);
 
@@ -165,27 +193,31 @@ function useTrialPaymentReminder() {
         if (doesUserHavePaymentCardAdded(billingFundID)) {
             return false;
         }
-        if (delayState !== DELAY_STATE.NO_DELAY) {
+        if (readinessState !== READINESS_STATE.READY) {
             return false;
         }
-        if (isLoadingOnyxValue(dismissedVariationResult)) {
+        if (isLoadingOnyxValue(dismissedTimestampResult)) {
             return false;
         }
         if (!currentVariation) {
             return false;
         }
-        if (dismissedVariation === currentVariation.id) {
-            return false;
+        if (dismissedTimestamp) {
+            const windowStart = getVariationWindowStart(currentVariation.id, firstDayFreeTrial, lastDayFreeTrial);
+            const dismissedMs = new Date(dismissedTimestamp).getTime();
+            if (windowStart !== null && Number.isFinite(dismissedMs) && dismissedMs >= windowStart) {
+                return false;
+            }
         }
         return true;
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, delayState, currentVariation, dismissedVariation, dismissedVariationResult]);
+    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
 
     const dismiss = useCallback(() => {
         if (!currentVariation) {
             return;
         }
-        setNameValuePair(ONYXKEYS.NVP_TRIAL_PAYMENT_REMINDER_DISMISSED, currentVariation.id, dismissedVariation ?? '');
-    }, [currentVariation, dismissedVariation]);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER, new Date().toISOString(), dismissedTimestamp ?? '');
+    }, [currentVariation, dismissedTimestamp]);
 
     return {shouldShowModal, currentVariation, countdownTime, dismiss};
 }
