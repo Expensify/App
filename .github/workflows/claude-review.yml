@@ -7,6 +7,8 @@ permissions:
 on:
   pull_request_target:
     types: [opened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.html_url }}
@@ -14,18 +16,41 @@ concurrency:
 
 jobs:
   validate:
+    if: github.event_name == 'pull_request_target'
     uses: ./.github/workflows/contributorValidationGate.yml
     with:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
       AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
 
+  checkCPlusApproval:
+    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      IS_CPLUS: ${{ steps.check.outputs.IS_CPLUS }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 1
+
+      - name: Check Contributor+ membership
+        id: check
+        uses: ./.github/actions/composite/isContributorPlus
+        with:
+          USERNAME: ${{ github.event.review.user.login }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
   review:
-    needs: [validate]
+    needs: [validate, checkCPlusApproval]
     if: |
-      needs.validate.outputs.IS_AUTHORIZED == 'true'
+      !cancelled()
       && github.event.pull_request.draft != true
       && !contains(github.event.pull_request.title, 'Revert')
+      && (
+        (github.event_name == 'pull_request_target' && needs.validate.outputs.IS_AUTHORIZED == 'true')
+        || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+      )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}

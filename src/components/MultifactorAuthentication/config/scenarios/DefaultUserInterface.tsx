@@ -39,5 +39,4 @@ function customConfig<const T extends MultifactorAuthenticationScenarioCustomCon
     } as const;
 }
 
-export default DEFAULT_CONFIG;
-export {customConfig};
+export default customConfig;
