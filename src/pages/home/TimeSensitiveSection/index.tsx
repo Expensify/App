@@ -20,9 +20,11 @@ import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy'
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
+import useTimeSensitiveEarlyDiscount from './hooks/useTimeSensitiveEarlyDiscount';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
+import EarlyDiscount from './items/EarlyDiscount';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
@@ -68,6 +70,7 @@ function TimeSensitiveSection() {
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
+    const {shouldShowEarlyDiscount, discountInfo: earlyDiscountInfo} = useTimeSensitiveEarlyDiscount();
 
     // Selector for filtering admin policies (Release 4)
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
@@ -156,6 +159,7 @@ function TimeSensitiveSection() {
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
+        (shouldShowEarlyDiscount && !!earlyDiscountInfo) ||
         shouldShowAddPaymentCard ||
         hasBrokenCompanyCards ||
         hasBrokenPersonalCards ||
@@ -171,12 +175,13 @@ function TimeSensitiveSection() {
     // 1. Validate account
     // 2. Fix failed billing (existing customers with declined cards)
     // 3. Potential card fraud
-    // 4. Add payment card (trial ended, no payment card)
-    // 5. Broken bank connections (company cards)
-    // 6. Broken bank connections (personal cards)
-    // 7. Broken accounting connections
-    // 8. Expensify card shipping
-    // 9. Expensify card activation
+    // 4. Early discount (50% off, sub-24h window after trial start)
+    // 5. Add payment card (trial ended, no payment card)
+    // 6. Broken bank connections (company cards)
+    // 7. Broken bank connections (personal cards)
+    // 8. Broken accounting connections
+    // 9. Expensify card shipping
+    // 10. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -199,9 +204,12 @@ function TimeSensitiveSection() {
                         );
                     })}
 
-                {/* Priority 4: Add payment card (trial ended, no payment card) */}
+                {/* Priority 4: Early discount (50% off, sub-24h window after trial start) */}
+                {shouldShowEarlyDiscount && !!earlyDiscountInfo && <EarlyDiscount discountInfo={earlyDiscountInfo} />}
+
+                {/* Priority 5: Add payment card (trial ended, no payment card) */}
                 {shouldShowAddPaymentCard && <AddPaymentCard />}
-                {/* Priority 5: Broken company card connections */}
+                {/* Priority 6: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
                     const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
                     if (!card) {
@@ -217,7 +225,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 6: Broken personal card connections */}
+                {/* Priority 7: Broken personal card connections */}
                 {brokenPersonalCardConnections.map((connection) => {
                     const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
                     if (!card) {
@@ -231,7 +239,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 7: Broken accounting connections */}
+                {/* Priority 8: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -241,7 +249,7 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 8: Expensify card shipping */}
+                {/* Priority 9: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -250,7 +258,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 9: Expensify card activation */}
+                {/* Priority 10: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard

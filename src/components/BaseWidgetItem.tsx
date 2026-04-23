@@ -27,6 +27,9 @@ type BaseWidgetItemProps = {
     /** Secondary subtitle text */
     subtitle?: string;
 
+    /** Optional supporting text rendered below the title (e.g. live countdowns) */
+    supportingText?: string;
+
     /** Text for the CTA button */
     ctaText: string;
 
@@ -40,7 +43,7 @@ type BaseWidgetItemProps = {
     buttonProps?: Partial<ButtonProps>;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, supportingText, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -65,6 +68,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
                         {!!subtitle && <Text style={styles.widgetItemSubtitle}>{subtitle}</Text>}
                         <Text style={styles.widgetItemTitle}>{title}</Text>
+                        {!!supportingText && <Text style={styles.widgetItemSubtitle}>{supportingText}</Text>}
                     </View>
                     <Button
                         text={ctaText}
