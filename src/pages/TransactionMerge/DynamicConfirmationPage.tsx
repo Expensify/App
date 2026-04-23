@@ -62,7 +62,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
 
     const selfDMReport = useSelfDMReport();
-
+    
+    // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
     const handleMergeExpenses = () => {
@@ -91,8 +92,10 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
+
         const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
 
+        // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {

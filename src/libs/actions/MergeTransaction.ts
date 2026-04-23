@@ -93,9 +93,7 @@ function setupMergeTransactionDataAndNavigate(
     } else {
         setupMergeTransactionData(navigationTransactionID, setupData);
     }
-    const mergeListBasePath = isSelectingSourceTransaction
-        ? Navigation.getActiveRoute()
-        : createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(navigationTransactionID));
+    const mergeListBasePath = isSelectingSourceTransaction ? Navigation.getActiveRoute() : createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(navigationTransactionID));
 
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt

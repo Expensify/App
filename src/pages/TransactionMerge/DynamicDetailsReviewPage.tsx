@@ -86,16 +86,19 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         getCurrencyDecimals,
     ]);
 
+    // Handle selection
     const handleSelect = useCallback(
         (transaction: Transaction, field: MergeFieldKey) => {
             const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
+            // Clear error if it has
             setHasErrors((prev) => {
                 const newErrors = {...prev};
                 delete newErrors[field];
                 return newErrors;
             });
-
+            
+            // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
             const updatedValues = getMergeFieldUpdatedValues({
                 transaction,
@@ -127,6 +130,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         ],
     );
 
+    // Handle continue
     const handleContinue = useCallback(() => {
         if (!mergeTransaction) {
             return;
@@ -147,6 +151,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         }
     }, [mergeTransaction, conflictFields, mergeListBasePath]);
 
+    // Build merge fields array with all necessary information
     const mergeFields = useMemo(
         () =>
             buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [
@@ -166,6 +171,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         ],
     );
 
+     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
