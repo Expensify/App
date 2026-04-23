@@ -211,6 +211,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
+                            path: ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.route,
                             exact: true,

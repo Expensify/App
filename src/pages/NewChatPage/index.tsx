@@ -32,7 +32,7 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getUserToInviteOption, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -44,19 +44,15 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
+import type SelectedOption from './types';
+import useGroupChatDraftParticipantSync from './useGroupDraftRestore';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
-
-type SelectedOption = ListItem &
-    Omit<OptionData, 'reportID'> & {
-        reportID?: string;
-    };
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const personalData = useCurrentUserPersonalDetails();
@@ -92,6 +88,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
     const reports = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
+    useGroupChatDraftParticipantSync(personalDetails, !isLoading, allPersonalDetails, loginList, currentUserEmail, currentUserAccountID, selectedOptions, setSelectedOptions);
 
     const defaultOptions = getValidOptions(
         {
@@ -151,56 +148,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
-
-    const participants = newGroupDraft?.participants;
-
-    const draftSelectedOptions: OptionData[] | null =
-        participants && personalDetails.length
-            ? participants.reduce<OptionData[]>((result, participant) => {
-                  if (participant.accountID === personalData.accountID) {
-                      return result;
-                  }
-                  const participantOption: OptionData | undefined | null =
-                      personalDetails.find((option) => option.accountID === participant.accountID) ??
-                      getUserToInviteOption({
-                          searchValue: participant?.login,
-                          personalDetails: allPersonalDetails,
-                          loginList,
-                          currentUserEmail: personalData.email ?? '',
-                      });
-                  if (participantOption) {
-                      result.push({
-                          ...participantOption,
-                          isSelected: true,
-                      });
-                  }
-                  return result;
-              }, [])
-            : null;
-
-    useEffect(() => {
-        if (!draftSelectedOptions) {
-            return;
-        }
-
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedOptions((prevSelectedOptions) => {
-            if (
-                prevSelectedOptions.length === draftSelectedOptions.length &&
-                prevSelectedOptions.every((prevOption, index) => {
-                    const nextOption = draftSelectedOptions.at(index);
-                    if (!nextOption) {
-                        return false;
-                    }
-                    return prevOption.accountID === nextOption.accountID && prevOption.login === nextOption.login;
-                })
-            ) {
-                return prevSelectedOptions;
-            }
-
-            return draftSelectedOptions;
-        });
-    }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = () => {
         if (!hasMore || !areOptionsInitialized || !isScreenFocusedRef.current) {

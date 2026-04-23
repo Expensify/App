@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -17,22 +16,19 @@ import {
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper, toggleEmojiReaction} from '@userActions/Report';
+import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper} from '@userActions/Report';
 import {clearError} from '@userActions/Transaction';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'betas'> & {
+type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'personalPolicyID' | 'betas'> & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
     /** Draft message for the report action */
     draftMessage?: string;
-
-    /** Emoji reactions for the report action */
-    emojiReactions?: OnyxEntry<ReportActionReactions>;
 
     /** User wallet tierName */
     userWalletTierName: string | undefined;
@@ -54,7 +50,6 @@ function ReportActionItem({
     action,
     report,
     draftMessage,
-    emojiReactions,
     userWalletTierName,
     isUserValidated,
     personalDetails,
@@ -67,7 +62,6 @@ function ReportActionItem({
     const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
@@ -83,7 +77,6 @@ function ReportActionItem({
     const [iouReportOfLinkedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportOfLinkedReportID}`);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -111,14 +104,11 @@ function ReportActionItem({
             action={action}
             report={report}
             policy={policy}
-            currentUserAccountID={currentUserAccountID}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
-            cardList={cardList}
             linkedReport={linkedReport}
             iouReportOfLinkedReport={iouReportOfLinkedReport}
-            emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             isUserValidated={isUserValidated}
             parentReport={parentReport}
@@ -128,7 +118,6 @@ function ReportActionItem({
             deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
-            toggleEmojiReaction={toggleEmojiReaction}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}

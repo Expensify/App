@@ -195,6 +195,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };

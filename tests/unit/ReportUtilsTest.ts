@@ -33,6 +33,7 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
@@ -7034,6 +7035,47 @@ describe('ReportUtils', () => {
         it('should default notificationPreference to ALWAYS when not provided', () => {
             const result = buildOptimisticGroupChatReport([1, 2], 'Group', '', 1);
             expect(result.participants?.[1]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+        });
+    });
+
+    describe('buildOptimisticAnnounceChat', () => {
+        it('should return empty data when there are fewer than 3 participants', () => {
+            const result = buildOptimisticAnnounceChat('policyID123', [1, 2], 1);
+            expect(result.announceChatReportID).toBe('');
+            expect(result.announceChatReportActionID).toBe('');
+        });
+
+        it('should create an announce chat when there are 3 or more participants', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            expect(result.announceChatReportID).not.toBe('');
+            expect(result.announceChatReportActionID).not.toBe('');
+            expect(result.announceChatData.onyxOptimisticData.length).toBeGreaterThan(0);
+            expect(result.announceChatData.onyxSuccessData.length).toBeGreaterThan(0);
+            expect(result.announceChatData.onyxFailureData.length).toBeGreaterThan(0);
+        });
+
+        it('should not assign a role to participants for workspace chat type', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.participants?.[currentUser]?.role).toBeUndefined();
+        });
+
+        it('should create announce chat with POLICY_ANNOUNCE chat type', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+        });
+
+        it('should set writeCapability to ADMINS for announce chat', () => {
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], 100);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
         });
     });
 

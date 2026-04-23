@@ -225,6 +225,7 @@ const SCREENS = {
             PERSONAL_CARD_ADD_NEW: 'Settings_Wallet_PersonalCard_New',
             PERSONAL_CARD_WARNING: 'Settings_Wallet_PersonalCard_Warning',
             PERSONAL_CARD_UPGRADE: 'Settings_Wallet_PersonalCard_Upgrade',
+            EXPENSIFY_CARD_SPEND_RULES: 'Settings_Wallet_ExpensifyCard_SpendRules',
         },
 
         EXIT_SURVEY: {

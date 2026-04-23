@@ -516,6 +516,10 @@ function getSubscriptionPrice(
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
 }
 
+function shouldUseSimplifiedCollectSubscriptionUI(plan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
+    return plan === CONST.POLICY.TYPE.TEAM && hasTeam2025Pricing;
+}
+
 function getSubscriptionPlanInfo(
     translate: LocalizedTranslate,
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
@@ -617,7 +621,6 @@ export {
     hasCardAuthenticatedError,
     hasCardExpiredError,
     hasGracePeriodOverdue,
-    hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
@@ -630,6 +633,7 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    shouldUseSimplifiedCollectSubscriptionUI,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
     hasInsufficientFundsError,

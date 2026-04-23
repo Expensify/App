@@ -154,10 +154,6 @@ function setAssignCardStepAndData({cardToAssign, isEditing, currentStep, isRefre
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep, isRefreshing});
 }
 
-function setTransactionStartDate(startDate: string) {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {startDate});
-}
-
 function clearAssignCardStepAndData() {
     Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
 }
@@ -1025,35 +1021,6 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters, {optimisticData, successData, failureData});
 }
 
-function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeedWithNumber, domainOrWorkspaceAccountID: number) {
-    const parameters: OpenPolicyCompanyCardsFeedParams = {
-        policyID,
-        feed,
-    };
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE, parameters, {optimisticData, finallyData});
-}
-
 function openPolicyAddCardFeedPage(policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -1425,9 +1392,7 @@ export {
     clearAddNewCardFlow,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
-    openAssignFeedCardPage,
     openPolicyAddCardFeedPage,
-    setTransactionStartDate,
     setFeedStatementPeriodEndDay,
     importCSVCompanyCards,
     clearErrorField,

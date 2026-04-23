@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
-import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -108,14 +107,6 @@ function generateAccountID(searchValue: string): number {
 }
 
 /**
- * Gets the secondary phone login number
- */
-function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
-    return parsedLoginList.find((login) => Str.isValidE164Phone(login));
-}
-
-/**
  * Gets the contact method
  */
 function getContactMethod(primaryLogin: string | undefined, email: string | undefined): string {
@@ -178,7 +169,6 @@ export {
     generateAccountID,
     getLoginListBrickRoadIndicator,
     getProfilePageBrickRoadIndicator,
-    getSecondaryPhoneLogin,
     hasLoginListError,
     hasLoginListInfo,
     hashText,
