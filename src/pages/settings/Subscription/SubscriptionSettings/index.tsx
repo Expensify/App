@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
 import {convertToDisplayString, convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -89,7 +89,7 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins?.toString() : undefined;
-    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
+    const shouldUseSimplifiedCollectUI = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
     const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
 
     const onOptionSelected = (option: SubscriptionType) => {
@@ -232,7 +232,7 @@ function SubscriptionSettings() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
-                {isCollect ? (
+                {shouldUseSimplifiedCollectUI ? (
                     <>
                         <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.collectBillingDescription')}</Text>
                         <View style={[styles.renderHTML, styles.mb5]}>

@@ -1,14 +1,11 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "node16",
+        "moduleResolution": "node16",
         "target": "ES2023",
+        "rootDir": "..",
         "types": ["node"],
         "strict": true,
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        "downlevelIteration": true,
-        "baseUrl": ".",
         "paths": {
             "@assets/*": ["../assets/*"],
             "@components/*": ["../src/components/*"],

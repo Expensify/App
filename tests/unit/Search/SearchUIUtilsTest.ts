@@ -36,7 +36,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import {getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -2614,6 +2614,33 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
+        it('should prefer preview delete over stale total when deriving expense report pending action', () => {
+            const localSearchResults: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    pendingFields: {
+                        total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: localSearchResults,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+            })[0] as TransactionReportGroupListItemType[];
+
+            expect(result.find((item) => item.reportID === reportID2)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        });
+
         it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
             // Reproduce the bug: the search API response does not include the report owner in
             // personalDetailsList (data.personalDetailsList is empty/undefined), so without the
@@ -3549,7 +3576,7 @@ describe('SearchUIUtils', () => {
             });
 
             it('should resolve LAST_12_MONTHS preset to span the current month and 11 preceding months', () => {
-                const range = SearchUIUtils.getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
+                const range = getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
 
                 // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
                 expect(range.start).toBe('2025-03-01');

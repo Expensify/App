@@ -123,6 +123,22 @@ function createPolicyWithTimeTracking(): Policy {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test Policy'),
         id: POLICY_ID,
         outputCurrency: CONST.CURRENCY.USD,
+        tax: {
+            trackingEnabled: true,
+        },
+        taxRates: {
+            defaultExternalID: 'TAX_RATE_1',
+            defaultValue: '10%',
+            foreignTaxDefault: 'TAX_RATE_2',
+            name: 'Tax',
+            taxes: {
+                TAX_RATE_1: {
+                    name: 'Tax Rate 1',
+                    value: '10%',
+                    isDisabled: false,
+                },
+            },
+        },
         units: {
             time: {
                 enabled: true,
@@ -338,6 +354,23 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(requestMoney).toHaveBeenCalled();
+        });
+
+        it('should not apply default tax code to time expenses', async () => {
+            await setupTransaction();
+
+            renderConfirmation();
+            await waitForBatchedUpdatesWithAct();
+
+            const submitButton = screen.getByText(/create.*expense/i);
+            fireEvent.press(submitButton);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(requestMoney).toHaveBeenCalled();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const callArgs = (requestMoney as jest.Mock).mock.calls.at(0)?.[0] as {transactionParams: {taxCode: string; taxAmount: number}};
+            expect(callArgs.transactionParams.taxCode).toBe('');
+            expect(callArgs.transactionParams.taxAmount).toBe(0);
         });
 
         it('should show error when rate and hours result in too large amount', async () => {

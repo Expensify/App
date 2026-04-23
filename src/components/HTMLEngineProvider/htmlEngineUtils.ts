@@ -70,11 +70,11 @@ function isChildOfComment(tnode: TNode): boolean {
  * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
  */
 function isChildOfH1(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'h1');
 }
 
 function isChildOfTaskTitle(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'task-title');
+    return isChildOfNode(tnode, (node) => node.domNode?.name?.toLowerCase() === 'task-title');
 }
 
 /**
