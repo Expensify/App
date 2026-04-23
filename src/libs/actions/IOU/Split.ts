@@ -1924,14 +1924,19 @@ function updateSplitTransactions({
         }
 
         if (updatedIOUAction) {
+            // For selfDM splits the new IOU action lives in the selfDM report, not the (missing)
+            // expense report — write the bumped childVisibleActionCount to that same report so
+            // copied comments are counted on the split's parent action. For workspace flows keep
+            // writing to the expense report where the IOU action is stored.
+            const iouActionReportID = isSelfDMSplit ? (selfDMReportID ?? originalSelfDMReportID) : expenseReport?.reportID;
             optimisticDataComments.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionReportID}`,
                 value: {[iouAction.reportActionID]: updatedIOUAction},
             });
             failureDataComments.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionReportID}`,
                 value: {
                     [iouAction.reportActionID]: {
                         childVisibleActionCount: iouAction.childVisibleActionCount,
