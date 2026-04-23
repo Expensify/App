@@ -2358,6 +2358,8 @@ const translations: TranslationDeepObject<typeof en> = {
         getPhysicalCard: 'Obtener tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reportTravelFraud: 'Reportar fraude con la tarjeta de viaje',
+        spendRules: 'Reglas de gasto',
+        editSpendRules: 'Editar reglas de gasto',
         reviewTransaction: 'Revisar transacción',
         suspiciousBannerTitle: 'Transacción sospechosa',
         suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
@@ -6794,7 +6796,11 @@ ${amount} para ${merchant} - ${date}`,
                 currencyMismatchTitle: 'Moneda no coincide',
                 currencyMismatchPrompt: 'Para establecer un importe máximo, selecciona tarjetas que se liquiden en la misma moneda.',
                 reviewSelectedCards: 'Revisar tarjetas seleccionadas',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} más`,
+                summaryMoreCount: ({summary, count}) => (count > 0 ? `${summary}, +${count} más` : summary),
+                summaryMerchants: ({merchants, hiddenCount, shownCount, action}) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'comerciantes' : 'comerciante'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
+                summaryCategories: ({categories, hiddenCount, shownCount, action}) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'categorías' : 'categoría'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplica al menos una regla de gasto a una tarjeta',
                 confirmErrorCardRequired: 'La tarjeta es un campo obligatorio',
                 confirmErrorApplyAtLeastOneSpendRule: 'Aplica al menos una regla de gasto',
@@ -6918,7 +6924,7 @@ ${amount} para ${merchant} - ${date}`,
             previousAddress ? `cambió la dirección de la empresa a "${newAddress}" (anteriormente "${previousAddress}")` : `estableció la dirección de la empresa en "${newAddress}"`,
         addApprovalRule: (approverEmail, approverName, field, name) => `añadió a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         deleteApprovalRule: (approverEmail, approverName, field, name) => `eliminó a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}) => {
+        updateApprovalRule: (field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
 
             return `cambió el aprobador para la ${field} "${name}" a ${formatApprover(newApproverName, newApproverEmail)} (previamente ${formatApprover(oldApproverName, oldApproverEmail)})`;
@@ -6977,7 +6983,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName, oldValue, newValue) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" cambiando Recibos detallados a ${newValue}`;
             }
@@ -7001,18 +7007,18 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
+        updateCustomUnit: (customUnitName, newValue, oldValue, updatedField) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en tasas de distancia`,
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}) =>
+        updateCustomUnitDefaultCategory: (customUnitName, newValue, oldValue) =>
             `cambió la categoría predeterminada de ${customUnitName} a "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName) => `importó tasas para la unidad personalizada "${customUnitName}"`,
         addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
-        deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
+        deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField) =>
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
         removedCustomUnitSubRate: (customUnitName, customUnitRateName, removedSubRateName) =>
             `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
-        addedReportField: ({fieldType, fieldName, defaultValue}) =>
+        addedReportField: (fieldType, fieldName, defaultValue) =>
             `añadió el campo de informe ${fieldType} "${fieldName}"${defaultValue ? ` con el valor predeterminado "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
@@ -7110,8 +7116,8 @@ ${amount} para ${merchant} - ${date}`,
         changedReimburser: (newReimburser, previousReimburser) =>
             previousReimburser ? `cambió el pagador autorizado a "${newReimburser}" (previamente "${previousReimburser}")` : `cambió el pagador autorizado a "${newReimburser}"`,
         updateReimbursementEnabled: (enabled) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}) => {
+        updatedManualApprovalThreshold: (oldLimit, newLimit) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        addBudget: (frequency, entityName, entityType, shared, individual, notificationThreshold) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
@@ -7127,7 +7133,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} a ${entityLabel} "${entityName}"`;
         },
-        updateBudget: ({entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold}) => {
+        updateBudget: (entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7181,7 +7187,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `actualizó el presupuesto para ${entityLabel} "${entityName}": ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}) => {
+        deleteBudget: (entityType, entityName, frequency, individual, shared, notificationThreshold) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
@@ -7331,9 +7337,9 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
-        updateCustomTaxName: ({oldName, newName}) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
+        updateCustomTaxName: (oldName, newName) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName, newName) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName, newName) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `cambió el nombre de la empresa de la factura a "${newValue}" (previamente "${oldValue}")` : `estableció el nombre de la empresa de la factura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
@@ -7534,6 +7540,7 @@ ${amount} para ${merchant} - ${date}`,
             unhold: 'Desbloquear',
             reject: 'Rechazar',
             duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'gasto' : 'gastos'}`,
+            duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'informe' : 'informes'}`,
             undelete: 'Restaurar',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
@@ -9368,6 +9375,7 @@ ${amount} para ${merchant} - ${date}`,
             forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
             resetTwoFactorAuth: 'Restablecer la autenticación de dos factores',
+            error: 'No se pudo guardar este cambio. Por favor, inténtalo de nuevo.',
         },
         groups: {
             title: 'Grupos',

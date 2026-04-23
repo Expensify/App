@@ -113,6 +113,7 @@ import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustra
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
+import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -398,6 +399,7 @@ const Illustrations = {
     Trophy,
     Trophy1,
     FoodTruck,
+    Chalkboard,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,

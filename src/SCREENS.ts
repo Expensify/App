@@ -225,6 +225,7 @@ const SCREENS = {
             PERSONAL_CARD_ADD_NEW: 'Settings_Wallet_PersonalCard_New',
             PERSONAL_CARD_WARNING: 'Settings_Wallet_PersonalCard_Warning',
             PERSONAL_CARD_UPGRADE: 'Settings_Wallet_PersonalCard_Upgrade',
+            EXPENSIFY_CARD_SPEND_RULES: 'Settings_Wallet_ExpensifyCard_SpendRules',
         },
 
         EXIT_SURVEY: {
@@ -1007,6 +1008,8 @@ const SCREENS = {
         MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
         MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
         MEMBERS_MOVE_TO_GROUP: 'Members_Move_To_Group',
+        GROUP_DETAILS: 'Domain_Group_Details',
+        GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

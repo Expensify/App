@@ -416,6 +416,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
+    [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletExpensifyCardSpendRulesPage').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardDetailsPage').default,
@@ -962,6 +963,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage').default,
     [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainReportSuspiciousActivityPage').default,
     [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: () => require<ReactComponentModule>('../../../../pages/domain/Members/MoveUsersBetweenGroupsPage').default,
+    [SCREENS.DOMAIN.GROUP_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Groups/DomainGroupDetailsPage').default,
+    [SCREENS.DOMAIN.GROUP_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/domain/Groups/DomainGroupEditNamePage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({

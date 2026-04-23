@@ -35,6 +35,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
 import type {MockFetch} from '../../utils/TestHelper';
+import * as TestHelper from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -639,6 +640,274 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Accountant role should change to admin
             expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
+        });
+
+        it('share with accountant who is already an admin does not update their role or re-add them', async () => {
+            const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'ABC',
+                employeeList: {[accountant.login]: {email: accountant.login, role: CONST.POLICY.ROLE.ADMIN}},
+            };
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: '10',
+            };
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '123',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                isOwnPolicyExpenseChat: true,
+                participants: {[accountant.accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            };
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: '555'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
+
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
+            const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
+
+            mockFetch?.pause?.();
+
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.SHARE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                    actionableWhisperReportActionID: reportActionableTrackExpense?.reportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: selfDMReport.reportID,
+                },
+                accountantParams: {
+                    accountant,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+
+            // Accountant is already an admin so the role should stay ADMIN
+            expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
+            // And the share command should still have fired
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, 1);
+        });
+
+        it('share with accountant on a policy with existing members creates the optimistic announce chat', async () => {
+            const existingMemberA = 'member-a@expensifail.com';
+            const existingMemberAID = 100;
+            const existingMemberB = 'member-b@expensifail.com';
+            const existingMemberBID = 101;
+            const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'ABC',
+                employeeList: {
+                    [existingMemberA]: {email: existingMemberA, role: CONST.POLICY.ROLE.USER},
+                    [existingMemberB]: {email: existingMemberB, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: '10',
+            };
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '123',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: '555'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [existingMemberAID]: {accountID: existingMemberAID, login: existingMemberA},
+                [existingMemberBID]: {accountID: existingMemberBID, login: existingMemberB},
+            });
+
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
+            const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
+
+            mockFetch?.pause?.();
+
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.SHARE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                    actionableWhisperReportActionID: reportActionableTrackExpense?.reportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: selfDMReport.reportID,
+                },
+                accountantParams: {
+                    accountant,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connection);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+
+            // With 2 existing policy members + the new accountant there are 3 participants, so the #announce room should be created for this policy
+            const announceChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policy.id && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+            expect(announceChat).toBeTruthy();
+            expect(announceChat?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
         });
 
         /**

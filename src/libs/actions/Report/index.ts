@@ -2441,32 +2441,72 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
-    // If no action created date is provided, use the last action's from other user
-    const actionCreationTime =
-        reportAction?.created || (latestReportActionFromOtherUsers?.created ?? getReportLastVisibleActionCreated(report, transactionThreadReport) ?? DateUtils.getDBTime(0));
+    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
+    const otherUserActionTime = latestReportActionFromOtherUsers?.created;
+
+    // Prefer the latest action from other users so the unread divider appears before their
+    // message, but cap it at lastVisibleActionCreated so isUnread() stays true (IOU reports
+    // can have action timestamps exceeding lastVisibleActionCreated).
+    let actionCreationTime: string;
+    if (reportAction?.created) {
+        actionCreationTime = reportAction.created;
+    } else if (otherUserActionTime && lastVisibleActionCreated && otherUserActionTime <= lastVisibleActionCreated) {
+        actionCreationTime = otherUserActionTime;
+    } else {
+        actionCreationTime = lastVisibleActionCreated || DateUtils.getDBTime(0);
+    }
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
 
+    const lastActorAccountID =
+        reportAction?.actorAccountID && reportAction.actorAccountID !== currentUserAccountID
+            ? reportAction.actorAccountID
+            : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
+
+    const reportValue = {
+        lastReadTime,
+        ...(lastActorAccountID && {lastActorAccountID}),
+    };
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: reportValue,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: reportValue,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                lastReadTime,
+                lastReadTime: report?.lastReadTime ?? null,
+                lastActorAccountID: report?.lastActorAccountID ?? null,
             },
         },
     ];
 
+    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
+
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
-        reportActionID: reportAction?.reportActionID,
+        reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
@@ -7192,6 +7232,7 @@ function changeReportPolicyAndInviteSubmitter({
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
+        currentUserAccountID,
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
@@ -7354,14 +7395,12 @@ export {
     addAttachmentWithComment,
     addComment,
     addPolicyReport,
-    broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
     buildOptimisticChangePolicyData,
     buildOptimisticResolvedFollowups,
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
-    clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
     setNewRoomFormLoading,
@@ -7401,7 +7440,6 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
-    createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndCreateGroupChat,

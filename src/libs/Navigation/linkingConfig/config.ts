@@ -211,6 +211,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
+                            path: ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.route,
                             exact: true,
@@ -1373,6 +1377,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: {
                             path: ROUTES.DOMAIN_MEMBERS_MOVE_TO_GROUP.route,
+                        },
+                        [SCREENS.DOMAIN.GROUP_DETAILS]: {
+                            path: ROUTES.DOMAIN_GROUP_DETAILS.route,
+                        },
+                        [SCREENS.DOMAIN.GROUP_EDIT_NAME]: {
+                            path: ROUTES.DOMAIN_GROUP_EDIT_NAME.route,
                         },
                     },
                 },
