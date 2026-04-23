@@ -59,11 +59,10 @@ describe('BankAccountPurpose CountrySelection', () => {
         });
     });
 
-    it('passes the simpler wallet viewport-reset flag without remounting the child list', () => {
+    it('keeps the child list mounted while persisting the selected country and navigating', () => {
         render(<CountrySelection />);
 
         const initialProps = mockedCountrySelectionList.mock.lastCall?.[0];
-        expect(initialProps?.shouldResetViewportOnFocusReturn).toBe(true);
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
 
@@ -73,7 +72,6 @@ describe('BankAccountPurpose CountrySelection', () => {
 
         const updatedSelectionProps = mockedCountrySelectionList.mock.lastCall?.[0];
         expect(updatedSelectionProps?.selectedCountry).toBe('LT');
-        expect(updatedSelectionProps?.shouldResetViewportOnFocusReturn).toBe(true);
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
 

@@ -73,7 +73,6 @@ function CountrySelection() {
             countries={CONST.BBA_SUPPORTED_COUNTRIES}
             onCountrySelected={onCountrySelected}
             onConfirm={onConfirm}
-            shouldResetViewportOnFocusReturn
             footerContent={
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.next')}

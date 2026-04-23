@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
@@ -9,6 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
@@ -30,9 +30,6 @@ type CountrySelectionListProps = {
     /** Function to call when the user confirms their selection */
     onConfirm: () => void;
 
-    /** Whether the wallet flow should reset the list viewport when the screen regains focus after the initial mount */
-    shouldResetViewportOnFocusReturn?: boolean;
-
     /** Whether the user is editing an existing account */
     isEditing?: boolean;
 
@@ -40,32 +37,15 @@ type CountrySelectionListProps = {
     footerContent?: React.ReactNode;
 };
 
-function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, shouldResetViewportOnFocusReturn = false, footerContent}: CountrySelectionListProps) {
+function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, footerContent}: CountrySelectionListProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const selectionListRef = useRef<SelectionListHandle<Option> | null>(null);
-    const hasFocusedOnceRef = useRef(false);
-    const completedFocusReturnVersionRef = useRef(0);
-    const [focusReturnVersion, setFocusReturnVersion] = useState(0);
     const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
+    const previousInitialSelectedValue = usePrevious(initialSelectedValue);
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!shouldResetViewportOnFocusReturn) {
-                return;
-            }
-
-            if (!hasFocusedOnceRef.current) {
-                hasFocusedOnceRef.current = true;
-                return;
-            }
-
-            setFocusReturnVersion((currentVersion) => currentVersion + 1);
-        }, [shouldResetViewportOnFocusReturn]),
-    );
 
     const onSelectionChange = (country: Option) => {
         onCountrySelected(country.value);
@@ -84,22 +64,14 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
 
     const orderedCountries = moveInitialSelectionToTopByValue(countriesList, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
-    const isSelectedCountryPinnedToTop = !!selectedCountry && orderedCountries.at(0)?.value === selectedCountry;
 
     useLayoutEffect(() => {
-        if (
-            !shouldResetViewportOnFocusReturn ||
-            focusReturnVersion === 0 ||
-            focusReturnVersion === completedFocusReturnVersionRef.current ||
-            debouncedSearchValue ||
-            !isSelectedCountryPinnedToTop
-        ) {
+        if (!initialSelectedValue || previousInitialSelectedValue === initialSelectedValue) {
             return;
         }
 
         selectionListRef.current?.scrollToIndex(0);
-        completedFocusReturnVersionRef.current = focusReturnVersion;
-    }, [debouncedSearchValue, focusReturnVersion, isSelectedCountryPinnedToTop, shouldResetViewportOnFocusReturn]);
+    }, [initialSelectedValue, previousInitialSelectedValue]);
 
     const textInputOptions = {
         label: translate('common.search'),

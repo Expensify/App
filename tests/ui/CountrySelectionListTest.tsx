@@ -118,26 +118,20 @@ describe('CountrySelectionList', () => {
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
         expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
 
-    it('refreshes the pinned country and resets the viewport once when focus returns in the wallet flow', () => {
+    it('scrolls back to the top when the pinned initial selection changes', () => {
         const {rerender} = render(
             <CountrySelectionList
                 selectedCountry={initialCountry}
                 countries={countries}
                 onCountrySelected={jest.fn()}
                 onConfirm={jest.fn()}
-                shouldResetViewportOnFocusReturn
             />,
         );
 
         expect(mockScrollToIndex).not.toHaveBeenCalled();
-
-        act(() => {
-            for (const callback of mockFocusEffectCallbacks.slice(-2)) {
-                callback();
-            }
-        });
 
         rerender(
             <CountrySelectionList
@@ -145,12 +139,11 @@ describe('CountrySelectionList', () => {
                 countries={countries}
                 onCountrySelected={jest.fn()}
                 onConfirm={jest.fn()}
-                shouldResetViewportOnFocusReturn
             />,
         );
 
         act(() => {
-            for (const callback of mockFocusEffectCallbacks.slice(-2)) {
+            for (const callback of mockFocusEffectCallbacks.slice(-1)) {
                 callback();
             }
         });
