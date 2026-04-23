@@ -276,12 +276,10 @@ const DYNAMIC_ROUTES = {
     MERGE_TRANSACTION_RECEIPT_PAGE: {
         path: 'receipt',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE],
-        getRoute: () => 'receipt',
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
         path: 'details',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE],
-        getRoute: () => 'details',
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
         path: 'confirmation',
@@ -294,7 +292,6 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.SEARCH.ROOT,
         ],
-        getRoute: () => 'confirmation',
     },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
