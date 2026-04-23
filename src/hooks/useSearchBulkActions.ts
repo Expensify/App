@@ -463,15 +463,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const includesEmptyReports = Object.values(selectedTransactions).some((selectedTransaction) => !selectedTransaction?.transaction);
+        const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => key.startsWith('group_') && !selectedTransaction?.transaction);
         const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
         let didFail = false;
         await exportSearchItemsToCSV(
             {
                 query: status,
                 jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
-                reportIDList: includesEmptyReports ? [] : reportIDList,
-                transactionIDList: includesEmptyReports ? [] : selectedTransactionsKeys,
+                reportIDList: includesGroupExport ? [] : reportIDList,
+                transactionIDList: includesGroupExport ? [] : selectedTransactionsKeys,
             },
             () => {
                 didFail = true;
