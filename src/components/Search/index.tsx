@@ -157,7 +157,7 @@ function mapTransactionItemToSelectedEntry(
     ];
 }
 
-function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType): [string, SelectedTransactionInfo] {
+function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType | TransactionGroupListItemType): [string, SelectedTransactionInfo] {
     return [
         item.keyForList ?? '',
         {
@@ -170,7 +170,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType)
             isHeld: false,
             canUnhold: false,
             canChangeReport: false,
-            action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+            action: (item as TransactionReportGroupListItemType).action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
             reportID: item.reportID,
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
             amount: 0,
@@ -722,7 +722,7 @@ function Search({
                     continue;
                 }
 
-                if (transactionGroup.transactions.length === 0 && isTransactionReportGroupListItemType(transactionGroup)) {
+                if (transactionGroup.transactions.length === 0) {
                     const reportKey = transactionGroup.keyForList;
                     if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         continue;
@@ -926,8 +926,7 @@ function Search({
             const areItemsGrouped = !!validGroupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
             const totalSelectableItemsCount = areItemsGrouped
                 ? (filteredData as TransactionGroupListItemType[]).reduce((count, item) => {
-                      // For empty reports, count the report itself as a selectable item
-                      if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+                      if (item.transactions.length === 0 && item.keyForList) {
                           if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                               return count;
                           }
@@ -983,19 +982,14 @@ function Search({
 
             const currentTransactions = itemTransactions ?? item.transactions;
 
-            // Handle empty reports - treat the report itself as selectable
-            if (currentTransactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+            if (currentTransactions.length === 0 && item.keyForList) {
                 const reportKey = item.keyForList;
-                if (!reportKey) {
-                    return;
-                }
 
                 if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return;
                 }
 
                 if (selectedTransactions[reportKey]?.isSelected) {
-                    // Deselect the empty report
                     const reducedSelectedTransactions: SelectedTransactions = {
                         ...selectedTransactions,
                     };
@@ -1005,7 +999,7 @@ function Search({
                     return;
                 }
 
-                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
+                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item as TransactionGroupListItemType);
                 const updatedTransactions = {
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
@@ -1353,7 +1347,7 @@ function Search({
         let updatedTransactions: SelectedTransactions;
         if (areItemsGrouped) {
             const allSelections: Array<[string, SelectedTransactionInfo]> = (filteredData as TransactionGroupListItemType[]).flatMap((item) => {
-                if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
+                if (item.transactions.length === 0 && item.keyForList) {
                     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         return [];
                     }
