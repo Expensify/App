@@ -62,7 +62,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
 
     const selfDMReport = useSelfDMReport();
-    
+
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 

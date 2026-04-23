@@ -97,7 +97,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 delete newErrors[field];
                 return newErrors;
             });
-            
+
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
             const updatedValues = getMergeFieldUpdatedValues({
@@ -171,7 +171,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         ],
     );
 
-     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
+    // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
