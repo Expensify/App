@@ -4,10 +4,15 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -20,12 +25,13 @@ import type SCREENS from '@src/SCREENS';
 function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT>>();
     const backTo = route?.params?.backTo;
     const policyOwner = policy?.owner ?? '';
 
-    const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const {export: exportConfiguration, errorFields, pendingFields, travelInvoicingPayableAccountID} = policy?.connections?.xero?.config ?? {};
     const shouldGoBackToSpecificRoute = !exportConfiguration?.nonReimbursableAccount;
 
     const goBack = useCallback(() => {
@@ -33,6 +39,12 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     }, [backTo, shouldGoBackToSpecificRoute]);
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const travelPayableAccount = bankAccounts?.find((bank) => bank.id === travelInvoicingPayableAccountID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
+
     const selectedBankAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
         return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
@@ -77,6 +89,16 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
+        ...(isTravelInvoicingEnabled
+            ? [
+                  {
+                      title: travelPayableAccount?.name,
+                      description: translate('workspace.common.travelInvoicing'),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+                      subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                  },
+              ]
+            : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),

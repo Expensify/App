@@ -4,7 +4,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
+import type {ConnectPolicyToAccountingIntegrationParams, UpdateManyPolicyConnectionConfigurationsParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
 import type UpdateXeroAccountingMethodParams from '@libs/API/parameters/UpdateXeroAccountingMethodParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -497,6 +497,17 @@ function updateXeroExportNonReimbursableAccount(
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
+function updateXeroTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
+    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
+        policyID,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
+        configUpdate: JSON.stringify({[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: accountID}),
+        idempotencyKey: CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
+}
+
 function updateXeroSyncInvoiceCollectionsAccountID(
     policyID: string,
     invoiceCollectionsAccountID: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
@@ -588,6 +599,7 @@ export {
     updateXeroExportExporter,
     updateXeroExportBillDate,
     updateXeroExportNonReimbursableAccount,
+    updateXeroTravelInvoicingPayableAccount,
     updateXeroSyncInvoiceCollectionsAccountID,
     updateXeroSyncSyncReimbursedReports,
     updateXeroSyncReimbursementAccountID,

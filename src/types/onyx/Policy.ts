@@ -729,6 +729,9 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Xero export configs */
         export: XeroExportConfig;
 
+        /** Account ID that receives the exported travel payable */
+        travelInvoicingPayableAccountID?: string;
+
         /** Whether customers should be imported from Xero */
         importCustomers: boolean;
 
