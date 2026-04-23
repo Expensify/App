@@ -22,9 +22,6 @@ type ExpenseHeaderApprovalButtonProps = {
     /** Callback when approval is confirmed */
     onApprove: (isFullApproval: boolean) => void;
 
-    /** Whether the button is disabled */
-    isDisabled?: boolean;
-
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
@@ -95,7 +92,6 @@ function ExpenseHeaderApprovalButton({
     isAnyTransactionOnHold,
     isDelegateAccessRestricted,
     onApprove,
-    isDisabled = false,
     anchorAlignment,
     moneyRequestReport,
     shouldShowPayButton,
@@ -128,7 +124,6 @@ function ExpenseHeaderApprovalButton({
                 headerTextStyles={styles.lineHeightNormal}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                isDisabled={isDisabled}
                 anchorAlignment={anchorAlignment}
             />
         );
@@ -140,7 +135,6 @@ function ExpenseHeaderApprovalButton({
             onPress={() => onApprove(true)}
             text={translate('iou.approve')}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
-            isDisabled={isDisabled}
         />
     );
 }

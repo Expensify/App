@@ -4,7 +4,8 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
-type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>;
+type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> &
+    Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText' | 'shouldCallOnSelectedForSubMenuItem'>;
 
 type MoneyReportHeaderActionsProps = {
     reportID: string | undefined;

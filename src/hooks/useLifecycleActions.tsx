@@ -1,6 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -13,6 +14,7 @@ import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
     isReportOwner,
@@ -20,7 +22,7 @@ import {
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +70,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -94,7 +97,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
     const {clearSelectedTransactions} = useSearchActionsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'ArrowRight', 'DocumentCheck']);
 
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover =
@@ -133,6 +136,57 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
     };
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+
+    const onApprove = (isFullApproval: boolean) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        startApprovedAnimation();
+        approveMoneyRequest({
+            expenseReport: moneyRequestReport,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            expenseReportCurrentNextStepDeprecated: nextStep,
+            betas,
+            full: isFullApproval,
+            expenseReportPolicy: policy,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
+            delegateEmail,
+        });
+        if (currentSearchQueryJSON) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals: true,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+    };
+
+    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+    const secondaryApprovalActions = shouldShowApprovalSecondaryActions
+        ? getApprovalDropdownOptions({
+              moneyRequestReport,
+              hasOnlyHeldExpenses,
+              onPartialApprove: () => onApprove(false),
+              onFullApprove: () => onApprove(true),
+              translate,
+              shouldShowPayButton,
+              illustrations: expensifyIcons,
+          })
+        : undefined;
+    const approvalOptionsHeaderText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
 
     const confirmApproval = (skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
@@ -246,9 +300,20 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             text: translate('iou.approve'),
+            rightIcon: shouldShowApprovalSecondaryActions ? expensifyIcons.ArrowRight : undefined,
+            backButtonText: shouldShowApprovalSecondaryActions ? translate('iou.approve') : undefined,
             icon: expensifyIcons.ThumbsUp,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
-            onSelected: confirmApproval,
+            subMenuItems: secondaryApprovalActions,
+            shouldUpdateSelectedIndex: true,
+            subMenuHeaderText: shouldShowApprovalSecondaryActions ? approvalOptionsHeaderText : undefined,
+            onSelected: () => {
+                if (shouldShowApprovalSecondaryActions) {
+                    return;
+                }
+                confirmApproval();
+            },
+            shouldCallOnSelectedForSubMenuItem: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,

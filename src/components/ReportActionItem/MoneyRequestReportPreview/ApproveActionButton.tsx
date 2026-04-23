@@ -1,9 +1,8 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
-import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -11,17 +10,14 @@ import {hasHeldExpenses as hasHeldExpensesReportUtils, hasViolations as hasViola
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type ApproveActionButtonProps = {
     iouReportID: string | undefined;
     startApprovedAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     shouldShowPayButton: boolean;
 };
 
-function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpen, shouldShowPayButton}: ApproveActionButtonProps) {
-    const {translate} = useLocalize();
+function ApproveActionButton({iouReportID, startApprovedAnimation, shouldShowPayButton}: ApproveActionButtonProps) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -43,13 +39,12 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(iouReport?.reportID);
 
-    const confirmApproval = () => {
+    const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, undefined, shouldShowPayButton);
-        } else {
+        } else if (!isAnyTransactionOnHold) {
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
@@ -63,7 +58,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
-                full: true,
+                full,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
             });
@@ -71,11 +66,16 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
     };
 
     return (
-        <Button
-            text={translate('iou.approve')}
-            success
-            onPress={confirmApproval}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+        <ExpenseHeaderApprovalButton
+            isAnyTransactionOnHold={isAnyTransactionOnHold}
+            isDelegateAccessRestricted={isDelegateAccessRestricted}
+            onApprove={onApprove}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+            }}
+            moneyRequestReport={iouReport}
+            shouldShowPayButton={shouldShowPayButton}
         />
     );
 }
