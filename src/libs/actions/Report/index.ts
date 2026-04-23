@@ -7197,6 +7197,7 @@ function changeReportPolicyAndInviteSubmitter({
     formatPhoneNumber,
     isReportLastVisibleArchived,
     reportNextStep,
+    reportActionsList,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7210,6 +7211,7 @@ function changeReportPolicyAndInviteSubmitter({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    reportActionsList?: OnyxCollection<ReportActions>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -7235,6 +7237,7 @@ function changeReportPolicyAndInviteSubmitter({
         currentUserAccountID,
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        reportActionsList,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
