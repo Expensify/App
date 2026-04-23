@@ -270,8 +270,7 @@ const DYNAMIC_ROUTES = {
     MERGE_TRANSACTION_LIST_PAGE: {
         path: 'merge/:transactionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.SEARCH.ROOT],
-        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}`, {isOnSearch: isOnSearch ? 'true' : undefined}),
-        queryParams: ['isOnSearch'],
+        getRoute: (transactionID: string) => `merge/${transactionID}`,
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
         path: 'receipt',
