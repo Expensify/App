@@ -95,7 +95,7 @@ function setupMergeTransactionDataAndNavigate(
     }
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, isOnSearch)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(isOnSearch)));
     } else {
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
@@ -115,11 +115,11 @@ function setupMergeTransactionDataAndNavigate(
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, isOnSearch)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(isOnSearch)));
             return;
         }
 
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, isOnSearch)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(isOnSearch)));
     }
 }
 

@@ -274,21 +274,21 @@ const DYNAMIC_ROUTES = {
         queryParams: ['isOnSearch'],
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
-        path: 'merge/:transactionID/receipt',
+        path: 'receipt',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE],
-        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}/receipt`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        getRoute: (isOnSearch = false) => getUrlWithParams('receipt', {isOnSearch: isOnSearch ? 'true' : undefined}),
         queryParams: ['isOnSearch'],
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
-        path: 'merge/:transactionID/details',
+        path: 'details',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE],
-        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}/details`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        getRoute: (isOnSearch = false) => getUrlWithParams('details', {isOnSearch: isOnSearch ? 'true' : undefined}),
         queryParams: ['isOnSearch'],
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
-        path: 'merge/:transactionID/confirmation',
+        path: 'confirmation',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE],
-        getRoute: (transactionID: string, isOnSearch = false) => getUrlWithParams(`merge/${transactionID}/confirmation`, {isOnSearch: isOnSearch ? 'true' : undefined}),
+        getRoute: (isOnSearch = false) => getUrlWithParams('confirmation', {isOnSearch: isOnSearch ? 'true' : undefined}),
         queryParams: ['isOnSearch'],
     },
     SETTINGS_CATEGORY_EDIT: {

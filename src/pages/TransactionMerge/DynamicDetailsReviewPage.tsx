@@ -142,7 +142,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(isOnSearch)));
         }
     }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
 
