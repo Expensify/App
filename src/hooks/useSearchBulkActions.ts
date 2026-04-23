@@ -887,6 +887,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = isExpenseReportType;
+            const includesGroupExport = Object.values(selectedTransactions).some(selectedTransaction => !selectedTransaction?.transaction);
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -1005,6 +1006,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
 
             for (const template of exportTemplates) {
+                if (includesGroupExport) {
+                    break;
+                }
                 exportOptions.push({
                     text: template.name,
                     icon: expensifyIcons.Table,
