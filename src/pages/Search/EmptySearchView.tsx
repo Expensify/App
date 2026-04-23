@@ -24,6 +24,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
@@ -157,6 +158,8 @@ function EmptySearchViewContent({
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
@@ -323,12 +326,27 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            ...(groupPoliciesWithChatEnabled.length > 0
+                            ...(hasSeenTour
                                 ? [
                                       {
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: () => {
                                               interceptAnonymousUser(() => {
+                                                  if (shouldNavigateToUpgradePath) {
+                                                      const freshReportID = generateReportID();
+                                                      const freshTransactionID = generateReportID();
+                                                      Navigation.navigate(
+                                                          ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                              action: CONST.IOU.ACTION.CREATE,
+                                                              iouType: CONST.IOU.TYPE.CREATE,
+                                                              transactionID: freshTransactionID,
+                                                              reportID: freshReportID,
+                                                              upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                                          }),
+                                                      );
+                                                      return;
+                                                  }
+
                                                   const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                                                   if (
