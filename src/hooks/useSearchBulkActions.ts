@@ -355,12 +355,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 setIsOfflineModalVisible(true);
                 return;
             }
+            const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
 
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
-                    jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
+                    jsonQuery: serializedQuery,
                     reportIDList: [],
                     transactionIDList: [],
                     policyID,
@@ -369,7 +370,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
-                    jsonQuery: '{}',
+                    jsonQuery: queryJSON?.groupBy ? serializedQuery : '{}',
                     reportIDList: selectedTransactionReportIDs,
                     transactionIDList: selectedTransactionsKeys,
                     policyID,
