@@ -1,4 +1,5 @@
-import React, {useLayoutEffect, useRef} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
@@ -29,8 +30,8 @@ type CountrySelectionListProps = {
     /** Function to call when the user confirms their selection */
     onConfirm: () => void;
 
-    /** Incremented when the wallet country screen returns from the next step and needs to restore its viewport */
-    restoreViewportVersion?: number;
+    /** Whether the wallet flow should reset the list viewport when the screen regains focus after the initial mount */
+    shouldResetViewportOnFocusReturn?: boolean;
 
     /** Whether the user is editing an existing account */
     isEditing?: boolean;
@@ -39,15 +40,32 @@ type CountrySelectionListProps = {
     footerContent?: React.ReactNode;
 };
 
-function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, restoreViewportVersion, footerContent}: CountrySelectionListProps) {
+function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, shouldResetViewportOnFocusReturn = false, footerContent}: CountrySelectionListProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const selectionListRef = useRef<SelectionListHandle<Option> | null>(null);
-    const completedRestoreViewportVersionRef = useRef<number | undefined>(undefined);
-    const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetDeps: [restoreViewportVersion], resetOnFocus: restoreViewportVersion === undefined});
+    const hasFocusedOnceRef = useRef(false);
+    const completedFocusReturnVersionRef = useRef(0);
+    const [focusReturnVersion, setFocusReturnVersion] = useState(0);
+    const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldResetViewportOnFocusReturn) {
+                return;
+            }
+
+            if (!hasFocusedOnceRef.current) {
+                hasFocusedOnceRef.current = true;
+                return;
+            }
+
+            setFocusReturnVersion((currentVersion) => currentVersion + 1);
+        }, [shouldResetViewportOnFocusReturn]),
+    );
 
     const onSelectionChange = (country: Option) => {
         onCountrySelected(country.value);
@@ -69,13 +87,19 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const isSelectedCountryPinnedToTop = !!selectedCountry && orderedCountries.at(0)?.value === selectedCountry;
 
     useLayoutEffect(() => {
-        if (restoreViewportVersion === undefined || restoreViewportVersion === completedRestoreViewportVersionRef.current || debouncedSearchValue || !isSelectedCountryPinnedToTop) {
+        if (
+            !shouldResetViewportOnFocusReturn ||
+            focusReturnVersion === 0 ||
+            focusReturnVersion === completedFocusReturnVersionRef.current ||
+            debouncedSearchValue ||
+            !isSelectedCountryPinnedToTop
+        ) {
             return;
         }
 
         selectionListRef.current?.scrollToIndex(0);
-        completedRestoreViewportVersionRef.current = restoreViewportVersion;
-    }, [debouncedSearchValue, isSelectedCountryPinnedToTop, restoreViewportVersion]);
+        completedFocusReturnVersionRef.current = focusReturnVersion;
+    }, [debouncedSearchValue, focusReturnVersion, isSelectedCountryPinnedToTop, shouldResetViewportOnFocusReturn]);
 
     const textInputOptions = {
         label: translate('common.search'),

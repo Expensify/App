@@ -1,4 +1,3 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
@@ -7,19 +6,6 @@ import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-let mockUseFocusEffectCallback: (() => void) | undefined;
-
-jest.mock('@react-navigation/native', () => {
-    const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
-
-    return {
-        ...actualNavigation,
-        useFocusEffect: jest.fn((callback: () => void) => {
-            mockUseFocusEffectCallback = callback;
-        }),
-    };
-});
 
 jest.mock('@components/FormAlertWithSubmitButton', () => jest.fn(() => null));
 jest.mock('@pages/settings/Wallet/CountrySelectionList', () => jest.fn(() => null));
@@ -53,7 +39,6 @@ describe('BankAccountPurpose CountrySelection', () => {
     let mockUnmountCount = 0;
 
     beforeEach(() => {
-        mockUseFocusEffectCallback = undefined;
         mockMountCount = 0;
         mockUnmountCount = 0;
         mockedCountrySelectionList.mockClear();
@@ -74,11 +59,11 @@ describe('BankAccountPurpose CountrySelection', () => {
         });
     });
 
-    it('arms a restore cycle on confirm and increments the restore version once on focus return without remounting the child list', () => {
+    it('passes the simpler wallet viewport-reset flag without remounting the child list', () => {
         render(<CountrySelection />);
 
         const initialProps = mockedCountrySelectionList.mock.lastCall?.[0];
-        expect(initialProps?.restoreViewportVersion).toBeUndefined();
+        expect(initialProps?.shouldResetViewportOnFocusReturn).toBe(true);
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
 
@@ -88,7 +73,9 @@ describe('BankAccountPurpose CountrySelection', () => {
 
         const updatedSelectionProps = mockedCountrySelectionList.mock.lastCall?.[0];
         expect(updatedSelectionProps?.selectedCountry).toBe('LT');
-        expect(updatedSelectionProps?.restoreViewportVersion).toBeUndefined();
+        expect(updatedSelectionProps?.shouldResetViewportOnFocusReturn).toBe(true);
+        expect(mockMountCount).toBe(1);
+        expect(mockUnmountCount).toBe(0);
 
         act(() => {
             updatedSelectionProps?.onConfirm();
@@ -98,22 +85,6 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockedClearReimbursementAccountDraft).toHaveBeenCalled();
         expect(mockedUpdateReimbursementAccountDraft).toHaveBeenCalledWith({country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT});
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
-
-        act(() => {
-            mockUseFocusEffectCallback?.();
-        });
-
-        const restoredProps = mockedCountrySelectionList.mock.lastCall?.[0];
-        expect(restoredProps?.selectedCountry).toBe('LT');
-        expect(restoredProps?.restoreViewportVersion).toBe(1);
-        expect(mockMountCount).toBe(1);
-        expect(mockUnmountCount).toBe(0);
-
-        act(() => {
-            mockUseFocusEffectCallback?.();
-        });
-
-        expect(mockedCountrySelectionList.mock.lastCall?.[0]?.restoreViewportVersion).toBe(1);
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
     });

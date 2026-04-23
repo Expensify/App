@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;
 const mockScrollToIndex = jest.fn();
+let mockFocusEffectCallbacks: Array<() => void> = [];
 const mockSelectionListHandle: SelectionListHandle<{keyForList: string}> = {
     scrollAndHighlightItem: jest.fn(),
     scrollToIndex: mockScrollToIndex,
@@ -39,7 +40,9 @@ jest.mock('@react-navigation/native', () => {
 
     return {
         ...actualNavigation,
-        useFocusEffect: jest.fn(),
+        useFocusEffect: jest.fn((callback: () => void) => {
+            mockFocusEffectCallbacks.push(callback);
+        }),
     };
 });
 
@@ -82,6 +85,7 @@ describe('CountrySelectionList', () => {
     const updatedCountry = countries.at(-2) ?? '';
 
     beforeEach(() => {
+        mockFocusEffectCallbacks = [];
         mockedSelectionList.mockClear();
         mockScrollToIndex.mockClear();
         mockedSelectionList.mockImplementation(({ref}) => {
@@ -116,17 +120,24 @@ describe('CountrySelectionList', () => {
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
     });
 
-    it('refreshes the pinned country and resets the viewport once when an explicit restore cycle completes', () => {
+    it('refreshes the pinned country and resets the viewport once when focus returns in the wallet flow', () => {
         const {rerender} = render(
             <CountrySelectionList
                 selectedCountry={initialCountry}
                 countries={countries}
                 onCountrySelected={jest.fn()}
                 onConfirm={jest.fn()}
+                shouldResetViewportOnFocusReturn
             />,
         );
 
         expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        act(() => {
+            for (const callback of mockFocusEffectCallbacks.slice(-2)) {
+                callback();
+            }
+        });
 
         rerender(
             <CountrySelectionList
@@ -134,9 +145,15 @@ describe('CountrySelectionList', () => {
                 countries={countries}
                 onCountrySelected={jest.fn()}
                 onConfirm={jest.fn()}
-                restoreViewportVersion={1}
+                shouldResetViewportOnFocusReturn
             />,
         );
+
+        act(() => {
+            for (const callback of mockFocusEffectCallbacks.slice(-2)) {
+                callback();
+            }
+        });
 
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(
