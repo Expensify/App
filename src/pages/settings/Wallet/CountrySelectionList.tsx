@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +29,9 @@ type CountrySelectionListProps = {
     /** Function to call when the user confirms their selection */
     onConfirm: () => void;
 
+    /** Incremented when the wallet country screen returns from the next step and needs to restore its viewport */
+    restoreViewportVersion?: number;
+
     /** Whether the user is editing an existing account */
     isEditing?: boolean;
 
@@ -35,12 +39,14 @@ type CountrySelectionListProps = {
     footerContent?: React.ReactNode;
 };
 
-function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, footerContent}: CountrySelectionListProps) {
+function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, restoreViewportVersion, footerContent}: CountrySelectionListProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
+    const selectionListRef = useRef<SelectionListHandle<Option> | null>(null);
+    const completedRestoreViewportVersionRef = useRef<number | undefined>(undefined);
+    const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetDeps: [restoreViewportVersion], resetOnFocus: restoreViewportVersion === undefined});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const onSelectionChange = (country: Option) => {
@@ -60,6 +66,16 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
 
     const orderedCountries = moveInitialSelectionToTopByValue(countriesList, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
+    const isSelectedCountryPinnedToTop = !!selectedCountry && orderedCountries.at(0)?.value === selectedCountry;
+
+    useLayoutEffect(() => {
+        if (restoreViewportVersion === undefined || restoreViewportVersion === completedRestoreViewportVersionRef.current || debouncedSearchValue || !isSelectedCountryPinnedToTop) {
+            return;
+        }
+
+        selectionListRef.current?.scrollToIndex(0);
+        completedRestoreViewportVersionRef.current = restoreViewportVersion;
+    }, [debouncedSearchValue, isSelectedCountryPinnedToTop, restoreViewportVersion]);
 
     const textInputOptions = {
         label: translate('common.search'),
@@ -81,6 +97,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
             </View>
             <SelectionList
+                ref={selectionListRef}
                 data={searchResults}
                 ListItem={RadioListItem}
                 onSelectRow={onSelectionChange}

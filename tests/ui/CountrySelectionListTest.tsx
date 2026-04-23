@@ -1,7 +1,9 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
+import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
@@ -9,6 +11,28 @@ import CONST from '@src/CONST';
 
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;
+const mockScrollToIndex = jest.fn();
+const mockSelectionListHandle: SelectionListHandle<{keyForList: string}> = {
+    scrollAndHighlightItem: jest.fn(),
+    scrollToIndex: mockScrollToIndex,
+    updateFocusedIndex: jest.fn(),
+    scrollToFocusedInput: jest.fn(),
+    focusTextInput: jest.fn(),
+};
+
+function attachSelectionListHandle(ref: React.Ref<SelectionListHandle<{keyForList: string}>> | undefined) {
+    if (typeof ref === 'function') {
+        ref(mockSelectionListHandle as never);
+        return;
+    }
+
+    if (!ref) {
+        return;
+    }
+
+    const refObject = ref;
+    refObject.current = mockSelectionListHandle as never;
+}
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -59,6 +83,12 @@ describe('CountrySelectionList', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        mockScrollToIndex.mockClear();
+        mockedSelectionList.mockImplementation(({ref}) => {
+            attachSelectionListHandle(ref);
+
+            return <View />;
+        });
     });
 
     it('pins the saved country to the top on reopen and disables focus-driven scroll', () => {
@@ -84,6 +114,41 @@ describe('CountrySelectionList', () => {
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
         expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
+    });
+
+    it('refreshes the pinned country and resets the viewport once when an explicit restore cycle completes', () => {
+        const {rerender} = render(
+            <CountrySelectionList
+                selectedCountry={initialCountry}
+                countries={countries}
+                onCountrySelected={jest.fn()}
+                onConfirm={jest.fn()}
+            />,
+        );
+
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        rerender(
+            <CountrySelectionList
+                selectedCountry={updatedCountry}
+                countries={countries}
+                onCountrySelected={jest.fn()}
+                onConfirm={jest.fn()}
+                restoreViewportVersion={1}
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(selectionListProps?.data.at(0)).toEqual(
+            expect.objectContaining({
+                keyForList: updatedCountry,
+                value: updatedCountry,
+                isSelected: true,
+            }),
+        );
+        expect(selectionListProps?.initiallyFocusedItemKey).toBe(updatedCountry);
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
+        expect(mockScrollToIndex).toHaveBeenCalledWith(0);
     });
 
     it('keeps the initially pinned country at the top while the live selection changes during the same mount', () => {

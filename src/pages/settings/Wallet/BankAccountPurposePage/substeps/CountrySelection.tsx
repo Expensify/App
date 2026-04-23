@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,8 +50,20 @@ function CountrySelection() {
     }, [personalPolicy?.outputCurrency, country]);
 
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
-    const [countryListInstanceID, setCountryListInstanceID] = useState(0);
+    const [restoreViewportVersion, setRestoreViewportVersion] = useState<number>();
     const [shouldShowError, setShouldShowError] = useState(false);
+    const shouldRestoreViewportOnFocusRef = useRef(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldRestoreViewportOnFocusRef.current) {
+                return;
+            }
+
+            shouldRestoreViewportOnFocusRef.current = false;
+            setRestoreViewportVersion((previousVersion) => (previousVersion ?? 0) + 1);
+        }, []),
+    );
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);
@@ -65,17 +78,17 @@ function CountrySelection() {
         clearReimbursementAccount();
         clearReimbursementAccountDraft();
         updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
-        setCountryListInstanceID((currentInstanceID) => currentInstanceID + 1);
+        shouldRestoreViewportOnFocusRef.current = true;
         navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
     };
 
     return (
         <CountrySelectionList
-            key={countryListInstanceID}
             selectedCountry={selectedCountry}
             countries={CONST.BBA_SUPPORTED_COUNTRIES}
             onCountrySelected={onCountrySelected}
             onConfirm={onConfirm}
+            restoreViewportVersion={restoreViewportVersion}
             footerContent={
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.next')}
