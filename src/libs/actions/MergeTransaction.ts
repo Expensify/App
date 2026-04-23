@@ -72,7 +72,7 @@ function setupMergeTransactionDataAndNavigate(
         const transaction = transactions.at(0);
         if (transaction) {
             setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID)));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, isOnSearch)));
             return;
         }
     }
@@ -93,7 +93,9 @@ function setupMergeTransactionDataAndNavigate(
     } else {
         setupMergeTransactionData(navigationTransactionID, setupData);
     }
-    const mergeListBasePath = isSelectingSourceTransaction ? Navigation.getActiveRoute() : createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(navigationTransactionID));
+    const mergeListBasePath = isSelectingSourceTransaction
+        ? Navigation.getActiveRoute()
+        : createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(navigationTransactionID, isOnSearch));
 
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt

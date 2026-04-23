@@ -2442,11 +2442,9 @@ type MergeTransactionNavigatorParamList = {
     };
     [SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE]: {
         transactionID: string;
-        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE]: {
         transactionID: string;
-        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE]: {
         transactionID: string;
