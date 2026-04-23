@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -352,6 +353,25 @@ function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
     return iouActionOfTargetTransaction?.childReportID;
 }
 
+function getTargetTransactionThreadReportIDForSearchSelection(transaction: OnyxEntry<Transaction>, selectedTransaction?: SelectedTransactionInfo) {
+    const selectedChildReportID = selectedTransaction?.reportAction?.childReportID;
+    if (selectedChildReportID && selectedChildReportID !== CONST.FAKE_REPORT_ID) {
+        return selectedChildReportID;
+    }
+
+    const selectedTransactionThreadReportID = selectedTransaction?.transaction?.transactionThreadReportID;
+    if (selectedTransactionThreadReportID && selectedTransactionThreadReportID !== CONST.FAKE_REPORT_ID) {
+        return selectedTransactionThreadReportID;
+    }
+
+    if (transaction?.transactionThreadReportID && transaction.transactionThreadReportID !== CONST.FAKE_REPORT_ID) {
+        return transaction.transactionThreadReportID;
+    }
+
+    const computedThreadReportID = getTransactionThreadReportID(transaction);
+    return computedThreadReportID && computedThreadReportID !== CONST.FAKE_REPORT_ID ? computedThreadReportID : undefined;
+}
+
 /**
  * Build the merged transaction data for display by combining target transaction with merge transaction updates
  * @param targetTransaction - The target transaction to merge into
@@ -694,6 +714,7 @@ export {
     areTransactionsEligibleForMerge,
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
+    getTargetTransactionThreadReportIDForSearchSelection,
     getTransactionsAndReportsFromSearch,
 };
 
