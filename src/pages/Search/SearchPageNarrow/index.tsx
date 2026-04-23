@@ -310,6 +310,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                 onDestinationVisible={endSubmitNavigationSpans}
+                hasFilterBars={hasFilterBars}
             />
         );
     };

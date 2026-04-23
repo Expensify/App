@@ -143,6 +143,7 @@ type UpdateSplitTransactionsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    isOffline: boolean;
 };
 
 type SplitBillActionsParams = {
@@ -1083,6 +1084,7 @@ function updateSplitTransactions({
     personalDetails,
     transactionReport,
     expenseReport,
+    isOffline,
 }: UpdateSplitTransactionsParams) {
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
     const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
@@ -1157,7 +1159,7 @@ function updateSplitTransactions({
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
 
         // If the rate doesn't exist or is disabled, show an error and return early
-        if (!customUnitRate || !customUnitRate.enabled) {
+        if (!customUnitRate?.enabled) {
             // Show error to user
             Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.invalidRate'),
@@ -1490,6 +1492,7 @@ function updateSplitTransactions({
                     isASAPSubmitBetaEnabled,
                     iouReportNextStep,
                     isSplitTransaction: true,
+                    isOffline,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;

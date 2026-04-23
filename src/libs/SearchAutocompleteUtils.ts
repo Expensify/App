@@ -326,7 +326,6 @@ export {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
-    getQueryWithoutAutocompletedPart,
     getTrimmedUserSearchQueryPreservingComma,
     parseForAutocomplete,
     parseForLiveMarkdown,

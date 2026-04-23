@@ -72,7 +72,7 @@ function prepareStateUnderWorkspaceOrDomainNavigator(
     const rehydratedState = stackRouter.getRehydratedState(stateWithWorkspaceNavigator, configOptions);
     const workspaceNavigatorRoute = rehydratedState.routes.at(-1);
 
-    if (!workspaceNavigatorRoute || workspaceNavigatorRoute.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
+    if (workspaceNavigatorRoute?.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
         Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
         return null;
     }

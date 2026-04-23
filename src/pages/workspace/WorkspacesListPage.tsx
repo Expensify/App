@@ -604,7 +604,7 @@ function WorkspacesListPage() {
 
     const domains = allDomains
         ? Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
-              if (!domain || !domain.accountID || !domain.email) {
+              if (!domain?.accountID || !domain.email) {
                   return domainItems;
               }
               const isDomainAdmin = isAdminSelector(currentUserPersonalDetails?.accountID)(domain);

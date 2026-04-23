@@ -24,6 +24,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -33,15 +34,17 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
+import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getReportOrDraftReport, isMoneyRequestReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getReportOrDraftReport, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
@@ -56,6 +59,7 @@ import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -129,26 +133,11 @@ function IOURequestStepConfirmation({
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
-    const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
-
-    const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
     const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
-    const isTransactionReportDifferentFromRoute = useMemo(
-        () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
-        [reportWithDraftFallback?.reportID, transaction?.reportID],
+    const report = useMemo(
+        () => resolveReportForMoneyRequest({transaction, transactionReport, routeReport: reportWithDraftFallback, policy: policyReal}),
+        [transaction, transactionReport, reportWithDraftFallback, policyReal],
     );
-    const report = useMemo(() => {
-        if (isUnreported) {
-            return undefined;
-        }
-        if (shouldUseTransactionReport) {
-            return transactionReport;
-        }
-        if (isTransactionReportDifferentFromRoute) {
-            return undefined;
-        }
-        return reportWithDraftFallback;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
     const {policy} = usePolicyForTransaction({
         transaction: initialTransaction,
@@ -251,6 +240,7 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
+    useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
 
     // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
     // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
@@ -282,32 +272,61 @@ function IOURequestStepConfirmation({
         isCategorizingTrackExpense,
         isSharingTrackExpense,
         isUnreported,
+        isPolicyExpenseChat,
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
     });
 
+    // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
+    // already on top. This is safe for per-diem TRACK (which navigates to self-DM, but when
+    // search is on top dismissModalAndOpenReportInInboxTab only dismisses). SPLIT/PAY still
+    // can't use it because their navigation is coupled to the action function.
+    const canDismissFromSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT;
+
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
+    const destinationReportID = backToReport ?? report?.reportID;
+
     useEffect(() => {
         if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
             return;
         }
 
         // Search pre-insert: global create flows that navigate to Search after submit.
-        // Report pre-insert is intentionally omitted here — it requires the fast-path
-        // handlers (handleReportPreInsert) introduced in the follow-up PR to clear the
-        // pre-insert flag on submit; without them the flag would get stuck.
-        const shouldPreInsertSearch = isFromGlobalCreate && canPreInsertSearch && !isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
+        // Also pre-insert when Search is already on top but showing a different type
+        // (e.g. Invoice tab when submitting an Expense) so the correct tab is revealed on dismiss.
+        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const isSearchOnTopWithDifferentType = isSearchTopmostFullScreenRoute() && getCurrentSearchQueryJSON()?.type !== searchType;
+        const shouldPreInsertSearch = isFromGlobalCreate && canPreInsertSearch && !isReportTopmostSplitNavigator() && (!isSearchTopmostFullScreenRoute() || isSearchOnTopWithDifferentType);
 
-        if (!shouldPreInsertSearch) {
+        // Report pre-insert: dismiss modal flows that open an existing report after submit.
+        // Skip when the destination is already the topmost fullscreen report to avoid
+        // pushing a duplicate route (which would require an extra back press).
+
+        // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
+        // Split flows handle their own dismiss/navigation, so pre-inserting would cause double navigation.
+        const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
+        const canUseReportPreInsert = !isSplitRequest && !shouldPreInsertSearch && (!isFromGlobalCreate || isReportTopmostSplitNavigator());
+
+        // RHP has its own dismiss handler; pre-inserting under it would break the stack.
+        const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
+
+        // Don't pre-insert if the report is already showing - it would push a duplicate route.
+        const hasValidDestination = !!destinationReportID && Navigation.getTopmostReportId() !== destinationReportID;
+
+        // The report must be in Onyx so the pre-inserted screen can render immediately.
+        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID)?.reportID;
+
+        const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
+
+        if (!shouldPreInsertSearch && !shouldPreInsertReport) {
             return;
         }
 
         hasPreInsertFired.current = true;
 
-        const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const route = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type})});
+        const route: Route = shouldPreInsertSearch ? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}) : ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
 
         const timer = setTimeout(() => {
             Navigation.preInsertFullscreenUnderRHP(route);
@@ -324,10 +343,14 @@ function IOURequestStepConfirmation({
             Navigation.removePreInsertedFullscreenIfNeeded();
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
-        // this screen instance. isTransactionReady flips once (false → true) as data loads
-        // asynchronously, re-triggering the effect. hasPreInsertFired prevents double-firing.
+        // this screen instance. isTransactionReady and destinationReportID may each flip once
+        // (false -> true / undefined -> ID) as data loads asynchronously, re-triggering the effect.
+        // hasPreInsertFired prevents double-firing. Note: if destinationReportID were to change
+        // from one valid ID to another (extremely unlikely with Onyx), the pre-insert would not
+        // re-fire. This is acceptable because the pre-inserted route is already correct for
+        // the original destination, and the submit handler will navigate correctly regardless.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTransactionReady]);
+    }, [isTransactionReady, destinationReportID]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -527,10 +550,11 @@ function IOURequestStepConfirmation({
             />
             <OdometerReceiptStitcher
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
-                currentTransactionID={currentTransactionID}
                 odometerStartImage={odometerStartImage}
                 odometerEndImage={odometerEndImage}
-                action={action}
+                transaction={transaction}
+                reportID={reportID}
+                backToReport={backToReport}
                 iouType={iouType}
                 onStitchingChange={setIsStitchingReceipt}
                 onStitchError={setStitchError}
@@ -542,6 +566,7 @@ function IOURequestStepConfirmation({
                 initialTransactionID={initialTransactionID}
                 reportID={reportID}
                 action={action}
+                backToReport={backToReport}
                 report={report}
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
@@ -586,8 +611,11 @@ function IOURequestStepConfirmation({
                     {!!stitchError && <FormHelpMessage message={stitchError} />}
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransaction}
+                        destinationReportID={destinationReportID}
+                        isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
                         requestType={requestType}
+                        canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}
                         lastLocationPermissionPrompt={lastLocationPermissionPrompt}
                         isDistanceRequest={isDistanceRequest}
