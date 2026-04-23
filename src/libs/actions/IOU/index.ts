@@ -51,7 +51,6 @@ import {
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -581,10 +580,6 @@ function getCurrentUserEmail(): string {
 
 function getUserAccountID(): number {
     return deprecatedUserAccountID;
-}
-
-function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
-    return deprecatedCurrentUserPersonalDetails;
 }
 
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
@@ -3933,7 +3928,6 @@ export {
     calculateDiffAmount,
     getUpdatedMoneyRequestReportData,
     startDistanceRequest,
-    hasOutstandingChildRequest,
     getReportPreviewAction,
     mergePolicyRecentlyUsedCurrencies,
     mergePolicyRecentlyUsedCategories,
@@ -3945,14 +3939,12 @@ export {
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
     getCurrentUserEmail,
-    getCurrentUserPersonalDetails,
     getUserAccountID,
     getRecentAttendees,
     getReceiptError,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyTagsData,
-    maybeUpdateReportNameForFormulaTitle,
     getSearchOnyxUpdate,
     getPolicyTags,
     // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -50,6 +51,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const {isOffline} = useNetwork();
 
     /**
      * Delete transactions by IDs
@@ -182,6 +184,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
+                    isOffline,
                 });
             }
 
@@ -240,6 +243,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyTags,
             personalDetails,
             selfDMReportID,
+            isOffline,
         ],
     );
 

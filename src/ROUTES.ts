@@ -659,6 +659,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
+    SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES: {
+        route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
+        getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
+    },
     SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
         route: 'settings/wallet/personal-card/:cardID',
         getRoute: (cardID: string | undefined) => {

@@ -20,6 +20,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -82,6 +83,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
+    const {isOffline} = useNetwork();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const {currentSearchResults, currentSearchHash, currentSearchQueryJSON} = useSearchStateContext();
@@ -326,6 +328,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,
+            isOffline,
         });
     };
 

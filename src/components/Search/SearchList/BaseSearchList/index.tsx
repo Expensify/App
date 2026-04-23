@@ -3,6 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/Table/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -10,7 +11,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import CONST from '@src/CONST';
-import type {SearchListItem} from '../ListItem/types';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);

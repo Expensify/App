@@ -879,6 +879,8 @@ type GetUpdateMoneyRequestParamsType = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isSplitTransaction?: boolean;
     isSelfDMSplit?: boolean;
+    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
+    isOffline?: boolean;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -917,6 +919,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         iouReportNextStep,
         isSplitTransaction,
         isSelfDMSplit,
+        isOffline,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -1122,7 +1125,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: getOutstandingChildRequest(updatedMoneyRequestReport),
         },
     );
-    if (updatedReportAction && isOneTransactionThread(transactionThreadReport ?? undefined, iouReport ?? undefined, undefined)) {
+    if (updatedReportAction && isOneTransactionThread(transactionThreadReport ?? undefined, iouReport ?? undefined, undefined, isOffline)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,

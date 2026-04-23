@@ -4,10 +4,9 @@ import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
@@ -128,7 +127,6 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {createTransactionThreadReport, expandURLPreview} from '@userActions/Report';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -239,9 +237,6 @@ type PureReportActionItemProps = {
     /** The iou report associated with the linked report, if any */
     iouReportOfLinkedReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** All the emoji reactions for the report action. */
-    emojiReactions?: OnyxTypes.ReportActionReactions;
-
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
@@ -268,17 +263,6 @@ type PureReportActionItemProps = {
 
     /** Whether the room is a chronos report */
     isChronosReport?: boolean;
-
-    /** Function to toggle emoji reaction */
-    toggleEmojiReaction?: (
-        reportID: string | undefined,
-        reportAction: OnyxTypes.ReportAction,
-        reactionObject: Emoji,
-        existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number,
-        currentUserAccountID: number,
-        ignoreSkinToneOnCompare: boolean | undefined,
-    ) => void;
 
     /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
@@ -332,9 +316,6 @@ type PureReportActionItemProps = {
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed?: boolean;
 
-    /** Current user's account id */
-    currentUserAccountID: number;
-
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
 
@@ -379,7 +360,6 @@ function PureReportActionItem({
     taskReport,
     linkedReport,
     iouReportOfLinkedReport,
-    emojiReactions,
     linkedTransactionRouteError,
     isUserValidated,
     parentReport,
@@ -389,7 +369,6 @@ function PureReportActionItem({
     deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
-    toggleEmojiReaction = () => {},
     resolveActionableReportMentionWhisper = () => {},
     resolveActionableMentionWhisper = () => {},
     isClosedExpenseReportWithNoExpenses,
@@ -402,7 +381,6 @@ function PureReportActionItem({
     shouldShowBorder,
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
-    currentUserAccountID,
     bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
@@ -682,13 +660,6 @@ function PureReportActionItem({
             handleShowContextMenu,
             isThreadReportParentAction,
         ],
-    );
-
-    const toggleReaction = useCallback(
-        (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, currentUserAccountID, ignoreSkinToneOnCompare);
-        },
-        [reportID, action, emojiReactions, toggleEmojiReaction, currentUserAccountID],
     );
 
     const contextMenuStateValue = useMemo(
@@ -1140,24 +1111,12 @@ function PureReportActionItem({
                         <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                     </View>
                 )}
-                {!isMessageDeleted(action) && (
+                {!isOnSearch && !isMessageDeleted(action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
                             reportAction={action}
-                            emojiReactions={isOnSearch ? {} : emojiReactions}
+                            reportID={reportID}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, preferredSkinTone, ignoreSkinToneOnCompare) => {
-                                if (isAnonymousUser()) {
-                                    hideContextMenu(false);
-
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                    InteractionManager.runAfterInteractions(() => {
-                                        signOutAndRedirectToSignIn();
-                                    });
-                                } else {
-                                    toggleReaction(emoji, preferredSkinTone, ignoreSkinToneOnCompare);
-                                }
-                            }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
@@ -1473,7 +1432,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
-        deepEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&

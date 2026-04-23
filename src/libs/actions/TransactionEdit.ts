@@ -54,12 +54,12 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
 /**
  * Removes a transaction from Onyx that was only used temporary in the edit flow
  */
-function removeBackupTransaction(transactionID: string | undefined) {
+function removeBackupTransaction(transactionID: string | undefined): Promise<void> {
     if (!transactionID) {
-        return;
+        return Promise.resolve();
     }
 
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, null);
+    return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, null);
 }
 
 function restoreOriginalTransactionFromBackup(transactionID: string | undefined, isDraft: boolean) {
@@ -187,7 +187,7 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
     return newTransaction;
 }
 
-function removeBackupTransactionWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+function removeBackupTransactionWithImageCleanup(transactionID: string | undefined, isDraft: boolean) {
     if (!transactionID) {
         return;
     }
@@ -202,33 +202,36 @@ function removeBackupTransactionWithImageCleanup(transactionID: string | undefin
                     revokeOdometerImageUri(backupTransaction?.comment?.odometerStartImage, currentTransaction?.comment?.odometerStartImage);
                     revokeOdometerImageUri(backupTransaction?.comment?.odometerEndImage, currentTransaction?.comment?.odometerEndImage);
                     removeBackupTransaction(transactionID);
-                    onComplete?.();
                 },
             });
         },
     });
 }
 
-function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: string | undefined, isDraft: boolean): Promise<void> {
     if (!transactionID) {
-        return;
+        return Promise.resolve();
     }
-    connection = Onyx.connectWithoutView({
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
-        callback: (backupTransaction) => {
-            Onyx.disconnect(connection);
-            const currentConn = Onyx.connectWithoutView({
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                callback: (currentTransaction) => {
-                    Onyx.disconnect(currentConn);
-                    revokeOdometerImageUri(currentTransaction?.comment?.odometerStartImage, backupTransaction?.comment?.odometerStartImage);
-                    revokeOdometerImageUri(currentTransaction?.comment?.odometerEndImage, backupTransaction?.comment?.odometerEndImage);
-                    Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
-                    removeBackupTransaction(transactionID);
-                    onComplete?.();
-                },
-            });
-        },
+
+    return new Promise((resolve, reject) => {
+        connection = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
+            callback: (backupTransaction) => {
+                Onyx.disconnect(connection);
+                const currentConn = Onyx.connectWithoutView({
+                    key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    callback: (currentTransaction) => {
+                        Onyx.disconnect(currentConn);
+                        revokeOdometerImageUri(currentTransaction?.comment?.odometerStartImage, backupTransaction?.comment?.odometerStartImage);
+                        revokeOdometerImageUri(currentTransaction?.comment?.odometerEndImage, backupTransaction?.comment?.odometerEndImage);
+                        Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null)
+                            .then(() => removeBackupTransaction(transactionID))
+                            .then(() => resolve())
+                            .catch((error) => reject(error));
+                    },
+                });
+            },
+        });
     });
 }
 
@@ -238,7 +241,6 @@ export {
     removeBackupTransactionWithImageCleanup,
     restoreOriginalTransactionFromBackup,
     restoreOriginalTransactionFromBackupWithImageCleanup,
-    createDraftTransaction,
     removeDraftTransaction,
     removeTransactionReceipt,
     getRemoveDraftTransactionsByIDsData,

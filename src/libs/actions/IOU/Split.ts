@@ -146,6 +146,7 @@ type UpdateSplitTransactionsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    isOffline: boolean;
 };
 
 type SplitBillActionsParams = {
@@ -1085,6 +1086,7 @@ function updateSplitTransactions({
     personalDetails,
     transactionReport,
     expenseReport,
+    isOffline,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
 
@@ -1626,6 +1628,7 @@ function updateSplitTransactions({
                     iouReportNextStep,
                     isSplitTransaction: true,
                     isSelfDMSplit,
+                    isOffline,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
