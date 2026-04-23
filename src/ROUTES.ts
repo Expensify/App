@@ -276,20 +276,17 @@ const DYNAMIC_ROUTES = {
     MERGE_TRANSACTION_RECEIPT_PAGE: {
         path: 'receipt',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE],
-        getRoute: (isOnSearch = false) => getUrlWithParams('receipt', {isOnSearch: isOnSearch ? 'true' : undefined}),
-        queryParams: ['isOnSearch'],
+        getRoute: () => 'receipt',
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
         path: 'details',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE],
-        getRoute: (isOnSearch = false) => getUrlWithParams('details', {isOnSearch: isOnSearch ? 'true' : undefined}),
-        queryParams: ['isOnSearch'],
+        getRoute: () => 'details',
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
         path: 'confirmation',
         entryScreens: [SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE, SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE],
-        getRoute: (isOnSearch = false) => getUrlWithParams('confirmation', {isOnSearch: isOnSearch ? 'true' : undefined}),
-        queryParams: ['isOnSearch'],
+        getRoute: () => 'confirmation',
     },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
