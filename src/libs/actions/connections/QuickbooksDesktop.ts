@@ -523,9 +523,7 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
 }
 
 function updateQuickbooksDesktopTravelInvoicingConfig<
-    TSettingName extends
-        | typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR
-        | typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+    TSettingName extends typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR | typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
 >(
     policyID: string,
     settingName: TSettingName,
@@ -552,9 +550,11 @@ function updateQuickbooksDesktopTravelInvoicingVendor<TSettingValue extends Conn
     updateQuickbooksDesktopTravelInvoicingConfig(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR, settingValue, oldSettingValue);
 }
 
-function updateQuickbooksDesktopTravelInvoicingPayableAccount<
-    TSettingValue extends Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID'],
->(policyID: string, settingValue: TSettingValue, oldSettingValue?: TSettingValue) {
+function updateQuickbooksDesktopTravelInvoicingPayableAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
     updateQuickbooksDesktopTravelInvoicingConfig(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
 }
 
