@@ -8,6 +8,23 @@ function normalizeRoute(route: string): string {
         .replaceAll(/\/+/g, '/');
 }
 
+function getNestedBackToRoute(route: string): Route | undefined {
+    const [, queryString = ''] = route.split('?');
+
+    if (!queryString) {
+        return undefined;
+    }
+
+    const params = new URLSearchParams(queryString);
+    const encodedBackTo = params.get('backTo');
+
+    if (!encodedBackTo) {
+        return undefined;
+    }
+
+    return decodeURIComponent(encodedBackTo) as Route;
+}
+
 function doesRouteTargetCurrentReport(route: string, reportID: string): boolean {
     const normalizedRoute = normalizeRoute(route);
     const currentReportRoutes = [
@@ -20,16 +37,36 @@ function doesRouteTargetCurrentReport(route: string, reportID: string): boolean 
     return currentReportRoutes.some((currentReportRoute) => normalizedRoute === currentReportRoute || normalizedRoute.startsWith(`${currentReportRoute}/`));
 }
 
-function shouldUseBackToOnLeaveReport(reportID: string | undefined, backTo?: Route): boolean {
+function getBackToOnLeaveReport(reportID: string | undefined, backTo?: Route): Route | undefined {
     if (!backTo) {
-        return false;
+        return undefined;
+    }
+
+    const normalizedBackTo = normalizeRoute(backTo);
+    const isSearchRoute = normalizedBackTo.startsWith(ROUTES.SEARCH_ROOT.route);
+
+    if (isSearchRoute) {
+        if (!reportID || !doesRouteTargetCurrentReport(backTo, reportID)) {
+            return backTo;
+        }
+
+        return getNestedBackToRoute(backTo) ?? backTo;
     }
 
     if (!reportID) {
-        return true;
+        return backTo;
     }
 
-    return !doesRouteTargetCurrentReport(backTo, reportID);
+    if (doesRouteTargetCurrentReport(backTo, reportID)) {
+        return undefined;
+    }
+
+    return backTo;
 }
 
+function shouldUseBackToOnLeaveReport(reportID: string | undefined, backTo?: Route): boolean {
+    return !!getBackToOnLeaveReport(reportID, backTo);
+}
+
+export {getBackToOnLeaveReport};
 export default shouldUseBackToOnLeaveReport;
