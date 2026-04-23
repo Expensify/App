@@ -212,6 +212,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
+            isOffline: false,
         });
 
         await waitForBatchedUpdates();
@@ -298,6 +299,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
+            isOffline: false,
         });
 
         await waitForBatchedUpdates();
@@ -405,6 +407,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
+            isOffline: false,
         });
 
         await waitForBatchedUpdates();
@@ -497,6 +500,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
+            isOffline: false,
         });
 
         await waitForBatchedUpdates();
@@ -555,6 +559,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
+            isOffline: false,
         });
 
         await waitForBatchedUpdates();
@@ -644,6 +649,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
+            isOffline: false,
         });
 
         await waitForBatchedUpdates();
