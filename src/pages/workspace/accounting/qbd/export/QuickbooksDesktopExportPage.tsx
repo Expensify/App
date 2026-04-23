@@ -6,8 +6,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {getCardSettings} from '@libs/CardUtils';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -20,6 +25,7 @@ import type SCREENS from '@src/SCREENS';
 
 function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
@@ -32,6 +38,14 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qbdConfig?.export?.nonReimbursable],
     );
+    const {vendors, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const travelVendor = vendors?.find((vendor) => vendor.id === qbdConfig?.export?.travelInvoicingVendorID);
+    const travelPayableAccount = payableAccounts?.find((account) => account.id === qbdConfig?.export?.travelInvoicingPayableAccountID);
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
 
     const shouldGoBackToSpecificRoute = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK || shouldShowVendorMenuItems,
@@ -79,6 +93,16 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                 ...(shouldShowVendorMenuItems && qbdConfig?.shouldAutoCreateVendor ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
             ],
         },
+        ...(isTravelInvoicingEnabled
+            ? [
+                  {
+                      description: translate('workspace.common.travelInvoicing'),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+                      title: travelPayableAccount?.name ?? travelVendor?.name,
+                      subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                  },
+              ]
+            : []),
         {
             description: translate('workspace.qbd.exportExpensifyCard'),
             title: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
