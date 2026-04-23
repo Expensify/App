@@ -21,16 +21,12 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
@@ -57,17 +53,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
@@ -2528,6 +2515,8 @@ ${amount} per ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezePrefix: 'Questa carta è stata bloccata da ',
         frozenByAdminNeedsUnfreezeSuffix: '. Contatta un amministratore per sbloccarla.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Questa carta è stata bloccata da ${person}. Contatta un amministratore per sbloccarla.`,
+        spendRules: 'Regole di spesa',
+        editSpendRules: 'Modifica regole di spesa',
     },
     workflowsPage: {
         workflowTitle: 'Spesa',
@@ -4284,6 +4273,9 @@ ${amount} per ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mese', yearly: 'anno'},
             budgetTypeForNotificationMessage: {tag: 'etichetta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della Carta Expensify verranno esportate automaticamente in un "Conto Passivo Carta Expensify" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
+            travelInvoicing: 'Esporta conti da pagare di Expensify Travel a',
+            travelInvoicingVendor: 'Fornitore di viaggi',
+            travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             hr: 'Risorse umane',
         },
         receiptPartners: {
@@ -4573,9 +4565,6 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
-            travelInvoicing: 'Esporta debiti di Expensify Travel verso',
-            travelInvoicingVendor: 'Fornitore di viaggi',
-            travelInvoicingPayableAccount: 'Conto debiti per viaggi',
         },
         workspaceList: {
             joinNow: 'Iscriviti ora',
@@ -4893,9 +4882,6 @@ ${amount} per ${merchant} - ${date}`,
             noAccountsFoundDescription: 'Aggiungi l’account in NetSuite e sincronizza nuovamente la connessione',
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Aggiungi fornitori in NetSuite e sincronizza di nuovo la connessione',
-            travelInvoicing: 'Esporta conti da pagare di Expensify Travel a',
-            travelInvoicingVendor: 'Fornitore di viaggi',
-            travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             noItemsFound: 'Nessuna voce di fattura trovata',
             noItemsFoundDescription: 'Aggiungi le voci della fattura in NetSuite e sincronizza di nuovo la connessione',
             noSubsidiariesFound: 'Nessuna consociata trovata',
@@ -6883,7 +6869,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 currencyMismatchTitle: 'Valuta non corrispondente',
                 currencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si regolano nella stessa valuta.',
                 reviewSelectedCards: 'Controlla le carte selezionate',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} altro`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} altri` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Applica almeno una regola di spesa a una carta',
                 confirmErrorCardRequired: 'Il campo Carta è obbligatorio',
                 confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
@@ -6918,6 +6904,30 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'esercenti' : 'esercente'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
             },
         },
         planTypePage: {
@@ -6962,7 +6972,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Modalità approvazione', finalApprover: 'Approvazione finale'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Modalità approvazione',
+                finalApprover: 'Approvazione finale',
+                connect: 'Collega',
+                connectionDescription: 'Collega Gusto per sincronizzare le approvazioni dei dipendenti con il tuo spazio di lavoro.',
+            },
         },
     },
     getAssistancePage: {
@@ -7054,7 +7070,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha aggiunto ${approverName} (${approverEmail}) come approvatore per il campo ${field} «${name}»`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `ha rimosso ${approverName} (${approverEmail}) come approvatore per il campo ${field} "${name}"`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `ha modificato l’approvatore per il campo ${field} «${name}» in ${formatApprover(newApproverName, newApproverEmail)} (in precedenza ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -7103,7 +7119,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `ha modificato la categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `ha aggiornato la categoria "${categoryName}" modificando Ricevute dettagliate in ${newValue}`;
             }
@@ -7130,7 +7146,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `ha aggiornato il tag "${tagName}" nell'elenco "${tagListName}" aggiungendo un ${updatedField} di "${newValue}"`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `ha modificato ${customUnitName} ${updatedField} in "${newValue}" (precedentemente "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'abilitato' : 'disabilitato'} monitoraggio delle tasse sulle tariffe chilometriche`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `ha aggiunto una nuova tariffa ${customUnitName} "${rateName}"`,
@@ -7151,7 +7167,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'abilitato' : 'disattivato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `ha rimosso la tariffa "${rateName}" per l'unità personalizzata "${customUnitName}"`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `ha rimosso la tariffa "${rateName}" per l'unità personalizzata "${customUnitName}"`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `imposta il valore predefinito del campo report "${fieldName}" su "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `ha aggiunto l’opzione «${optionName}» al campo del rendiconto «${fieldName}»`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `ha rimosso l’opzione «${optionName}» dal campo del report «${fieldName}»`,
@@ -7206,7 +7222,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         downgradedWorkspace: 'ha effettuato il downgrade di questo spazio di lavoro al piano Collect',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `ha modificato la percentuale di report indirizzati casualmente per l’approvazione manuale a ${Math.round(newAuditRate * 100)}% (in precedenza ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) =>
             `ha modificato il limite di approvazione manuale per tutte le spese a ${newLimit} (in precedenza ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
@@ -7311,11 +7327,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 ? `ha modificato il pagatore autorizzato in "${newReimburser}" (in precedenza "${previousReimburser}")`
                 : `ha modificato il pagatore autorizzato in "${newReimburser}"`,
         updateReimbursementEnabled: (enabled: boolean) => `Rimborsi ${enabled ? 'abilitato' : 'disattivato'}`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `ha cambiato il nome dell'imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+        updateCustomTaxName: (oldName: string, newName: string) => `ha cambiato il nome dell'imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) =>
             `ha modificato l'aliquota fiscale predefinita della valuta dello spazio di lavoro in "${newName}" (in precedenza "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `ha modificato l'aliquota fiscale predefinita per valuta estera in "${newName}" (in precedenza "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `ha modificato l'aliquota fiscale predefinita per valuta estera in "${newName}" (in precedenza "${oldName}")`,
         addTax: (taxName: string) => `ha aggiunto l’imposta “${taxName}”`,
         deleteTax: (taxName: string) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
@@ -7354,14 +7369,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updateTagListRequired: (tagListsName: string, isRequired: boolean) => `ha modificato l’elenco tag "${tagListsName}" in ${isRequired ? 'obbligatorio' : 'non obbligatorio'}`,
         importTags: 'tag importati da un foglio di calcolo',
         deletedAllTags: 'ha eliminato tutti i tag',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `ha cambiato la categoria predefinita di ${customUnitName} in "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `tariffe importate per l'unità personalizzata "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `ha modificato l’aliquota di "${customUnitName}", tariffa "${customUnitRateName}", sotto-tariffa "${customUnitSubRateName}" ${updatedField} in "${newValue}" (precedentemente "${oldValue}")`,
         removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `rimossa tariffa "${customUnitName}" tariffa "${customUnitRateName}" sottotariffa "${removedSubRateName}"`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `con soglia di notifica pari al "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `aggiunto ${frequency} budget individuale di "${individual}" e ${frequency} budget condiviso di "${shared}"${thresholdSuffix} a ${entityType} "${entityName}"`;
@@ -7371,18 +7386,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `ha aggiunto un budget condiviso ${frequency} di "${shared}"${thresholdSuffix} a ${entityType} "${entityName}"`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7417,7 +7432,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `budget aggiornato per ${entityType} «${entityName}»: ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `con soglia di notifica pari al "${notificationThreshold}%"` : '';
             if (shared && individual) {
                 return `ha rimosso ${frequency} il budget condiviso di "${shared}" e il budget individuale di "${individual}"${thresholdSuffix} da ${entityType} "${entityName}"`;
@@ -7483,7 +7498,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
-        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+        addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
     },
     roomMembersPage: {
@@ -7632,6 +7647,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
             undelete: 'Ripristina',
+            duplicateReport: ({count}: {count: number}) => `Duplica ${count === 1 ? 'report' : 'report'}`,
         },
         filtersHeader: 'Filtri',
         filters: {
@@ -7851,7 +7867,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             emptyReportConfirmationTitle: 'Hai già un report vuoto',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sei sicuro di voler creare un altro report in ${workspaceName}? Puoi accedere ai tuoi report vuoti in`,
-            emptyReportConfirmationPromptLink: 'Report',
             emptyReportConfirmationDontShowAgain: 'Non mostrarmelo più',
             genericWorkspaceName: 'questo spazio di lavoro',
         },
@@ -7910,6 +7925,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 takeControl: `ha preso il controllo`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `si è verificato un problema di sincronizzazione con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Risolvi il problema nelle <a href="${workspaceAccountingLink}">impostazioni dello spazio di lavoro</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Ripetuto ${count} volte.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connessione ${feedName} è interrotta. Per ripristinare le importazioni della carta, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
@@ -9119,8 +9135,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceTwoFactorAuthDescription: `<muted-text>Richiedi l’autenticazione a due fattori per tutti i membri di questo dominio. Ai membri del dominio verrà chiesto di configurare l’autenticazione a due fattori sul proprio account quando effettuano l’accesso.</muted-text>`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
             resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
+            error: 'Impossibile salvare questa modifica. Riprova.',
         },
-        groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
+        groups: {
+            title: 'Gruppi',
+            memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`}),
+        },
     },
     proactiveAppReview: {
         title: 'Ti piace il nuovo Expensify?',

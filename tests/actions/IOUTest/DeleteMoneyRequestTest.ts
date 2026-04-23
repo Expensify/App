@@ -26,6 +26,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
 import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
@@ -72,6 +73,9 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
+    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
+    reserveDeferredWriteChannel: jest.fn(),
+    resetForTesting: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
@@ -515,13 +519,18 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given User logins from the participant accounts
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             // When Opening a thread report with the given details
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -616,13 +625,19 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given User logins from the participant accounts
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
 
             // When Opening a thread report with the given details
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -742,11 +757,17 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -880,11 +901,17 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -1186,11 +1213,17 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });
@@ -1359,11 +1392,17 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 betas: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
             });

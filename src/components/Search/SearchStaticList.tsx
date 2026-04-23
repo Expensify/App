@@ -6,6 +6,9 @@
  *  • The narrow-layout rendering here mirrors TransactionListItem /
  *    UserInfoAndActionButtonRow. If you change the list item UI in those
  *    components, verify this static version still looks visually identical.
+ *  • The wide-layout rendering mirrors the real Search table (SearchTableHeader +
+ *    TransactionItemRow with columns). If you change the wide list UI, verify
+ *    this static version still looks visually identical.
  *  • This component intentionally avoids expensive hooks and Onyx reads.
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
  */
@@ -14,11 +17,13 @@ import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
@@ -34,9 +39,13 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import actionTranslationsMap from './SearchList/ListItem/ActionCell/actionTranslationsMap';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
-import type {SearchQueryJSON} from './types';
+import SearchTableHeader from './SearchTableHeader';
+import type {SearchColumnType, SearchQueryJSON} from './types';
 
 const STATIC_LIST_MAX_ITEMS = 10;
+const DEFAULT_COLUMNS: SearchColumnType[] = [];
+
+const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
 
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
@@ -44,6 +53,9 @@ type SearchStaticListProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     onLayout?: () => void;
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
+    shouldUseNarrowLayout?: boolean;
+    canSelectMultiple?: boolean;
+    columns?: SearchColumnType[];
 };
 
 function StaticActionButton({action}: {action: SearchTransactionAction | undefined}) {
@@ -66,9 +78,19 @@ function StaticActionButton({action}: {action: SearchTransactionAction | undefin
     );
 }
 
-function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLayout: onLayoutProp, onDestinationVisible}: SearchStaticListProps) {
+function SearchStaticList({
+    searchResults,
+    queryJSON,
+    contentContainerStyle,
+    onLayout: onLayoutProp,
+    onDestinationVisible,
+    shouldUseNarrowLayout = true,
+    canSelectMultiple = false,
+    columns = DEFAULT_COLUMNS,
+}: SearchStaticListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -197,7 +219,8 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
                             isSelected={false}
                             shouldShowTooltip={false}
                             shouldShowCheckbox={false}
-                            shouldShowErrors={false}
+                            shouldShowErrors
+                            violations={item.violations}
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -206,6 +229,62 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
                     </View>
                 </View>
             </PressableWithoutFeedback>
+        );
+    };
+
+    const hasWideFooter = !shouldUseNarrowLayout || showPendingExpensePlaceholder;
+
+    const renderWideItem = ({item, index}: ListRenderItemInfo<TransactionListItemType>, dataLength: number) => {
+        if (!('transactionID' in item)) {
+            return null;
+        }
+        const isLastItem = index === dataLength - 1 && !hasWideFooter;
+
+        return (
+            <View
+                style={[
+                    styles.mh5,
+                    styles.flex1,
+                    {backgroundColor: theme.highlightBG},
+                    styles.userSelectNone,
+                    isLastItem && styles.searchTableBottomRadius,
+                    isLastItem && styles.overflowHidden,
+                ]}
+            >
+                <PressableWithoutFeedback
+                    sentryLabel="SearchStaticList-wide-item"
+                    accessibilityRole="button"
+                    accessibilityLabel=""
+                    onPress={() => onPressItem(item)}
+                    style={[
+                        styles.transactionListItemStyle,
+                        styles.flexRow,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                        StyleUtils.getSearchTableRowPressableStyle(isLastItem, false),
+                    ]}
+                >
+                    <TransactionItemRow
+                        transactionItem={item}
+                        report={item.report}
+                        policy={item.policy}
+                        shouldShowTooltip={false}
+                        shouldUseNarrowLayout={false}
+                        isLargeScreenWidth
+                        columns={columns}
+                        isSelected={false}
+                        isDisabled
+                        shouldShowCheckbox={canSelectMultiple}
+                        shouldShowErrors
+                        violations={item.violations}
+                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        onArrowRightPress={() => onPressItem(item)}
+                        style={[styles.p3, styles.pv2, styles.noBorderRadius]}
+                    />
+                </PressableWithoutFeedback>
+            </View>
         );
     };
 
@@ -222,7 +301,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
         onLayoutProp?.();
     };
 
-    const pendingExpenseReasonAttributes = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
+    const pendingExpenseReasonAttributes = PENDING_EXPENSE_REASON_ATTRIBUTES;
 
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
@@ -249,18 +328,52 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
             style={styles.flex1}
             onLayout={onLayout}
         >
+            {!shouldUseNarrowLayout && columns.length > 0 && (
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5]}>
+                    {canSelectMultiple && (
+                        <View
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                        >
+                            <Checkbox
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                isChecked={false}
+                                disabled
+                                containerStyle={styles.m0}
+                                onPress={() => {}}
+                            />
+                        </View>
+                    )}
+                    <View style={[styles.pr9, styles.flex1]}>
+                        <SearchTableHeader
+                            canSelectMultiple={canSelectMultiple}
+                            columns={columns}
+                            type={type}
+                            onSortPress={() => {}}
+                            sortBy={sortBy}
+                            sortOrder={sortOrder}
+                            shouldShowYear={false}
+                            isAmountColumnWide={false}
+                            isTaxAmountColumnWide={false}
+                            shouldShowSorting={false}
+                            groupBy={validGroupBy}
+                        />
+                    </View>
+                </View>
+            )}
             <FlatList
                 data={sortedData}
-                renderItem={renderItem}
+                renderItem={shouldUseNarrowLayout ? renderItem : (info) => renderWideItem(info, sortedData.length)}
                 keyExtractor={keyExtractor}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={contentContainerStyle}
+                contentContainerStyle={shouldUseNarrowLayout ? contentContainerStyle : styles.pb3}
                 removeClippedSubviews
                 ListFooterComponent={
                     showPendingExpensePlaceholder ? (
                         <SearchRowSkeleton
                             shouldAnimate
                             fixedNumItems={1}
+                            isLoadMore={!shouldUseNarrowLayout}
                             reasonAttributes={pendingExpenseReasonAttributes}
                         />
                     ) : undefined
@@ -272,12 +385,4 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
 
 SearchStaticList.displayName = 'SearchStaticList';
 
-export default React.memo(
-    SearchStaticList,
-    (prev, next) =>
-        prev.searchResults?.data === next.searchResults?.data &&
-        prev.queryJSON === next.queryJSON &&
-        prev.contentContainerStyle === next.contentContainerStyle &&
-        prev.onLayout === next.onLayout &&
-        prev.onDestinationVisible === next.onDestinationVisible,
-);
+export default SearchStaticList;

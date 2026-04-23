@@ -161,7 +161,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: invoiceItemValue,
             description: translate('workspace.netsuite.invoiceItem.label'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.path)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, ...(shouldShowInvoiceItemMenuItem(config) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : [])],
         },
         {
@@ -187,9 +187,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             title: travelPayableAccount?.name,
-            description: translate('workspace.netsuite.travelInvoicing'),
+            description: translate('workspace.common.travelInvoicing'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
             shouldHide: !isTravelInvoicingEnabled,
         },
         {

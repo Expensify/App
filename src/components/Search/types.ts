@@ -179,6 +179,8 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    /** True when at least one transaction is selected. */
+    hasSelectedTransactions: boolean;
 };
 
 type SearchStateContextValue = SearchContextData & {

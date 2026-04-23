@@ -4,10 +4,9 @@ import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
@@ -42,7 +41,6 @@ import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -53,7 +51,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
-import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -70,7 +67,6 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
-    getCardConnectionBrokenMessage,
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
     getIntegrationSyncFailedMessage,
@@ -131,7 +127,6 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {createTransactionThreadReport, expandURLPreview} from '@userActions/Report';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -140,6 +135,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import ApprovalFlowContent, {isApprovalFlowAction} from './actionContents/ApprovalFlowContent';
+import CardBrokenConnectionContent from './actionContents/CardBrokenConnectionContent';
 import ChatMessageContent from './actionContents/ChatMessageContent';
 import ConfirmWhisperContent from './actionContents/ConfirmWhisperContent';
 import FraudAlertContent from './actionContents/FraudAlertContent';
@@ -241,9 +237,6 @@ type PureReportActionItemProps = {
     /** The iou report associated with the linked report, if any */
     iouReportOfLinkedReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** All the emoji reactions for the report action. */
-    emojiReactions?: OnyxTypes.ReportActionReactions;
-
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
@@ -270,20 +263,6 @@ type PureReportActionItemProps = {
 
     /** Whether the room is a chronos report */
     isChronosReport?: boolean;
-
-    /** All cards */
-    cardList?: OnyxTypes.CardList;
-
-    /** Function to toggle emoji reaction */
-    toggleEmojiReaction?: (
-        reportID: string | undefined,
-        reportAction: OnyxTypes.ReportAction,
-        reactionObject: Emoji,
-        existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number,
-        currentUserAccountID: number,
-        ignoreSkinToneOnCompare: boolean | undefined,
-    ) => void;
 
     /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
@@ -337,9 +316,6 @@ type PureReportActionItemProps = {
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed?: boolean;
 
-    /** Current user's account id */
-    currentUserAccountID: number;
-
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
 
@@ -384,9 +360,7 @@ function PureReportActionItem({
     taskReport,
     linkedReport,
     iouReportOfLinkedReport,
-    emojiReactions,
     linkedTransactionRouteError,
-    cardList,
     isUserValidated,
     parentReport,
     personalDetails,
@@ -395,7 +369,6 @@ function PureReportActionItem({
     deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
-    toggleEmojiReaction = () => {},
     resolveActionableReportMentionWhisper = () => {},
     resolveActionableMentionWhisper = () => {},
     isClosedExpenseReportWithNoExpenses,
@@ -408,7 +381,6 @@ function PureReportActionItem({
     shouldShowBorder,
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
-    currentUserAccountID,
     bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
@@ -446,7 +418,6 @@ function PureReportActionItem({
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
-    const {environmentURL} = useEnvironment();
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -689,13 +660,6 @@ function PureReportActionItem({
             handleShowContextMenu,
             isThreadReportParentAction,
         ],
-    );
-
-    const toggleReaction = useCallback(
-        (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, currentUserAccountID, ignoreSkinToneOnCompare);
-        },
-        [reportID, action, emojiReactions, toggleEmojiReaction, currentUserAccountID],
     );
 
     const contextMenuStateValue = useMemo(
@@ -1064,16 +1028,7 @@ function PureReportActionItem({
                 />
             );
         } else if (isCardBrokenConnectionAction(action)) {
-            const message = getOriginalMessage(action);
-            const cardID = message?.cardID;
-            const cardName = message?.cardName;
-            const card = cardID ? cardList?.[cardID] : undefined;
-            const connectionLink = cardID && isPersonalCardBrokenConnection(card) ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(cardID))}` : undefined;
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment>${getCardConnectionBrokenMessage(card, cardName, translate, connectionLink)}</comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            children = <CardBrokenConnectionContent action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isRenamedAction(action)) {
@@ -1156,24 +1111,12 @@ function PureReportActionItem({
                         <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                     </View>
                 )}
-                {!isMessageDeleted(action) && (
+                {!isOnSearch && !isMessageDeleted(action) && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
                             reportAction={action}
-                            emojiReactions={isOnSearch ? {} : emojiReactions}
+                            reportID={reportID}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, preferredSkinTone, ignoreSkinToneOnCompare) => {
-                                if (isAnonymousUser()) {
-                                    hideContextMenu(false);
-
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                    InteractionManager.runAfterInteractions(() => {
-                                        signOutAndRedirectToSignIn();
-                                    });
-                                } else {
-                                    toggleReaction(emoji, preferredSkinTone, ignoreSkinToneOnCompare);
-                                }
-                            }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
@@ -1489,7 +1432,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
-        deepEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
@@ -1506,7 +1448,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
-        deepEqual(prevProps.cardList, nextProps.cardList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
         prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
         prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction

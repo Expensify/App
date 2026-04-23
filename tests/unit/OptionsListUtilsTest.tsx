@@ -78,7 +78,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -7402,6 +7402,16 @@ describe('OptionsListUtils', () => {
             // Name-only attendee should have displayName as login
             const johnSmith = result.find((r) => r.login === 'John Smith');
             expect(johnSmith).toBeDefined();
+        });
+
+        it('should preserve displayName for recent attendees with undefined email', () => {
+            const personalDetails = {};
+            const attendees: Array<{email: string; displayName: string; avatarUrl: string}> = [];
+            const recentAttendees: Attendee[] = [{displayName: 'Login Only User', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+
+            expect(result.find((r) => r.login === 'Login Only User')).toBeDefined();
         });
     });
 

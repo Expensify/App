@@ -278,6 +278,9 @@ npm run web
 ### Browser Testing
 Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
 
+### Mobile Device Testing
+Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging. Requires `npm install -g agent-device` - the skill's pre-flight check will surface the install instruction if missing.
+
 ## Architecture Decisions
 
 ### React Native New Architecture

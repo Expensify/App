@@ -11,27 +11,24 @@ import * as API from '@libs/API';
 import type {CreateDistanceRequestParams, UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
-import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
+import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import revokeOdometerImageUri from '@libs/OdometerImageUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -53,7 +50,6 @@ import {
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -72,11 +68,11 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {startSpan} from '@libs/telemetry/activeSpans';
+import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -96,12 +92,10 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
-import type {IOUAction, IOUActionParams, OdometerImageType} from '@src/CONST';
+import type {IOUAction, IOUActionParams} from '@src/CONST';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
@@ -113,7 +107,6 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
@@ -577,10 +570,6 @@ function getUserAccountID(): number {
     return deprecatedUserAccountID;
 }
 
-function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
-    return deprecatedCurrentUserPersonalDetails;
-}
-
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
     return recentAttendees;
 }
@@ -635,74 +624,8 @@ function getMoneyRequestPolicyTags({
  * It is a helper function used only in this file.
  */
 function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
-    const rootState = navigationRef.getRootState();
-    const hasSubmitToDestinationVisibleSpan = !!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-
-    if (!isInvoice && isReportOpenInRHP(rootState)) {
-        const rhpKey = rootState.routes.at(-1)?.state?.key;
-        if (rhpKey) {
-            const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
-            const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
-
-            // submit_follow_up_action: only set when the span was started.
-            if (hasSubmitToDestinationVisibleSpan) {
-                if (isSuperWideRHP) {
-                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-                } else if (hasMultipleTransactions && reportID) {
-                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
-                } else {
-                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-                }
-            }
-            // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
-            if (isSuperWideRHP) {
-                Navigation.dismissToPreviousRHP();
-                return;
-            }
-            // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
-            if (hasMultipleTransactions && reportID) {
-                // On small screens, dismiss all modals and then navigate to the right report.
-                // On large screens, dismiss to the previous RHP first, then replace the current route with the new report.
-                const isNarrowLayout = getIsNarrowLayout();
-                if (isNarrowLayout) {
-                    Navigation.dismissModal();
-                } else {
-                    Navigation.dismissToPreviousRHP();
-                }
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
-                });
-                return;
-            }
-            Navigation.pop(rhpKey);
-            return;
-        }
-    }
-    if (isSearchTopmostFullScreenRoute() || !reportID) {
-        if (hasSubmitToDestinationVisibleSpan) {
-            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        }
-        Navigation.dismissModal();
-        if (hasSubmitToDestinationVisibleSpan) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
-            InteractionManager.runAfterInteractions(() => {
-                endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-            });
-        }
-        return;
-    }
-    if (hasSubmitToDestinationVisibleSpan) {
-        Navigation.dismissModalWithReport({reportID}, undefined, {
-            onBeforeNavigate: (willOpenReport) => {
-                setPendingSubmitFollowUpAction(
-                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                    reportID,
-                );
-            },
-        });
-    } else {
-        Navigation.dismissModalWithReport({reportID});
-    }
+    const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
+    sharedDismissModalAndOpenReportInInboxTab(reportID, isInvoice, hasMultipleTransactions);
 }
 
 /**
@@ -728,68 +651,14 @@ function handleNavigateAfterExpenseCreate({
     transactionID,
     isFromGlobalCreate,
     isInvoice,
-    shouldHandleNavigation = true,
 }: {
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
-    shouldHandleNavigation?: boolean;
 }) {
-    const isUserOnInbox = isReportTopmostSplitNavigator();
-
-    // If the expense is not created from global create or is currently on the inbox tab,
-    // we just need to dismiss the money request flow screens
-    // and open the report chat containing the IOU report
-    if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
-        }
-        return;
-    }
-
-    if (!shouldHandleNavigation) {
-        return;
-    }
-
-    const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
-    // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
-    const rootState = navigationRef.getRootState();
-    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
-    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
-    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
-    const isSameSearchType = currentSearchQueryJSON?.type === type;
-    setPendingSubmitFollowUpAction(
-        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
-    );
-    const queryString = buildCannedSearchQuery({type});
-    const navigateToSearch = () => {
-        // On the fast path, onConfirm already cleared the flag and dismissed the modal,
-        // so this branch is only reached on the slow path (user submitted before the
-        // 300ms pre-insert timer fired).
-        if (getIsNarrowLayout() && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-            Navigation.clearFullscreenPreInsertedFlag();
-            Navigation.dismissModal();
-        } else if (getIsNarrowLayout()) {
-            const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-            if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
-            } else {
-                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
-            }
-        } else {
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
-        }
-    };
-
-    if (navigationRef.isReady()) {
-        navigateToSearch();
-    } else {
-        Navigation.isNavigationReady().then(navigateToSearch);
-    }
+    const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
+    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions});
 }
 
 /**
@@ -1239,78 +1108,6 @@ function setCustomUnitID(transactionID: string, customUnitID: string) {
 
 function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean, distanceUnit: Unit) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
-}
-
-/**
- * Set the odometer readings for a transaction
- */
-function setMoneyRequestOdometerReading(transactionID: string, startReading: number, endReading: number, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            odometerStart: startReading,
-            odometerEnd: endReading,
-        },
-    });
-}
-
-/**
- * Set odometer image for a transaction
- * @param transaction - The transaction or transaction draft
- * @param imageType - 'start' or 'end'
- * @param file - The image file (File object on web, URI string on native)
- * @param isDraft - Whether this is a draft transaction
- * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
- */
-function setMoneyRequestOdometerImage(
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    imageType: OdometerImageType,
-    file: FileObject | string,
-    isDraft: boolean,
-    shouldRevokeOldImage: boolean,
-) {
-    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
-    const normalizedFile: FileObject | string =
-        typeof file === 'string'
-            ? file
-            : {
-                  uri: file.uri ?? (typeof URL !== 'undefined' ? URL.createObjectURL(file as Blob) : undefined),
-                  name: file.name,
-                  type: file.type,
-                  size: file.size,
-              };
-    const transactionID = transaction?.transactionID;
-    const existingImage = transaction?.comment?.[imageKey];
-    if (shouldRevokeOldImage) {
-        revokeOdometerImageUri(existingImage, normalizedFile);
-    }
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            [imageKey]: normalizedFile,
-        },
-    });
-}
-
-/**
- * Remove odometer image from a transaction
- * @param transaction - The transaction or transaction draft
- * @param imageType - 'start' or 'end'
- * @param isDraft - Whether this is a draft transaction
- * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
- */
-function removeMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
-    if (!transaction?.transactionID) {
-        return;
-    }
-    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
-    const existingImage = transaction?.comment?.[imageKey];
-    if (shouldRevokeOldImage) {
-        revokeOdometerImageUri(existingImage);
-    }
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
-        comment: {
-            [imageKey]: null,
-        },
-    });
 }
 
 /**
@@ -3547,18 +3344,15 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         playSound(SOUNDS.DONE);
     }
 
-    const shouldDeferWrite = shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator();
     const apiWrite = () => {
         API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     };
 
-    if (shouldDeferWrite) {
-        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-        });
-    } else {
-        apiWrite();
-    }
+    deferOrExecuteWrite(apiWrite, {
+        shouldDeferForSearch: !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -3885,9 +3679,6 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
-    setMoneyRequestOdometerReading,
-    setMoneyRequestOdometerImage,
-    removeMoneyRequestOdometerImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
@@ -3907,7 +3698,6 @@ export {
     calculateDiffAmount,
     getUpdatedMoneyRequestReportData,
     startDistanceRequest,
-    hasOutstandingChildRequest,
     getReportPreviewAction,
     mergePolicyRecentlyUsedCurrencies,
     mergePolicyRecentlyUsedCategories,
@@ -3919,14 +3709,12 @@ export {
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
     getCurrentUserEmail,
-    getCurrentUserPersonalDetails,
     getUserAccountID,
     getRecentAttendees,
     getReceiptError,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyTagsData,
-    maybeUpdateReportNameForFormulaTitle,
     getSearchOnyxUpdate,
     getPolicyTags,
     // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -33,6 +33,7 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
@@ -784,9 +785,10 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            // Without the beta, tasks SHOULD be generated (old behavior)
+            // Without the beta, tasks SHOULD be generated (old behavior) — uses SMALL (not MICRO)
+            // because MICRO + MANAGE_TEAM users bypass the beta gate and get followups directly
             expect(result?.guidedSetupData).toHaveLength(3);
             const taskReportIDs =
                 result?.guidedSetupData.reduce<string[]>((acc, item) => {
@@ -7036,6 +7038,47 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticAnnounceChat', () => {
+        it('should return empty data when there are fewer than 3 participants', () => {
+            const result = buildOptimisticAnnounceChat('policyID123', [1, 2], 1);
+            expect(result.announceChatReportID).toBe('');
+            expect(result.announceChatReportActionID).toBe('');
+        });
+
+        it('should create an announce chat when there are 3 or more participants', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            expect(result.announceChatReportID).not.toBe('');
+            expect(result.announceChatReportActionID).not.toBe('');
+            expect(result.announceChatData.onyxOptimisticData.length).toBeGreaterThan(0);
+            expect(result.announceChatData.onyxSuccessData.length).toBeGreaterThan(0);
+            expect(result.announceChatData.onyxFailureData.length).toBeGreaterThan(0);
+        });
+
+        it('should not assign a role to participants for workspace chat type', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.participants?.[currentUser]?.role).toBeUndefined();
+        });
+
+        it('should create announce chat with POLICY_ANNOUNCE chat type', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+        });
+
+        it('should set writeCapability to ADMINS for announce chat', () => {
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], 100);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
+        });
+    });
+
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
@@ -8892,6 +8935,50 @@ describe('ReportUtils', () => {
             // Then the result is null
             expect(result).toBe(null);
         });
+        it('should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with actionBadge for expense report with hasParentAccess=false', async () => {
+            const policyID = 'testPolicy123';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            // An expense report with hasParentAccess=false, in processing state, where current user is the manager
+            const expenseReport: Report = {
+                ...createExpenseReport(60000),
+                policyID,
+                hasParentAccess: false,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: expenseReport.reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            // Ensure session is set (may have been cleared by a previous test)
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, isReportArchived.current);
+
+            // Should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION (from getActionTypeForAssigneeToComplete)
+            // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
         it('should return null for an archived report when there is a policy pending join request', async () => {
             // Given an archived admin room with a pending join request
             const joinRequestReportAction: ReportAction = {
@@ -12737,6 +12824,181 @@ describe('ReportUtils', () => {
 
             const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
             expect(result).toBeNull();
+
+            await Onyx.clear();
+        });
+
+        it('should return null for a processing (submitted) expense report whose only violation is a modifiedAmount NOTICE', async () => {
+            await Onyx.clear();
+
+            const policyID = 'policy-rbr-modified-amount-processing';
+            const chatReportID = 'chat-rbr-modified-amount-processing';
+            const expenseReportID = 'expense-rbr-modified-amount-processing';
+            const transactionID = 'transaction-rbr-modified-amount-processing';
+
+            const policyData: Policy = {
+                id: policyID,
+                name: 'Modified Amount Processing Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: CONST.CURRENCY.USD,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const chatReport: Report = {
+                ...createPolicyExpenseChat(820),
+                reportID: chatReportID,
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                iouReportID: expenseReportID,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(821),
+                reportID: expenseReportID,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: 42,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 5000,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const baseTransaction = createRandomTransaction(820);
+            const transaction: Transaction = {
+                ...baseTransaction,
+                transactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+            };
+
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+            const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                [transactionViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+                Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+            ]);
+            await waitForBatchedUpdates();
+
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            expect(result).toBeNull();
+
+            await Onyx.clear();
+        });
+
+        it('should still surface RBR for an open expense report whose only violation is a modifiedAmount NOTICE', async () => {
+            await Onyx.clear();
+
+            const policyID = 'policy-rbr-modified-amount-open';
+            const chatReportID = 'chat-rbr-modified-amount-open';
+            const expenseReportID = 'expense-rbr-modified-amount-open';
+            const transactionID = 'transaction-rbr-modified-amount-open';
+
+            const policyData: Policy = {
+                id: policyID,
+                name: 'Modified Amount Open Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: CONST.CURRENCY.USD,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const chatReport: Report = {
+                ...createPolicyExpenseChat(822),
+                reportID: chatReportID,
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                iouReportID: expenseReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(823),
+                reportID: expenseReportID,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: 42,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 5000,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const baseTransaction = createRandomTransaction(822);
+            const transaction: Transaction = {
+                ...baseTransaction,
+                transactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+            };
+
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+            const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                [transactionViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+                Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+            ]);
+            await waitForBatchedUpdates();
+
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
         });

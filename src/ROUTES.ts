@@ -139,6 +139,14 @@ const DYNAMIC_ROUTES = {
         path: 'receivable-account/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
     },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
+        path: 'invoice-item-preference/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
+        path: 'invoice-item/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT],
+    },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         path: 'preferred-exporter/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
@@ -196,39 +204,19 @@ const DYNAMIC_ROUTES = {
         path: 'invoice-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
     },
-    POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
-        path: 'sage-preferred-exporter',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT],
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
-        path: 'date',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT],
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES: {
-        path: 'reimbursable',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT],
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: {
-        path: 'nonreimbursable',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT],
-    },
     POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
-        path: 'nonreimbursable-expenses',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
-        path: 'reimbursable-expenses',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_REIMBURSABLE_EXPENSES],
+        path: 'destination',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
         path: 'default-vendor',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_REIMBURSABLE_EXPENSES, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES, SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
         getRoute: (reimbursable: string) => getUrlWithParams('default-vendor', {reimbursable}),
         queryParams: ['reimbursable'],
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
         path: 'credit-card-account',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
         path: 'sage-intacct-autosync',
@@ -670,6 +658,10 @@ const ROUTES = {
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
+    },
+    SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES: {
+        route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
+        getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
     },
     SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
         route: 'settings/wallet/personal-card/:cardID',
@@ -1233,6 +1225,11 @@ const ROUTES = {
             }
             return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
         },
+    },
+    MONEY_REQUEST_CREATE_VERIFY_ACCOUNT: {
+        route: `:action/:iouType/start/:transactionID/:reportID/${VERIFY_ACCOUNT}`,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     MONEY_REQUEST_STEP_SEND_FROM: {
         route: 'create/:iouType/from/:transactionID/:reportID',
@@ -1887,10 +1884,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_VENDOR_SELECT: {
-        route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/vendor',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/vendor` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/payable-account',
@@ -3731,26 +3724,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/` as const, backTo, false);
         },
     },
-    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/select` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/invoice-item-preference/invoice-item/select',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT route');
-            }
-            return `workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/invoice-item/select` as const;
-        },
-    },
     POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
         getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/export/tax-posting-account/select` as const,
@@ -3851,6 +3824,36 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export` as const, backTo, false),
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/preferred-exporter` as const, backTo),
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/date',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/date` as const, backTo),
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/reimbursable',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable` as const, backTo),
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const, backTo),
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/reimbursable/destination',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced',
@@ -4091,6 +4094,16 @@ const ROUTES = {
     DOMAIN_LOCK_ACCOUNT: {
         route: 'domain/:domainAccountID/members/:accountID/lock-account',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/lock-account` as const,
+    },
+
+    DOMAIN_GROUP_DETAILS: {
+        route: 'domain/:domainAccountID/groups/:groupID',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}` as const,
+    },
+
+    DOMAIN_GROUP_EDIT_NAME: {
+        route: 'domain/:domainAccountID/groups/:groupID/name',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/name` as const,
     },
 } as const;
 

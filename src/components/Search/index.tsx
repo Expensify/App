@@ -1,6 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,6 +31,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
@@ -78,6 +79,7 @@ import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchStaticList from './SearchStaticList';
 import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -469,8 +471,16 @@ function Search({
                 return;
             }
 
-            return deferHeavySearchWork(true);
-        }, [deferHeavySearchWork]),
+            // Show skeleton while the RHP dismiss animation plays. The transition
+            // hasn't started yet when useFocusEffect fires (it begins after paint),
+            // so waitForUpcomingTransition defers until the animation actually ends.
+            setShouldDeferHeavySearchWork(true);
+            const handle = TransitionTracker.runAfterTransitions({
+                callback: () => setShouldDeferHeavySearchWork(false),
+                waitForUpcomingTransition: true,
+            });
+            return () => handle.cancel();
+        }, []),
     );
 
     const [skeletonWasDisplayed, setSkeletonWasDisplayed] = useState(false);
@@ -1125,6 +1135,17 @@ function Search({
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
+
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+
+                startTransition(() => {
+                    if (item.transactions.length > 1) {
+                        markReportIDAsMultiTransactionExpense(reportID);
+                    } else {
+                        unmarkReportIDAsMultiTransactionExpense(reportID);
+                    }
+                });
+
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(
@@ -1143,13 +1164,6 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
-                } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
-                }
-
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
@@ -1165,17 +1179,19 @@ function Search({
             }
 
             if (isTaskListItemType(item)) {
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
                 return;
             }
 
-            markReportIDAsExpense(reportID);
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+
+            startTransition(() => {
+                markReportIDAsExpense(reportID);
+            });
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
-
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [
             isMobileSelectionModeEnabled,
@@ -1511,6 +1527,28 @@ function Search({
         },
         [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
     );
+
+    // When heavy work is deferred (e.g. during the RHP dismiss animation after
+    // submitting an expense), show a lightweight static list instead of the skeleton.
+    // This gives the user real-looking content during the animation while avoiding
+    // the expensive hooks and renders of the full Search component.
+    // Restricted to transaction-based search types (expense/invoice) because
+    // SearchStaticList only renders rows with a transactionID - non-transaction
+    // types (chat, task, report) would render empty/blank during the deferral.
+    const isTransactionSearchType = type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
+    if (isDeferringHeavyWork && searchResults?.data && isTransactionSearchType) {
+        return (
+            <SearchStaticList
+                searchResults={searchResults}
+                queryJSON={queryJSON}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                canSelectMultiple={canSelectMultiple}
+                columns={currentColumns}
+                contentContainerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                onLayout={onLayout}
+            />
+        );
+    }
 
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
