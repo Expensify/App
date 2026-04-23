@@ -646,7 +646,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -660,6 +660,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         isSelfTourViewed,
                         betas,
                         childReportNotificationPreference,
+                        personalDetails,
                     );
                 });
                 return;
@@ -675,6 +676,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isSelfTourViewed,
                 betas,
                 childReportNotificationPreference,
+                personalDetails,
             );
         },
         getDescription: () => {},
@@ -703,7 +705,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas, personalDetails}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -717,6 +719,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         isSelfTourViewed,
                         betas,
                         childReportNotificationPreference,
+                        personalDetails,
                     );
                 });
                 return;
@@ -732,6 +735,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isSelfTourViewed,
                 betas,
                 childReportNotificationPreference,
+                personalDetails,
             );
         },
         getDescription: () => {},

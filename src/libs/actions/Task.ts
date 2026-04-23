@@ -1416,6 +1416,7 @@ function clearTaskErrors(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     isSelfTourViewed: boolean | undefined,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
 ) {
     const reportID = report?.reportID;
     if (!reportID) {
@@ -1426,7 +1427,7 @@ function clearTaskErrors(
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, undefined, undefined, personalDetails);
         return;
     }
 

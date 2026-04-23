@@ -36,6 +36,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     if (!isChatReport(report)) {
@@ -49,7 +50,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID, betas, isSelfTourViewed)}
+            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID, betas, isSelfTourViewed, personalDetails)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
