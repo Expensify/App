@@ -34,14 +34,14 @@ import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
+type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE>;
 
-function ConfirmationPage({route}: ConfirmationPageProps) {
+function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, isOnSearch} = route.params;
+    const {transactionID, isOnSearch = false} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.path);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
@@ -63,7 +63,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const selfDMReport = useSelfDMReport();
 
-    // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
     const handleMergeExpenses = () => {
@@ -92,10 +91,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
-
         const searchReportIDToOpen = targetTransactionThreadReportID ?? reportIDToDismiss;
 
-        // If we're in search (or the topmost route is search), dismiss the modal and open the expense in the RHP
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -114,7 +111,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ConfirmationPage',
+            context: 'TransactionMerge.DynamicConfirmationPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -122,7 +119,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     return (
         <ScreenWrapper
-            testID="ConfirmationPage"
+            testID="DynamicConfirmationPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -159,4 +156,4 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     );
 }
 
-export default ConfirmationPage;
+export default DynamicConfirmationPage;

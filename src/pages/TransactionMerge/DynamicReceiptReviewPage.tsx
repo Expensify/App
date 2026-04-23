@@ -30,13 +30,13 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TransactionMergeReceipts from './TransactionMergeReceipts';
 
-type ReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE>;
+type DynamicReceiptReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE>;
 
-function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
+function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {transactionID, isOnSearch} = route.params;
+    const {transactionID, isOnSearch = false} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -65,15 +65,15 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch === 'true')));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch)));
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, isOnSearch === 'true')));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, isOnSearch)));
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ReceiptReviewPage',
+            context: 'TransactionMerge.DynamicReceiptReviewPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -81,7 +81,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID="ReceiptReviewPage"
+            testID="DynamicReceiptReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -117,4 +117,4 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     );
 }
 
-export default ReceiptReviewPage;
+export default DynamicReceiptReviewPage;

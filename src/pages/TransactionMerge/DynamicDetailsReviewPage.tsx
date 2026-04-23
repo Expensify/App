@@ -40,13 +40,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
 
-type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE>;
+type DynamicDetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE>;
 
-function DetailsReviewPage({route}: DetailsReviewPageProps) {
+function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {transactionID, isOnSearch} = route.params;
+    const {transactionID, isOnSearch = false} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.path);
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -85,19 +85,16 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         getCurrencyDecimals,
     ]);
 
-    // Handle selection
     const handleSelect = useCallback(
         (transaction: Transaction, field: MergeFieldKey) => {
             const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
-            // Clear error if it has
             setHasErrors((prev) => {
                 const newErrors = {...prev};
                 delete newErrors[field];
                 return newErrors;
             });
 
-            // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
             const updatedValues = getMergeFieldUpdatedValues({
                 transaction,
@@ -129,7 +126,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         ],
     );
 
-    // Handle continue
     const handleContinue = useCallback(() => {
         if (!mergeTransaction) {
             return;
@@ -146,11 +142,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch === 'true')));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, isOnSearch)));
         }
     }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
 
-    // Build merge fields array with all necessary information
     const mergeFields = useMemo(
         () =>
             buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [
@@ -170,12 +165,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         ],
     );
 
-    // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.DetailsReviewPage',
+            context: 'TransactionMerge.DynamicDetailsReviewPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -183,7 +177,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID="DetailsReviewPage"
+            testID="DynamicDetailsReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -228,4 +222,4 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     );
 }
 
-export default DetailsReviewPage;
+export default DynamicDetailsReviewPage;

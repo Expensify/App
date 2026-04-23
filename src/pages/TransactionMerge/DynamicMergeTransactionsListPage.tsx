@@ -16,9 +16,9 @@ import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeTransactionsListContent from './MergeTransactionsListContent';
 
-type MergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE>;
+type DynamicMergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE>;
 
-function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
+function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListPageProps) {
     const {translate} = useLocalize();
     const {transactionID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MERGE_TRANSACTION_LIST_PAGE.path);
@@ -27,7 +27,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.MergeTransactionsListPage',
+            context: 'TransactionMerge.DynamicMergeTransactionsListPage',
             isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -35,7 +35,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
 
     return (
         <ScreenWrapper
-            testID="MergeTransactionsListPage"
+            testID="DynamicMergeTransactionsListPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -55,4 +55,4 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     );
 }
 
-export default MergeTransactionsListPage;
+export default DynamicMergeTransactionsListPage;
