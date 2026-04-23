@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
-import {formatDate} from './FormulaDatetime';
+import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';

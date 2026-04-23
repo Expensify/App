@@ -39,7 +39,8 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllTransactionViolations, getCurrentUserEmail, getReportFromHoldRequestsOnyxData, getReportPreviewAction, getUserAccountID} from '.';
+import {getAllPersonalDetails, getAllTransactionViolations, getCurrentUserEmail, getReportPreviewAction, getUserAccountID} from '.';
+import {getReportFromHoldRequestsOnyxData} from './Hold';
 
 type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
@@ -885,5 +886,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, getPayMoneyRequestParams, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
 export type {PayInvoiceArgs, PayMoneyRequestData, PayMoneyRequestFunctionParams};

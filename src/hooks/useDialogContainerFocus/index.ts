@@ -73,4 +73,4 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
 };
 
 export default useDialogContainerFocus;
-export {focusFirstInteractiveElement, FOCUSABLE_SELECTOR};
+export {focusFirstInteractiveElement};

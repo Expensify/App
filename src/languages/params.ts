@@ -73,51 +73,7 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
-
-type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
-
-type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
-
-type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string; defaultValue?: string};
-
-type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
-
-type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
-
-type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
-
-type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
-
-type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
-
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
-
-type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
-
-type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
-
-type UpdatedBudgetParams = {
-    entityType: string;
-    entityName: string;
-    oldFrequency?: string;
-    newFrequency?: string;
-    oldIndividual?: string;
-    newIndividual?: string;
-    oldShared?: string;
-    newShared?: string;
-    oldNotificationThreshold?: number;
-    newNotificationThreshold?: number;
-};
-
-type DeleteBudgetParams = {
-    entityType: string;
-    entityName: string;
-    frequency?: string;
-    individual?: string;
-    shared?: string;
-    notificationThreshold?: number;
-};
 
 type IntegrationsMessageParams = {
     label: string;
@@ -250,17 +206,4 @@ export type {
     DisconnectTitleParams,
     OptionalParam,
     WorkspaceLockedPlanTypeParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    AddBudgetParams,
-    UpdatedBudgetParams,
-    DeleteBudgetParams,
-    AddOrDeletePolicyCustomUnitRateParams,
 };

@@ -647,6 +647,10 @@ export default {
         paddingRight: 32,
     },
 
+    pr9: {
+        paddingRight: 36,
+    },
+
     pr10: {
         paddingRight: 40,
     },
@@ -900,5 +904,9 @@ export default {
     },
     maxHeight100Percentage: {
         maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

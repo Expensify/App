@@ -9,6 +9,7 @@ import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -86,6 +87,9 @@ function WorkspaceCompanyCardsTable({
         isFeedPending,
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
+
+    const {cardFeedErrors} = useCardFeedErrors();
+    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -170,7 +174,7 @@ function WorkspaceCompanyCardsTable({
                   isAssigned,
                   assignedCard,
                   cardholder,
-                  errors: assignedCard?.errors,
+                  errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
                   onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
               };

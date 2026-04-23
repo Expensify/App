@@ -13,6 +13,10 @@
  */
 import {transformSync} from '@babel/core';
 import _ from 'lodash';
+import {createRequire} from 'module';
+
+const require = createRequire(import.meta.url);
+const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
 // Rules that are entirely unnecessary when React Compiler successfully compiles
 // all functions in a file. Add more rules here as needed.
@@ -23,15 +27,6 @@ const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-co
 // We only suppress the "wrap in useCallback/useMemo" suggestions, NOT warnings
 // about genuinely missing dependencies.
 const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
-
-// Mirror the compiler config from babel.config.js (excluding `sources`,
-// which is only relevant for the Babel build pipeline, not for our analysis).
-const ReactCompilerConfig = {
-    target: '19',
-    environment: {
-        enableTreatRefLikeIdentifiersAsRefs: true,
-    },
-};
 
 // Per-file compilation results, populated in preprocess, consumed in postprocess.
 const compilationResults = new Map();

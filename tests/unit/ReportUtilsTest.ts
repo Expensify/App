@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -33,6 +33,7 @@ import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/Report
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
@@ -784,9 +785,10 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            // Without the beta, tasks SHOULD be generated (old behavior)
+            // Without the beta, tasks SHOULD be generated (old behavior) — uses SMALL (not MICRO)
+            // because MICRO + MANAGE_TEAM users bypass the beta gate and get followups directly
             expect(result?.guidedSetupData).toHaveLength(3);
             const taskReportIDs =
                 result?.guidedSetupData.reduce<string[]>((acc, item) => {
@@ -4924,6 +4926,106 @@ describe('ReportUtils', () => {
                 canUnholdRequest: true,
             });
         });
+
+        it('should return false for admin-only on open expense report', () => {
+            const expenseReport = {
+                ...createExpenseReport(1001),
+                policyID: 'policy-1',
+                ownerAccountID: 99999,
+                managerID: 99998,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+            expenseCreatedAction.actorAccountID = 99997;
+            const adminPolicy = {
+                id: expenseReport.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
+
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, adminPolicy, currentUserAccountID)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should return false for non-admin action owner when processing report is not awaiting first level approval', () => {
+            const expenseReport = {
+                ...createExpenseReport(1002),
+                policyID: 'policy-2',
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should return true for manager on processing expense report', () => {
+            const expenseReport = {
+                ...createExpenseReport(1003),
+                policyID: 'policy-3',
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
+            expenseCreatedAction.actorAccountID = 99996;
+
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
+        });
     });
 
     describe('isAdminOwnerApproverOrReportOwner uses explicit currentUserAccountID', () => {
@@ -5580,6 +5682,115 @@ describe('ReportUtils', () => {
 
             expect(canEditReportAction(reportAction, transaction)).toEqual(false);
         });
+
+        it('should return false for a money request action on a settled expense report', async () => {
+            const settledReport: Report = {
+                reportID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const transaction = createRandomTransaction(200);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '200',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: settledReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for a money request action on an approved expense report', async () => {
+            const approvedReport: Report = {
+                reportID: '201',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            const transaction = createRandomTransaction(201);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '201',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: approvedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for a money request action on a closed expense report', async () => {
+            const closedReport: Report = {
+                reportID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            const transaction = createRandomTransaction(202);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '202',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: closedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
     });
 
     describe('getChatByParticipants', () => {
@@ -5636,8 +5847,7 @@ describe('ReportUtils', () => {
                 [invoiceReport, taskReport, iouReport, groupChatReport, oneOnOneChatReport],
                 (item) => item.reportID,
             );
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet);
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT>);
         });
         it('should return the 1:1 chat', () => {
             const report = getChatByParticipants([currentUserAccountID, userAccountID]);
@@ -6828,6 +7038,47 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticAnnounceChat', () => {
+        it('should return empty data when there are fewer than 3 participants', () => {
+            const result = buildOptimisticAnnounceChat('policyID123', [1, 2], 1);
+            expect(result.announceChatReportID).toBe('');
+            expect(result.announceChatReportActionID).toBe('');
+        });
+
+        it('should create an announce chat when there are 3 or more participants', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            expect(result.announceChatReportID).not.toBe('');
+            expect(result.announceChatReportActionID).not.toBe('');
+            expect(result.announceChatData.onyxOptimisticData.length).toBeGreaterThan(0);
+            expect(result.announceChatData.onyxSuccessData.length).toBeGreaterThan(0);
+            expect(result.announceChatData.onyxFailureData.length).toBeGreaterThan(0);
+        });
+
+        it('should not assign a role to participants for workspace chat type', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.participants?.[currentUser]?.role).toBeUndefined();
+        });
+
+        it('should create announce chat with POLICY_ANNOUNCE chat type', () => {
+            const currentUser = 100;
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], currentUser);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+        });
+
+        it('should set writeCapability to ADMINS for announce chat', () => {
+            const result = buildOptimisticAnnounceChat('policyID123', [100, 200, 300], 100);
+            const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
+            const report = reportData?.value as Report | undefined;
+            expect(report?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
+        });
+    });
+
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
@@ -6935,8 +7186,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
         });
@@ -6966,8 +7216,7 @@ describe('ReportUtils', () => {
         const archivedReport: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const nonArchivedReport: Report = createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         beforeAll(async () => {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
             });
         });
@@ -8621,6 +8870,12 @@ describe('ReportUtils', () => {
     });
 
     describe('getReasonAndReportActionThatRequiresAttention', () => {
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
         it('should return a reason for a non-archived report', async () => {
             // Given a non-archived expense report that is unread with a mention
             const report: OptionData = {
@@ -8680,6 +8935,50 @@ describe('ReportUtils', () => {
             // Then the result is null
             expect(result).toBe(null);
         });
+        it('should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with actionBadge for expense report with hasParentAccess=false', async () => {
+            const policyID = 'testPolicy123';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            // An expense report with hasParentAccess=false, in processing state, where current user is the manager
+            const expenseReport: Report = {
+                ...createExpenseReport(60000),
+                policyID,
+                hasParentAccess: false,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: expenseReport.reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            // Ensure session is set (may have been cleared by a previous test)
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, isReportArchived.current);
+
+            // Should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION (from getActionTypeForAssigneeToComplete)
+            // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
         it('should return null for an archived report when there is a policy pending join request', async () => {
             // Given an archived admin room with a pending join request
             const joinRequestReportAction: ReportAction = {
@@ -8701,6 +9000,233 @@ describe('ReportUtils', () => {
 
             // Then the result is null
             expect(result).toBe(null);
+        });
+
+        it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41000),
+                hasOutstandingChildTask: true,
+            };
+            const cardMissingAddressAction: ReportAction = {
+                reportActionID: 'card-missing-address-action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-11000',
+                childManagerAccountID: currentUserAccountID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11000,
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
+        });
+
+        it('should return the first incomplete task when waiting for assignee to complete action', async () => {
+            const completedTaskAction: ReportAction = {
+                reportActionID: 'completed-task-action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-completed',
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11001,
+                },
+            };
+
+            const incompleteTaskAction: ReportAction = {
+                reportActionID: 'incomplete-task-action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-incomplete',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11002,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41001),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [completedTaskAction.reportActionID]: completedTaskAction,
+                [incompleteTaskAction.reportActionID]: incompleteTaskAction,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // Should skip the completed task and return the incomplete one
+            expect(result?.reportAction?.reportActionID).toBe('incomplete-task-action');
+        });
+
+        it('should return the earliest incomplete task sorted by created date', async () => {
+            const laterIncompleteTask: ReportAction = {
+                reportActionID: 'later-incomplete-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-later',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-03 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11003,
+                },
+            };
+
+            const earlierIncompleteTask: ReportAction = {
+                reportActionID: 'earlier-incomplete-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-earlier',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11004,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41002),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [laterIncompleteTask.reportActionID]: laterIncompleteTask,
+                [earlierIncompleteTask.reportActionID]: earlierIncompleteTask,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // Should return the earliest created incomplete task
+            expect(result?.reportAction?.reportActionID).toBe('earlier-incomplete-task');
+        });
+
+        it('should return null reportAction when all tasks are completed', async () => {
+            const completedTask1: ReportAction = {
+                reportActionID: 'completed-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-done-1',
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11005,
+                },
+            };
+
+            const completedTask2: ReportAction = {
+                reportActionID: 'completed-2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-done-2',
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11006,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41003),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [completedTask1.reportActionID]: completedTask1,
+                [completedTask2.reportActionID]: completedTask2,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // All tasks completed, so no matching reportAction
+            expect(result?.reportAction).toBeUndefined();
+        });
+
+        it('should exclude tasks assigned to a different manager', async () => {
+            const otherManagerAccountID = 99999;
+
+            const taskAssignedToOtherManager: ReportAction = {
+                reportActionID: 'other-manager-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-other-manager',
+                childManagerAccountID: otherManagerAccountID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11007,
+                },
+            };
+
+            const taskAssignedToCurrentUser: ReportAction = {
+                reportActionID: 'current-user-task',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                childType: CONST.REPORT.TYPE.TASK,
+                childReportID: 'task-current-user',
+                childManagerAccountID: currentUserAccountID,
+                created: '2024-01-02 00:00:00',
+                originalMessage: {
+                    assigneeAccountID: currentUserAccountID,
+                    cardID: 11008,
+                },
+            };
+
+            const workspaceChat = {
+                ...createPolicyExpenseChat(41004),
+                hasOutstandingChildTask: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
+                [taskAssignedToOtherManager.reportActionID]: taskAssignedToOtherManager,
+                [taskAssignedToCurrentUser.reportActionID]: taskAssignedToCurrentUser,
+            });
+            await waitForBatchedUpdates();
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+
+            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+            // Should only return the task where childManagerAccountID matches the current user
+            expect(result?.reportAction?.reportActionID).toBe('current-user-task');
         });
     });
 
@@ -10043,6 +10569,21 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
+        });
+
+        it('should return "Deleted" when isDeleted is true', () => {
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, isDeleted: true, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.deleted'));
+        });
+
+        it('should return "Deleted" when isDeleted is true regardless of stateNum and statusNum', () => {
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
         });
     });
 
@@ -11784,36 +12325,6 @@ describe('ReportUtils', () => {
 
             expect(getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactions)).toEqual({});
         });
-    });
-
-    it('should require attention when a workspace chat awaits Expensify Card shipping details', async () => {
-        const workspaceChat = {
-            ...createPolicyExpenseChat(41000),
-            hasOutstandingChildTask: true,
-        };
-        const cardMissingAddressAction: ReportAction = {
-            reportActionID: 'card-missing-address-action',
-            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-            childType: CONST.REPORT.TYPE.TASK,
-            childReportID: 'task-11000',
-            created: DateUtils.getDBTime(),
-            originalMessage: {
-                assigneeAccountID: currentUserAccountID,
-                cardID: 11000,
-            },
-        };
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {
-            [cardMissingAddressAction.reportActionID]: cardMissingAddressAction,
-        });
-        await waitForBatchedUpdates();
-
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-        const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
-
-        expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
-        expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
     });
 
     it('should surface a GBR when reimbursement is queued and waiting on the payee bank account', async () => {
@@ -15777,7 +16288,7 @@ describe('ReportUtils', () => {
                     policy: testPolicy,
                     userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
-                    amountOwed: undefined,
+                    amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
                 });
                 options.at(2)?.onSelected?.();

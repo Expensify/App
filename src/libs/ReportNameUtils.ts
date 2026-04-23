@@ -72,6 +72,7 @@ import {
     getRenamedAction,
     getRenamedCardFeedMessage,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
+    getReportActionMessageText,
     getReportActionText,
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
@@ -472,7 +473,7 @@ function computeReportNameBasedOnReportAction(
         });
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return translate('iou.receiptScanningFailed');
+        return getReportActionMessageText(parentReportAction) || translate('iou.receiptScanningFailed');
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -868,7 +869,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
 }: ComputeReportName): string {
-    if (!report || !report.reportID) {
+    if (!report?.reportID) {
         return '';
     }
 
@@ -1020,7 +1021,7 @@ function computeReportName({
  * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  */
 function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
-    if (!report || !report.reportID) {
+    if (!report?.reportID) {
         return '';
     }
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';

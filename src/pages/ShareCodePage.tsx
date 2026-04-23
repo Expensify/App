@@ -59,7 +59,7 @@ type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
  */
 
 function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): ImageSourcePropType | undefined {
-    if (!policy || !policy.id || report?.type !== 'chat') {
+    if (!policy?.id || report?.type !== 'chat') {
         return expensifyLogo;
     }
 

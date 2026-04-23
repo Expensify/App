@@ -33,10 +33,11 @@ import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/Transacti
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
-import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
-import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
+import type {UpdateMoneyRequestData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
+import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
 /**
  * Setup merge transaction data for merging flow
@@ -259,6 +260,7 @@ function getOnyxTargetTransactionData({
             targetTransactionThreadReport?.reportID,
             filteredTransactionChanges,
             policy,
+            undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
     } else {
@@ -437,14 +439,13 @@ function mergeTransactionRequest({
                   ]
                 : [];
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         const failureReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport(transactionToDelete.reportID),
+                          value: getReportOrDraftReport(transactionToDelete.reportID) ?? null,
                       },
                   ]
                 : [];

@@ -65,6 +65,7 @@ describe('AgentZeroStatusContext', () => {
 
     afterEach(() => {
         jest.clearAllTimers();
+        jest.useRealTimers();
     });
 
     describe('basic functionality', () => {
@@ -183,6 +184,76 @@ describe('AgentZeroStatusContext', () => {
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.statusLabel).toBe('');
+        });
+
+        it('should clear optimistic waiting state after 2-minute timeout when server never responds', async () => {
+            jest.useFakeTimers();
+
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.statusLabel).toBe('');
+        });
+
+        it('should not clear optimistic state before the 2-minute timeout', async () => {
+            jest.useFakeTimers();
+
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            act(() => {
+                jest.advanceTimersByTime(60000);
+            });
+
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+        });
+
+        it('should cancel timeout when server label arrives before 2 minutes', async () => {
+            jest.useFakeTimers();
+
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            const serverLabel = 'Concierge is looking up categories...';
+            // Don't await — Onyx.merge hangs under fake timers because its internal batching setTimeout never fires.
+            // waitForBatchedUpdates() handles this by calling jest.runOnlyPendingTimers().
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel,
+            });
+            await waitForBatchedUpdates();
+
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe(serverLabel);
         });
 
         it('should clear optimistic waiting state when server label arrives', async () => {

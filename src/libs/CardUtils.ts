@@ -196,18 +196,27 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
 }
 
 /**
- * @param transactionCardName
- * @param cardID
- * @param cards
- * @returns company card name
+ * Returns the formatted card name for a company card. Returns an empty string
+ * if the card is not a real card, but a cash expense
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
-        return transactionCardName;
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+    const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
+
+    if (!cardID || !cards?.[cardID]) {
+        return formattedTransactionCardName;
     }
+
     const card = cards[cardID];
 
-    return card.cardName;
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
+
+    if (isExpensifyCard(card)) {
+        return formattedTransactionCardName;
+    }
+
+    return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
@@ -534,12 +543,23 @@ function isCustomFeed(feed: string | undefined): boolean {
 }
 
 /**
+ * Checks if a feed is a CSV upload feed (ccupload or csv prefix).
+ * Covers both NewDot-created feeds (ccupload*) and Classic-created feeds (csv*).
+ */
+function isCSVUploadFeed(feed: string | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+    const lowerFeed = feed.toLowerCase();
+    return lowerFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || lowerFeed.startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV_CLASSIC);
+}
+
+/**
  * Checks if a feed key represents a CSV feed or Expensify Card.
  * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
  */
 function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
-    const lowerFeedKey = feedKey.toLowerCase();
-    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
+    return isCSVUploadFeed(feedKey) || feedKey === CONST.EXPENSIFY_CARD.BANK;
 }
 
 /**
@@ -1057,6 +1077,43 @@ function isSmartLimitEnabled(cardsList: CardList) {
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
+function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
+    const numbers: number[] = [];
+    for (const key of Object.keys(companyCards ?? {})) {
+        if (!key.startsWith(csvPrefix)) {
+            continue;
+        }
+        const suffix = key.slice(csvPrefix.length);
+        if (!suffix) {
+            continue;
+        }
+        const n = Number.parseInt(suffix, 10);
+        if (!Number.isNaN(n) && n > 0) {
+            numbers.push(n);
+        }
+    }
+    return numbers;
+}
+
+/**
+ * Next available CSV file-import feed (`ccuploadN`) from `settings.companyCards` keys only,
+ * including feeds omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
+ */
+function getCSVFeedType(companyCards: CompanyFeeds | undefined): CompanyCardFeedWithNumber {
+    const csvPrefix = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
+    const feedNumbers = [...new Set(collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix))].sort((a, b) => a - b);
+
+    let firstAvailableNumber = 1;
+    for (const num of feedNumbers) {
+        if (num && num !== firstAvailableNumber) {
+            return `${csvPrefix}${firstAvailableNumber}`;
+        }
+        firstAvailableNumber++;
+    }
+
+    return `${csvPrefix}${firstAvailableNumber}`;
+}
+
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds ?? {})
@@ -1281,6 +1338,10 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+function isCardWithCustomZeroLimit(card: Card): boolean {
+    return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
+}
+
 /**
  * Check if a card has potential fraud that needs review.
  * Returns true if the card has fraud type 'domain' or 'individual'.
@@ -1502,7 +1563,8 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
             CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
             (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
             card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
-            (!isExpensifyCard(card) || !isExpiredCard(card)),
+            (!isExpensifyCard(card) || !isExpiredCard(card)) &&
+            (!isExpensifyCard(card) || !isCardWithCustomZeroLimit(card)),
     );
 }
 
@@ -1551,7 +1613,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     const activeCards = filterAllInactiveCards(cardList);
     const activeExpensifyCards = Object.values(activeCards).filter(
-        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card),
+        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card) && !isCardWithCustomZeroLimit(card),
     );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
@@ -1659,13 +1721,12 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
 
 /**
  * Resolves card-related fields on transactions for report layout display.
- * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
 function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
     transactions: T[],
     cardList: CardList | undefined,
-    cardFeeds: OnyxCollection<CardFeeds> | undefined,
     translate: LocalizedTranslate,
 ): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
@@ -1682,14 +1743,10 @@ function resolveTransactionCardFields<T extends {cardID?: number; cardName?: str
             }
         }
 
-        // Resolve isCardFeedDeleted
-        if (cardFeeds !== undefined) {
-            updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
-        }
-
         if (Object.keys(updates).length === 0) {
             return transaction;
         }
+
         return {...transaction, ...updates};
     });
 }
@@ -1721,6 +1778,7 @@ export {
     hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
+    isCSVUploadFeed,
     isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
@@ -1744,6 +1802,7 @@ export {
     filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
+    getCSVFeedType,
     getFeedType,
     flattenWorkspaceCardsList,
     isCardConnectionBroken,
@@ -1763,10 +1822,10 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
-    isCardPendingReplace,
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
