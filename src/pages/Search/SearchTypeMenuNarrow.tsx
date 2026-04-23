@@ -151,7 +151,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                       setSavedSearchToModifyKey(null),
                   );
 
-                  if (queryJSON && Number(key) === queryJSON.hash) {
+                  if (Number(key) === queryJSON?.hash) {
                       activeKey = key;
                   }
 
@@ -181,7 +181,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     badgeText,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
-                if (queryJSON && item.similarSearchHash === queryJSON.similarSearchHash) {
+                if (item.similarSearchHash === queryJSON?.similarSearchHash) {
                     activeKey = item.key;
                 }
             }

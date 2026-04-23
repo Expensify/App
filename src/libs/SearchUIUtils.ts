@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subDays, subMonths} from 'date-fns';
+import {addDays, format, parse, subDays} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -37,7 +37,6 @@ import type {
 import type {
     GroupedItem,
     QueryFilters,
-    SearchAction,
     SearchAmountFilterKeys,
     SearchColumnType,
     SearchCustomColumnIds,
@@ -167,6 +166,7 @@ import {
     buildSearchQueryString,
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
+    getDateRangeForPreset,
     isAmountFilterKey,
     isFilterSupported,
     isSearchDatePreset,
@@ -1210,27 +1210,6 @@ function isTransactionGroupListItemType(item: ListItem): item is TransactionGrou
  */
 function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-}
-
-/**
- * Type guard that checks if something is a TransactionMemberGroupListItemType
- */
-function isTransactionMemberGroupListItemType(item: ListItem): item is TransactionMemberGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.FROM;
-}
-
-/**
- * Type guard that checks if something is a TransactionCardGroupListItemType
- */
-function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
-}
-
-/**
- * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
- */
-function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
 }
 
 /**
@@ -2670,7 +2649,11 @@ function getReportSections({
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction =
+                    reportItem?.pendingAction ??
+                    (reportItem?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                        ? reportItem.pendingFields.preview
+                        : (reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.preview));
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
@@ -4479,10 +4462,6 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getGroupByOptions(translate: LocalizedTranslate) {
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
-}
-
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
     const sortableColumns: Array<SingleSelectItem<SearchColumnType>> = [];
     for (const column of columns) {
@@ -4564,42 +4543,6 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
         default:
             return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
     }
-}
-
-/**
- * Returns the start and end date range for a date preset.
- */
-function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
-    const now = new Date();
-    let start: Date;
-    let end: Date;
-    const lastMonth = subMonths(now, 1);
-
-    switch (preset) {
-        case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
-            start = startOfMonth(now);
-            end = endOfMonth(now);
-            break;
-        case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
-            start = startOfMonth(lastMonth);
-            end = endOfMonth(lastMonth);
-            break;
-        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
-            start = startOfYear(now);
-            end = now;
-            break;
-        case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
-            start = startOfMonth(subMonths(now, 11));
-            end = endOfMonth(now);
-            break;
-        default:
-            return {start: '', end: ''};
-    }
-
-    return {
-        start: format(start, 'yyyy-MM-dd'),
-        end: format(end, 'yyyy-MM-dd'),
-    };
 }
 
 /**
@@ -5076,10 +5019,6 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
 
 function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
-}
-
-function getActionOptions(translate: LocaleContextProps['translate']) {
-    return Object.values(CONST.SEARCH.ACTION_FILTERS).map<SingleSelectItem<SearchAction>>((value) => ({text: translate(`search.filters.action.${value}`), value}));
 }
 
 /**
@@ -5785,9 +5724,6 @@ export {
     getSortedSections,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
-    isTransactionMemberGroupListItemType,
-    isTransactionCardGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
@@ -5815,7 +5751,6 @@ export {
     getValidGroupBy,
     getStatusOptions,
     getTypeOptions,
-    getGroupByOptions,
     getSortByOptions,
     getSortOrderOptions,
     getGroupBySections,
@@ -5823,21 +5758,16 @@ export {
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
-    hasDeletedTransactionInData,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
-    getDateRangeForPreset,
     createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
-    getActionOptions,
     getColumnsToShow,
     getHasOptions,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
-    getTransactionFromTransactionListItem,
     getSearchColumnTranslationKey,
-    isColumnSortable,
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
@@ -5853,7 +5783,6 @@ export {
     mapFiltersFormToLabelValueList,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
-    isEligibleForApproveSuggestion,
     applySelectionToItem,
     GENERIC_SEARCH_KEYS,
     TODO_SEARCH_KEYS,

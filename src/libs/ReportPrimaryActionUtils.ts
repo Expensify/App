@@ -406,7 +406,7 @@ function isPrimaryMarkAsResolvedAction(
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ) {
-    if (!reportTransactions || reportTransactions.length !== 1) {
+    if (reportTransactions?.length !== 1) {
         return false;
     }
 

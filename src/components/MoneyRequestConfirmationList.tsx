@@ -792,7 +792,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (iouCategory && policyCategories && (!policyCategories[iouCategory] || !policyCategories[iouCategory]?.enabled)) {
+            if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled) {
                 setFormError('violations.categoryOutOfPolicy');
                 return;
             }

@@ -1,4 +1,4 @@
-import {addDays, format, parse} from 'date-fns';
+import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -34,7 +34,6 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -983,6 +982,56 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     return policyID.map((id) => policyData?.[`${key}${id}`]).filter((data) => !!data) as Array<OnyxCollectionValuesMapping[T]>;
 }
 
+function getEarlierDate(someDate: string | undefined, otherDate: string | undefined) {
+    if (someDate && otherDate) {
+        return someDate < otherDate ? someDate : otherDate;
+    }
+    return someDate ?? otherDate;
+}
+
+function getLaterDate(someDate: string | undefined, otherDate: string | undefined) {
+    if (someDate && otherDate) {
+        return someDate > otherDate ? someDate : otherDate;
+    }
+    return someDate ?? otherDate;
+}
+
+/**
+ * Returns the start and end date range for a date preset.
+ */
+function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+    const lastMonth = subMonths(now, 1);
+
+    switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
+            start = startOfMonth(now);
+            end = endOfMonth(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
+            start = startOfMonth(lastMonth);
+            end = endOfMonth(lastMonth);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
+            start = startOfYear(now);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
+            start = startOfMonth(subMonths(now, 11));
+            end = endOfMonth(now);
+            break;
+        default:
+            return {start: '', end: ''};
+    }
+
+    return {
+        start: format(start, 'yyyy-MM-dd'),
+        end: format(end, 'yyyy-MM-dd'),
+    };
+}
+
 /**
  * Generates object with search filter values, in a format that can be consumed by SearchAdvancedFiltersForm.
  * Main usage of this is to generate the initial values for AdvancedFilters from existing query.
@@ -1135,10 +1184,13 @@ function buildFilterFormValuesFromQuery(
                 return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
             });
             const existingRangeBoundaries = parseRangeQueryValue(filtersForm[rangeKey]);
-            const rangeValue = getRangeQueryValue(rangeStartFilter?.value.toString() ?? existingRangeBoundaries.from, rangeEndFilter?.value.toString() ?? existingRangeBoundaries.to);
+            const rangeValue = getRangeQueryValue(
+                getLaterDate(rangeStartFilter?.value.toString(), existingRangeBoundaries.from),
+                getEarlierDate(rangeEndFilter?.value.toString(), existingRangeBoundaries.to),
+            );
 
-            filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
-            filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
+            filtersForm[beforeKey] = getEarlierDate(beforeFilter?.value.toString(), filtersForm[beforeKey]);
+            filtersForm[afterKey] = getLaterDate(afterFilter?.value.toString(), filtersForm[afterKey]);
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
 
@@ -1216,13 +1268,16 @@ function buildFilterFormValuesFromQuery(
             }
 
             const existingRangeBoundaries = parseRangeQueryValue(filtersForm[dateRangeKey]);
-            const rangeValue = getRangeQueryValue(dateRangeStartFilter?.value.toString() ?? existingRangeBoundaries.from, dateRangeEndFilter?.value.toString() ?? existingRangeBoundaries.to);
+            const rangeValue = getRangeQueryValue(
+                getLaterDate(dateRangeStartFilter?.value.toString(), existingRangeBoundaries.from),
+                getEarlierDate(dateRangeEndFilter?.value.toString(), existingRangeBoundaries.to),
+            );
 
             filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
             filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
-            filtersForm[dateBeforeKey] = dateBeforeFilter?.value.toString() ?? filtersForm[dateBeforeKey];
-            filtersForm[dateAfterKey] = dateAfterFilter?.value.toString() ?? filtersForm[dateAfterKey];
+            filtersForm[dateBeforeKey] = getEarlierDate(dateBeforeFilter?.value.toString(), filtersForm[dateBeforeKey]);
+            filtersForm[dateAfterKey] = getLaterDate(dateAfterFilter?.value.toString(), filtersForm[dateAfterKey]);
 
             if (rangeValue) {
                 filtersForm[dateRangeKey] = rangeValue;
@@ -1230,6 +1285,34 @@ function buildFilterFormValuesFromQuery(
             }
             filtersForm[dateRangeKey] = undefined;
         }
+    }
+
+    // The UI doesn't combine date presets with other date modifiers, but a raw query string can.
+    // When that happens, we resolve the preset to a date range, merge with the explicit constraints,
+    // and store as one range.
+    for (const dateKey of DATE_FILTER_KEYS) {
+        const onKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as const;
+        const rangeKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}` as const;
+        const beforeKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as const;
+        const afterKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const;
+
+        if (!isSearchDatePreset(filtersForm[onKey]) || !(filtersForm[rangeKey] ?? filtersForm[beforeKey] ?? filtersForm[afterKey])) {
+            continue;
+        }
+
+        const presetRange = getDateRangeForPreset(filtersForm[onKey]);
+        if (!presetRange.start || !presetRange.end) {
+            continue;
+        }
+
+        const existingRange = parseRangeQueryValue(filtersForm[rangeKey]);
+        const newRangeStart = getLaterDate(getLaterDate(presetRange.start, existingRange.from), getInclusiveRangeBoundary(filtersForm[afterKey], 1));
+        const newRangeEnd = getEarlierDate(getEarlierDate(presetRange.end, existingRange.to), getInclusiveRangeBoundary(filtersForm[beforeKey], -1));
+
+        filtersForm[rangeKey] = getRangeQueryValue(newRangeStart, newRangeEnd);
+        filtersForm[onKey] = undefined;
+        filtersForm[beforeKey] = undefined;
+        filtersForm[afterKey] = undefined;
     }
 
     const [typeKey, typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
@@ -1700,20 +1783,6 @@ function buildCannedSearchQuery({
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-/**
- * Returns whether a given search query is a Canned query.
- *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip" is a canned query.
- */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = [queryJSON.columns ?? []].flat();
-    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
-    const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
-}
-
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
@@ -1789,14 +1858,14 @@ function getCurrentSearchQueryJSON() {
 
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     }
     if (!lastSearchNavigatorState) {
         return;
     }
 
     const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-    if (!lastSearchRoute || !lastSearchRoute.params) {
+    if (!lastSearchRoute?.params) {
         return;
     }
 
@@ -2041,8 +2110,8 @@ export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
-    parseRangeQueryValue,
     isSearchDatePreset,
+    getDateRangeForPreset,
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -2053,7 +2122,6 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
-    isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,

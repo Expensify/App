@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,24 +38,11 @@ type ReportActionItemThreadProps = {
 
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
-
-    /** The accountID of the current user, used for creating optimistic report if needed */
-    currentUserAccountID: number;
 };
 
-function ReportActionItemThread({
-    numberOfReplies,
-    accountIDs,
-    mostRecentReply,
-    report,
-    reportAction,
-    isHovered,
-    onSecondaryInteraction,
-    isActive,
-    currentUserAccountID,
-}: ReportActionItemThreadProps) {
+function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, report, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

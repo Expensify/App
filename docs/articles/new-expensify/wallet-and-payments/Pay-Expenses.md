@@ -80,4 +80,10 @@ You can reimburse Workspace expenses using business bank accounts in the followi
 
 **Note:** Personal expenses paid with the Wallet can only be paid in **USD**.
 
+---
+
+## How do I pay a report with only non-reimbursable expenses?
+
+Reports containing only non-reimbursable expenses (e.g., company card charges) cannot be paid via ACH through Expensify. Instead, select **Mark as paid** from the **Pay** button dropdown to close the report.
+
 </div>

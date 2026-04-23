@@ -446,6 +446,7 @@ const config = defineConfig([
             ],
             '@typescript-eslint/prefer-find': 'off',
             '@typescript-eslint/prefer-includes': 'off',
+            '@typescript-eslint/prefer-optional-chain': 'off',
             '@typescript-eslint/prefer-nullish-coalescing': [
                 'error',
                 {

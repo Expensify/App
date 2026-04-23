@@ -225,6 +225,7 @@ const SCREENS = {
             PERSONAL_CARD_ADD_NEW: 'Settings_Wallet_PersonalCard_New',
             PERSONAL_CARD_WARNING: 'Settings_Wallet_PersonalCard_Warning',
             PERSONAL_CARD_UPGRADE: 'Settings_Wallet_PersonalCard_Upgrade',
+            EXPENSIFY_CARD_SPEND_RULES: 'Settings_Wallet_ExpensifyCard_SpendRules',
         },
 
         EXIT_SURVEY: {
@@ -427,7 +428,7 @@ const SCREENS = {
         SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
         SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
-        SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
+        DYNAMIC_SETTINGS_CATEGORY_EDIT: 'Dynamic_Settings_Category_Edit',
         SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
         SETTINGS_CATEGORIES_IMPORT: 'Settings_Categories_Import',
         SETTINGS_CATEGORIES_IMPORTED: 'Settings_Categories_Imported',
@@ -538,7 +539,6 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Vendor_Select',
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Payable_Account_Select',
             NETSUITE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Configuration',
-            NETSUITE_TRAVEL_INVOICING_VENDOR_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Vendor_Select',
             NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Payable_Account_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
@@ -614,8 +614,8 @@ const SCREENS = {
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Payable_Account_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Journal_Posting_Preference_Select',
             DYNAMIC_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Receivable_Account_Select',
-            NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Preference_Select',
-            NETSUITE_INVOICE_ITEM_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Select',
+            DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Invoice_Item_Preference_Select',
+            DYNAMIC_NETSUITE_INVOICE_ITEM_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Invoice_Item_Select',
             NETSUITE_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Tax_Posting_Account_Select',
             NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Provincial_Tax_Posting_Account_Select',
             NETSUITE_ADVANCED: 'Policy_Accounting_NetSuite_Advanced',
@@ -660,6 +660,7 @@ const SCREENS = {
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
+        HR: 'Workspace_HR',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -973,7 +974,7 @@ const SCREENS = {
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
     REPORT_CHANGE_APPROVER: {
-        ROOT: 'Report_Change_Approver_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
     },
     TEST_TOOLS_MODAL: {

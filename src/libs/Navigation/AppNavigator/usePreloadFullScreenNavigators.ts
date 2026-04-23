@@ -28,7 +28,7 @@ const TABS_TO_PRELOAD = [NAVIGATION_TABS.SETTINGS];
 
 function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const lastSearchNavigator = navigation.getState().routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+    const lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
     if (lastSearchRoute) {

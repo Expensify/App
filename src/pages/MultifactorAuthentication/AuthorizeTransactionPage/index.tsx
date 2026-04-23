@@ -76,18 +76,15 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setConfirmModalVisibility(false);
     };
 
-    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = useCallback(
-        (e) => {
-            if (allowNavigatingAwayRef.current) {
-                return;
-            }
-            e.preventDefault();
-            showConfirmModal();
-        },
-        [showConfirmModal],
-    );
+    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = (e) => {
+        if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
+            return;
+        }
+        e.preventDefault();
+        showConfirmModal();
+    };
 
-    useBeforeRemove(onBeforeRemove, !!transaction && !denyOutcomeScreen);
+    useBeforeRemove(onBeforeRemove);
 
     const onApproveTransaction = () => {
         addBreadcrumb('Approve tapped', {transactionID});
