@@ -877,10 +877,6 @@ function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
 }
 
-function setImportedSpreadsheetFileURI(fileURI: string) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
-}
-
 function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
     if (!spreadsheet) {
         return;
@@ -1078,7 +1074,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-    if (!policyTag || !policyTag.name) {
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1348,6 +1344,5 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
-    setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

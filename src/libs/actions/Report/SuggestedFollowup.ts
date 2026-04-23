@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
 import type {Ancestor, OptimisticReportAction} from '@libs/ReportUtils';
@@ -47,6 +48,13 @@ function resolveSuggestedFollowup(
     if (!resolvedAction) {
         return;
     }
+
+    Log.info('[Followups] followup clicked', false, {
+        event: 'followup_clicked',
+        reportID,
+        reportActionID,
+        hasPregeneratedResponse: !!selectedFollowup.response,
+    });
 
     // Optimistically update the HTML to mark followup-list as resolved
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {

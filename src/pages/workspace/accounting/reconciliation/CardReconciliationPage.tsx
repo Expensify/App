@@ -97,14 +97,14 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         if (!policyID) {
             return '';
         }
-        const backTo = ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection);
+
         switch (connection) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
                 return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:

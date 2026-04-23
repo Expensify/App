@@ -14,7 +14,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOffline} from '@libs/Network/NetworkStore';
+import {getIsOffline} from '@libs/NetworkState';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
@@ -262,6 +262,39 @@ function canSubmitReport(
     );
 }
 
+function getBadgeFromIOUReport(
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
+): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
+    if (
+        canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
+        canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
+    ) {
+        return CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    if (canApproveIOU(iouReport, policy, reportMetadata)) {
+        return CONST.REPORT.ACTION_BADGE.APPROVE;
+    }
+    const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
+        iouReport,
+        chatReport,
+        policy,
+        getReportTransactions(iouReport?.reportID),
+        getAllTransactionViolations(),
+        getCurrentUserEmail(),
+        getUserAccountID(),
+        getAllReportActions(iouReport?.reportID),
+    );
+    if (isWaitingSubmitFromCurrentUser) {
+        return CONST.REPORT.ACTION_BADGE.SUBMIT;
+    }
+    return undefined;
+}
+
 function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -272,34 +305,13 @@ function getIOUReportActionWithBadge(
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     const reportAction = Object.values(chatReportActions).find((action) => {
-        if (!action || action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+        if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
-        // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
-        if (
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
-        ) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
-            return true;
-        }
-        if (canApproveIOU(iouReport, policy, reportMetadata)) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
-            return true;
-        }
-        const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
-            iouReport,
-            chatReport,
-            policy,
-            getReportTransactions(iouReport?.reportID),
-            getAllTransactionViolations(),
-            getCurrentUserEmail(),
-            getUserAccountID(),
-            getAllReportActions(iouReport?.reportID),
-        );
-        if (isWaitingSubmitFromCurrentUser) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy);
+        if (badge) {
+            actionBadge = badge;
             return true;
         }
         return false;
@@ -344,7 +356,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, expenseReportPolicy)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -358,7 +370,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-    const shouldAddOptimisticApproveAction = !isDEWPolicy || isOffline();
+    const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
     const nextApproverAccountID = getNextApproverAccountID(expenseReport);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
@@ -1258,7 +1270,7 @@ function submitReport({
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline
-    const shouldAddOptimisticSubmitAction = !isDEWPolicy || isOffline();
+    const shouldAddOptimisticSubmitAction = !isDEWPolicy || getIsOffline();
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
@@ -1740,6 +1752,7 @@ export {
     canSubmitReport,
     canUnapproveIOU,
     determineIouReportID,
+    getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
     reopenReport,

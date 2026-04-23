@@ -887,6 +887,7 @@
         "Crédit",
         "Danske",
         "Depósitos",
+        "effectful",
         "Erste",
         "Générale",
         "Geral",
@@ -910,7 +911,8 @@
         "Wintrust",
         "Zürcher",
         "CARDFROZEN",
-        "CARDUNFROZEN"
+        "CARDUNFROZEN",
+        "Kolkata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

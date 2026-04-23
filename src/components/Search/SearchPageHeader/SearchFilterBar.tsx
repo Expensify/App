@@ -2,6 +2,7 @@ import React from 'react';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
@@ -31,6 +32,18 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: Search
         <DropdownButton
             label={label}
             value={workspaceValue ?? []}
+            PopoverComponent={PopoverComponent}
+            sentryLabel={sentryLabel}
+        />
+    );
+}
+
+function FeedDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+    const feedValue = useFilterFeedValue();
+    return (
+        <DropdownButton
+            label={label}
+            value={feedValue}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
         />
@@ -81,7 +94,7 @@ const FILTER_COMPONENT_MAP: Partial<Record<SearchAdvancedFiltersKey, React.Compo
 
     [FILTER_KEYS.POLICY_ID]: WorkspaceDropdown,
 
-    [FILTER_KEYS.FEED]: CardDropdown,
+    [FILTER_KEYS.FEED]: FeedDropdown,
     [FILTER_KEYS.CARD_ID]: CardDropdown,
 
     [FILTER_KEYS.TAX_RATE]: TaxRateDropdown,

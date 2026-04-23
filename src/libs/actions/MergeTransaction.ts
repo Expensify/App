@@ -260,6 +260,7 @@ function getOnyxTargetTransactionData({
             targetTransactionThreadReport?.reportID,
             filteredTransactionChanges,
             policy,
+            undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
     } else {
@@ -438,14 +439,13 @@ function mergeTransactionRequest({
                   ]
                 : [];
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         const failureReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport(transactionToDelete.reportID),
+                          value: getReportOrDraftReport(transactionToDelete.reportID) ?? null,
                       },
                   ]
                 : [];

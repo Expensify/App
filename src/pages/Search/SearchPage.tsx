@@ -57,7 +57,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isSorting, setIsSorting] = useState(false);
 
     let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data !== undefined) {
+    if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
         searchResults = lastNonEmptySearchResults.current;

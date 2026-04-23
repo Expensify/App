@@ -132,6 +132,9 @@ type OriginalMessageAddComment = {
 
     /** List accountIDs are mentioned in message */
     mentionedAccountIDs?: number[];
+
+    /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
+    humanAgentAccountID?: number;
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -1281,6 +1284,9 @@ type OriginalMessageIntegrationSyncFailed = {
 
     /** The error message from Integration Server */
     errorMessage: string;
+
+    /** Number of times this identical failure has recurred (set by server-side de-duplication) */
+    recurrenceCount?: number;
 };
 
 /**

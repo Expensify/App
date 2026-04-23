@@ -36,7 +36,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -55,7 +55,6 @@ import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IO
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type MoneyReportHeaderSecondaryActionsProps = {
@@ -232,25 +231,26 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building']);
 
-    const buildPaymentSubMenuItems = (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
-        if (!workspacePolicyOptions.length) {
-            return Object.values(paymentButtonOptions);
-        }
-        const result: PopoverMenuItem[] = [];
+    // Build PAY action sub-items. Workspace-policy entries carry the policy as data and have no onSelected;
+    // MoneyReportHeaderKYCDropdown picks them up via onSubItemSelected where triggerKYCFlow is in scope.
+    const paymentSubMenuItems: PopoverMenuItem[] = [];
+    if (!workspacePolicyOptions.length) {
+        paymentSubMenuItems.push(...Object.values(paymentButtonOptions));
+    } else {
         for (const opt of Object.values(paymentButtonOptions)) {
-            result.push(opt);
+            paymentSubMenuItems.push(opt);
             if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 for (const wp of workspacePolicyOptions) {
-                    result.push({
+                    const workspacePolicyItem: WorkspacePolicyPaymentOption = {
                         text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                         icon: expensifyIcons.Building,
-                        onSelected: () => onWorkspaceSelected(wp),
-                    });
+                        workspacePolicy: wp,
+                    };
+                    paymentSubMenuItems.push(workspacePolicyItem);
                 }
             }
         }
-        return result;
-    };
+    }
 
     // Domain hooks
     const lifecycleActions = useLifecycleActions({
@@ -337,10 +337,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
             backButtonText: translate('iou.settlePayment', totalAmount),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
-            // eslint-disable-next-line react-hooks/refs -- ref is only accessed inside the callback (event handler), not during render
-            subMenuItems: buildPaymentSubMenuItems((wp) => {
-                kycWallRef.current?.continueAction?.({policy: wp});
-            }),
+            subMenuItems: paymentSubMenuItems,
         },
     };
 

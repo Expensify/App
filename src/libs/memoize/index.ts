@@ -112,5 +112,3 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
 }
 
 export default memoize;
-
-export {Memoize};
