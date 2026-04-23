@@ -1,15 +1,17 @@
 import type {FlashListProps} from '@shopify/flash-list';
 import React from 'react';
+import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-// Experiment: `initialScrollIndex` + full `data` instead of `@components/FlashList/useFlashListScrollKey`
-// (slice + MVCP). That hook is unused while this is enabled — see useFlashListScrollKey.ts to restore.
-// import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
 import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
-/** Where the top of the linked item should sit in the list viewport, as a fraction of visible height (from the top). */
-const INITIAL_LINK_TOP_OFFSET_RATIO = 0.33;
+/** Approximate row height for `initialScrollIndexParams.viewOffset` (FlashList uses `layout.y + viewOffset`). */
+const ESTIMATED_ITEM_HEIGHT_PX = 50;
+const LINK_BOTTOM_OFFSET_RATIO = 0.4;
+/** `LINK_BOTTOM_OFFSET_RATIO` is applied in full at this height; shorter windows use a lower effective ratio. */
+const WINDOW_HEIGHT_AT_FULL_LINK_OFFSET = 900;
+const MIN_LINK_OFFSET_RATIO_SCALE = 0.35;
 
 type InvertedFlashListProps<T> = FlashListProps<T> & {
     /** Key of the item to initially scroll to when the list first renders. */
@@ -26,26 +28,30 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 };
 
 function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, ...restProps}: InvertedFlashListProps<T>) {
-    // const {displayedData, onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
-    //     data,
-    //     keyExtractor,
-    //     initialScrollKey,
-    //     onStartReached: onStartReachedProp,
-    // });
+    const {onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
+        data,
+        keyExtractor,
+        initialScrollKey,
+        onStartReached: onStartReachedProp,
+    });
 
     const {windowHeight} = useWindowDimensions();
     const targetIndex = initialScrollKey == null ? -1 : data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
-    const initialScrollIndex = targetIndex > 0 ? targetIndex : undefined;
-    // FlashList applies `layout.y + viewOffset` for the initial jump. Nudge so the item's top is ~33% from the top of the list.
-    const initialScrollIndexParams: FlashListProps<T>['initialScrollIndexParams'] =
-        initialScrollIndex === undefined ? undefined : {viewOffset: -windowHeight * INITIAL_LINK_TOP_OFFSET_RATIO};
+    const initialScrollIndex = targetIndex < 0 ? undefined : targetIndex;
+
+    // Smaller viewports get a lower effective ratio so the link offset doesn’t over-nudge (e.g. on phones in landscape).
+    const linkOffsetRatioScale = Math.max(MIN_LINK_OFFSET_RATIO_SCALE, Math.min(1, windowHeight / WINDOW_HEIGHT_AT_FULL_LINK_OFFSET));
+    const effectiveLinkBottomOffsetRatio = LINK_BOTTOM_OFFSET_RATIO * linkOffsetRatioScale;
+    const viewOffset = initialScrollIndex === undefined ? undefined : (ESTIMATED_ITEM_HEIGHT_PX - windowHeight) * effectiveLinkBottomOffsetRatio;
+    const initialScrollIndexParams: FlashListProps<T>['initialScrollIndexParams'] = viewOffset === undefined ? undefined : {viewOffset};
 
     return (
         <FlashList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
-            onStartReached={onStartReachedProp}
+            onStartReached={onStartReached}
             data={data}
             keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
