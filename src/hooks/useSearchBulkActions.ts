@@ -491,6 +491,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReports,
         selectedReportIDs,
         selectedTransactionReportIDs,
+        selectedTransactions,
         selectedTransactionsKeys,
         translate,
         clearSelectedTransactions,
