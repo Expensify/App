@@ -26,11 +26,11 @@ import {
     getFilteredRecentAttendees,
     getHeaderMessage,
     getParticipantsOption,
-    getPersonalDetailSearchTerms,
     getPolicyExpenseReportOption,
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -83,12 +83,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const initialSelectedOptions = attendees.map((attendee) => ({
         ...attendee,
         reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-        keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        keyForList: String(attendee.accountID) || attendee.email || attendee.displayName,
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         login: attendee.email || attendee.displayName,
-        ...getPersonalDetailByEmail(attendee.email),
+        ...getPersonalDetailByEmail(attendee?.email),
     }));
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -272,7 +273,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
-            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => doesPersonalDetailMatchSearchTerm(attendee, currentUserAccountID, cleanSearchTerm)),
         );
         sections = newSections;
     }

@@ -1,11 +1,12 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,13 +24,13 @@ type SortByPopupProps = {
     queryJSON: SearchQueryJSON;
     groupBy: SingleSelectItem<SearchGroupBy> | null;
     onSort: () => void;
+    onSortOrderPress: () => void;
     closeOverlay: () => void;
 };
 
-function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: SortByPopupProps) {
+function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPress, closeOverlay}: SortByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const {shouldUseLiveData} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -40,14 +41,11 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: 
         : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value});
     const sortableColumns = getSortByOptions(currentColumns, translate);
     const sortBy = {text: translate(getSearchColumnTranslationKey(queryJSON.sortBy)), value: queryJSON.sortBy};
+    const sortOrder = queryJSON.sortOrder;
 
     const onSortChange = (column: SearchColumnType) => {
         clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({
-            ...queryJSON,
-            sortBy: column,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-        });
+        const newQuery = buildSearchQueryString({...queryJSON, sortBy: column});
         onSort();
         // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
         close(() => {
@@ -56,20 +54,28 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: 
     };
 
     return (
-        <SingleSelectPopup
-            style={styles.p0}
-            label={shouldUseNarrowLayout ? undefined : translate('search.display.sortBy')}
-            items={sortableColumns}
-            value={sortBy}
-            closeOverlay={closeOverlay}
-            defaultValue={sortableColumns.at(0)?.value}
-            onChange={(item) => {
-                if (!item) {
-                    return;
-                }
-                onSortChange(item.value);
-            }}
-        />
+        <>
+            <MenuItemWithTopDescription
+                shouldShowRightIcon
+                description={translate('search.display.sortOrder')}
+                title={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
+                onPress={onSortOrderPress}
+            />
+            <View style={styles.dividerLine} />
+            <SingleSelectPopup
+                style={styles.p0}
+                items={sortableColumns}
+                value={sortBy}
+                closeOverlay={closeOverlay}
+                defaultValue={sortableColumns.at(0)?.value}
+                onChange={(item) => {
+                    if (!item) {
+                        return;
+                    }
+                    onSortChange(item.value);
+                }}
+            />
+        </>
     );
 }
 

@@ -1,8 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
@@ -67,6 +68,12 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Style applied to the outer ScrollView */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to refocus the input when clicking on the ScrollView empty space */
+    shouldRefocusOnScrollViewClick?: boolean;
 
     /** Whether the amount is negative */
     isNegative?: boolean;
@@ -170,6 +177,8 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -186,6 +195,7 @@ function NumberWithSymbolForm({
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -571,13 +581,91 @@ function NumberWithSymbolForm({
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
             keyboardType={props.keyboardType}
+            shouldAllowFocusInLandscapeMode
         />
     );
 
+    if (isInLandscapeMode) {
+        return (
+            <>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
+                    style={[styles.flex1, styles.ph5]}
+                >
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.numberWithSymbolFormInputContainerLandscape]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
+                            {isSymbolPressable && (
+                                <Button
+                                    shouldShowRightIcon
+                                    small
+                                    iconRight={icons.DownArrow}
+                                    onPress={onSymbolButtonPress}
+                                    style={styles.minWidth18}
+                                    isContentCentered
+                                    text={currency}
+                                    accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                                />
+                            )}
+                            {allowFlippingAmount && (
+                                <Button
+                                    shouldShowRightIcon
+                                    small
+                                    iconRight={icons.PlusMinus}
+                                    onPress={toggleNegative}
+                                    style={styles.minWidth18}
+                                    isContentCentered
+                                    text={translate('iou.flip')}
+                                    accessibilityLabel={translate('iou.flip')}
+                                />
+                            )}
+                        </View>
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
+                    </View>
+
+                    {shouldShowBigNumberPad ? (
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            id={NUM_PAD_CONTAINER_VIEW_ID}
+                        >
+                            {shouldShowBigNumberPad ? (
+                                <BigNumberPad
+                                    id={NUM_PAD_VIEW_ID}
+                                    numberPressed={updateValueNumberPad}
+                                    longPressHandlerStateChanged={updateLongPressHandlerState}
+                                />
+                            ) : null}
+                        </View>
+                    ) : null}
+                </ScrollView>
+
+                {!!footer && <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}>{footer}</View>}
+            </>
+        );
+    }
+
     return (
         <ScrollView
-            contentContainerStyle={styles.flexGrow1}
-            style={!shouldWrapInputInContainer && styles.flexGrow0}
+            contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
+            style={[
+                !shouldWrapInputInContainer && styles.flexGrow0,
+                // Hide pointer cursor when refocus feature is enabled (empty space shouldn't look clickable)
+                shouldRefocusOnScrollViewClick && styles.cursorAuto,
+            ]}
+            onMouseDown={(e) => {
+                if (!shouldRefocusOnScrollViewClick) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                textInput.current?.focus();
+            }}
         >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

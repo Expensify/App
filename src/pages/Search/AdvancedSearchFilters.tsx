@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
-import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -18,7 +17,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
-import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
@@ -32,7 +30,6 @@ import {
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
-    isCannedSearchQuery,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
@@ -63,16 +60,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'common.type' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE),
-    },
-    groupBy: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.display.groupBy' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
-    },
-    view: {
-        getTitle: getFilterViewDisplayTitle,
-        description: 'search.view.label' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW),
     },
     status: {
         getTitle: getStatusFilterDisplayTitle,
@@ -123,11 +110,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY),
-    },
-    groupCurrency: {
-        getTitle: getFilterDisplayTitle,
-        description: 'common.groupCurrency' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_CURRENCY),
     },
     merchant: {
         getTitle: getFilterDisplayTitle,
@@ -198,11 +180,6 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
-    },
-    limit: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.filters.limit' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT),
     },
     is: {
         getTitle: getFilterDisplayTitle,
@@ -513,11 +490,6 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.action.${filterValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>}`) : undefined;
     }
 
-    if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-        const filterValue = filters[key];
-        return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
-    }
-
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
         const filterValue = filters[key];
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
@@ -543,14 +515,6 @@ function getFilterDisplayTitle(
 
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
-}
-
-function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
-    if (!filterValue) {
-        return translate('search.view.table');
-    }
-    return translate(`search.view.${filterValue as ValueOf<typeof CONST.SEARCH.VIEW>}`);
 }
 
 function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
@@ -621,7 +585,6 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -649,21 +612,6 @@ function AdvancedSearchFilters() {
         );
     };
 
-    const onSaveSearch = () => {
-        const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
-            // If the search is already saved, we only display the results as we don't need to save it.
-            applyFiltersAndNavigate();
-            return;
-        }
-
-        saveSearch({
-            queryJSON,
-        });
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => applyFiltersAndNavigate());
-    };
-
     const filters = typeFiltersKeys.map((section) => {
         return section.map((key) => {
             const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
@@ -688,8 +636,6 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
@@ -702,8 +648,6 @@ function AdvancedSearchFilters() {
             };
         });
     });
-
-    const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     const sections: SectionType[] = [
         {
@@ -774,15 +718,6 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
-            {!!displaySearchButton && (
-                <Button
-                    text={translate('search.saveSearch')}
-                    onPress={onSaveSearch}
-                    style={[styles.mh4, styles.mt4]}
-                    large
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
-                />
-            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}

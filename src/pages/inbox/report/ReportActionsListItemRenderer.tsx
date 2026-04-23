@@ -106,7 +106,6 @@ function ReportActionsListItemRenderer({
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`);
     const [reportDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
     const draftMessage = reportDraftMessages?.[reportAction.reportActionID]?.message;
 
@@ -225,7 +224,6 @@ function ReportActionsListItemRenderer({
             isUserValidated={isUserValidated}
             personalDetails={personalDetails}
             draftMessage={draftMessage}
-            emojiReactions={emojiReactions}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}

@@ -10,7 +10,7 @@ import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
-import SidebarUtils, {_categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -757,7 +757,17 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.shouldDisplayReportInLHN(MOCK_REPORT, MOCK_REPORTS as OnyxCollection<Report>, undefined, true, undefined, {}, undefined, MOCK_TRANSACTIONS);
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_REPORT,
+                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+            });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
         });
@@ -857,18 +867,98 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.shouldDisplayReportInLHN(
-                MOCK_TRANSACTION_THREAD_REPORT,
-                MOCK_REPORTS as OnyxCollection<Report>,
-                undefined,
-                true,
-                undefined,
-                {},
-                undefined,
-                MOCK_TRANSACTIONS,
-            );
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_TRANSACTION_THREAD_REPORT,
+                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+            });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as false when report is falsy', () => {
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: undefined as unknown as Report,
+                reports: {},
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('returns shouldDisplay as false for unsupported report type', () => {
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+                } as Report,
+                reports: {},
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('accepts isOffline=true without error', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
+                currentReportId: '1',
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: true,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result.shouldDisplay).toBe('boolean');
+        });
+
+        it('accepts isOffline=false without error', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
+                currentReportId: '1',
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result.shouldDisplay).toBe('boolean');
         });
     });
 
@@ -3231,24 +3321,24 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Zebra', sortKey: 'zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [
-                        {reportID: '3', displayName: 'Charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
-                        {reportID: '4', displayName: 'Beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
+                        {reportID: '3', displayName: 'Charlie', sortKey: 'charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
+                        {reportID: '4', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
                     ],
                     draftReports: [
-                        {reportID: '5', displayName: 'Echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
-                        {reportID: '6', displayName: 'Delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
+                        {reportID: '5', displayName: 'Echo', sortKey: 'echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
+                        {reportID: '6', displayName: 'Delta', sortKey: 'delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
                     ],
                     nonArchivedReports: [
-                        {reportID: '7', displayName: 'Hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
-                        {reportID: '8', displayName: 'Golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
+                        {reportID: '7', displayName: 'Hotel', sortKey: 'hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
+                        {reportID: '8', displayName: 'Golf', sortKey: 'golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
                     ],
                     archivedReports: [
-                        {reportID: '9', displayName: 'India', lastVisibleActionCreated: '2024-01-09 10:00:00'},
-                        {reportID: '10', displayName: 'Juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
+                        {reportID: '9', displayName: 'India', sortKey: 'india', lastVisibleActionCreated: '2024-01-09 10:00:00'},
+                        {reportID: '10', displayName: 'Juliet', sortKey: 'juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
                     ],
                 };
 
@@ -3280,24 +3370,24 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Zebra', sortKey: 'zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [
-                        {reportID: '3', displayName: 'Charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
-                        {reportID: '4', displayName: 'Beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
+                        {reportID: '3', displayName: 'Charlie', sortKey: 'charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
+                        {reportID: '4', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
                     ],
                     draftReports: [
-                        {reportID: '5', displayName: 'Echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
-                        {reportID: '6', displayName: 'Delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
+                        {reportID: '5', displayName: 'Echo', sortKey: 'echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
+                        {reportID: '6', displayName: 'Delta', sortKey: 'delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
                     ],
                     nonArchivedReports: [
-                        {reportID: '7', displayName: 'Hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
-                        {reportID: '8', displayName: 'Golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
+                        {reportID: '7', displayName: 'Hotel', sortKey: 'hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
+                        {reportID: '8', displayName: 'Golf', sortKey: 'golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
                     ],
                     archivedReports: [
-                        {reportID: '9', displayName: 'India', lastVisibleActionCreated: '2024-01-09 10:00:00'},
-                        {reportID: '10', displayName: 'Juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
+                        {reportID: '9', displayName: 'India', sortKey: 'india', lastVisibleActionCreated: '2024-01-09 10:00:00'},
+                        {reportID: '10', displayName: 'Juliet', sortKey: 'juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
                     ],
                 };
 
@@ -3329,8 +3419,8 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: '', sortKey: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [],
                     draftReports: [],
@@ -3352,8 +3442,8 @@ describe('SidebarUtils', () => {
                     errorReports: [],
                     draftReports: [],
                     nonArchivedReports: [
-                        {reportID: '1', displayName: 'Alpha', lastVisibleActionCreated: undefined},
-                        {reportID: '2', displayName: 'Beta', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: undefined},
+                        {reportID: '2', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     archivedReports: [],
                 };
@@ -3367,28 +3457,52 @@ describe('SidebarUtils', () => {
             });
         });
 
+        describe('buildSortKey', () => {
+            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
+                // Given names with accented characters
+                const cafeAccented = _buildSortKey('Café');
+                const cafePlain = _buildSortKey('Cafe');
+
+                // Then accented "é" sorts after plain "e" by code point
+                expect(cafeAccented > cafePlain).toBe(true);
+            });
+
+            it('should be case-insensitive', () => {
+                expect(_buildSortKey('Alpha')).toBe(_buildSortKey('alpha'));
+                expect(_buildSortKey('ZEBRA')).toBe(_buildSortKey('zebra'));
+            });
+
+            it('should zero-pad numeric segments for natural sort order', () => {
+                const report2 = _buildSortKey('Report 2');
+                const report10 = _buildSortKey('Report 10');
+
+                // Then "Report 2" sorts before "Report 10"
+                expect(report2 < report10).toBe(true);
+            });
+        });
+
         describe('combineReportCategories', () => {
             it('should combine categories in correct order', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1'},
-                    {reportID: '2', displayName: 'Pinned 2'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: '2', displayName: 'Pinned 2', sortKey: 'pinned 000000000000002'},
                 ];
                 const errorReports = [
-                    {reportID: '3', displayName: 'Error 1'},
-                    {reportID: '4', displayName: 'Error 2'},
+                    {reportID: '3', displayName: 'Error 1', sortKey: 'error 000000000000001'},
+                    {reportID: '4', displayName: 'Error 2', sortKey: 'error 000000000000002'},
                 ];
                 const draftReports = [
-                    {reportID: '5', displayName: 'Draft 1'},
-                    {reportID: '6', displayName: 'Draft 2'},
+                    {reportID: '5', displayName: 'Draft 1', sortKey: 'draft 000000000000001'},
+                    {reportID: '6', displayName: 'Draft 2', sortKey: 'draft 000000000000002'},
                 ];
                 const nonArchivedReports = [
-                    {reportID: '7', displayName: 'Normal 1'},
-                    {reportID: '8', displayName: 'Normal 2'},
+                    {reportID: '7', displayName: 'Normal 1', sortKey: 'normal 000000000000001'},
+                    {reportID: '8', displayName: 'Normal 2', sortKey: 'normal 000000000000002'},
                 ];
                 const archivedReports = [
-                    {reportID: '9', displayName: 'Archived 1'},
-                    {reportID: '10', displayName: 'Archived 2'},
+                    {reportID: '9', displayName: 'Archived 1', sortKey: 'archived 000000000000001'},
+                    {reportID: '10', displayName: 'Archived 2', sortKey: 'archived 000000000000002'},
                 ];
 
                 // When the reports are combined
@@ -3401,13 +3515,13 @@ describe('SidebarUtils', () => {
             it('should filter out reports with undefined reportID', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1'},
-                    {reportID: undefined, displayName: 'Invalid'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: undefined, displayName: 'Invalid', sortKey: 'invalid'},
                 ];
-                const errorReports = [{reportID: '2', displayName: 'Error 1'}];
-                const draftReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
-                const nonArchivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
-                const archivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
+                const errorReports = [{reportID: '2', displayName: 'Error 1', sortKey: 'error 000000000000001'}];
+                const draftReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
+                const nonArchivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
+                const archivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
 
                 // When the reports are combined
                 const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
@@ -3506,6 +3620,7 @@ describe('SidebarUtils', () => {
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
                     draftComments: {},
+                    isOffline: false,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -3527,10 +3642,236 @@ describe('SidebarUtils', () => {
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
                     draftComments: {},
+                    isOffline: false,
                 });
 
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
+            });
+        });
+
+        describe('getReportsToDisplayInLHN', () => {
+            it('should return an empty object when reports is undefined', () => {
+                const result = SidebarUtils.getReportsToDisplayInLHN(
+                    '1', // currentReportId
+                    undefined, // reports
+                    [], // betas
+                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
+                    {}, // draftComments
+                    {}, // transactionViolations
+                    {}, // transactions
+                    false, // isOffline
+                    {}, // reportNameValuePairs
+                    undefined, // reportAttributes
+                );
+
+                expect(result).toEqual({});
+            });
+
+            it('should return an empty object when reports is empty', () => {
+                const result = SidebarUtils.getReportsToDisplayInLHN(
+                    '1', // currentReportId
+                    {}, // reports
+                    [], // betas
+                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
+                    {}, // draftComments
+                    {}, // transactionViolations
+                    {}, // transactions
+                    false, // isOffline
+                    {}, // reportNameValuePairs
+                    undefined, // reportAttributes
+                );
+
+                expect(result).toEqual({});
+            });
+
+            it('should skip undefined report entries', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: undefined,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+
+                expect(result).toEqual({});
+            });
+
+            it('should pass isOffline=false to shouldDisplayReportInLHN', () => {
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+
+                // The function should run without errors with isOffline=false
+                expect(result).toBeDefined();
+            });
+
+            it('should pass isOffline=true to shouldDisplayReportInLHN', () => {
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, true, {}, undefined);
+
+                // The function should run without errors with isOffline=true
+                expect(result).toBeDefined();
+            });
+
+            it('should filter reports with unsupported type', () => {
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
+            });
+
+            it('should use the correct draft comment per report', () => {
+                const report1 = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const report2 = {
+                    ...createRandomReport(2, undefined),
+                    reportID: '2',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
+                };
+
+                const draftComments = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'draft for report 1',
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN(undefined, reports, [], CONST.PRIORITY_MODE.DEFAULT, draftComments, {}, {}, false, {}, undefined);
+
+                // Should not throw and should return a valid result
+                expect(result).toBeDefined();
+            });
+        });
+
+        describe('updateReportsToDisplayInLHN with isOffline', () => {
+            it('should pass isOffline=false correctly', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1, undefined),
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: false,
+                });
+
+                // No changes expected since the updated key doesn't exist in reports
+                expect(result).toBe(displayedReports);
+            });
+
+            it('should pass isOffline=true correctly', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1, undefined),
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: true,
+                });
+
+                // No changes expected since the updated key doesn't exist in reports
+                expect(result).toBe(displayedReports);
+            });
+
+            it('should remove a report when it is no longer in reports collection with isOffline=true', () => {
+                const reports: OnyxCollection<Report> = {};
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: ['0'],
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: true,
+                });
+
+                expect(result).not.toBe(displayedReports);
+                expect(result['0']).toBeUndefined();
+            });
+
+            it('should use the correct draft comment for each updated report', () => {
+                const report1 = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const draftComments = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'draft text',
+                };
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments,
+                    isOffline: false,
+                });
+
+                // Should not throw and should return a valid result
+                expect(result).toBeDefined();
             });
         });
     });

@@ -279,7 +279,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successful\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
+                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successfully started\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
               }]
             }
         env:
@@ -439,6 +439,23 @@ jobs:
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
                 text: `💥 Failed to CP ${{ inputs.PULL_REQUEST_URL }} to ${{ inputs.TARGET }} 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: "Announce CP cancellation in #deployer"
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        if: ${{ cancelled() }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'warning',
+                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* was cancelled\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nWorkflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
               }]
             }
         env:

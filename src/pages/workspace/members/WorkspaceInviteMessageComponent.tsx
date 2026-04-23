@@ -156,6 +156,7 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            currentUserPersonalDetails?.accountID,
             shouldShowApproverRow ? validatedApprover : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
@@ -167,7 +168,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+            Navigation.dismissModal();
             return;
         }
 
@@ -176,8 +177,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
         });
     };
 

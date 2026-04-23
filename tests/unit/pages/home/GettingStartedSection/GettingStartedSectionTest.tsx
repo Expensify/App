@@ -43,10 +43,12 @@ async function setManageTeamUserState(overrides?: {
     integration?: string | null;
     areCompanyCardsEnabled?: boolean;
     areRulesEnabled?: boolean;
+    areAccountingEnabled?: boolean;
+    areCategoriesEnabled?: boolean;
     hasAccountingConnection?: boolean;
     hasCustomCategories?: boolean;
     hasCompanyCardConnection?: boolean;
-    hasNonDefaultRules?: boolean;
+    hasConfiguredRules?: boolean;
     trialStartDate?: string;
 }) {
     const trialStart = overrides?.trialStartDate ?? '2026-03-01';
@@ -65,6 +67,8 @@ async function setManageTeamUserState(overrides?: {
         role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
         areRulesEnabled: overrides?.areRulesEnabled ?? true,
+        areConnectionsEnabled: overrides?.areAccountingEnabled,
+        areCategoriesEnabled: overrides?.areCategoriesEnabled,
     };
 
     if (overrides?.hasAccountingConnection) {
@@ -214,7 +218,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Connect to [system]" row for QBO integration', async () => {
-            await setManageTeamUserState({integration: 'quickbooksOnline'});
+            await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
 
             renderGettingStartedSection();
 
@@ -222,7 +226,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Connect to [system]" row for Xero integration', async () => {
-            await setManageTeamUserState({integration: 'xero'});
+            await setManageTeamUserState({integration: 'xero', areAccountingEnabled: true});
 
             renderGettingStartedSection();
 
@@ -230,7 +234,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Customize accounting categories" for non-direct-connect integrations', async () => {
-            await setManageTeamUserState({integration: 'other'});
+            await setManageTeamUserState({integration: 'other', areCategoriesEnabled: true});
 
             renderGettingStartedSection();
 
@@ -239,7 +243,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Customize accounting categories" when no integration is selected', async () => {
-            await setManageTeamUserState({integration: 'none'});
+            await setManageTeamUserState({integration: 'none', areCategoriesEnabled: true});
 
             renderGettingStartedSection();
 
@@ -281,6 +285,7 @@ describe('GettingStartedSection', () => {
         it('renders rows in the expected order: workspace, accounting, cards, rules', async () => {
             await setManageTeamUserState({
                 integration: 'quickbooksOnline',
+                areAccountingEnabled: true,
                 areCompanyCardsEnabled: true,
                 areRulesEnabled: true,
             });
@@ -314,6 +319,7 @@ describe('GettingStartedSection', () => {
         it('accounting row is checked when workspace has a successful connection', async () => {
             await setManageTeamUserState({
                 integration: 'quickbooksOnline',
+                areAccountingEnabled: true,
                 hasAccountingConnection: true,
             });
 
@@ -336,7 +342,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('navigates to workspace accounting when "Connect to [system]" row is pressed', async () => {
-            await setManageTeamUserState({integration: 'quickbooksOnline'});
+            await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
 
             renderGettingStartedSection();
 
@@ -347,7 +353,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {
-            await setManageTeamUserState({integration: 'other'});
+            await setManageTeamUserState({integration: 'other', areCategoriesEnabled: true});
 
             renderGettingStartedSection();
 
