@@ -104,7 +104,6 @@ describe('ClearReportActionErrors UI', () => {
                                 taskReport={undefined}
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
-                                currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 betas={undefined}
                                 clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}

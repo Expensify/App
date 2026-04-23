@@ -156,6 +156,7 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            currentUserPersonalDetails?.accountID,
             shouldShowApproverRow ? validatedApprover : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
