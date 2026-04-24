@@ -28,7 +28,7 @@ type UseHoldRejectActionsReturn = Pick<
 >;
 
 function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpen}: UseHoldRejectActionsParams): UseHoldRejectActionsReturn {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -74,7 +74,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, formatPhoneNumber);
                 } else if (isReportSubmitter) {
                     onHoldEducationalOpen();
                 } else {
@@ -97,7 +97,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {

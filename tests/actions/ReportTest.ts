@@ -4042,7 +4042,16 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy = createRandomPolicy(Number(1));
-            Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                email: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
@@ -4083,7 +4092,16 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                email: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Find the transaction optimistic data
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -4131,7 +4149,16 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                email: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Should NOT find transaction optimistic data when currencies are the same
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -4166,7 +4193,16 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                email: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
             const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -4214,7 +4250,16 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${nonMatchingTransactionID}`, nonMatchingTransaction);
             await waitForBatchedUpdates();
 
-            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+            const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport: undefined,
+                policy,
+                currentUserAccountID: 1,
+                email: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+            });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
             const matchingOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${matchingTransactionID}`);

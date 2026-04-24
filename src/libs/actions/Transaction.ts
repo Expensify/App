@@ -2,6 +2,7 @@ import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -478,6 +479,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -490,6 +492,7 @@ function dismissDuplicateTransactionViolation({
     expenseReport,
     policy,
     isASAPSubmitBetaEnabled,
+    formatPhoneNumber,
     allTransactions,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
@@ -534,6 +537,7 @@ function dismissDuplicateTransactionViolation({
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            formatPhoneNumber,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -832,6 +836,7 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     policyTagList: OnyxEntry<PolicyTagLists>;
 };
 
@@ -845,6 +850,7 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
+    formatPhoneNumber,
     policyTagList,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1630,6 +1636,7 @@ function changeTransactionsReport({
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            formatPhoneNumber,
         });
         const optimisticNextStepForReport = buildOptimisticNextStep({
             report: updatedReport,

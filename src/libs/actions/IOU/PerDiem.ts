@@ -1,6 +1,7 @@
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -9,7 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
@@ -257,6 +258,7 @@ type PerDiemExpenseInformationParams = {
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticChatReportID?: string;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -307,6 +309,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        formatPhoneNumber,
     } = perDiemExpenseInformation;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -473,7 +476,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumberUtil(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
@@ -492,6 +495,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         isASAPSubmitBetaEnabled,
         policy,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,

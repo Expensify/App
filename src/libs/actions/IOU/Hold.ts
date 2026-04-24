@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -41,7 +42,14 @@ import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurre
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, isOffline: boolean, ancestors: Ancestor[] = []) {
+function putOnHold(
+    transactionID: string,
+    comment: string,
+    initialReportID: string | undefined,
+    isOffline: boolean,
+    ancestors: Ancestor[] = [],
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
+) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -261,6 +269,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             shouldFixViolations: true,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
+            formatPhoneNumber,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -341,7 +350,7 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, formatPhoneNumber?: LocaleContextProps['formatPhoneNumber']) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -473,6 +482,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
+            formatPhoneNumber,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,

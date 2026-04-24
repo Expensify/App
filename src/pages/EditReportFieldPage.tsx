@@ -70,7 +70,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
@@ -144,6 +144,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
                     shouldFixViolations: hasOtherViolations ?? false,
+                    formatPhoneNumber,
                 });
             }
             goBack();

@@ -1,6 +1,7 @@
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -92,6 +93,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -107,6 +109,7 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 function canApproveIOU(
@@ -351,6 +354,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         delegateEmail,
         expenseReportPolicy,
+        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -389,6 +393,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              formatPhoneNumber,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -721,6 +726,7 @@ function reopenReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (!expenseReport) {
         return;
@@ -741,6 +747,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -905,6 +912,7 @@ function retractReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (!expenseReport) {
         return;
@@ -924,6 +932,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1079,6 +1088,7 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     delegateEmail: string | undefined,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -1098,6 +1108,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1247,6 +1258,7 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    formatPhoneNumber,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1285,6 +1297,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              formatPhoneNumber,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -1521,6 +1534,7 @@ function assignReportToMe(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
@@ -1537,6 +1551,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -1637,6 +1652,7 @@ function addReportApprover(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
 
@@ -1653,6 +1669,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},

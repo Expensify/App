@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -112,6 +113,7 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
+    formatPhoneNumber,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -131,6 +133,7 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 }): PayMoneyRequestData {
     const deprecatedCurrentUserEmail = getCurrentUserEmail();
     const allTransactionViolations = getAllTransactionViolations();
@@ -230,7 +233,7 @@ function getPayMoneyRequestParams({
         currentNextStepDeprecated = iouReportCurrentNextStepDeprecated ?? null;
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber});
         optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
     }
 
@@ -471,6 +474,7 @@ function cancelPayment(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     hasViolations: boolean,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -497,6 +501,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -655,6 +660,7 @@ function cancelPayment(
         value: buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            formatPhoneNumber,
         }),
     });
 

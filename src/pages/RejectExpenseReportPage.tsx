@@ -34,7 +34,7 @@ type RejectExpenseReportPageProps = PlatformStackScreenProps<MoneyRequestNavigat
 
 function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {reportID} = route.params;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -149,6 +149,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.accountID,
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
+            formatPhoneNumber,
         );
         Navigation.goBack();
     };

@@ -14,7 +14,7 @@ import type {SimpleActionProps} from './types';
 import useTransactionThreadData from './useTransactionThreadData';
 
 function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -40,7 +40,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 if (IOUActions.length) {
                     for (const action of IOUActions) {
-                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline);
+                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline, formatPhoneNumber);
                     }
                     return;
                 }
@@ -49,7 +49,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 if (!moneyRequestAction) {
                     return;
                 }
-                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline);
+                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline, formatPhoneNumber);
             }}
         />
     );

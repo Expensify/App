@@ -101,7 +101,7 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
@@ -182,12 +182,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-            reportNextSteps: allReportNextSteps,
-            transactionViolations,
-            betas,
-        });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
+        setWorkspaceApprovalMode(
+            policy,
+            policy?.owner ?? '',
+            CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            currentUserAccountID,
+            currentUserEmail,
+            {
+                reportNextSteps: allReportNextSteps,
+                transactionViolations,
+                betas,
+            },
+            formatPhoneNumber,
+        );
+    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, formatPhoneNumber]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
@@ -335,11 +343,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
-                    setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
-                        reportNextSteps: allReportNextSteps,
-                        transactionViolations,
-                        betas,
-                    });
+                    setWorkspaceApprovalMode(
+                        policy,
+                        policy?.owner ?? '',
+                        isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        {
+                            reportNextSteps: allReportNextSteps,
+                            transactionViolations,
+                            betas,
+                        },
+                        formatPhoneNumber,
+                    );
                 },
                 subMenuItems: (
                     <>

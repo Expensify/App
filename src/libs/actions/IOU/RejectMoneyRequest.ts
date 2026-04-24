@@ -1,5 +1,6 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {MarkTransactionViolationAsResolvedParams, RejectExpenseReportParams, RejectMoneyRequestParams, SetNameValuePairParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -965,6 +966,7 @@ function rejectExpenseReport(
     currentUserAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'],
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -1034,6 +1036,7 @@ function rejectExpenseReport(
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
+                  formatPhoneNumber,
               })
             : // buildOptimisticNextStep is used in parallel
               // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1041,6 +1044,7 @@ function rejectExpenseReport(
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   bypassNextApproverID: targetAccountID,
+                  formatPhoneNumber,
               }),
     });
 

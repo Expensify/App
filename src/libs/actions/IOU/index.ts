@@ -6,6 +6,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, On
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {CreateDistanceRequestParams, UpdateMoneyRequestParams} from '@libs/API/parameters';
@@ -18,7 +19,7 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -265,6 +266,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -311,6 +313,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -1279,6 +1282,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasViolations,
         quickAction,
         personalDetails,
+        formatPhoneNumber,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1904,6 +1908,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                formatPhoneNumber,
             }),
         });
         onyxData.optimisticData?.push({
@@ -2010,6 +2015,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        formatPhoneNumber,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2301,7 +2307,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumberUtil(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
@@ -2321,6 +2327,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -2954,7 +2961,7 @@ function createSplitsAndOnyxData({
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: formatPhoneNumber(participant.displayName || email),
+                      displayName: formatPhoneNumberUtil(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
