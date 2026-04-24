@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,19 +24,16 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
 type ConfirmationWarningTranslationPaths = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
 
-type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT
->;
+type DynamicExpensifyCardLimitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT>;
 
-function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
-    const {policyID, cardID, backTo} = route.params;
+function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPageProps) {
+    const {policyID, cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -47,6 +45,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const card = cardsList?.[cardID];
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path);
 
     const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {
         switch (card?.nameValuePairs?.limitType) {
@@ -68,15 +67,9 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         return newLimit - currentSpend;
     };
 
-    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT;
-
     const goBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
-    }, [backTo, isWorkspaceRhp, policyID, cardID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const updateCardLimit = (newLimit: number) => {
         const newAvailableSpend = getNewAvailableSpend(newLimit);
@@ -134,7 +127,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID="WorkspaceEditCardLimitPage"
+                testID="DynamicExpensifyCardLimitPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -182,4 +175,4 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     );
 }
 
-export default WorkspaceEditCardLimitPage;
+export default DynamicExpensifyCardLimitPage;
