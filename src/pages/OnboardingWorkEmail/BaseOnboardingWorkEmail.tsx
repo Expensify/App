@@ -111,7 +111,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
     }, [onboardingErrorMessage]);
 
-    const turnOffOnboardingErrorMessageOnValueChange = useCallback(() => {
+    const clearOnboardingErrorMessage = useCallback(() => {
         if (onboardingErrorMessage) {
             setOnboardingErrorMessage(null);
         }
@@ -276,7 +276,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
                             autoComplete="email"
-                            onValueChange={turnOffOnboardingErrorMessageOnValueChange}
+                            onValueChange={clearOnboardingErrorMessage}
                         />
                     </View>
                 </FormProvider>
