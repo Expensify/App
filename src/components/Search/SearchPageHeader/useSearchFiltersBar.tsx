@@ -60,6 +60,7 @@ const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([
     FILTER_KEYS.VIEW,
     FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
+    FILTER_KEYS.COLUMNS,
 ]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {

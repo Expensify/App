@@ -190,9 +190,7 @@ function MoneyRequestView({
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        canEvict: false,
-    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
 
     const isFromMergeTransaction = !!mergeTransactionID;
@@ -1192,7 +1190,7 @@ function MoneyRequestView({
                 {shouldShowReimbursable && (
                     <OfflineWithFeedback
                         pendingAction={getPendingFieldAction('reimbursable')}
-                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
                     >
                         <View>
                             <Text
@@ -1213,7 +1211,7 @@ function MoneyRequestView({
                 {shouldShowBillable && (
                     <OfflineWithFeedback
                         pendingAction={getPendingFieldAction('billable')}
-                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
                     >
                         <View>
                             <Text

@@ -195,6 +195,7 @@ type BuildPolicyDataOptions = {
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    isAnnualSubscription?: boolean;
     featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
     lastUsedPaymentMethod?: LastPaymentMethodType;
     adminParticipant?: Participant;
@@ -220,6 +221,7 @@ type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed
 };
 
 type DuplicatePolicyDataOptions = {
+    currentUserAccountID: number;
     policyName: string;
     policyID?: string;
     targetPolicyID?: string;
@@ -2319,6 +2321,7 @@ function createDraftInitialWorkspace(
     currency = '',
     file?: File,
     type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
+    isAnnualSubscription = false,
 ) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
@@ -2330,7 +2333,7 @@ function createDraftInitialWorkspace(
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 id: policyID,
-                type: type || CONST.POLICY.TYPE.TEAM,
+                type: type || (isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM),
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: currentUserEmail,
@@ -2419,6 +2422,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldAddOnboardingTasks = true,
         companySize,
         userReportedIntegration,
+        isAnnualSubscription = false,
         featuresMap,
         lastUsedPaymentMethod,
         adminParticipant,
@@ -2466,7 +2470,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
 
-    const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
+    const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy || isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
     const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
@@ -2904,10 +2908,19 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
-        const {guidedSetupData, optimisticData: taskOptimisticData, successData: taskSuccessData, failureData: taskFailureData} = onboardingData;
+        const {
+            guidedSetupData,
+            optimisticData: taskOptimisticData,
+            successData: taskSuccessData,
+            failureData: taskFailureData,
+            bespokeWelcomeMessage,
+            optimisticConciergeReportActionID,
+        } = onboardingData;
 
         params.guidedSetupData = JSON.stringify(guidedSetupData);
         params.engagementChoice = engagementChoice;
+        params.bespokeWelcomeMessage = bespokeWelcomeMessage;
+        params.optimisticConciergeReportActionID = optimisticConciergeReportActionID;
 
         optimisticData.push(...taskOptimisticData);
         successData.push(...taskSuccessData);
@@ -3099,7 +3112,7 @@ function createDraftWorkspace(
 }
 
 function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
-    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID(), policyCategories, localCurrency} = options;
+    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID(), policyCategories, localCurrency, currentUserAccountID} = options;
 
     const {
         adminsChatReportID,
@@ -3133,7 +3146,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const {customUnitID: distanceCustomUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
     const perDiemCustomUnitID = generateCustomUnitID();
 
-    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs]);
+    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     const defaultOptimisticCategoriesData = buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
@@ -7092,7 +7105,6 @@ function setWorkspaceConfirmationCurrency(currency: string) {
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
-    hasActiveChatEnabledPolicies,
     deleteWorkspace,
     updateAddress,
     updateLastAccessedWorkspace,

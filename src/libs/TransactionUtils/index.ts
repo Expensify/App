@@ -10,6 +10,7 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
+import {normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -39,9 +40,7 @@ import {
     isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
-    isReportApproved,
     isReportIDApproved,
-    isReportManuallyReimbursed,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -375,15 +374,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return 'iou.time';
     }
-}
-
-function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    }
-
-    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -1187,7 +1177,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
  */
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
-    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+    const attendees = normalizeAttendees(Array.isArray(rawAttendees) ? rawAttendees : []);
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1202,7 +1192,7 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
-    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+    const attendees = normalizeAttendees(Array.isArray(rawAttendees) ? rawAttendees : []);
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
@@ -1404,16 +1394,6 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
-}
-
-/**
- * Check if the transaction status is set to Posted.
- */
-function isPosted(transaction: Transaction): boolean {
-    if (!transaction.status) {
-        return false;
-    }
-    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
 /**
@@ -1735,13 +1715,6 @@ function allHavePendingRTERViolation(
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
-}
-
-function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    if (hasRTERPendingViolation) {
-        return true;
-    }
-    return shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report);
 }
 
 /**
@@ -2106,9 +2079,13 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
     if (isDistanceRequest(transaction)) {
-        const customUnitRateID = getRateID(transaction) ?? '';
+        // When editing a distance rate, the draft transaction's customUnitRateID
+        // does not reflect the newly selected rate until setMoneyRequestDistanceRate is called, and the draft transaction's is updated.
+        // Therefore, to correctly determine the tax code for the selected rate, we must use the newly selected distance rate's customUnitRateID (newCustomUnitRateID)
+        // instead of relying on the transaction's current customUnitRateID.
+        const customUnitRateID = newCustomUnitRateID ?? getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
         const customUnit = getDistanceRateCustomUnit(policy);
         if (!customUnitRate?.attributes?.taxRateExternalID && customUnit?.attributes?.taxEnabled) {
@@ -2833,7 +2810,6 @@ export {
     getDescription,
     getRequestType,
     getTransactionType,
-    isManualRequest,
     isScanRequest,
     getAmount,
     getAttendees,
@@ -2864,7 +2840,6 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
-    getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isMapDistanceRequest,
     isGPSDistanceRequest,
@@ -2876,12 +2851,10 @@ export {
     isManagedCardTransaction,
     isDuplicate,
     isPending,
-    isPosted,
     isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
-    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
@@ -2897,7 +2870,6 @@ export {
     hasReservationList,
     hasViolation,
     hasDuplicateTransactions,
-    hasBrokenConnectionViolation,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
@@ -2923,12 +2895,10 @@ export {
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
     isViolationDismissed,
-    isBrokenConnectionViolation,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
     isScanning,
     isCategoryBeingAnalyzed,
-    checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,

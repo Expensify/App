@@ -2,13 +2,29 @@ import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import type {LabelRotation, ParagraphWithWidth} from '@components/Charts/types';
-import {buildChartParagraph, getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+import useChartParagraphs from '@components/Charts/hooks/useChartParagraphs';
+import type {LabelRotation} from '@components/Charts/types';
+import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
 import variables from '@styles/variables';
 
 type ChartXAxisLabelsProps = {
-    /** Processed label strings (already truncated by the layout hook). */
+    /** Original (non-truncated) label strings from the data. */
     labels: string[];
+
+    /** Pre-measured pixel width of each original label (from useChartLabelMeasurements). */
+    labelWidths: number[];
+
+    /** Maximum pixel width for inner tick labels (not first/last). From useChartLabelLayout (`tickMaxWidth`). */
+    regularLabelMaxWidth: number;
+
+    /** Maximum pixel width for the first label (edge + tick constraints). */
+    firstLabelMaxWidth: number;
+
+    /** Maximum pixel width for the last label (edge + tick constraints). */
+    lastLabelMaxWidth: number;
+
+    /** Pixel width of the ellipsis character (from useChartLabelMeasurements). */
+    ellipsisWidth: number;
 
     /** Label rotation in degrees (e.g. 0, 45, 90). */
     labelRotation: LabelRotation;
@@ -35,28 +51,48 @@ type ChartXAxisLabelsProps = {
     centerRotatedLabels?: boolean;
 };
 
-function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, fontMgr, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
+function ChartXAxisLabels({
+    labels,
+    labelWidths,
+    regularLabelMaxWidth,
+    firstLabelMaxWidth,
+    lastLabelMaxWidth,
+    ellipsisWidth,
+    labelRotation,
+    labelSkipInterval,
+    fontSize,
+    fontMgr,
+    labelColor,
+    xScale,
+    chartBoundsBottom,
+    centerRotatedLabels = false,
+}: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
+    const truncatedLabels = (() => {
+        const lastIndex = labels.length - 1;
+        return labels.map((label, i) => {
+            let maxWidth = regularLabelMaxWidth;
+            if (i === 0) {
+                maxWidth = firstLabelMaxWidth;
+            } else if (i === lastIndex) {
+                maxWidth = lastLabelMaxWidth;
+            }
+            return truncateLabel(label, labelWidths.at(i) ?? 0, maxWidth, ellipsisWidth);
+        });
+    })();
 
-    const paragraphs: ParagraphWithWidth[] = labels.map((label) => {
-        if (label.length === 0) {
-            return {para: null, width: 0};
-        }
-        const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
-        para.layout(MAX_X_AXIS_LABEL_WIDTH);
-        return {para, width: para.getLongestLine()};
-    });
+    const paragraphs = useChartParagraphs(truncatedLabels, fontMgr, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
 
-    const labelWidths = labels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
+    const renderedWidths = truncatedLabels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
     const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
-    const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
+    const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...renderedWidths) / 2) * Math.sin(angleRad) : 0;
     const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
 
-    return labels.map((label, i) => {
+    return truncatedLabels.map((label, i) => {
         if (i % labelSkipInterval !== 0 || label.length === 0) {
             return null;
         }
@@ -101,31 +137,5 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, f
     });
 }
 
-/**
- * Custom comparator for React.memo.
- *
- * Victory-native's `renderOutside` callback is invoked on every pointer/hover event and always
- * passes freshly-created objects for `xScale` and `chartBounds`, even when the underlying chart
- * geometry has not changed. Without this comparator, `ChartXAxisLabels` would re-render on every
- * mouse move, triggering expensive Skia paragraph re-builds for every label.
- *
- * Instead of relying on reference equality, we compare the values that actually affect rendering:
- * label strings, rotation, font settings, and a sampled scale output.
- */
-function arePropsEqual(prev: ChartXAxisLabelsProps, next: ChartXAxisLabelsProps): boolean {
-    return (
-        prev.labels.length === next.labels.length &&
-        prev.labels.every((l, i) => l === next.labels.at(i)) &&
-        prev.labelRotation === next.labelRotation &&
-        prev.labelSkipInterval === next.labelSkipInterval &&
-        prev.fontSize === next.fontSize &&
-        prev.fontMgr === next.fontMgr &&
-        prev.labelColor === next.labelColor &&
-        prev.chartBoundsBottom === next.chartBoundsBottom &&
-        prev.centerRotatedLabels === next.centerRotatedLabels &&
-        prev.xScale(0) === next.xScale(0)
-    );
-}
-
-export default React.memo(ChartXAxisLabels, arePropsEqual);
+export default ChartXAxisLabels;
 export type {ChartXAxisLabelsProps};

@@ -580,5 +580,5 @@ function updateBulkEditDraftTransaction(transactionChanges: NullishDeep<OnyxType
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, transactionChanges);
 }
 
-export {removeUnchangedBulkEditFields, updateMultipleMoneyRequests, initBulkEditDraftTransaction, clearBulkEditDraftTransaction, updateBulkEditDraftTransaction};
+export {updateMultipleMoneyRequests, initBulkEditDraftTransaction, clearBulkEditDraftTransaction, updateBulkEditDraftTransaction};
 export type {UpdateMultipleMoneyRequestsParams};
