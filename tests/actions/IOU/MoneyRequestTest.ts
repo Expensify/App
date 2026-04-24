@@ -298,6 +298,26 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({shouldDeferAPIWrite: true}));
         });
 
+        it('should propagate isFromGlobalCreate from the per-receipt draft into both trackExpense and requestMoney transactionParams (so action gates Search-defer + highlight on the same flag UI uses for cleanup)', () => {
+            const fabTransaction = {...fakeTransaction, isFromFloatingActionButton: true};
+
+            createTransaction({
+                ...baseParams,
+                transactions: [fabTransaction],
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+            });
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({transactionParams: expect.objectContaining({isFromGlobalCreate: true})}));
+
+            (TrackExpense.requestMoney as jest.Mock).mockClear();
+            createTransaction({
+                ...baseParams,
+                transactions: [fabTransaction],
+                allTransactionDrafts: {},
+            });
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({transactionParams: expect.objectContaining({isFromGlobalCreate: true})}));
+        });
+
         it('should default receipt source and state correctly when file is missing', () => {
             const files = [{...fakeReceiptFile, file: undefined}];
 
