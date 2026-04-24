@@ -13376,7 +13376,7 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
 function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackIntentUser?: boolean; report: OnyxEntry<Report>; policy: OnyxEntry<Policy>}): boolean {
     const isSubmitter = isReportOwner(report);
     const nextApproverAccountID = getNextApproverAccountID(report);
-    const isSubmittingToSelf = isReportOwner(report) && (nextApproverAccountID === report?.ownerAccountID || report?.managerID === report?.ownerAccountID);
+    const isSubmittingToSelf = isReportOwner(report) && nextApproverAccountID === report?.ownerAccountID;
     return !!isTrackIntentUser && isSubmitAndClose(policy) && isSubmitter && isSubmittingToSelf;
 }
 

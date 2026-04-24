@@ -4,6 +4,7 @@ import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import {hasDynamicExternalWorkflow, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
+import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
@@ -36,7 +37,13 @@ function ApprovalFlowContent({action, policy, reportMetadata, childReport, origi
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
 
-        if (isTrackIntentUser && isSubmitAndClose(policy)) {
+        if (
+            shouldShowMarkAsDone({
+                isTrackIntentUser,
+                policy,
+                report: originalReport,
+            })
+        ) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
         }
 
@@ -66,7 +73,13 @@ function ApprovalFlowContent({action, policy, reportMetadata, childReport, origi
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
 
-        if (isTrackIntentUser && isSubmitAndClose(policy)) {
+        if (
+            shouldShowMarkAsDone({
+                isTrackIntentUser,
+                policy,
+                report: originalReport,
+            })
+        ) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
         }
 
