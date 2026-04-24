@@ -49,7 +49,6 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [sortedAllReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         {
-            canEvict: false,
             selector: getSortedAllReportActionsSelector,
         },
         [getSortedAllReportActionsSelector],

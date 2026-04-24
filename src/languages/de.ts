@@ -7006,7 +7006,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Genehmigungsmodus', finalApprover: 'Endgültige:r Genehmiger:in'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Genehmigungsmodus',
+                finalApprover: 'Endgültige:r Genehmiger:in',
+                connect: 'Verbinden',
+                connectionDescription: 'Verbinde Gusto, um Mitarbeitergenehmigungen mit deinem Workspace zu synchronisieren.',
+            },
         },
     },
     getAssistancePage: {

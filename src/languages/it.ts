@@ -6991,7 +6991,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Modalità approvazione', finalApprover: 'Approvazione finale'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Modalità approvazione',
+                finalApprover: 'Approvazione finale',
+                connect: 'Collega',
+                connectionDescription: 'Collega Gusto per sincronizzare le approvazioni dei dipendenti con il tuo spazio di lavoro.',
+            },
         },
     },
     getAssistancePage: {

@@ -6963,7 +6963,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Tryb zatwierdzania', finalApprover: 'Ostateczny zatwierdzający'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Tryb zatwierdzania',
+                finalApprover: 'Ostateczny zatwierdzający',
+                connect: 'Połącz',
+                connectionDescription: 'Połącz Gusto, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.',
+            },
         },
     },
     getAssistancePage: {

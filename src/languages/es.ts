@@ -6213,6 +6213,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             gusto: {
                 title: 'Gusto',
+                connect: 'Conectar',
+                connectionDescription: 'Conecta Gusto para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.',
                 approvalMode: 'Modo de aprobación',
                 finalApprover: 'Aprobador final',
             },

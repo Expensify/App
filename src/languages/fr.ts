@@ -7028,7 +7028,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Mode d’approbation', finalApprover: 'Approbateur final'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
+                connect: 'Connect',
+                connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
+            },
         },
     },
     getAssistancePage: {

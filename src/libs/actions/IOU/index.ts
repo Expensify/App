@@ -29,7 +29,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import revokeOdometerImageUri from '@libs/OdometerImageUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -93,7 +92,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
-import type {IOUAction, IOUActionParams, OdometerImageType} from '@src/CONST';
+import type {IOUAction, IOUActionParams} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -108,7 +107,6 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
@@ -1110,78 +1108,6 @@ function setCustomUnitID(transactionID: string, customUnitID: string) {
 
 function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean, distanceUnit: Unit) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
-}
-
-/**
- * Set the odometer readings for a transaction
- */
-function setMoneyRequestOdometerReading(transactionID: string, startReading: number, endReading: number, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            odometerStart: startReading,
-            odometerEnd: endReading,
-        },
-    });
-}
-
-/**
- * Set odometer image for a transaction
- * @param transaction - The transaction or transaction draft
- * @param imageType - 'start' or 'end'
- * @param file - The image file (File object on web, URI string on native)
- * @param isDraft - Whether this is a draft transaction
- * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
- */
-function setMoneyRequestOdometerImage(
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    imageType: OdometerImageType,
-    file: FileObject | string,
-    isDraft: boolean,
-    shouldRevokeOldImage: boolean,
-) {
-    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
-    const normalizedFile: FileObject | string =
-        typeof file === 'string'
-            ? file
-            : {
-                  uri: file.uri ?? (typeof URL !== 'undefined' ? URL.createObjectURL(file as Blob) : undefined),
-                  name: file.name,
-                  type: file.type,
-                  size: file.size,
-              };
-    const transactionID = transaction?.transactionID;
-    const existingImage = transaction?.comment?.[imageKey];
-    if (shouldRevokeOldImage) {
-        revokeOdometerImageUri(existingImage, normalizedFile);
-    }
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            [imageKey]: normalizedFile,
-        },
-    });
-}
-
-/**
- * Remove odometer image from a transaction
- * @param transaction - The transaction or transaction draft
- * @param imageType - 'start' or 'end'
- * @param isDraft - Whether this is a draft transaction
- * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
- */
-function removeMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
-    if (!transaction?.transactionID) {
-        return;
-    }
-    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
-    const existingImage = transaction?.comment?.[imageKey];
-    if (shouldRevokeOldImage) {
-        revokeOdometerImageUri(existingImage);
-    }
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
-        comment: {
-            [imageKey]: null,
-        },
-    });
 }
 
 /**
@@ -3753,9 +3679,6 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
-    setMoneyRequestOdometerReading,
-    setMoneyRequestOdometerImage,
-    removeMoneyRequestOdometerImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,

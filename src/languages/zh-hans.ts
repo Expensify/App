@@ -6796,7 +6796,7 @@ ${reportName}
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人'},
+            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人', connect: '连接', connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。'},
         },
     },
     getAssistancePage: {

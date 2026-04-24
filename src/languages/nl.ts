@@ -6971,7 +6971,13 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Goedkeuringsmodus', finalApprover: 'Laatste fiatteur'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Goedkeuringsmodus',
+                finalApprover: 'Laatste fiatteur',
+                connect: 'Verbinden',
+                connectionDescription: 'Verbind Gusto om goedkeuringen van werknemers gesynchroniseerd te houden met je workspace.',
+            },
         },
     },
     getAssistancePage: {
