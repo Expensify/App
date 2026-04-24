@@ -8,30 +8,31 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function RequestEarlyCancellationMenuItem() {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid']);
+function CancelSubscriptionMenuItem() {
+    const icons = useMemoizedLazyExpensifyIcons(['CircleSlash']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const handleRequestEarlyCancellationPress = () => {
+    const handleCancelSubscriptionPress = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION);
     };
     return (
         <MenuItem
-            title={translate('subscription.requestEarlyCancellation.title')}
-            icon={icons.CalendarSolid}
+            title={translate('subscription.cancelSubscription.title')}
+            icon={icons.CircleSlash}
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
-            onPress={handleRequestEarlyCancellationPress}
-            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_EARLY_CANCELLATION}
+            titleStyle={styles.textStrong}
+            onPress={handleCancelSubscriptionPress}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION}
         />
     );
 }
 
-export default RequestEarlyCancellationMenuItem;
+export default CancelSubscriptionMenuItem;

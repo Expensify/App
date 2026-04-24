@@ -1161,6 +1161,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1223,6 +1225,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1278,6 +1282,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1329,6 +1335,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1389,6 +1397,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1435,6 +1445,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1474,6 +1486,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1515,6 +1529,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1566,6 +1582,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1630,6 +1648,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1678,6 +1698,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1737,6 +1759,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1901,6 +1925,8 @@ describe('actions/Duplicate', () => {
             isSelfTourViewed: false,
             transactionViolations: {},
             translate: mockTranslate,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
             ...overrides,
         });

@@ -595,6 +595,8 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
+                currentUserLogin: params.currentUserEmailParam,
+                currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
                     comment: {
@@ -665,6 +667,8 @@ type DuplicateExpenseTransactionParams = {
     shouldDeferAutoSubmit?: boolean;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function duplicateExpenseTransaction({
@@ -690,15 +694,14 @@ function duplicateExpenseTransaction({
     shouldDeferAutoSubmit = false,
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
+    currentUserAccountID,
+    currentUserLogin,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
     }
 
-    const userAccountID = getUserAccountID();
-    const currentUserEmail = getCurrentUserEmail();
-
-    const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
+    const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
     const transactionDetails = getTransactionDetails(transaction);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
@@ -710,8 +713,8 @@ function duplicateExpenseTransaction({
         optimisticIOUReportID,
         optimisticReportPreviewActionID: externalReportPreviewActionID ?? NumberUtils.rand64(),
         participantParams: {
-            payeeAccountID: userAccountID,
-            payeeEmail: currentUserEmail,
+            payeeAccountID: currentUserAccountID,
+            payeeEmail: currentUserLogin,
             participant: participants.at(0) ?? {},
         },
         gpsPoint: undefined,
@@ -720,8 +723,8 @@ function duplicateExpenseTransaction({
         shouldPlaySound,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
-        currentUserAccountIDParam: userAccountID,
-        currentUserEmailParam: currentUserEmail,
+        currentUserAccountIDParam: currentUserAccountID,
+        currentUserEmailParam: currentUserLogin,
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
         quickAction,
@@ -738,7 +741,7 @@ function duplicateExpenseTransaction({
             ...params,
             participantParams: {
                 ...(params.participantParams ?? {}),
-                participant: {accountID: userAccountID, selected: true},
+                participant: {accountID: currentUserAccountID, selected: true},
             },
             existingTransaction: {
                 ...(params.transactionParams ?? {}),
@@ -808,6 +811,8 @@ type DuplicateReportParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
     shouldPlaySound?: boolean;
 };
 
@@ -829,14 +834,13 @@ function duplicateReport({
     transactionViolations,
     translate,
     recentWaypoints,
+    currentUserAccountID,
+    currentUserLogin,
     shouldPlaySound = true,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
     }
-
-    const userAccountID = getUserAccountID();
-    const currentUserEmailValue = getCurrentUserEmail();
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
     const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
@@ -863,7 +867,7 @@ function duplicateReport({
         return true;
     });
 
-    const participants = getMoneyRequestParticipantsFromReport(parentChatReport, userAccountID);
+    const participants = getMoneyRequestParticipantsFromReport(parentChatReport, currentUserAccountID);
 
     const policyParams = targetPolicy
         ? {
@@ -893,8 +897,8 @@ function duplicateReport({
             existingIOUReport: currentIOUReport,
             optimisticReportPreviewActionID: reportPreviewReportActionID,
             participantParams: {
-                payeeAccountID: userAccountID,
-                payeeEmail: currentUserEmailValue,
+                payeeAccountID: currentUserAccountID,
+                payeeEmail: currentUserLogin,
                 participant: participants.at(0) ?? {},
             },
             policyParams,
@@ -904,8 +908,8 @@ function duplicateReport({
             shouldPlaySound: false,
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled,
-            currentUserAccountIDParam: userAccountID,
-            currentUserEmailParam: currentUserEmailValue,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
             transactionViolations: transactionViolations ?? {},
             quickAction,
             policyRecentlyUsedCurrencies,
@@ -1031,6 +1035,8 @@ function bulkDuplicateExpenses({
             shouldDeferAutoSubmit: !isLastExpense,
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: sharedReportPreviewActionID,
+            currentUserAccountID: getUserAccountID(),
+            currentUserLogin: getCurrentUserEmail(),
         });
 
         if (result?.iouReport) {
@@ -1159,6 +1165,8 @@ function bulkDuplicateReports({
             translate,
             recentWaypoints,
             shouldPlaySound: false,
+            currentUserAccountID: getUserAccountID(),
+            currentUserLogin: getCurrentUserEmail(),
         });
     }
 
