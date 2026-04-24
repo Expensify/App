@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getChatByParticipants, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -40,7 +40,7 @@ function resolveChatForSubmitCleanup({participant, currentUserAccountID, report,
     }
 
     let chatReportID: string | undefined;
-    if (participant.isPolicyExpenseChat && participant.reportID) {
+    if (participant.isPolicyExpenseChat && participant.reportID && getReportOrDraftReport(participant.reportID)) {
         chatReportID = participant.reportID;
     } else if (participant.accountID) {
         chatReportID = getChatByParticipants([participant.accountID, currentUserAccountID])?.reportID;

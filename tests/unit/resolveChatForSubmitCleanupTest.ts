@@ -1,10 +1,11 @@
-import {getChatByParticipants, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import resolveChatForSubmitCleanup from '@pages/iou/request/step/confirmation/resolveChatForSubmitCleanup';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 jest.mock('@libs/ReportUtils', () => ({
     getChatByParticipants: jest.fn(),
+    getReportOrDraftReport: jest.fn(),
     isMoneyRequestReport: jest.fn(),
     isPolicyExpenseChat: jest.fn(),
     isSelfDM: jest.fn(),
@@ -21,6 +22,7 @@ describe('resolveChatForSubmitCleanup', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
+        (getReportOrDraftReport as jest.Mock).mockReturnValue({reportID: 'cached'});
         (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
         (isPolicyExpenseChat as jest.Mock).mockReturnValue(false);
         (isSelfDM as jest.Mock).mockReturnValue(false);
@@ -75,6 +77,15 @@ describe('resolveChatForSubmitCleanup', () => {
         const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report: undefined, fallbackOptimisticChatReportID: FALLBACK});
 
         expect(result).toEqual({report: undefined, optimisticChatReportID: 'workspace-1'});
+    });
+
+    it('should fall back to optimisticChatReportID when participant.isPolicyExpenseChat targets a report not present in the Onyx cache (mirrors action behavior)', () => {
+        const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-uncached'};
+        (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
+
+        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report: undefined, fallbackOptimisticChatReportID: FALLBACK});
+
+        expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
     });
 
     it('should resolve to the existing 1:1 DM via getChatByParticipants when participant differs from source report', () => {
