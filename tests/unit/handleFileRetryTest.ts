@@ -77,7 +77,7 @@ describe('handleFileRetry', () => {
             });
         });
 
-        it('should NOT forward linkedTrackedExpenseReportAction for TRACK_EXPENSE retries', () => {
+        it('should forward linkedTrackedExpenseReportAction through cleanup for TRACK_EXPENSE retries (CATEGORIZE/SHARE flow)', () => {
             const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as ReportAction;
 
             handleFileRetry(
@@ -89,7 +89,7 @@ describe('handleFileRetry', () => {
                 setShouldShowErrorModal,
             );
 
-            expect(cleanupAfterExpenseCreate).not.toHaveBeenCalledWith(expect.objectContaining({linkedTrackedExpenseReportAction}));
+            expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({linkedTrackedExpenseReportAction}));
         });
 
         it('should pass undefined draftTransactionIDs when the retry payload omits them', () => {
