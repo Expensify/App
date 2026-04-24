@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getChatByParticipants} from '@libs/ReportUtils';
+import {getChatByParticipants, isMoneyRequestReport} from '@libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -15,19 +15,20 @@ type ResolveChatForSubmitCleanupResult = {
     optimisticChatReportID: string;
 };
 
-/** Mirrors the action's chat priority (policyExpenseChat → 1:1 DM → fallback) so cleanup targets the actual submission report when the participant changed after opening confirmation. */
+/** Mirrors the action's chat resolution: keep money-request reports; otherwise resolve via policyExpenseChat → 1:1 DM → optimistic fallback. */
 function resolveChatForSubmitCleanup({participant, currentUserAccountID, report, fallbackOptimisticChatReportID}: ResolveChatForSubmitCleanupParams): ResolveChatForSubmitCleanupResult {
-    let resolvedChatReportID: string | undefined;
-    if (participant.isPolicyExpenseChat && participant.reportID) {
-        resolvedChatReportID = participant.reportID;
-    } else if (participant.accountID) {
-        resolvedChatReportID = getChatByParticipants([participant.accountID, currentUserAccountID])?.reportID;
+    if (isMoneyRequestReport(report)) {
+        return {report, optimisticChatReportID: fallbackOptimisticChatReportID};
     }
-    const participantDiffersFromReport = !!resolvedChatReportID && resolvedChatReportID !== report?.reportID;
-    return {
-        report: participantDiffersFromReport ? undefined : report,
-        optimisticChatReportID: resolvedChatReportID ?? fallbackOptimisticChatReportID,
-    };
+
+    let chatReportID: string | undefined;
+    if (participant.isPolicyExpenseChat && participant.reportID) {
+        chatReportID = participant.reportID;
+    } else if (participant.accountID) {
+        chatReportID = getChatByParticipants([participant.accountID, currentUserAccountID])?.reportID;
+    }
+
+    return {report: undefined, optimisticChatReportID: chatReportID ?? fallbackOptimisticChatReportID};
 }
 
 export default resolveChatForSubmitCleanup;
