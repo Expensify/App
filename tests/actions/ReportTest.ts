@@ -2195,7 +2195,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
         expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
         expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
@@ -2239,7 +2239,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
 
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
@@ -2437,7 +2437,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        report = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
         expect(report?.lastMentionedTime).toBeUndefined();
     });

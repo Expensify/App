@@ -44,7 +44,7 @@ describe('WorkspacesSettingsUtils', () => {
             });
 
             await waitForBatchedUpdates();
-            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const reportAttributes = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // eslint-disable-next-line rulesdir/no-default-id-values
             const result = getBrickRoadForPolicy(report?.reportID ?? '', reportAttributes?.reports);
@@ -66,7 +66,7 @@ describe('WorkspacesSettingsUtils', () => {
             });
 
             await waitForBatchedUpdates();
-            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const reportAttributes = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // eslint-disable-next-line rulesdir/no-default-id-values
             const result = getBrickRoadForPolicy(report?.reportID ?? '', reportAttributes?.reports);
@@ -95,7 +95,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const reportAttributes = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             const result = getChatTabBrickRoadReportID(reportIDs, reportAttributes?.reports);
 
@@ -117,7 +117,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const reportAttributes = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             const result = getChatTabBrickRoadReportID(reportIDs, reportAttributes?.reports);
 
@@ -145,7 +145,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const reportAttributes = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             const result = getChatTabBrickRoad(reportIDs, reportAttributes?.reports);
 
@@ -167,7 +167,7 @@ describe('WorkspacesSettingsUtils', () => {
             const reportIDs = Object.values(reports).map((report) => report.reportID);
 
             await waitForBatchedUpdates();
-            const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const reportAttributes = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             const result = getChatTabBrickRoad(reportIDs, reportAttributes?.reports);
 

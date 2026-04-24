@@ -447,7 +447,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Then the approval rule should be created with the tag name
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            const updatedPolicy = OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
 
             expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
             expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
@@ -507,7 +507,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Then the approval rule should be created with the tag name
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            const updatedPolicy = OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
 
             expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
             expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
@@ -562,7 +562,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Verify the category was created
-            const policyCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
+            const policyCategories = OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
             const newCategory = policyCategories?.[newCategoryName];
             expect(newCategory?.name).toBe(newCategoryName);
 
@@ -609,7 +609,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // Verify the category was created
-            const policyCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
+            const policyCategories = OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`);
             const newCategory = policyCategories?.[newCategoryName];
             expect(newCategory?.name).toBe(newCategoryName);
 

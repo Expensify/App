@@ -19,8 +19,8 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     // Use NetInfo.fetch() instead of the in-memory NetworkState.isOffline() because this
     // background task may run in a headless JS context (Android) where module-level state
     // in NetworkState.ts hasn't been populated via Onyx/NetInfo subscribers.
-    const [gpsDraftDetailsPromiseResult, netInfoState] = await Promise.all([OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined), NetInfo.fetch()]);
-    const gpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
+    const gpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const netInfoState = await NetInfo.fetch();
     const isOffline = netInfoState.isConnected === false;
 
     updateStartAddress(gpsDraftDetails?.gpsPoints ?? [], data.locations.at(0), isOffline);

@@ -93,7 +93,7 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
 }
 
 async function getLastPoint() {
-    const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const gpsTrip = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     return gpsTrip?.gpsPoints?.at(-1);
 }

@@ -33,118 +33,116 @@ function init() {
         // We cast its type to match the tuple expected by config.compute.
         const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
-        OnyxUtils.get(key).then((storedDerivedValue) => {
-            let derivedValue = storedDerivedValue;
-            if (derivedValue) {
-                Log.info(`Derived value for ${key} restored from disk`);
+        let derivedValue = OnyxUtils.get(key);
+        if (derivedValue) {
+            Log.info(`Derived value for ${key} restored from cache`);
+        }
+
+        const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
+            dependencyValues[i] = value;
+        };
+        const checkAndMarkConnectionInitialized = (index: number) => {
+            if (connectionInitializedFlags.at(index)) {
+                return;
             }
 
-            const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
-                dependencyValues[i] = value;
-            };
-            const checkAndMarkConnectionInitialized = (index: number) => {
-                if (connectionInitializedFlags.at(index)) {
-                    return;
-                }
+            connectionInitializedFlags[index] = true;
+            connectionsEstablishedCount++;
+            if (connectionsEstablishedCount === totalConnections) {
+                areAllConnectionsSet = true;
+                Log.info(`[OnyxDerived] All connections initialized for key: ${key}`);
+            }
+        };
 
-                connectionInitializedFlags[index] = true;
-                connectionsEstablishedCount++;
-                if (connectionsEstablishedCount === totalConnections) {
-                    areAllConnectionsSet = true;
-                    Log.info(`[OnyxDerived] All connections initialized for key: ${key}`);
-                }
-            };
+        // Create context once outside the function, swap values inline to avoid overhead of creating new objects frequently
+        const context: DerivedValueContext<typeof key, typeof dependencies> = {
+            currentValue: undefined,
+            sourceValues: undefined,
+        };
 
-            // Create context once outside the function, swap values inline to avoid overhead of creating new objects frequently
-            const context: DerivedValueContext<typeof key, typeof dependencies> = {
-                currentValue: undefined,
-                sourceValues: undefined,
-            };
+        const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
+            // If this recompute was triggered by a connection callback, check if it initializes the connection
+            if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
+                checkAndMarkConnectionInitialized(triggeredByIndex);
+            }
 
-            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
-                // If this recompute was triggered by a connection callback, check if it initializes the connection
-                if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
-                    checkAndMarkConnectionInitialized(triggeredByIndex);
-                }
+            // Before all connections are established, don't write to Onyx.
+            // This prevents overwriting a valid disk-cached value with empty defaults,
+            // and avoids N-1 unnecessary Onyx writes during initialization.
+            // We still update dependencyValues via setDependencyValue so data accumulates correctly.
+            if (!areAllConnectionsSet) {
+                Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
+                return;
+            }
 
-                // Before all connections are established, don't write to Onyx.
-                // This prevents overwriting a valid disk-cached value with empty defaults,
-                // and avoids N-1 unnecessary Onyx writes during initialization.
-                // We still update dependencyValues via setDependencyValue so data accumulates correctly.
-                if (!areAllConnectionsSet) {
-                    Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
-                    return;
-                }
+            context.currentValue = derivedValue;
+            context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
-                context.currentValue = derivedValue;
-                context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
+            const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
+            startSpan(spanId, {
+                name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+                attributes: {derivedKey: key},
+            });
 
-                const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
-                startSpan(spanId, {
-                    name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
-                    op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
-                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-                    attributes: {derivedKey: key},
+            try {
+                // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
+                const newDerivedValue = compute(dependencyValues, context);
+                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
+                derivedValue = newDerivedValue;
+                setDerivedValue(key, derivedValue);
+            } finally {
+                endSpan(spanId);
+            }
+        };
+
+        for (let i = 0; i < dependencies.length; i++) {
+            const dependencyIndex = i;
+            const dependencyOnyxKey = dependencies[dependencyIndex];
+
+            if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
+                Onyx.connectWithoutView({
+                    key: dependencyOnyxKey,
+                    waitForCollectionCallback: true,
+                    callback: (value, collectionKey, sourceValue) => {
+                        Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
+                        setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                        recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
+                    },
                 });
-
-                try {
-                    // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                    const newDerivedValue = compute(dependencyValues, context);
-                    Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
-                    derivedValue = newDerivedValue;
-                    setDerivedValue(key, derivedValue);
-                } finally {
-                    endSpan(spanId);
-                }
-            };
-
-            for (let i = 0; i < dependencies.length; i++) {
-                const dependencyIndex = i;
-                const dependencyOnyxKey = dependencies[dependencyIndex];
-
-                if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
-                    Onyx.connectWithoutView({
-                        key: dependencyOnyxKey,
-                        waitForCollectionCallback: true,
-                        callback: (value, collectionKey, sourceValue) => {
-                            Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
-                        },
-                    });
-                } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
-                    // Special case for locale, we want to recompute derived values when the locale change actually loads.
-                    Onyx.connectWithoutView({
-                        key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
-                        callback: (value) => {
-                            if (value ?? true) {
-                                Log.info(`[OnyxDerived] translations are still loading, not recomputing derived value for ${key}`);
-                                return;
-                            }
-                            Log.info(`[OnyxDerived] translations loaded, recomputing derived value for ${key}`);
-                            const localeValue = IntlStore.getCurrentLocale();
-                            if (!localeValue) {
-                                Log.info(`[OnyxDerived] No locale found for derived key ${key}, skipping recompute`);
-                                return;
-                            }
-                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(dependencyIndex, localeValue as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
-                        },
-                    });
-                } else {
-                    Onyx.connectWithoutView({
-                        key: dependencyOnyxKey,
-                        callback: (value) => {
-                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            // if the dependency is not a collection, pass the entire value as the source value
-                            recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);
-                        },
-                    });
-                }
+            } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
+                // Special case for locale, we want to recompute derived values when the locale change actually loads.
+                Onyx.connectWithoutView({
+                    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+                    callback: (value) => {
+                        if (value ?? true) {
+                            Log.info(`[OnyxDerived] translations are still loading, not recomputing derived value for ${key}`);
+                            return;
+                        }
+                        Log.info(`[OnyxDerived] translations loaded, recomputing derived value for ${key}`);
+                        const localeValue = IntlStore.getCurrentLocale();
+                        if (!localeValue) {
+                            Log.info(`[OnyxDerived] No locale found for derived key ${key}, skipping recompute`);
+                            return;
+                        }
+                        Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
+                        setDependencyValue(dependencyIndex, localeValue as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                        recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
+                    },
+                });
+            } else {
+                Onyx.connectWithoutView({
+                    key: dependencyOnyxKey,
+                    callback: (value) => {
+                        Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
+                        setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                        // if the dependency is not a collection, pass the entire value as the source value
+                        recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);
+                    },
+                });
             }
-        });
+        }
     }
 }
 
