@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getChatByParticipants, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getChatByParticipants, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -15,10 +15,28 @@ type ResolveChatForSubmitCleanupResult = {
     optimisticChatReportID: string;
 };
 
-/** Mirrors the action's chat resolution: keep money-request reports; otherwise resolve via policyExpenseChat → 1:1 DM → optimistic fallback. */
+/** Mirrors the action's chat resolution (`getMoneyRequestInformation`, `index.ts:2052-2093`): keep the source report when the action would, otherwise resolve via policyExpenseChat → 1:1 DM → optimistic fallback. */
 function resolveChatForSubmitCleanup({participant, currentUserAccountID, report, fallbackOptimisticChatReportID}: ResolveChatForSubmitCleanupParams): ResolveChatForSubmitCleanupResult {
     if (isMoneyRequestReport(report)) {
         return {report, optimisticChatReportID: fallbackOptimisticChatReportID};
+    }
+
+    // Action keeps `parentChatReport` (= source report) unless it's a non-special 1:1 chat whose participants don't match the submission target.
+    if (report?.reportID) {
+        const isSpecialChat = !!participant.isPolicyExpenseChat || isPolicyExpenseChat(report) || isSelfDM(report) || isGroupChat(report) || isDeprecatedGroupDM(report);
+        if (isSpecialChat) {
+            return {report, optimisticChatReportID: fallbackOptimisticChatReportID};
+        }
+        if (participant.accountID) {
+            const reportParticipants = Object.keys(report.participants ?? {})
+                .map(Number)
+                .sort();
+            const expected = [participant.accountID, currentUserAccountID].sort();
+            const participantsMatch = expected.length === reportParticipants.length && expected.every((id, i) => id === reportParticipants.at(i));
+            if (participantsMatch) {
+                return {report, optimisticChatReportID: fallbackOptimisticChatReportID};
+            }
+        }
     }
 
     let chatReportID: string | undefined;
