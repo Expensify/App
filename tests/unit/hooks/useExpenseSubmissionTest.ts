@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -255,8 +255,8 @@ describe('useExpenseSubmission action-bailout safety', () => {
     });
 
     it('skips cleanup/nav when a multi-transaction SUBMIT batch has any iteration that bails (defense-in-depth — preserves the failed item draft)', async () => {
-        // Pre-validation passes (both items have linked-track); the mock simulates iter 2 bailing for a different reason.
-        const linkedTracked = {linkedTrackedExpenseReportAction: {reportActionID: 'a-1'}, linkedTrackedExpenseReportID: 'r-1'};
+        // Cast keeps the fixture minimal — pre-validation only needs truthy presence.
+        const linkedTracked = {linkedTrackedExpenseReportAction: {reportActionID: 'a-1'} as unknown as ReportAction, linkedTrackedExpenseReportID: 'r-1'};
         const transaction1 = buildTransaction({transactionID: 't-1', ...linkedTracked});
         const transaction2 = buildTransaction({transactionID: 't-2', ...linkedTracked});
         mockRequestMoneyAction.mockReturnValueOnce({iouReport: {reportID: 'iou-1'}}).mockReturnValueOnce({});
