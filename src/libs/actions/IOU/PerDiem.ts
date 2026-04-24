@@ -6,7 +6,7 @@ import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertAmountToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -37,6 +37,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
@@ -236,6 +237,7 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
+    shouldHandleNavigation?: boolean;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -266,6 +268,7 @@ type PerDiemExpenseInformationForSelfDM = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    shouldHandleNavigation?: boolean;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -900,6 +903,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         optimisticTransactionID,
+        shouldHandleNavigation = true,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -995,18 +999,15 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         playSound(SOUNDS.DONE);
     }
 
-    const shouldDeferWrite = isFromGlobalCreate && !isReportTopmostSplitNavigator();
     const apiWrite = () => {
         API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
     };
 
-    if (shouldDeferWrite) {
-        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-        });
-    } else {
-        apiWrite();
-    }
+    deferOrExecuteWrite(apiWrite, {
+        shouldDeferForSearch: !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -1024,7 +1025,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction} = submitPerDiemExpenseInformation;
+    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, shouldHandleNavigation = true} = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
     if (
@@ -1079,11 +1080,25 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     };
 
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+    };
+
+    // Self-DM always navigates to a report (dismissModalAndOpenReportInInboxTab),
+    // never to Search, so the SEARCH channel would never be flushed.
+    deferOrExecuteWrite(apiWrite, {
+        shouldDeferForSearch: false,
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    dismissModalAndOpenReportInInboxTab(chatReport.reportID);
+
+    if (shouldHandleNavigation) {
+        dismissModalAndOpenReportInInboxTab(chatReport.reportID);
+    }
 
     notifyNewAction(chatReport.reportID, undefined, true);
 }

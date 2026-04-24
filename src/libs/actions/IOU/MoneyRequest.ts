@@ -178,7 +178,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
 
-    /** Only fires in the TRACK skip-confirm branch. The createDistanceRequest branch still owns its own navigation. */
+    /** Fires only in the TRACK skip-confirm branch (createDistanceRequest still owns its own navigation). */
     onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
 };
 

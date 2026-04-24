@@ -19,6 +19,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
@@ -360,11 +361,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             existingIOUReport = iouReport;
         }
 
-        if (!shouldHandleNav) {
-            return;
-        }
         const lastTransaction = transactions.at(-1);
         if (!lastTransaction) {
+            return;
+        }
+        if (!shouldHandleNav) {
+            // Orchestrator pre-navigated; cleanup must still run or drafts leak.
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs,
+                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
+            });
             return;
         }
         const resolved = resolveChatForSubmitCleanup({
@@ -412,6 +418,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
+                shouldHandleNavigation: shouldHandleNav,
             });
         } else {
             const isExpenseReport = isMoneyRequestReport(report);
@@ -467,6 +474,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID: perDiemOptimisticTransactionID,
+                shouldHandleNavigation: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
@@ -559,11 +567,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             });
         }
 
-        if (!shouldHandleNav) {
-            return;
-        }
         const lastTransaction = transactions.at(-1);
         if (!lastTransaction) {
+            return;
+        }
+        if (!shouldHandleNav) {
+            // Orchestrator pre-navigated; cleanup must still run or drafts leak.
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs,
+                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
+            });
             return;
         }
         const resolved = resolveChatForSubmitCleanup({
@@ -578,6 +591,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             optimisticChatReportID: resolved.optimisticChatReportID,
+            linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
         });
     }
 

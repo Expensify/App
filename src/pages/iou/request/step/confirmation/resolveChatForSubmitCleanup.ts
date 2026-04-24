@@ -15,7 +15,7 @@ type ResolveChatForSubmitCleanupResult = {
     optimisticChatReportID: string;
 };
 
-/** Mirrors the action layer's 3-step chat priority (policyExpenseChat → 1:1 DM → fallback) so cleanup lands on the submission target when the user changed participant after opening the confirmation page. */
+/** Mirrors the action's chat priority (policyExpenseChat → 1:1 DM → fallback) so cleanup targets the actual submission report when the participant changed after opening confirmation. */
 function resolveChatForSubmitCleanup({participant, currentUserAccountID, report, fallbackOptimisticChatReportID}: ResolveChatForSubmitCleanupParams): ResolveChatForSubmitCleanupResult {
     let resolvedChatReportID: string | undefined;
     if (participant.isPolicyExpenseChat && participant.reportID) {

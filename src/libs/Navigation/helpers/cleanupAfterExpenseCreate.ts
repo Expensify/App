@@ -6,11 +6,11 @@ import type {ReportAction} from '@src/types/onyx';
 
 type CleanupAfterExpenseCreateParams = {
     draftTransactionIDs: string[] | undefined;
-    /** Set for the move-from-track flow so the linked child report screen is popped. */
+    /** Move-from-track only: pops the linked child report screen. */
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
-/** Cleanup-only — used by `handleFileRetry` where we must NOT re-navigate. Paired with `cleanupAndNavigateAfterExpenseCreate` for the normal post-submit flow. */
+/** Cleanup-only (no navigation). Use `cleanupAndNavigateAfterExpenseCreate` for normal post-submit flows. */
 function cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction}: CleanupAfterExpenseCreateParams) {
     // Defer cleanup until after modal-dismiss animation so it doesn't block the JS thread.
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase and kept alive via a dedicated RN patch

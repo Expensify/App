@@ -13,7 +13,7 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
@@ -63,6 +63,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -1824,13 +1825,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // Register the deferred write BEFORE navigation so the Search component's
     // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
-        if (shouldDeferAPIWrite && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
-            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
-                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            });
-        } else {
-            deferredAPIWrite();
-        }
+        deferOrExecuteWrite(deferredAPIWrite, {
+            shouldDeferForSearch: shouldDeferAPIWrite && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+            isRetry: requestMoneyInformation.isRetry,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        });
     }
 
     if (!requestMoneyInformation.isRetry) {
@@ -2591,18 +2591,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            const shouldDeferWrite = shouldDeferAPIWrite && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
             const apiWrite = () => {
                 API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
             };
-
-            if (shouldDeferWrite) {
-                registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
-                    optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
-                });
-            } else {
-                apiWrite();
-            }
+            deferOrExecuteWrite(apiWrite, {
+                shouldDeferForSearch: shouldDeferAPIWrite && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+                isRetry: params.isRetry,
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+                onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            });
         }
     }
 
