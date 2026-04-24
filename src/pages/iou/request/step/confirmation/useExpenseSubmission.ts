@@ -31,6 +31,7 @@ import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
     getDefaultTaxCode,
+    getIsFromGlobalCreate,
     getRateID,
     getTaxValue,
     getValidWaypoints,
@@ -237,18 +238,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         lastOptimisticTransactionID,
         fallbackOptimisticChatReportID,
         backToReport: backToReportParam,
-        anyTransactionCreated = true,
+        allTransactionsCreated = true,
     }: {
         participant: Participant;
         shouldHandleNav: boolean;
         lastOptimisticTransactionID: string | undefined;
         fallbackOptimisticChatReportID: string;
         backToReport?: string;
-        anyTransactionCreated?: boolean;
+        allTransactionsCreated?: boolean;
     }) {
         const lastTransaction = transactions.at(-1);
-        // Skip cleanup/nav when the action bailed — drafts must survive for retry.
-        if (!lastTransaction || !anyTransactionCreated) {
+        // Skip cleanup/nav if any iteration bailed — drafts must survive for retry.
+        if (!lastTransaction || !allTransactionsCreated) {
             return;
         }
         if (!shouldHandleNav) {
@@ -269,7 +270,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             report: resolved.report,
             draftTransactionIDs,
             transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
-            isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
+            isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
             backToReport: backToReportParam,
             optimisticChatReportID: resolved.optimisticChatReportID,
             linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
@@ -286,12 +287,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        // Pre-check: action bails per-iteration too late to stop UI cleanup from dropping drafts.
+        if (action === CONST.IOU.ACTION.SUBMIT && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
+            return;
+        }
+
         const optimisticChatReportID = generateReportID();
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
         let lastOptimisticTransactionID: string | undefined;
-        let anyTransactionCreated = false;
+        let allTransactionsCreated = true;
 
         for (const [index, item] of transactions.entries()) {
             const isLastBatchItem = index === transactions.length - 1;
@@ -388,7 +394,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     originalTransactionID: item.comment?.originalTransactionID,
                     source: item.comment?.source,
                     isLinkedTrackedExpenseReportArchived,
-                    isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(item),
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
                 shouldGenerateTransactionThreadReport,
@@ -405,8 +411,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticTransactionID: lastOptimisticTransactionID,
             });
             if (iouReport) {
-                anyTransactionCreated = true;
                 existingIOUReport = iouReport;
+            } else {
+                allTransactionsCreated = false;
             }
         }
 
@@ -416,7 +423,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             lastOptimisticTransactionID,
             fallbackOptimisticChatReportID: optimisticChatReportID,
             backToReport,
-            anyTransactionCreated,
+            allTransactionsCreated,
         });
     }
 
@@ -443,7 +450,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
-                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -492,7 +499,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
-                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -510,7 +517,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 navigateAfterExpenseCreate({
                     activeReportID,
                     transactionID: perDiemOptimisticTransactionID,
-                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: isMoneyRequestReport(getReportOrDraftReport(activeReportID)),
                 });
             }
@@ -581,7 +588,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isLinkedTrackedExpenseReportArchived,
                     odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
-                    isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
                 },
                 accountantParams: {
@@ -650,7 +657,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 receipt: isManualDistanceRequest || isOdometerDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                 odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
-                isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
             },
             backToReport,
@@ -831,7 +838,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 policyTagList: policyTags,
                 policyCategories,
                 policyRecentlyUsedCategories,
-                isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
                 shouldHandleNavigation,

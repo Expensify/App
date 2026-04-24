@@ -187,8 +187,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            // cleanupAfterExpenseCreate is composed inside cleanupAndNavigateAfterExpenseCreate (mocked here),
-            // so it's not called as a standalone — only the wrapper fires.
+            // Composed inside the wrapper mock, so the standalone helper isn't called.
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         });
     });
@@ -240,10 +239,8 @@ describe('useExpenseSubmission action-bailout safety', () => {
         mockResolveChatForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, optimisticChatReportID: 'fallback-id'});
     });
 
-    it('skips cleanup and navigation when requestMoney bails (returns {} for SUBMIT with missing linked-track metadata)', async () => {
-        // Action bails: returns {} (no iouReport) for malformed SUBMIT — drafts must survive, no nav.
-        mockRequestMoneyAction.mockReturnValue({});
-
+    it('skips requestMoney entirely (including the action call) when SUBMIT batch is missing linked-track metadata', async () => {
+        // Pre-validation: requestMoney action would bail per-iteration, but UI catches the malformed batch upfront.
         const {result} = renderHook(() => useExpenseSubmission(buildParams({action: CONST.IOU.ACTION.SUBMIT})));
         await waitForBatchedUpdatesWithAct();
 
@@ -252,7 +249,35 @@ describe('useExpenseSubmission action-bailout safety', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
+        expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+        expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+        expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+    });
+
+    it('skips cleanup/nav when a multi-transaction SUBMIT batch has any iteration that bails (defense-in-depth — preserves the failed item draft)', async () => {
+        // Pre-validation passes (both items have linked-track); the mock simulates iter 2 bailing for a different reason.
+        const linkedTracked = {linkedTrackedExpenseReportAction: {reportActionID: 'a-1'}, linkedTrackedExpenseReportID: 'r-1'};
+        const transaction1 = buildTransaction({transactionID: 't-1', ...linkedTracked});
+        const transaction2 = buildTransaction({transactionID: 't-2', ...linkedTracked});
+        mockRequestMoneyAction.mockReturnValueOnce({iouReport: {reportID: 'iou-1'}}).mockReturnValueOnce({});
+
+        const {result} = renderHook(() =>
+            useExpenseSubmission(
+                buildParams({
+                    action: CONST.IOU.ACTION.SUBMIT,
+                    transaction: transaction1,
+                    transactions: [transaction1, transaction2],
+                }),
+            ),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            result.current.createTransaction(PARTICIPANTS, false, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockRequestMoneyAction).toHaveBeenCalledTimes(2);
         expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
     });
@@ -264,7 +289,6 @@ describe('useExpenseSubmission action-bailout safety', () => {
                 buildParams({
                     iouType: CONST.IOU.TYPE.TRACK,
                     action: CONST.IOU.ACTION.CATEGORIZE,
-                    // transaction lacks linkedTrackedExpenseReportAction + linkedTrackedExpenseReportID — would bail server-side
                 }),
             ),
         );

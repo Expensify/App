@@ -45,7 +45,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
-import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -303,7 +303,7 @@ function SubmitDetailsPage({
             report: isSelfDM(report) ? report : reportToSubmit,
             draftTransactionIDs,
             transactionID: transaction.transactionID,
-            isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             optimisticChatReportID: reportOrAccountID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
         });

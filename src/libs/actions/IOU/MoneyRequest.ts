@@ -12,7 +12,7 @@ import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtil
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
@@ -721,7 +721,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         odometerEnd,
                         taxCode: distanceTaxCode,
                         taxAmount: distanceTaxAmount,
-                        isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     },
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserAccountID,

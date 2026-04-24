@@ -1342,8 +1342,6 @@ describe('MoneyRequest', () => {
         });
 
         it('should pass the same pre-generated optimisticChatReportID to both trackExpense and the onTransactionsCreated callback so cleanup targets the new self-DM', () => {
-            // Regression: pre-fix the action self-generated the self-DM ID internally and never returned it,
-            // leaving the UI cleanup with `report?.reportID` only — which is undefined for global-create TRACK distance.
             let capturedActionChatReportID: string | undefined;
             (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {optimisticChatReportID?: string}) => {
                 capturedActionChatReportID = params.optimisticChatReportID;
@@ -1360,7 +1358,6 @@ describe('MoneyRequest', () => {
             });
 
             expect(capturedActionChatReportID).toBeDefined();
-            // Action and callback receive the SAME ID — UI cleanup can target the new self-DM.
             expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), capturedActionChatReportID);
         });
 

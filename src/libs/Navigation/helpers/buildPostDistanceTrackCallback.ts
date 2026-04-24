@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import cleanupAndNavigateAfterExpenseCreate from './cleanupAndNavigateAfterExpenseCreate';
@@ -16,7 +17,7 @@ function buildPostDistanceTrackCallback({report, draftTransactionIDs, transactio
             report,
             draftTransactionIDs,
             transactionID: lastTransactionID,
-            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             backToReport,
             optimisticChatReportID,
         });

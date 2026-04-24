@@ -19,7 +19,7 @@ import setTestReceipt from '@libs/actions/setTestReceipt';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
@@ -157,7 +157,7 @@ function useReceiptScan({
                     report,
                     draftTransactionIDs,
                     transactionID: lastTransactionID ?? initialTransactionID,
-                    isFromGlobalCreate: initialTransaction?.isFromFloatingActionButton ?? initialTransaction?.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
                     backToReport,
                     linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
                 });

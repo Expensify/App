@@ -39,7 +39,18 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getRequestType,
+    getTaxValue,
+    hasReceipt,
+    isDistanceRequest,
+    isExpenseUnreported,
+} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -289,7 +300,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
                             reimbursable: defaultReimbursable,
-                            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                         },
                         shouldGenerateTransactionThreadReport: false,
                         isASAPSubmitBetaEnabled,
@@ -320,7 +331,7 @@ function IOURequestStepAmount({
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             reimbursable: defaultReimbursable,
-                            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                         },
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
@@ -341,7 +352,7 @@ function IOURequestStepAmount({
                     report,
                     draftTransactionIDs,
                     transactionID: existingTransactionID ?? optimisticTransactionID,
-                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     backToReport,
                     optimisticChatReportID,
                     linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
