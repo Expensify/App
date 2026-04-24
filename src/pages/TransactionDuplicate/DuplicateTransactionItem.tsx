@@ -45,8 +45,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
 
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
 
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`);
-
     const [linkedTransactionRouteError] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
         {
@@ -81,7 +79,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         draftMessage={matchingDraftMessage}
-                        emojiReactions={emojiReactions}
                         linkedTransactionRouteError={linkedTransactionRouteError}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

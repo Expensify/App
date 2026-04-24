@@ -1,5 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,38 +15,27 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import {getParentRoute} from './SpendRulesUtils';
 
 type CategoryListItem = ListItem & {
     value: SpendRuleCategory;
 };
 
-type SpendRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CATEGORY>;
-
-function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
-    const {policyID, ruleID} = route.params;
+function SpendRuleCategoryPage() {
+    const navigation = useNavigation();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const parentRoute = getParentRoute(policyID, ruleID);
+    const goBack = () => navigation.goBack();
 
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
     const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>([]);
 
-    useFocusEffect(
-        useCallback(() => {
-            setSelectedCategories(spendRuleForm?.categories ?? []);
-        }, [spendRuleForm?.categories]),
-    );
+    useFocusEffect(() => setSelectedCategories(spendRuleForm?.categories ?? []));
 
     const categoryItems: CategoryListItem[] = SPEND_RULE_CATEGORIES.map((category) => ({
         keyForList: category,
@@ -92,7 +81,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
 
     const handleSave = () => {
         updateDraftSpendRule({categories: selectedCategories});
-        Navigation.goBack(parentRoute);
+        goBack();
     };
 
     return (
@@ -104,7 +93,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.rules.spendRules.spendCategory')}
-                onBackButtonPress={() => Navigation.goBack(parentRoute)}
+                onBackButtonPress={goBack}
             />
             <SelectionList
                 canSelectMultiple

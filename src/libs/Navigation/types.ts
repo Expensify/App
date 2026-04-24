@@ -195,6 +195,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
@@ -1607,6 +1611,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.GROUP_DETAILS]: {
+        domainAccountID: number;
+        groupID: string;
+    };
+    [SCREENS.DOMAIN.GROUP_EDIT_NAME]: {
+        domainAccountID: number;
+        groupID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -1999,6 +2011,12 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.CREATE_VERIFY_ACCOUNT]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
         action: IOUAction;
