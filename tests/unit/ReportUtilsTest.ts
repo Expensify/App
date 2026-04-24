@@ -7497,6 +7497,24 @@ describe('ReportUtils', () => {
     });
 
     describe('isUnread', () => {
+        it('returns false when the newest visible action was sent by the current user from the parent report', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastActorAccountID: currentUserAccountID,
+            };
+            const transactionThreadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '2',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:00.000',
+            };
+
+            expect(isUnread(report, transactionThreadReport, false)).toBe(false);
+        });
+
         it('returns false when the newest visible action was sent by the current user from the transaction thread', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
