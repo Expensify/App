@@ -438,7 +438,7 @@ const SCREENS = {
     },
     EXPENSIFY_CARD: {
         EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
-        EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
+        DYNAMIC_EXPENSIFY_CARD_NAME: 'Dynamic_Expensify_Card_Name',
         EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
         EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
@@ -698,7 +698,6 @@ const SCREENS = {
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Workspace_ExpensifyCard_New_Confirm_Magic_Code',
-        EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
         EXPENSIFY_CARD_SELECT_FEED: 'Workspace_ExpensifyCard_Select_Feed',
         EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
