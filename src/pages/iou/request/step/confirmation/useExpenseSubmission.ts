@@ -218,11 +218,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const parentReportAction = useParentReportAction(viewTourTaskReport);
 
     // Derived values from transaction
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
         ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
         : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -365,7 +366,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             return;
         }
-        if (iouType === CONST.IOU.TYPE.TRACK) {
+        if (isTrackExpense) {
             submitPerDiemExpenseForSelfDM({
                 selfDMReport,
                 policy,
@@ -610,7 +611,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+        if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
@@ -756,7 +757,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        if (!isPerDiemRequest && (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense)) {
+        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {

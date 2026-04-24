@@ -9562,7 +9562,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
-            REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
+            CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
@@ -9654,6 +9654,7 @@ const CONST = {
         AUTH_IMAGES: 'auth-images',
     },
 
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO: 0.9,
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 
     MAP_VIEW_LAYERS: {

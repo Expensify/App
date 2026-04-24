@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     calculateRemainingFreeTrialDays,
+    canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getEarlyDiscountInfo,
     getFreeTrialText,
@@ -255,6 +256,62 @@ describe('SubscriptionUtils', () => {
         it('should return true if the Onyx key is set', async () => {
             await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
             expect(doesUserHavePaymentCardAdded(8010)).toBeTruthy();
+        });
+    });
+
+    describe('canCancelSubscription', () => {
+        const activeTrial = {
+            firstDay: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            lastDay: formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+        };
+        const expiredTrial = {
+            firstDay: formatDate(subDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            lastDay: formatDate(subDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+        };
+        const BILLING_FUND_ID = 8010;
+
+        it('should return true for an active annual subscriber with a payment card', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, undefined, undefined, BILLING_FUND_ID, true)).toBeTruthy();
+        });
+
+        it('should return true for an annual subscriber who never had a trial', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, undefined, undefined, undefined, undefined)).toBeTruthy();
+        });
+
+        it('should return true for an expired trial user who added a payment card', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, expiredTrial.firstDay, expiredTrial.lastDay, BILLING_FUND_ID, false)).toBeTruthy();
+        });
+
+        it('should return true for an expired trial user who lost their card but has purchase history', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, expiredTrial.firstDay, expiredTrial.lastDay, undefined, true)).toBeTruthy();
+        });
+
+        it('should return false for a pay-per-use subscriber', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.PAY_PER_USE, undefined, undefined, BILLING_FUND_ID, true)).toBeFalsy();
+        });
+
+        it('should return false when subscription type is undefined', () => {
+            expect(canCancelSubscription(undefined, undefined, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false for a user on an active free trial', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, activeTrial.firstDay, activeTrial.lastDay, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false for an expired trial user without a payment card or purchases', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, expiredTrial.firstDay, expiredTrial.lastDay, undefined, false)).toBeFalsy();
+        });
+
+        it('should return false for an invoicing subscriber', () => {
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.INVOICING, undefined, undefined, BILLING_FUND_ID, true)).toBeFalsy();
+        });
+
+        it('should return false for a pre-trial user whose trial has not started yet', () => {
+            const preTrial = {
+                firstDay: formatDate(addDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                lastDay: formatDate(addDays(new Date(), 9), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            };
+            expect(canCancelSubscription(CONST.SUBSCRIPTION.TYPE.ANNUAL, preTrial.firstDay, preTrial.lastDay, undefined, undefined)).toBeFalsy();
         });
     });
 

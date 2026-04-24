@@ -1029,17 +1029,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCallAfterModalHide: true,
             });
 
-            for (const template of exportTemplates) {
-                exportOptions.push({
-                    text: template.name,
-                    icon: expensifyIcons.Table,
-                    description: template.description,
-                    onSelected: () => {
-                        beginExportWithTemplate(template.templateName, template.type, template.policyID);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
+            if (!allSelectedAreDeleted) {
+                for (const template of exportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: expensifyIcons.Table,
+                        description: template.description,
+                        onSelected: () => {
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    });
+                }
             }
 
             return exportOptions;

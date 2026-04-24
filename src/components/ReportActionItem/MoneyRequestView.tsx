@@ -190,9 +190,7 @@ function MoneyRequestView({
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        canEvict: false,
-    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
 
     const isFromMergeTransaction = !!mergeTransactionID;

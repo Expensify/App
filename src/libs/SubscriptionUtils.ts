@@ -452,6 +452,40 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 }
 
 /**
+ * Whether the user is eligible to cancel their subscription.
+ * Annual subscribers who have committed to a subscription can cancel.
+ * Excludes: non-annual users, active trial users, pre-trial users, and expired trial users who never subscribed.
+ */
+function canCancelSubscription(
+    subscriptionType: SubscriptionType | undefined,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+    hasPurchases: boolean | undefined,
+): boolean {
+    if (subscriptionType !== CONST.SUBSCRIPTION.TYPE.ANNUAL) {
+        return false;
+    }
+
+    // User is currently on a free trial
+    if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User is in pre-trial state (trial dates exist but trial hasn't started yet)
+    if (firstDayFreeTrial && !hasUserFreeTrialEnded(lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User's trial ended — only allow cancellation if they have a card or have been billed before
+    if (hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID) && !hasPurchases) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
@@ -614,6 +648,7 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
 
 export {
     calculateRemainingFreeTrialDays,
+    canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getCardForSubscriptionBilling,
     getFreeTrialText,
