@@ -335,6 +335,26 @@ function getTransactionEditPermissions({
             }
         }
 
+        if (field === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+            // Matches MoneyRequestView's shouldShowCategory logic
+            // For policy expenses, check if there's a category or enabled options
+            if (isPolicyExpenseChat) {
+                return !!categoryForDisplay || hasEnabledOptions(policyCategories ?? {});
+            }
+            // For unreported expenses, allow if no policy or if categories are enabled with options
+            if (isUnreported) {
+                return !policy || hasEnabledOptions(policyCategories ?? {});
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.TAG) {
+            // Single-level tags only (multi-level needs a picker UI not available inline)
+            if (isMultiLevelTags(policyTags)) {
+                return false;
+            }
+            return !!transaction?.tag || hasEnabledTags(policyTagLists);
+        }
+
         return (
             isUnreported ||
             canEditFieldOfMoneyRequest({
@@ -353,12 +373,9 @@ function getTransactionEditPermissions({
         canEditMerchant: canEditRestricted(CONST.EDIT_REQUEST_FIELD.MERCHANT),
         // Non-restricted; always editable when canEdit is true
         canEditDescription: true,
-        // Matches MoneyRequestView's shouldShowCategory logic
-        canEditCategory:
-            (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || (isUnreported && (!policy || hasEnabledOptions(policyCategories ?? {}))),
+        canEditCategory: canEditRestricted(CONST.EDIT_REQUEST_FIELD.CATEGORY),
         canEditAmount: canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT),
-        // single-level tags only (multi-level needs a picker UI not available inline).
-        canEditTag: !isMultiLevelTags(policyTags) && (!!transaction?.tag || hasEnabledTags(policyTagLists)),
+        canEditTag: canEditRestricted(CONST.EDIT_REQUEST_FIELD.TAG),
     };
 }
 
