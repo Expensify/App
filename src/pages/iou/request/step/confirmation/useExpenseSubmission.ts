@@ -231,6 +231,51 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
+    function performPostBatchCleanup({
+        participant,
+        shouldHandleNav,
+        lastOptimisticTransactionID,
+        fallbackOptimisticChatReportID,
+        backToReport: backToReportParam,
+        anyTransactionCreated = true,
+    }: {
+        participant: Participant;
+        shouldHandleNav: boolean;
+        lastOptimisticTransactionID: string | undefined;
+        fallbackOptimisticChatReportID: string;
+        backToReport?: string;
+        anyTransactionCreated?: boolean;
+    }) {
+        const lastTransaction = transactions.at(-1);
+        // Skip cleanup/nav when the action bailed — drafts must survive for retry.
+        if (!lastTransaction || !anyTransactionCreated) {
+            return;
+        }
+        if (!shouldHandleNav) {
+            // Orchestrator pre-navigated; cleanup must still run or drafts leak.
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs,
+                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
+            });
+            return;
+        }
+        const resolved = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            report,
+            fallbackOptimisticChatReportID,
+        });
+        cleanupAndNavigateAfterExpenseCreate({
+            report: resolved.report,
+            draftTransactionIDs,
+            transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
+            isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
+            backToReport: backToReportParam,
+            optimisticChatReportID: resolved.optimisticChatReportID,
+            linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
+        });
+    }
+
     function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -365,33 +410,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             }
         }
 
-        const lastTransaction = transactions.at(-1);
-        // Skip cleanup/nav when the action bailed — drafts must survive for retry.
-        if (!lastTransaction || !anyTransactionCreated) {
-            return;
-        }
-        if (!shouldHandleNav) {
-            // Orchestrator pre-navigated; cleanup must still run or drafts leak.
-            cleanupAfterExpenseCreate({
-                draftTransactionIDs,
-                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
-            });
-            return;
-        }
-        const resolved = resolveChatForSubmitCleanup({
+        performPostBatchCleanup({
             participant,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            report,
+            shouldHandleNav,
+            lastOptimisticTransactionID,
             fallbackOptimisticChatReportID: optimisticChatReportID,
-        });
-        cleanupAndNavigateAfterExpenseCreate({
-            report: resolved.report,
-            draftTransactionIDs,
-            transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
-            isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             backToReport,
-            optimisticChatReportID: resolved.optimisticChatReportID,
-            linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
+            anyTransactionCreated,
         });
     }
 
@@ -577,31 +602,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             });
         }
 
-        const lastTransaction = transactions.at(-1);
-        if (!lastTransaction) {
-            return;
-        }
-        if (!shouldHandleNav) {
-            // Orchestrator pre-navigated; cleanup must still run or drafts leak.
-            cleanupAfterExpenseCreate({
-                draftTransactionIDs,
-                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
-            });
-            return;
-        }
-        const resolved = resolveChatForSubmitCleanup({
+        performPostBatchCleanup({
             participant,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            report,
+            shouldHandleNav,
+            lastOptimisticTransactionID,
             fallbackOptimisticChatReportID: optimisticSelfDMReportID,
-        });
-        cleanupAndNavigateAfterExpenseCreate({
-            report: resolved.report,
-            draftTransactionIDs,
-            transactionID: lastOptimisticTransactionID ?? lastTransaction.transactionID,
-            isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            optimisticChatReportID: resolved.optimisticChatReportID,
-            linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
         });
     }
 
