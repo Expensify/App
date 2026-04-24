@@ -35,7 +35,10 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             trackExpenseParams.isRetry = true;
             trackExpenseParams.shouldPlaySound = false;
             TrackExpense.trackExpense(trackExpenseParams);
-            cleanupAfterExpenseCreate({draftTransactionIDs: trackExpenseParams.draftTransactionIDs});
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs: trackExpenseParams.draftTransactionIDs,
+                linkedTrackedExpenseReportAction: trackExpenseParams.transactionParams.linkedTrackedExpenseReportAction,
+            });
             break;
         }
         case CONST.IOU.ACTION_PARAMS.MONEY_REQUEST: {
