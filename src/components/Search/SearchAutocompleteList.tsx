@@ -367,11 +367,11 @@ function SearchAutocompleteList({
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (searchOptions.userToInvite) {
-            reportOptions.push(searchOptions.userToInvite);
+            reportOptions.push({...searchOptions.userToInvite, alternateText: translate('common.invite')});
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, searchOptions, translate]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {

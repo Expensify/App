@@ -1922,13 +1922,16 @@ function canCreateOptimisticPersonalDetailOption({
     currentUserOption?: SearchOptionData | null;
     searchValue: string;
 }) {
-    if (recentReportOptions.length + personalDetailsOptions.length > 0) {
+    const normalizedSearchValue = addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase();
+    const hasExactLoginMatch =
+        recentReportOptions.some((o) => o.login?.toLowerCase() === normalizedSearchValue) || personalDetailsOptions.some((o) => o.login?.toLowerCase() === normalizedSearchValue);
+    if (hasExactLoginMatch) {
         return false;
     }
     if (!currentUserOption) {
         return true;
     }
-    return currentUserOption.login !== addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserOption.login !== searchValue?.toLowerCase();
+    return currentUserOption.login !== normalizedSearchValue && currentUserOption.login !== searchValue?.toLowerCase();
 }
 
 /**
