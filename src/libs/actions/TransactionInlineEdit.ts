@@ -14,7 +14,7 @@ import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isExpenseUnreported} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -325,6 +325,13 @@ function getTransactionEditPermissions({
             const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
             if (isExpenseSplit) {
+                return false;
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
+            // Distance expenses cannot have their merchant edited
+            if (isDistanceRequest(transaction)) {
                 return false;
             }
         }
