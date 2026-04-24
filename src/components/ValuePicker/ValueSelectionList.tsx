@@ -15,7 +15,7 @@ function ValueSelectionList({
     alternateNumberOfSupportedLines,
     isVisible,
 }: ValueSelectionListProps) {
-    const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {resetDeps: [isVisible]});
+    const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
     const initiallyFocusedItemKey = initialSelectedValue;
 
     const options = useMemo(() => {

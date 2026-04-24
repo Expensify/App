@@ -41,7 +41,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
-    const initialSelectedValue = useInitialSelection(currentState || undefined, {resetDeps: [isVisible]});
+    const initialSelectedValue = useInitialSelection(currentState || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
     const initiallyFocusedState = initialSelectedValue;
 

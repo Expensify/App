@@ -1,10 +1,9 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {DependencyList} from 'react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 type UseInitialSelectionOptions = {
-    /** Dependencies that should trigger refreshing the snapshot (e.g., when a modal opens) */
-    resetDeps?: DependencyList;
+    /** Whether the current cycle is visible; refresh the snapshot when it becomes visible */
+    isVisible?: boolean;
 
     /** Whether to refresh the snapshot whenever the screen gains focus */
     resetOnFocus?: boolean;
@@ -12,12 +11,13 @@ type UseInitialSelectionOptions = {
 
 /**
  * Keeps an immutable snapshot of the initial selection for the current open/focus cycle.
- * Callers can refresh the snapshot by changing `resetDeps` or via screen focus.
+ * Callers can refresh the snapshot when a modal becomes visible or via screen focus.
  */
 function useInitialSelection<T>(selection: T, options: UseInitialSelectionOptions = {}) {
-    const {resetDeps = [], resetOnFocus = false} = options;
+    const {isVisible, resetOnFocus = false} = options;
     const [initialSelection, setInitialSelection] = useState(selection);
     const latestSelectionRef = useRef(selection);
+    const previousIsVisibleRef = useRef(isVisible);
 
     const updateInitialSelection = useCallback((nextSelection: T) => {
         setInitialSelection((previousSelection) => (Object.is(previousSelection, nextSelection) ? previousSelection : nextSelection));
@@ -28,11 +28,17 @@ function useInitialSelection<T>(selection: T, options: UseInitialSelectionOption
     }, [selection]);
 
     useEffect(() => {
-        // Intentionally refresh the snapshot only when the caller marks a new open/focus cycle.
+        const wasVisible = previousIsVisibleRef.current;
+        previousIsVisibleRef.current = isVisible;
+
+        if (isVisible === undefined || !isVisible || wasVisible === isVisible) {
+            return;
+        }
+
+        // Refresh only when a new visible cycle starts.
         // Live selection changes while the picker stays open should not repin or refocus the list.
-        updateInitialSelection(selection);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, resetDeps);
+        updateInitialSelection(latestSelectionRef.current);
+    }, [isVisible, updateInitialSelection]);
 
     useFocusEffect(
         useCallback(() => {

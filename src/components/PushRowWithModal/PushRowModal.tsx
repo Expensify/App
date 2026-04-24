@@ -46,7 +46,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {resetDeps: [isVisible]});
+    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
     const initiallyFocusedOption = initialSelectedValue;
 

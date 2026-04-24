@@ -38,7 +38,7 @@ type CountrySelectorModalProps = {
 function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onClose, label, onBackdropPress}: CountrySelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetDeps: [isVisible]});
+    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
     const initiallyFocusedCountry = initialSelectedValue;
 
