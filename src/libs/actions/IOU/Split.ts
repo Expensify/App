@@ -2539,8 +2539,23 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const isReverseSplitOperation =
         splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
     const expenseReportID = params.expenseReport?.reportID;
+
+    // Detect whether the expense report the user is editing from will be emptied by this save.
+    // This covers both the pure-workspace reverse-split (handled by isReverseSplitOperation above)
+    // and broader cases — e.g. the user had splits spread across multiple reports and removed all
+    // splits belonging to the current expense report, or the only remaining split moved to selfDM.
+    // In any of these cases we must navigate away from the soon-to-be-empty report so the user
+    // isn't stranded on a "Not Found" page.
+    const expenseReportTransactions = expenseReportID ? Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID) : [];
+    const areAllExpenseReportTransactionsSplitChildren =
+        expenseReportTransactions.length > 0 && expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID);
+    const anyRemainingSplitStaysInExpenseReport = splitExpenses.some((expense) => expense.reportID === expenseReportID);
+    const reverseSplitKeepsOriginalInExpenseReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
+    const willExpenseReportBecomeEmpty =
+        !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
     const isLastTransactionInReport =
-        isReverseSplitOperation && Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+        willExpenseReportBecomeEmpty ||
+        (isReverseSplitOperation && Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {
