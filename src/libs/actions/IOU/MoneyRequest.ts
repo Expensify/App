@@ -78,7 +78,7 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
-    onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
+    onTransactionsCreated?: (lastTransactionID: string | undefined, optimisticChatReportID?: string) => void;
 };
 
 type InitialTransactionParams = {
@@ -126,7 +126,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     participants: Participant[];
     participantsPolicyTags: Record<string, PolicyTagLists>;
-    onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
+    onTransactionsCreated?: (lastTransactionID: string | undefined, optimisticChatReportID?: string) => void;
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
@@ -178,7 +178,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
 
-    onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
+    onTransactionsCreated?: (lastTransactionID: string | undefined, optimisticChatReportID?: string) => void;
 };
 
 function createTransaction({
@@ -686,6 +686,8 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
                 const distanceOptimisticTransactionID = rand64();
+                // Pre-generate the self-DM ID so UI cleanup can target the same chat the action will write to.
+                const distanceOptimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
                 trackExpense({
                     report,
                     isDraftPolicy: false,
@@ -731,8 +733,9 @@ function handleMoneyRequestStepDistanceNavigation({
                     betas,
                     isSelfTourViewed,
                     optimisticTransactionID: distanceOptimisticTransactionID,
+                    optimisticChatReportID: distanceOptimisticChatReportID,
                 });
-                onTransactionsCreated?.(distanceOptimisticTransactionID);
+                onTransactionsCreated?.(distanceOptimisticTransactionID, distanceOptimisticChatReportID);
                 return;
             }
 

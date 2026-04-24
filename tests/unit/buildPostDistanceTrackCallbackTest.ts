@@ -32,6 +32,16 @@ describe('buildPostDistanceTrackCallback', () => {
             transactionID: 'txn-2',
             isFromGlobalCreate: true,
             backToReport: 'back-1',
+            optimisticChatReportID: undefined,
         });
+    });
+
+    it('should forward optimisticChatReportID from the action so cleanup targets the correct self-DM (TRACK distance with no existing self-DM)', () => {
+        const transaction = {isFromGlobalCreate: true} as Transaction;
+        const callback = buildPostDistanceTrackCallback({report: undefined, draftTransactionIDs: [], transaction, backToReport: undefined});
+
+        callback('txn-3', 'optimistic-self-dm-id');
+
+        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'optimistic-self-dm-id'}));
     });
 });

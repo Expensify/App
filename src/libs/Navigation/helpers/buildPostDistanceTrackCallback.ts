@@ -11,13 +11,14 @@ type BuildPostDistanceTrackCallbackParams = {
 };
 
 function buildPostDistanceTrackCallback({report, draftTransactionIDs, transaction, backToReport}: BuildPostDistanceTrackCallbackParams) {
-    return (lastTransactionID: string | undefined) => {
+    return (lastTransactionID: string | undefined, optimisticChatReportID?: string) => {
         cleanupAndNavigateAfterExpenseCreate({
             report,
             draftTransactionIDs,
             transactionID: lastTransactionID,
             isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
             backToReport,
+            optimisticChatReportID,
         });
     };
 }

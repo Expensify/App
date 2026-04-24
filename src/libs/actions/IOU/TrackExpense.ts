@@ -1680,6 +1680,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
+    // Bail before any side effects (sound / writes) for malformed SUBMIT.
+    if (action === CONST.IOU.ACTION.SUBMIT && (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID)) {
+        return {};
+    }
+
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
@@ -2424,6 +2429,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
+    // Bail before any side effects (sound / writes) for malformed CATEGORIZE/SHARE.
+    if ((action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE) && (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID)) {
+        return;
+    }
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }

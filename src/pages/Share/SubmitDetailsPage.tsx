@@ -222,7 +222,7 @@ function SubmitDetailsPage({
                 isDraftPolicy: false,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories},
-                action: CONST.IOU.TYPE.CREATE,
+                action: CONST.IOU.ACTION.CREATE,
                 transactionParams: {
                     attendees: transaction.comment?.attendees,
                     amount: transactionAmount,
@@ -264,7 +264,7 @@ function SubmitDetailsPage({
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
-                action: CONST.IOU.TYPE.CREATE,
+                action: CONST.IOU.ACTION.CREATE,
                 transactionParams: {
                     attendees: transaction.comment?.attendees,
                     amount: transactionAmount,

@@ -1316,9 +1316,11 @@ describe('MoneyRequest', () => {
         it('should fire onTransactionsCreated exactly once after trackExpense in the TRACK skip-confirm branch with the transactionID', () => {
             const callOrder: string[] = [];
             let capturedOptimisticTransactionID: string | undefined;
-            (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {optimisticTransactionID?: string}) => {
+            let capturedOptimisticChatReportID: string | undefined;
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {optimisticTransactionID?: string; optimisticChatReportID?: string}) => {
                 callOrder.push('trackExpense');
                 capturedOptimisticTransactionID = params.optimisticTransactionID;
+                capturedOptimisticChatReportID = params.optimisticChatReportID;
             });
             const onTransactionsCreated = jest.fn((transactionID?: string) => {
                 callOrder.push(`onTransactionsCreated:${transactionID}`);
@@ -1335,8 +1337,31 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
             expect(capturedOptimisticTransactionID).toBeDefined();
-            expect(onTransactionsCreated).toHaveBeenCalledWith(capturedOptimisticTransactionID);
+            expect(onTransactionsCreated).toHaveBeenCalledWith(capturedOptimisticTransactionID, capturedOptimisticChatReportID);
             expect(callOrder).toEqual(['trackExpense', `onTransactionsCreated:${capturedOptimisticTransactionID}`]);
+        });
+
+        it('should pass the same pre-generated optimisticChatReportID to both trackExpense and the onTransactionsCreated callback so cleanup targets the new self-DM', () => {
+            // Regression: pre-fix the action self-generated the self-DM ID internally and never returned it,
+            // leaving the UI cleanup with `report?.reportID` only — which is undefined for global-create TRACK distance.
+            let capturedActionChatReportID: string | undefined;
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {optimisticChatReportID?: string}) => {
+                capturedActionChatReportID = params.optimisticChatReportID;
+            });
+            const onTransactionsCreated = jest.fn();
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                selfDMReport: undefined,
+                onTransactionsCreated,
+            });
+
+            expect(capturedActionChatReportID).toBeDefined();
+            // Action and callback receive the SAME ID — UI cleanup can target the new self-DM.
+            expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), capturedActionChatReportID);
         });
 
         it('should NOT fire onTransactionsCreated on early-return paths (backTo) or non-TRACK paths (createDistanceRequest)', () => {
