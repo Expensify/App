@@ -257,6 +257,8 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
+    POPOVER_CATEGORY_PICKER_WIDTH: 350,
+    POPOVER_CATEGORY_PICKER_MAX_HEIGHT: 450,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
@@ -884,6 +886,7 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         GUSTO: 'gustoNewDot',
+        BULK_DUPLICATE_REPORT: 'bulkDuplicateReport',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -1408,6 +1411,10 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
         },
+        ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
+            EXPENSE: 'expense',
+            TASK: 'task',
+        },
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
@@ -1900,6 +1907,7 @@ const CONST = {
     },
     DEFERRED_LAYOUT_WRITE_KEYS: {
         SEARCH: 'search',
+        DISMISS_MODAL: 'dismiss_modal',
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
@@ -2560,6 +2568,7 @@ const CONST = {
         SUGGESTER_INNER_PADDING: 8,
         SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
+        SMALL_CONTAINER_HEIGHT_FACTOR_LANDSCAPE_MODE: 1.5,
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
@@ -2811,6 +2820,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
         PAYABLE_ACCT: 'payableAcct',
         JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
@@ -3937,6 +3947,7 @@ const CONST = {
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
+            CSV_CLASSIC: 'csv',
             MOCK_BANK: 'oauth.mockbank.com',
             UPLOAD: 'upload',
         },
@@ -7544,6 +7555,7 @@ const CONST = {
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
             DUPLICATE: 'duplicate',
+            DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
         },
         BULK_DUPLICATE_LIMIT: 50,
@@ -8117,7 +8129,6 @@ const CONST = {
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
-            CHATS: 'chats',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -8125,7 +8136,6 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
-            EXPENSIFY_CARD: 'expensifyCard',
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
@@ -8373,6 +8383,14 @@ const CONST = {
                 title: 'workspace.upgrade.perDiem.title' as const,
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
+            },
+            hr: {
+                id: 'hr' as const,
+                alias: 'hr',
+                name: 'HR',
+                title: 'workspace.upgrade.hr.title' as const,
+                description: 'workspace.upgrade.hr.description' as const,
+                icon: 'Members',
             },
             travel: {
                 id: 'travel' as const,
@@ -8769,6 +8787,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        BILLING_BANNER: {
+            RIGHT_ICON: 'BillingBanner-RightIcon',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
@@ -8914,6 +8935,9 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+        },
+        TABLE: {
+            EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -9630,6 +9654,7 @@ const CONST = {
         AUTH_IMAGES: 'auth-images',
     },
 
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO: 0.9,
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 
     MAP_VIEW_LAYERS: {

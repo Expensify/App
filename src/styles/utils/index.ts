@@ -546,6 +546,15 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
+function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height' | 'width' | 'maxWidth' | 'maxHeight'> {
+    return {
+        width: '100%',
+        height: '100%',
+        maxWidth: width,
+        maxHeight: height,
+    };
+}
+
 function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
@@ -1400,6 +1409,7 @@ const staticStyleUtils = {
     getTextColorStyle,
     getTransparentColor,
     getWidthAndHeightStyle,
+    getPDFViewStyle,
     getWidthStyle,
     getWrappingStyle,
     getZoomSizingStyle,
@@ -1878,7 +1888,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
+                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:

@@ -53,6 +53,7 @@ import {
     isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
+    isCSVUploadFeed,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
@@ -1317,6 +1318,51 @@ describe('CardUtils', () => {
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
+        });
+    });
+
+    describe('isCSVUploadFeed', () => {
+        it('Should return true for ccupload feed', () => {
+            expect(isCSVUploadFeed(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)).toBe(true);
+        });
+
+        it('Should return true for ccupload feed with number suffix', () => {
+            expect(isCSVUploadFeed('ccupload1')).toBe(true);
+            expect(isCSVUploadFeed('ccupload4')).toBe(true);
+        });
+
+        it('Should return true for Classic csv feed', () => {
+            expect(isCSVUploadFeed('csv')).toBe(true);
+            expect(isCSVUploadFeed('csv1')).toBe(true);
+        });
+
+        it('Should return true for csv feed key with domain ID', () => {
+            expect(isCSVUploadFeed('csv#123456')).toBe(true);
+            expect(isCSVUploadFeed('ccupload1#158')).toBe(true);
+        });
+
+        it('Should return true regardless of case', () => {
+            expect(isCSVUploadFeed('CCUpload1')).toBe(true);
+            expect(isCSVUploadFeed('CSV1')).toBe(true);
+        });
+
+        it('Should return false for direct feeds', () => {
+            expect(isCSVUploadFeed('oauth.chase.com')).toBe(false);
+            expect(isCSVUploadFeed('plaid.ins_19')).toBe(false);
+        });
+
+        it('Should return false for custom feeds', () => {
+            expect(isCSVUploadFeed(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA)).toBe(false);
+            expect(isCSVUploadFeed(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD)).toBe(false);
+        });
+
+        it('Should return false for Expensify Card', () => {
+            expect(isCSVUploadFeed(CONST.EXPENSIFY_CARD.BANK)).toBe(false);
+        });
+
+        it('Should return false for undefined or empty', () => {
+            expect(isCSVUploadFeed(undefined)).toBe(false);
+            expect(isCSVUploadFeed('')).toBe(false);
         });
     });
 

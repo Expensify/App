@@ -21,16 +21,12 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
@@ -57,17 +53,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
@@ -435,7 +422,6 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: 'Réduit',
         expanded: 'Développé',
         expenseReport: 'Note de frais',
-        expenseReports: 'Notes de frais',
         rateOutOfPolicy: 'Taux hors politique',
         leaveWorkspace: 'Quitter l’espace de travail',
         leaveWorkspaceConfirmation: 'Si vous quittez cet espace de travail, vous ne pourrez plus lui soumettre de dépenses.',
@@ -454,9 +440,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: 'Commentaires',
         sharedIn: 'Partagé dans',
         unreported: 'Non déclarée',
-        explore: 'Explorer',
-        insights: 'Analyses',
-        todo: 'À faire',
         invoice: 'Facture',
         expense: 'Dépense',
         chat: 'Discussion',
@@ -886,6 +869,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Seuls les administrateurs peuvent envoyer des messages dans ce salon.',
     reportAction: {
         asCopilot: 'en tant que copilote pour',
+        assistedBy: (agentName: string) => `assisté par ${agentName}`,
+        humanSupportAgent: 'un agent humain',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `a créé cette note de frais pour regrouper toutes les dépenses de <a href="${reportUrl}">${reportName}</a> qui n'ont pas pu être soumises à la fréquence que vous avez choisie`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
@@ -2541,6 +2526,8 @@ ${amount} pour ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezePrefix: 'Cette carte a été gelée par ',
         frozenByAdminNeedsUnfreezeSuffix: '. Veuillez contacter un administrateur pour la dégeler.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Cette carte a été gelée par ${person}. Veuillez contacter un administrateur pour la dégeler.`,
+        spendRules: 'Règles de dépense',
+        editSpendRules: 'Modifier les règles de dépenses',
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -2622,7 +2609,7 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Dépenses de',
         memberAlreadyInWorkflowTitle: 'Membre déjà dans un workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
-            `${memberName} fait déjà partie d\u2019un workflow d\u2019approbation qui soumet à ${approverName}. L\u2019ajouter ici le déplacera vers ce workflow.`,
+            `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {
@@ -4187,7 +4174,6 @@ ${amount} pour ${merchant} - ${date}`,
             everyone: 'Tout le monde',
             delete: 'Supprimer l’espace de travail',
             settings: 'Paramètres',
-            reimburse: 'Remboursements',
             categories: 'Catégories',
             tags: 'Tags',
             customField1: 'Champ personnalisé 1',
@@ -4311,6 +4297,9 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+            travelInvoicing: 'Exporter Expensify Travel à payer vers',
+            travelInvoicingVendor: 'Fournisseur de voyages',
+            travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
         },
         receiptPartners: {
@@ -4602,9 +4591,6 @@ ${amount} pour ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois remboursées',
                 },
             },
-            travelInvoicing: 'Exporter Expensify Travel à payer vers',
-            travelInvoicingVendor: 'Fournisseur de voyage',
-            travelInvoicingPayableAccount: 'Compte fournisseur de voyages',
         },
         workspaceList: {
             joinNow: 'Rejoindre maintenant',
@@ -6669,6 +6655,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Votre entreprise a restreint la création d’espaces de travail. Veuillez contacter un administrateur pour obtenir de l’aide.',
             },
+            hr: {
+                title: 'Intégrations RH',
+                description:
+                    'Connectez votre fournisseur RH pour synchroniser automatiquement les employés et gérer les workflows d’approbation. Maintenez la liste de votre équipe et la structure de reporting à jour sans travail manuel.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les intégrations RH sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6913,7 +6906,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 currencyMismatchTitle: 'Incompatibilité de devise',
                 currencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
                 reviewSelectedCards: 'Examiner les cartes sélectionnées',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} de plus`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} de plus` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Appliquez au moins une règle de dépense à une carte',
                 confirmErrorCardRequired: 'La carte est un champ obligatoire',
                 confirmErrorApplyAtLeastOneSpendRule: 'Appliquez au moins une règle de dépense',
@@ -6948,6 +6941,30 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Êtes-vous sûr de vouloir supprimer cette règle ?',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'commerçants' : 'commerçant'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
         },
         planTypePage: {
@@ -6992,7 +7009,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Mode d’approbation', finalApprover: 'Approbateur final'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
+                connect: 'Connect',
+                connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
+            },
         },
     },
     getAssistancePage: {
@@ -7084,7 +7107,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a ajouté ${approverName} (${approverEmail}) comme approbateur pour le champ ${field} « ${name} »`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `a retiré ${approverName} (${approverEmail}) en tant qu'approbateur pour le champ ${field} « ${name} »`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `a modifié l’approbateur pour le champ ${field} « ${name} » en ${formatApprover(newApproverName, newApproverEmail)} (auparavant ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -7133,7 +7156,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }
             return `a modifié la catégorie « ${categoryName} » en ${newValue} (précédemment ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `a mis à jour la catégorie « ${categoryName} » en changeant Reçus détaillés en ${newValue}`;
             }
@@ -7160,7 +7183,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }
             return `a mis à jour le tag « ${tagName} » dans la liste « ${tagListName} » en ajoutant un(e) ${updatedField} de « ${newValue} »`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté un nouveau taux ${customUnitName} « ${rateName} »`,
@@ -7181,7 +7204,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'Activé' : 'Désactivé'} le taux de ${customUnitName} « ${customUnitRateName} »`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a supprimé le taux « ${customUnitName} » « ${rateName} »`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `a supprimé le taux « ${customUnitName} » « ${rateName} »`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `définir la valeur par défaut du champ de note de frais « ${fieldName} » sur « ${defaultValue} »`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `a ajouté l’option « ${optionName} » au champ de note de frais « ${fieldName} »`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `a supprimé l’option « ${optionName} » du champ de note de frais « ${fieldName} »`,
@@ -7236,8 +7259,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         downgradedWorkspace: 'a rétrogradé cet espace de travail vers l’offre Collect',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `a modifié le taux de notes de frais envoyées aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)} % (auparavant ${Math.round(oldAuditRate * 100)} %)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `a modifié le seuil d’approbation manuelle pour toutes les dépenses à ${newLimit} (auparavant ${oldLimit})`,
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) => `a modifié le seuil d’approbation manuelle pour toutes les dépenses à ${newLimit} (auparavant ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
@@ -7339,11 +7361,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser ? `a modifié le payeur autorisé en « ${newReimburser} » (auparavant « ${previousReimburser} »)` : `a modifié le payeur autorisé en « ${newReimburser} »`,
         updateReimbursementEnabled: (enabled: boolean) => `Remboursements ${enabled ? 'Activé' : 'Désactivé'}`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+        updateCustomTaxName: (oldName: string, newName: string) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) =>
             `a modifié le taux de taxe par défaut de la devise de l'espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `a modifié le taux de taxe par défaut en devise étrangère en « ${newName} » (auparavant « ${oldName} »)`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `a modifié le taux de taxe par défaut en devise étrangère en « ${newName} » (auparavant « ${oldName} »)`,
         addTax: (taxName: string) => `a ajouté la taxe « ${taxName} »`,
         deleteTax: (taxName: string) => `a supprimé la taxe « ${taxName} »`,
         updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
@@ -7382,14 +7403,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updateTagListRequired: (tagListsName: string, isRequired: boolean) => `a modifié la liste de tags « ${tagListsName} » en ${isRequired ? 'obligatoire' : 'non obligatoire'}`,
         importTags: 'tags importés depuis une feuille de calcul',
         deletedAllTags: 'a supprimé tous les tags',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `a modifié la catégorie par défaut pour ${customUnitName} en « ${newValue} » ${oldValue ? `(auparavant « ${oldValue} »)` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `taux importés pour l’unité personnalisée « ${customUnitName} »`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `a modifié le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} », le sous-taux « ${customUnitSubRateName} » ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `a supprimé le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} », le sous-taux « ${removedSubRateName} »`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `a ajouté ${frequency} budget individuel de « ${individual} » et ${frequency} budget partagé de « ${shared} »${thresholdSuffix} au ${entityType} « ${entityName} »`;
@@ -7399,18 +7420,18 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }
             return `a ajouté un budget partagé ${frequency} de « ${shared} »${thresholdSuffix} à l’${entityType} « ${entityName} »`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7445,7 +7466,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }
             return `budget mis à jour pour le/la ${entityType} « ${entityName} » : ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
             if (shared && individual) {
                 return `a supprimé un budget partagé de ${frequency} « ${shared} » et un budget individuel de « ${individual} »${thresholdSuffix} du ${entityType} « ${entityName} »`;
@@ -7511,7 +7532,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
-        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+        addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
     },
     roomMembersPage: {
@@ -7640,20 +7661,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
-        statements: 'Relevés',
-        cardStatements: 'Relevés de carte',
-        monthlyAccrual: 'Régularisation mensuelle',
-        unapprovedCash: 'Espèces non approuvées',
-        unapprovedCard: 'Carte non approuvée',
-        reconciliation: 'Rapprochement',
-        topSpenders: 'Plus gros dépensiers',
         saveSearch: 'Enregistrer la recherche',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
-        topCategories: 'Catégories principales',
-        topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
@@ -7668,6 +7680,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
             undelete: 'Restaurer',
+            duplicateReport: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'note de frais' : 'notes de frais'}`,
         },
         filtersHeader: 'Filtres',
         filters: {
@@ -7814,6 +7827,24 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
+        tabs: {
+            expenseReports: 'Notes de frais',
+            reports: 'Toutes les notes de frais',
+            expenses: 'Toutes les dépenses',
+            submit: 'Brouillons',
+            approve: 'Nécessite une approbation',
+            pay: 'Prêt à payer',
+            accounting: 'Comptabilité',
+            export: 'En attente d’exportation',
+            unapprovedCash: 'Provisions de trésorerie',
+            unapprovedCard: 'Provisions sur cartes',
+            statements: 'Relevés de carte',
+            reconciliation: 'Rapprochement bancaire',
+            insights: 'Analyses',
+            topSpenders: 'Plus gros dépensiers',
+            topCategories: 'Catégories principales',
+            topMerchants: 'Meilleurs commerçants',
+        },
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
@@ -7869,7 +7900,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             emptyReportConfirmationTitle: 'Vous avez déjà une note de frais vide',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Voulez-vous vraiment créer une autre note de frais dans ${workspaceName} ? Vous pouvez accéder à vos notes de frais vides dans`,
-            emptyReportConfirmationPromptLink: 'Notes de frais',
             emptyReportConfirmationDontShowAgain: 'Ne plus m’afficher ceci',
             genericWorkspaceName: 'cet espace de travail',
         },
@@ -7928,6 +7958,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 takeControl: `a pris le contrôle`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `un problème est survenu lors de la synchronisation avec ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Veuillez corriger le problème dans les <a href="${workspaceAccountingLink}">paramètres de l’espace de travail</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Répété ${count} fois.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
@@ -8658,6 +8689,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         details: {
             title: 'Détails de l’abonnement',
             annual: 'Abonnement annuel',
+            creditBalance: 'Solde créditeur',
             taxExempt: 'Demander le statut d’exonération fiscale',
             taxExemptEnabled: 'Exonéré d’impôt',
             taxExemptStatus: 'Statut d’exonération fiscale',
@@ -9136,8 +9168,12 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
+            error: 'Impossible d’enregistrer cette modification. Veuillez réessayer.',
         },
-        groups: {title: 'Groupes', memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`})},
+        groups: {
+            title: 'Groupes',
+            memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`}),
+        },
     },
     proactiveAppReview: {
         title: 'Vous appréciez le nouveau Expensify ?',

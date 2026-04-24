@@ -1487,10 +1487,21 @@ function getReasonAndReportActionForRBRInLHNRow(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     hasViolations: boolean,
     reportErrors: Errors,
+    isOffline: boolean,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+            report,
+            chatReport,
+            reportActions,
+            hasViolations,
+            reportErrors,
+            transactions,
+            isOffline,
+            transactionViolations,
+            isArchivedReport,
+        ) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

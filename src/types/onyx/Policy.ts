@@ -1074,6 +1074,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingPayableAccountID?: string;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 

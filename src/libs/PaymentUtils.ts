@@ -239,7 +239,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         ownerBillingGracePeriodEnd,
         delegateEmail,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -284,6 +284,7 @@ type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, '
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
 type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
+type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
 
 const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is PaymentOption => {
     if (!('value' in item)) {
@@ -293,6 +294,8 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
     const isPaymentInArray = Object.values(CONST.IOU.PAYMENT_TYPE).filter((type) => type === payment);
     return isPaymentInArray.length > 0;
 };
+
+const isSecondaryActionAWorkspacePolicyOption = (item: PopoverMenuItem): item is WorkspacePolicyPaymentOption => 'workspacePolicy' in item && !!item.workspacePolicy;
 
 /**
  * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
@@ -362,7 +365,8 @@ export {
     handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
+    isSecondaryActionAWorkspacePolicyOption,
     getActivePaymentType,
     getBankAccountLastFourDigits,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption, WorkspacePolicyPaymentOption};

@@ -86,4 +86,4 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
     };
 }
 
-export {hasDomainErrors, hasDomainAdminsSettingsErrors, hasDomainAdminsErrors, hasDomainMembersErrors, hasDomainMemberDetailsErrors, hasDomainMembersSettingsErrors, getMemberCustomRowProps};
+export {hasDomainErrors, hasDomainAdminsSettingsErrors, hasDomainAdminsErrors, hasDomainMembersErrors, hasDomainMembersSettingsErrors, getMemberCustomRowProps};

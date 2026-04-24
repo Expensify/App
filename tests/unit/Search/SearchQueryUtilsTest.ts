@@ -993,6 +993,102 @@ describe('SearchQueryUtils', () => {
             expect(result.dateRange).toBeUndefined();
         });
 
+        describe('date preset and range merging', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-04-15T12:00:00Z'));
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            test('merges date preset with inclusive range into a single range', () => {
+                const queryString = 'type:expense date:year-to-date date>=2026-04-01 date<=2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBeUndefined();
+                expect(result.dateAfter).toBeUndefined();
+                expect(result.dateBefore).toBeUndefined();
+                expect(result.dateRange).toBe('2026-04-01,2026-04-15');
+            });
+
+            test('removes redundant date preset when date is fully included in the preset range', () => {
+                const queryString = 'type:expense date:last-12-months date>=2026-04-01 date<=2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBeUndefined();
+                expect(result.dateAfter).toBeUndefined();
+                expect(result.dateBefore).toBeUndefined();
+                expect(result.dateRange).toBe('2026-04-01,2026-04-30');
+            });
+
+            test('merges all date-based filters, not only "date"', () => {
+                const queryString = 'type:expense approved:year-to-date approved>=2026-04-01 approved<=2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.approvedOn).toBeUndefined();
+                expect(result.approvedAfter).toBeUndefined();
+                expect(result.approvedBefore).toBeUndefined();
+                expect(result.approvedRange).toBe('2026-04-01,2026-04-15');
+            });
+
+            test('merges date preset and strict inequalities into a single range', () => {
+                const queryString = 'type:expense date:year-to-date date>2026-04-01 date<2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBeUndefined();
+                expect(result.dateAfter).toBeUndefined();
+                expect(result.dateBefore).toBeUndefined();
+                expect(result.dateRange).toBe('2026-04-02,2026-04-15');
+            });
+
+            test('does not modify a standalone preset without other date constraints', () => {
+                const queryString = 'type:expense date:last-12-months';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBe('last-12-months');
+                expect(result.dateRange).toBeUndefined();
+            });
+
+            test('merges multiple ranges into one', () => {
+                const queryString = 'type:expense date>=2026-04-01 date<=2026-04-30 date>=2026-03-01 date<=2026-04-15';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateRange).toBe('2026-04-01,2026-04-15');
+            });
+        });
+
         test('hydrates explicit report field range flag from inclusive range boundaries', () => {
             const policyCategories = {};
             const policyTags = {};

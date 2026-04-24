@@ -105,8 +105,7 @@ function getRestrictedPolicyID(
         .map((item) => item.policyID)
         .find(
             (policyID): policyID is string =>
-                !!policyID &&
-                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+                !!policyID && shouldRestrictUserBillableActions(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed),
         );
 }
 
@@ -273,6 +272,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'MoneyBag',
         'ArrowSplit',
         'ExpenseCopy',
+        'ReportCopy',
         'RotateLeft',
         'QBOSquare',
         'XeroSquare',
@@ -417,7 +417,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !policy.achAccount?.bankAccountID) {
+            if (!policy?.achAccount?.bankAccountID) {
                 continue;
             }
 
@@ -862,28 +862,37 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
+    const duplicateReportHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateReportHandler = useCallback((handler: () => void) => {
+        duplicateReportHandlerRef.current = handler;
+    }, []);
+    const invokeDuplicateReportHandler = useCallback(() => {
+        duplicateReportHandlerRef.current();
+    }, []);
+
+    const isDuplicateReportOptionVisible = useMemo(() => {
+        if (!isBetaEnabled(CONST.BETAS.BULK_DUPLICATE_REPORT)) {
+            return false;
+        }
+
+        if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
+            return false;
+        }
+
+        return selectedReports.every((report) => {
+            if (!report.reportID) {
+                return false;
+            }
+            return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
+        });
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID, isBetaEnabled]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
         const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
-
-        if (allSelectedAreDeleted) {
-            return [
-                {
-                    icon: expensifyIcons.RotateLeft,
-                    text: translate('search.bulkActions.undelete'),
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
-                    shouldCloseModalOnSelect: true,
-                    onSelected: () => {
-                        const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
-                        undeleteTransactions(selectedTransactionsKeys.map((id) => selectedTransactions[id]?.transaction).filter((t) => t !== undefined));
-                        clearSelectedTransactions(undefined, selectedTransactionsKeys.length >= totalTransactionsInResults);
-                    },
-                },
-            ];
-        }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
@@ -1020,17 +1029,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCallAfterModalHide: true,
             });
 
-            for (const template of exportTemplates) {
-                exportOptions.push({
-                    text: template.name,
-                    icon: expensifyIcons.Table,
-                    description: template.description,
-                    onSelected: () => {
-                        beginExportWithTemplate(template.templateName, template.type, template.policyID);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
+            if (!allSelectedAreDeleted) {
+                for (const template of exportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: expensifyIcons.Table,
+                        description: template.description,
+                        onSelected: () => {
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    });
+                }
             }
 
             return exportOptions;
@@ -1048,6 +1059,35 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
+        }
+
+        if (allSelectedAreDeleted) {
+            const deletedTransactionOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [
+                {
+                    icon: expensifyIcons.RotateLeft,
+                    text: translate('search.bulkActions.undelete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => {
+                        const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
+                        undeleteTransactions(selectedTransactionsKeys.map((id) => selectedTransactions[id]?.transaction).filter((t) => t !== undefined));
+                        clearSelectedTransactions(undefined, selectedTransactionsKeys.length >= totalTransactionsInResults);
+                    },
+                },
+                exportButtonOption,
+            ];
+
+            if (isDuplicateOptionVisible) {
+                deletedTransactionOptions.push({
+                    text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
+                    icon: expensifyIcons.ExpenseCopy,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: invokeDuplicateHandler,
+                });
+            }
+
+            return deletedTransactionOptions;
         }
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -1369,6 +1409,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        if (isDuplicateReportOptionVisible) {
+            options.push({
+                text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
+                icon: expensifyIcons.ReportCopy,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: invokeDuplicateReportHandler,
+            });
+        }
+
         if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
@@ -1448,6 +1498,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransactionPolicy,
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
@@ -1513,6 +1565,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData: currentSearchResults?.data,

@@ -85,6 +85,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
+jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -106,14 +107,23 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
-        dismissModal: jest.fn(),
+        dismissModal: jest.fn((options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         dismissModalWithReport: jest.fn(),
+        dismissToPreviousRHP: jest.fn((options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
         getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
-        revealRouteBeforeDismissingModal: jest.fn(),
+        revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         getTopmostReportId: jest.fn(() => undefined),
+        preInsertFullscreenUnderRHP: jest.fn(),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
         navigationRef: mockRef,
     };
 });
