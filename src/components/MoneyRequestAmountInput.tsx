@@ -99,6 +99,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
@@ -181,6 +184,7 @@ function MoneyRequestAmountInput({
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -274,6 +278,7 @@ function MoneyRequestAmountInput({
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}

@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell';
@@ -32,12 +32,14 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
     }
 
     const absoluteAmount = Math.abs(amount ?? 0);
+    const [isNegative, setIsNegative] = useState((amount ?? 0) < 0);
 
     const handleAmountSave = (amountString: string) => {
         const parsedValue = parseFloatAnyLocale(amountString);
         if (!Number.isNaN(parsedValue) && parsedValue >= 0) {
             const normalizedValue = roundToTwoDecimalPlaces(parsedValue);
-            onSave?.(convertToBackendAmount(normalizedValue));
+            const finalAmount = isNegative ? -normalizedValue : normalizedValue;
+            onSave?.(convertToBackendAmount(finalAmount));
         }
     };
 
@@ -56,6 +58,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         ref?.focus();
     };
 
+    const handleStartEditing = () => {
+        setIsNegative((amount ?? 0) < 0);
+        startEditing();
+    };
+
     const handleAmountChange = (amountString: string) => {
         setLocalValue(amountString);
     };
@@ -64,6 +71,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         const decimals = getCurrencyDecimals(currencyParam);
         return convertToFrontendAmountAsString(amountAsInt, decimals);
     };
+
+    const toggleNegative = () => setIsNegative((prev) => !prev);
+
+    const clearNegative = () => setIsNegative(false);
 
     const handleEscape = () => {
         cancelEditing();
@@ -99,7 +110,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         <EditableCell
             canEdit={canEdit}
             isEditing={isEditing}
-            onStartEditing={startEditing}
+            onStartEditing={handleStartEditing}
             editContent={
                 <MoneyRequestAmountInput
                     ref={focusOnMount}
@@ -115,6 +126,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     onAmountChange={handleAmountChange}
                     onFormatAmount={onFormatAmount}
                     onBlur={save}
+                    allowFlippingAmount
+                    isNegative={isNegative}
+                    toggleNegative={toggleNegative}
+                    clearNegative={clearNegative}
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
                     containerStyle={[styles.editableCellInputStyle]}
@@ -122,6 +137,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
                     scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
                     symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
+                    negativeSymbolStyle={styles.editableCellSymbolStyle}
                 />
             }
         >

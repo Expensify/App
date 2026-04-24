@@ -24,6 +24,7 @@ function BaseTextInputWithSymbol({
     style,
     symbolTextStyle,
     isNegative = false,
+    negativeSymbolStyle,
     rightHandSideComponent,
     ref,
     disabled,
@@ -42,7 +43,7 @@ function BaseTextInputWithSymbol({
         onChangeAmount(newAmount);
     };
 
-    const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
+    const negativeSymbol = <Text style={[styles.iouAmountText, negativeSymbolStyle]}>-</Text>;
 
     return (
         <>
