@@ -12,7 +12,6 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     backToReport?: string;
     optimisticChatReportID?: string;
     isInvoice?: boolean;
-    /** Move-from-track only: pops the linked child report screen before navigating. */
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 

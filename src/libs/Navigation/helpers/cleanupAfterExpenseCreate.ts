@@ -6,7 +6,6 @@ import type {ReportAction} from '@src/types/onyx';
 
 type CleanupAfterExpenseCreateParams = {
     draftTransactionIDs: string[] | undefined;
-    /** Move-from-track only: pops the linked child report screen. */
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
