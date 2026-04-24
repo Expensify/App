@@ -228,3 +228,55 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         });
     });
 });
+
+describe('useExpenseSubmission action-bailout safety', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        mockResolveChatForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, optimisticChatReportID: 'fallback-id'});
+    });
+
+    it('skips cleanup and navigation when requestMoney bails (returns {} for SUBMIT with missing linked-track metadata)', async () => {
+        // Action bails: returns {} (no iouReport) for malformed SUBMIT — drafts must survive, no nav.
+        mockRequestMoneyAction.mockReturnValue({});
+
+        const {result} = renderHook(() => useExpenseSubmission(buildParams({action: CONST.IOU.ACTION.SUBMIT})));
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            result.current.createTransaction(PARTICIPANTS, false, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
+        expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+        expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+    });
+
+    it('skips trackExpense entirely (including the action call) when CATEGORIZE is missing linked-track metadata', async () => {
+        // Pre-validation: trackExpense action would bail per-iteration, but UI catches the malformed batch upfront.
+        const {result} = renderHook(() =>
+            useExpenseSubmission(
+                buildParams({
+                    iouType: CONST.IOU.TYPE.TRACK,
+                    action: CONST.IOU.ACTION.CATEGORIZE,
+                    // transaction lacks linkedTrackedExpenseReportAction + linkedTrackedExpenseReportID — would bail server-side
+                }),
+            ),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            result.current.createTransaction(PARTICIPANTS, false, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockTrackExpenseAction).not.toHaveBeenCalled();
+        expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+        expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
+    });
+});

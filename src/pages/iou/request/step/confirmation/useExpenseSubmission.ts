@@ -246,6 +246,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
         let lastOptimisticTransactionID: string | undefined;
+        let anyTransactionCreated = false;
 
         for (const [index, item] of transactions.entries()) {
             const isLastBatchItem = index === transactions.length - 1;
@@ -358,11 +359,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticTransactionID: lastOptimisticTransactionID,
             });
-            existingIOUReport = iouReport;
+            if (iouReport) {
+                anyTransactionCreated = true;
+                existingIOUReport = iouReport;
+            }
         }
 
         const lastTransaction = transactions.at(-1);
-        if (!lastTransaction) {
+        // Skip cleanup/nav when the action bailed — drafts must survive for retry.
+        if (!lastTransaction || !anyTransactionCreated) {
             return;
         }
         if (!shouldHandleNav) {
@@ -493,6 +498,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         const participant = selectedParticipantsArg.at(0);
         if (!participant) {
+            return;
+        }
+        // Pre-check: action bails per-iteration too late to stop UI cleanup from dropping drafts.
+        const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
+        if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
