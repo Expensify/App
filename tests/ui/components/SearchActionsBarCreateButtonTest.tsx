@@ -45,7 +45,7 @@ jest.mock('@hooks/usePopoverPosition', () => () => ({
     calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0})),
 }));
 
-jest.mock('@hooks/useHasEmptyReportsForPolicy', () => () => false);
+jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => () => false);
 
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => () => ({
     openCreateReportConfirmation: jest.fn(),

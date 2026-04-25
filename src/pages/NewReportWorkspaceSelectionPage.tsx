@@ -86,7 +86,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
-            if (!accountID) {
+            if (hasDismissedEmptyReportsConfirmation || !accountID) {
                 return {};
             }
 
