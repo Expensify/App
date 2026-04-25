@@ -32,7 +32,7 @@ On any expense submitted on a report, the approver can:
 
 ## How to review and approve a report
 
-When a report is submitted to you for approval it will appear in the **For you** section on **Home**, and on **Reports** in the **Approve** section. 
+When a report is submitted to you for approval it will appear in the **For you** section on **Home**, and under **Spend** in the **Expense reports** section, under **Needs approval**. 
 
 To review and approve a report submitted to you for approval: 
 
@@ -69,7 +69,7 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 ## How to hold an expense
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > All expenses**.
 2. Locate the expense you want to hold. 
 3. Click the expense to open it. 
 4. Click **More** at the top of the expense.
@@ -79,9 +79,9 @@ To take an expense off hold, follow the same steps but select **Unhold**.
 
 ---
 
-## How to unapprove a report
+## How to unapprove a report 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > All reports**.
 2. Locate the Approved report you want to unapprove. 
 3. Click the report to open it. 
 4. Click **More** at the top of the report. 
@@ -93,20 +93,18 @@ Unapproving a report returns it to the Outstanding state. The last approver will
 
 ---
 
-## How to reject a report 
+## How to reject a report
 
 As the assigned approver, you can reject an entire expense report to return it to the submitter or a previous approver while keeping the report's expense grouping intact.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Approve**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > Needs approval**.
 2. Locate the Outstanding report you want to reject.
-3. Click the report to open it. 
-4. Click **More** at the top of the report. 
+3. Click the report to open it.
+4. Click **More** at the top of the report.
 5. Select **Reject**.
-6. Enter a comment to explain why you will not approve the report. 
+6. Enter a comment to explain why you will not approve the report.
 7. If the report passed through previous approvers, choose who the report should be rejected back to for review.
 8. Click **Reject report** to confirm.
-
----
 
 ## What happens after a report is rejected
 
@@ -117,11 +115,11 @@ As the assigned approver, you can reject an entire expense report to return it t
 
 ## How to reject an expense 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Expenses**.
-2. Locate the Outstanding expense you want to reject.
-3. Click the expense to open it. 
-4. Click **More** at the top of the expense. 
-5. Select **Reject** and enter a reason.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > All expenses**.
+2. Locate the expense you want to reject using the search bar or filters.
+3. Click **View**.
+4. Open the **More** dropdown at the top of the expense.
+5. Select **Reject** and enter a reason (this will be added to the report).
 
 The rejected expense will be removed from the report, and the submitter will be notified. The rejection reason will be added to the expense, and it can later be marked as resolved and resubmitted for approval.
 
@@ -141,7 +139,8 @@ Rejecting a report sends the entire report back while keeping all expenses group
 
 ## Why can’t I unapprove a report?
 
-Reports that are already paid cannot be unapproved. You also need to be an approver on the report to unapprove it.
+## What are expense reports?
+Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Spend > Expenses**.
 
 ## What happens after I approve a report?
 

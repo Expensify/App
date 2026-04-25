@@ -6338,6 +6338,8 @@ const translations = {
             },
             gusto: {
                 title: 'Gusto',
+                connect: 'Connect',
+                connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
                 approvalMode: 'Approval mode',
                 finalApprover: 'Final approver',
             },
@@ -8718,9 +8720,9 @@ const translations = {
             collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
             pricing: 'Pricing',
         },
-        requestEarlyCancellation: {
-            title: 'Request early cancellation',
-            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+        cancelSubscription: {
+            title: 'Cancel subscription',
+            subtitle: 'What’s the main reason you’re canceling your subscription?',
             subscriptionCanceled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
@@ -8733,7 +8735,7 @@ const translations = {
                 subtitle:
                     'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
+            acknowledgement: `By requesting cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
         },
     },
     feedbackSurvey: {
@@ -9129,6 +9131,7 @@ const translations = {
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             resetTwoFactorAuth: 'Reset two-factor authentication',
+            error: "Couldn't save this change. Please try again.",
         },
         groups: {
             title: 'Groups',

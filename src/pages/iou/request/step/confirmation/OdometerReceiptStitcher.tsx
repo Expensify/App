@@ -1,22 +1,26 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import clearOdometerDraftTransactionState from '@libs/actions/OdometerTransactionUtils';
+import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUType} from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type OdometerReceiptStitcherProps = {
     isOdometerDistanceRequest: boolean;
-    currentTransactionID: string;
     odometerStartImage: FileObject | string | null | undefined;
     odometerEndImage: FileObject | string | null | undefined;
-    action: IOUAction;
+    transaction: OnyxEntry<Transaction>;
+    reportID: string;
+    backToReport: string | undefined;
     iouType: IOUType;
     onStitchingChange: (isStitching: boolean) => void;
     onStitchError: (error: string) => void;
@@ -30,10 +34,11 @@ type OdometerReceiptStitcherProps = {
  */
 function OdometerReceiptStitcher({
     isOdometerDistanceRequest,
-    currentTransactionID,
     odometerStartImage,
     odometerEndImage,
-    action,
+    transaction,
+    reportID,
+    backToReport,
     iouType,
     onStitchingChange,
     onStitchError,
@@ -46,7 +51,7 @@ function OdometerReceiptStitcher({
     } | null>(null);
 
     useEffect(() => {
-        if (!isOdometerDistanceRequest || !isFocused) {
+        if (!isOdometerDistanceRequest || !isFocused || !transaction) {
             return;
         }
 
@@ -69,13 +74,7 @@ function OdometerReceiptStitcher({
                 return;
             }
 
-            setMoneyRequestReceipt(
-                currentTransactionID,
-                getOdometerImageUri(singleImage),
-                getOdometerImageName(singleImage),
-                shouldUseTransactionDraft(action, iouType),
-                getOdometerImageType(singleImage),
-            );
+            setMoneyRequestReceipt(transaction.transactionID, getOdometerImageUri(singleImage), getOdometerImageName(singleImage), true, getOdometerImageType(singleImage));
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
@@ -84,47 +83,76 @@ function OdometerReceiptStitcher({
         onStitchingChange(true);
         onStitchError('');
 
-        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH, {
-            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
-            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
-        });
-
-        stitchOdometerImages(odometerStartImage, odometerEndImage)
-            .then((stitchedImage) => {
-                if (ignore || !stitchedImage) {
-                    cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
-                    return;
-                }
-                setMoneyRequestReceipt(
-                    currentTransactionID,
-                    getOdometerImageUri(stitchedImage),
-                    getOdometerImageName(stitchedImage),
-                    shouldUseTransactionDraft(action, iouType),
-                    getOdometerImageType(stitchedImage),
-                );
-                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
-                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
-            })
-            .catch((error: unknown) => {
-                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
-                if (ignore) {
-                    return;
-                }
-                Log.warn('stitchOdometerImages failed', {error});
-                onStitchError(translate('iou.error.stitchOdometerImagesFailed'));
-            })
-            .finally(() => {
-                if (ignore) {
-                    return;
-                }
-                onStitchingChange(false);
+        const runStitch = () => {
+            startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH, {
+                name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
+                op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
             });
+
+            stitchOdometerImages(odometerStartImage, odometerEndImage)
+                .then((stitchedImage) => {
+                    if (ignore || !stitchedImage) {
+                        cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
+                        return;
+                    }
+                    setMoneyRequestReceipt(transaction.transactionID, getOdometerImageUri(stitchedImage), getOdometerImageName(stitchedImage), true, getOdometerImageType(stitchedImage));
+                    lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+                    endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
+                })
+                .catch((error: unknown) => {
+                    cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
+                    if (ignore) {
+                        return;
+                    }
+                    Log.warn('stitchOdometerImages failed', {error});
+                    onStitchError(translate('iou.error.stitchOdometerImagesFailed'));
+                })
+                .finally(() => {
+                    if (ignore) {
+                        return;
+                    }
+                    onStitchingChange(false);
+                });
+        };
+
+        // Pre-flight: verify blob URLs haven't expired before attempting to stitch.
+        const localImages = [
+            {uri: startUri, image: odometerStartImage},
+            {uri: endUri, image: odometerEndImage},
+        ].filter((item): item is {uri: string; image: typeof odometerStartImage} => !!item.uri && item.uri.startsWith('blob:'));
+
+        let hasExpiredImages = false;
+        Promise.all(
+            localImages.map(({uri, image}) =>
+                checkIfLocalFileIsAccessible(
+                    getOdometerImageName(image),
+                    uri,
+                    typeof image === 'object' ? image?.type : undefined,
+                    () => {},
+                    () => {
+                        hasExpiredImages = true;
+                    },
+                ),
+            ),
+        ).then(() => {
+            if (ignore) {
+                return;
+            }
+            if (hasExpiredImages) {
+                onStitchingChange(false);
+                clearOdometerDraftTransactionState(transaction);
+                navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
+                return;
+            }
+            runStitch();
+        });
 
         return () => {
             ignore = true;
+            onStitchingChange(false);
             cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType, onStitchingChange, onStitchError]);
+    }, [isOdometerDistanceRequest, isFocused, odometerStartImage, odometerEndImage, transaction, reportID, backToReport, translate, iouType, onStitchingChange, onStitchError]);
 
     return null;
 }

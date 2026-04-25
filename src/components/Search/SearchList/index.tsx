@@ -17,7 +17,6 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import {useEditingCellState} from '@components/Table/EditableCell';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -305,7 +304,6 @@ function SearchList({
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
-    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
@@ -404,16 +402,9 @@ function SearchList({
                 return;
             }
 
-            // Don't scroll while a cell is being edited
-            // as it can cause unwanted scrolling when the edit is dismissed
-            // See: https://github.com/Expensify/App/pull/83127#issuecomment-4064533155
-            if (isEditingCell || wasRecentlyEditingCell) {
-                return;
-            }
-
             listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data, isEditingCell, wasRecentlyEditingCell],
+        [data],
     );
 
     useFocusEffect(
