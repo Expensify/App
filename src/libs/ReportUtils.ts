@@ -11571,9 +11571,9 @@ function hasCurrentForwardingWorkflowAction(reportID: string): boolean {
 }
 
 /**
- * Fallback for when forwarded actions are unavailable in local Onyx.
- * A processing report is only considered forwarded when the current submit-to no longer matches
- * managerID and the report's workflow history shows it has already advanced past submission.
+ * Move-expense fallback for when the FORWARDED report action is missing locally.
+ * We require current workflow history, not only submitToAccountID !== managerID, because
+ * policy approver changes can create the same mismatch for reports that were never forwarded.
  */
 function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boolean {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];

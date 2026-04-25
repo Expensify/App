@@ -20,6 +20,11 @@ type SearchMoveSelectionValidation = {
     targetOwnerAccountID?: number;
 };
 
+/**
+ * Search can render bulk actions from snapshot data before report actions have hydrated.
+ * Keep this guard local to the Search menu: it uses nextStep and policy forwarding data
+ * only to hide Move early, while ReportUtils uses report action history for the core permission check.
+ */
 function shouldBlockForwardedMoveFromSearchSnapshot(
     report: Report | undefined,
     policy: Policy | undefined,
