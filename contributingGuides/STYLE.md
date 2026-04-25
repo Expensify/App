@@ -571,9 +571,7 @@ When you change the function id argument type to allow `undefined`, check if it 
 
 ```diff
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        canEvict: false,
-    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
 -   const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
 +   const parentReportAction = parentReportActions?.[report?.parentReportActionID];
 ```

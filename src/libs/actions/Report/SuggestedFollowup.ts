@@ -17,8 +17,9 @@ const CONCIERGE_RESPONSE_DELAY_MS = 4000;
 /**
  * Resolves a suggested followup by posting the selected question as a comment
  * and optimistically updating the HTML to mark the followup-list as resolved.
- * If the followup has a pre-generated response, it will show a "Concierge is typing"
- * indicator briefly before displaying the response.
+ * If the followup has a pre-generated response, it will be queued and displayed
+ * after a short delay. The server-owned agentZeroProcessingIndicator NVP drives
+ * the "Concierge is thinking..." indicator during that window.
  * @param report - The report where the action exists
  * @param notifyReportID - The report ID to notify for new actions
  * @param reportAction - The report action containing the followup-list
@@ -66,8 +67,7 @@ function resolveSuggestedFollowup(
         return;
     }
 
-    // If there's a pre-generated response, show typing indicator then display response after delay
-
+    // If there's a pre-generated response, queue it for delayed display.
     const optimisticConciergeReportActionID = rand64();
 
     // Post user's comment immediately
@@ -110,47 +110,26 @@ function resolveSuggestedFollowup(
  * when the time arrives, with proper lifecycle cleanup.
  */
 function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConciergeAction: OptimisticReportAction) {
-    Onyx.update([
-        // Store the pending response for the scheduler to process
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`,
-            value: {
-                reportAction: optimisticConciergeAction.reportAction,
-                displayAfter: Date.now() + CONCIERGE_RESPONSE_DELAY_MS,
-            },
-        },
-        // Show "Concierge is typing..." indicator
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-            value: {[CONST.ACCOUNT_ID.CONCIERGE]: true},
-        },
-    ]);
+    // The "Concierge is thinking..." indicator is driven by the server-owned
+    // agentZeroProcessingIndicator NVP, so this client-local delayed response
+    // must not also write REPORT_USER_IS_TYPING for Concierge.
+    Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
+        reportAction: optimisticConciergeAction.reportAction,
+        displayAfter: Date.now() + CONCIERGE_RESPONSE_DELAY_MS,
+    });
 }
 
 /**
- * Discards a stale pending concierge response and clears the typing indicator.
+ * Discards a stale pending concierge response.
  * Called when the response has been pending too long (e.g. app was killed and restarted).
  */
 function discardPendingConciergeAction(reportID: string | undefined) {
-    Onyx.update([
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-            value: {[CONST.ACCOUNT_ID.CONCIERGE]: false},
-        },
-    ]);
+    Onyx.set(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, null);
 }
 
 /**
  * Applies a pending concierge response by moving it to REPORT_ACTIONS
- * and clearing the pending state and typing indicator.
+ * and clearing the pending state.
  */
 function applyPendingConciergeAction(reportID: string | undefined, reportAction: ReportAction) {
     Onyx.update([
@@ -158,11 +137,6 @@ function applyPendingConciergeAction(reportID: string | undefined, reportAction:
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`,
             value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
-            value: {[CONST.ACCOUNT_ID.CONCIERGE]: false},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

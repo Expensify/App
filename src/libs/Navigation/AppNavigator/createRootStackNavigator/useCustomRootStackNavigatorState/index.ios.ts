@@ -4,6 +4,7 @@ import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationRoute, SplitNavigatorName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ensureTabNavigatorRoutes from './ensureTabNavigatorRoutes';
 
 // Swiping back on iOS does not work properly when the preloaded route has gestureEnabled set to false.
 // Therefore, on screens where swiping should work, preloadedRoutes will be an empty array during rendering to ensure swiping works properly.
@@ -16,7 +17,7 @@ function getShouldHidePreloadedRoutes(route?: NavigationRoute) {
 
     // Swiping back should work in any navigator except full screen navigators.
     // This only does not apply to the WorkspaceSplitNavigator and DomainSplitNavigator as they have sidebar screens where users can swipe back to navigate to the workspace list.
-    if (!isFullScreenName(route.name) || route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || route.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR) {
+    if (!isFullScreenName(route.name) || route.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
         return true;
     }
 
@@ -35,7 +36,10 @@ function getShouldHidePreloadedRoutes(route?: NavigationRoute) {
 // On native platforms, we store the last two routes to handle swiping back.
 export default function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
     const lastSplitIndex = state.routes.findLastIndex((route) => isFullScreenName(route.name));
-    const routesToRender = state.routes.slice(Math.max(0, lastSplitIndex - 1), state.routes.length);
+    const indexToSlice = Math.max(0, lastSplitIndex - 1);
+    const slicedRoutes = state.routes.slice(indexToSlice, state.routes.length);
+    const routesToRender = ensureTabNavigatorRoutes(slicedRoutes, indexToSlice, state.routes);
+
     const stateToRender = {...state, routes: routesToRender, index: routesToRender.length - 1};
     if (getShouldHidePreloadedRoutes(stateToRender.routes.at(-1))) {
         return {...stateToRender, preloadedRoutes: []};
