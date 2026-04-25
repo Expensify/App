@@ -1,3 +1,4 @@
+import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
@@ -6,7 +7,6 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -16,7 +16,7 @@ type UserDetailsRendererProps = CustomRendererProps<TText | TPhrasing>;
 function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRendererProps) {
     const styles = useThemeStyles();
     const accountID = tnode.attributes.accountid ? parseInt(tnode.attributes.accountid, 10) : CONST.DEFAULT_NUMBER_ID;
-    const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => isOptimisticPersonalDetail(accountID, list?.[accountID])});
+    const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(accountID)});
 
     if (!accountID) {
         return <TNodeChildrenRenderer tnode={tnode} />;

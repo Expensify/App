@@ -1,4 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -37,13 +38,17 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const otherParticipantAccountID =
+        Object.keys(report?.participants ?? {})
+            .map(Number)
+            .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
+    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
 
     if (!isChatReport(report)) {
         return null;
     }
 
-    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, personalDetailsList);
+    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
 
     return (
         <OfflineWithFeedback

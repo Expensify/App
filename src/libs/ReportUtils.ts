@@ -2166,16 +2166,12 @@ function pushTransactionViolationsOnyxData(
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
-function shouldDisableDetailPage(report: OnyxEntry<Report>, personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean {
+function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimistic: boolean | undefined): boolean {
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (isOneOnOneChat(report)) {
-        const participantAccountIDs = Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-        const participantAccountID = participantAccountIDs.at(0) ?? -1;
-        return isOptimisticPersonalDetail(participantAccountID, personalDetailsList?.[participantAccountID]);
+        return !!isParticipantOptimistic;
     }
     return false;
 }

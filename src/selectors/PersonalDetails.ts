@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
 
@@ -17,4 +18,9 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
     return map;
 };
 
-export {personalDetailsSelector, personalDetailsLoginSelector, accountIDToLoginSelector};
+const isOptimisticPersonalDetailSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+    const personalDetail = personalDetailsList?.[accountID];
+    return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
+};
+
+export {personalDetailsSelector, personalDetailsLoginSelector, accountIDToLoginSelector, isOptimisticPersonalDetailSelector};
