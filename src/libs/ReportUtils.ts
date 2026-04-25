@@ -2166,12 +2166,12 @@ function pushTransactionViolationsOnyxData(
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
-function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimistic: boolean | undefined): boolean {
+function shouldDisableDetailPage(report: OnyxEntry<Report>, participantPersonalDetail: PersonalDetails | null | undefined): boolean {
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (isOneOnOneChat(report)) {
-        return !!isParticipantOptimistic;
+        return isEmptyObject(participantPersonalDetail) || !!participantPersonalDetail?.isOptimisticPersonalDetail;
     }
     return false;
 }

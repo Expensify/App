@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -42,13 +42,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         Object.keys(report?.participants ?? {})
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
+    const [participantPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(otherParticipantAccountID)});
 
     if (!isChatReport(report)) {
         return null;
     }
 
-    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
+    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, participantPersonalDetail);
 
     return (
         <OfflineWithFeedback
