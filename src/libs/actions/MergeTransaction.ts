@@ -263,7 +263,6 @@ function getOnyxTargetTransactionData({
             filteredTransactionChanges,
             policy,
             delegateAccountID,
-            undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
     } else {

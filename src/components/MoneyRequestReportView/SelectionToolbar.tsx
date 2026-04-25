@@ -70,16 +70,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchActionsContext();
-
-    useFocusEffect(() => {
-        if (reportID && currentSelectedTransactionReportID !== reportID && selectedTransactionIDs.length > 0) {
-            clearSelectedTransactions(true);
-        }
-
-        setCurrentSelectedTransactionReportID(reportID);
-    });
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
 
     useFilterSelectedTransactions(transactions, reportID);
 
@@ -362,4 +354,30 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     );
 }
 
-export default SelectionToolbar;
+function SelectionToolbarGate({reportID, transactions, reportActions}: SelectionToolbarProps) {
+    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchStateContext();
+    const {clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchActionsContext();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+
+    useFocusEffect(() => {
+        if (reportID && currentSelectedTransactionReportID !== reportID && selectedTransactionIDs.length > 0) {
+            clearSelectedTransactions(true);
+        }
+
+        setCurrentSelectedTransactionReportID(reportID);
+    });
+
+    if (selectedTransactionIDs.length === 0 && !isMobileSelectionModeEnabled) {
+        return null;
+    }
+
+    return (
+        <SelectionToolbar
+            reportID={reportID}
+            transactions={transactions}
+            reportActions={reportActions}
+        />
+    );
+}
+
+export default SelectionToolbarGate;

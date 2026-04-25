@@ -77,6 +77,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -193,7 +194,7 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     AnyRequest,
@@ -6647,14 +6648,14 @@ function updatePolicyIdForReportAndThreads(
     }
 }
 
-function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, reportID: string) {
+function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) {
     if (isChangePolicyTrainingModalDismissed) {
         return;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
-        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path));
     });
 }
 
@@ -7177,8 +7178,8 @@ function changeReportPolicy(
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY, params, {optimisticData, successData, failureData});
 
     // If the dismissedProductTraining.changeReportModal is not set,
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
+    // navigate to the change policy educational modal over the current report.
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed);
 }
 
 /**
@@ -7277,8 +7278,8 @@ function changeReportPolicyAndInviteSubmitter({
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
 
     // If the dismissedProductTraining.changeReportModal is not set,
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
+    // navigate to the change policy educational modal over the current report.
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed);
 }
 
 /**

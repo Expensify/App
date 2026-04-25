@@ -5429,9 +5429,11 @@ describe('actions/Report', () => {
             expect(pendingResponse?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
             expect(pendingResponse?.displayAfter).toBeGreaterThan(Date.now() - CONCIERGE_RESPONSE_DELAY_MS);
 
-            // Verify the typing indicator was set
+            // Verify the client did NOT set REPORT_USER_IS_TYPING. The server-owned
+            // agentZeroProcessingIndicator is the source of truth for the "Concierge is thinking..."
+            // state during the delayed pre-generated response window.
             const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
-            expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
+            expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBeFalsy();
         });
 
         it('should create Concierge response with timestamp strictly after the user comment', async () => {

@@ -2368,7 +2368,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
-    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
+    [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -2917,6 +2917,14 @@ type WorkspaceNavigatorParamList = {
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
 
+type TabNavigatorParamList = {
+    [SCREENS.HOME]: undefined;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
+    [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+};
+
 type SharedScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
@@ -3051,16 +3059,13 @@ type AuthScreensParamList = SharedScreensParamList &
         [SCREENS.CONCIERGE]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
-        [SCREENS.HOME]: undefined;
         [SCREENS.WORKSPACE_JOIN_USER]: {
             policyID: string;
             email: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
-        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+        [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
@@ -3068,7 +3073,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
-        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
@@ -3259,7 +3263,7 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof NAVIGATORS.TAB_NAVIGATOR | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
 
 type PublicScreenName =
     | typeof SCREENS.TRANSITION_BETWEEN_APPS
@@ -3293,6 +3297,7 @@ export type {
     DomainCardNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
+    TabNavigatorParamList,
     ExplanationModalNavigatorParamList,
     FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
