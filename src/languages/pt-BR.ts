@@ -8691,9 +8691,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
             pricing: 'Preços',
         },
-        requestEarlyCancellation: {
-            title: 'Solicitar cancelamento antecipado',
-            subtitle: 'Qual é o principal motivo pelo qual você está solicitando o cancelamento antecipado?',
+        cancelSubscription: {
+            title: 'Cancelar assinatura',
+            subtitle: 'Qual é o principal motivo pelo qual você está deseja cancelar sua assinatura?',
             subscriptionCanceled: {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
@@ -8706,7 +8706,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 subtitle:
                     'Obrigado por nos informar que você está interessado em cancelar sua assinatura. Estamos analisando sua solicitação e entraremos em contato em breve pelo seu chat com o <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `Ao solicitar o cancelamento antecipado, reconheço e concordo que a Expensify não tem obrigação de conceder tal solicitação de acordo com os <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a> da Expensify ou outro contrato de serviços aplicável entre mim e a Expensify, e que a Expensify mantém total discricionariedade quanto à concessão de qualquer solicitação desse tipo.`,
+            acknowledgement: `Ao solicitar o cancelamento, reconheço e concordo que a Expensify não tem obrigação de conceder tal solicitação de acordo com os <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a> da Expensify ou outro contrato de serviços aplicável entre mim e a Expensify, e que a Expensify mantém total discricionariedade quanto à concessão de qualquer solicitação desse tipo.`,
         },
     },
     feedbackSurvey: {

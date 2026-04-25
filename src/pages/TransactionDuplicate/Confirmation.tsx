@@ -80,13 +80,13 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
-        mergeDuplicates(transactionsMergeParams);
+        mergeDuplicates({...transactionsMergeParams, currentUserAccountID: currentUserPersonalDetails.accountID, currentUserLogin: currentUserPersonalDetails?.login ?? ''});
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
         Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams, isSuperWideRHPDisplayed]);
+    }, [reportAction?.childReportID, transactionsMergeParams, currentUserPersonalDetails.accountID, currentUserPersonalDetails?.login, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates(transactionsMergeParams);

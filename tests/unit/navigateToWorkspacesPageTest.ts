@@ -1,19 +1,14 @@
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-// eslint-disable-next-line no-restricted-syntax
-import * as lastVisitedTabPathUtils from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/Navigation/navigationRef');
 jest.mock('@libs/Navigation/Navigation');
-jest.mock('@libs/Navigation/helpers/lastVisitedTabPathUtils');
 jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState');
 jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/interceptAnonymousUser');
@@ -35,7 +30,19 @@ describe('navigateToWorkspacesPage', () => {
     it('calls goBack if WORKSPACE_NAVIGATOR is topmost and a split navigator is inside', () => {
         navigateToWorkspacesPage({
             ...baseParams,
-            topmostFullScreenRoute: {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+            topmostFullScreenRoute: {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    index: 4,
+                    routes: [
+                        {name: 'Home'},
+                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                    ],
+                },
+            },
             lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
         });
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
@@ -52,10 +59,9 @@ describe('navigateToWorkspacesPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
-    it('dispatches OPEN_WORKSPACE_SPLIT if valid policy and screen exist', () => {
+    it('navigates to workspace initial screen if valid policy and screen exist', () => {
         (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
         (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
-        (lastVisitedTabPathUtils.getLastVisitedWorkspaceTabScreen as jest.Mock).mockReturnValue('Workspace_Overview');
 
         mockIntercept();
         navigateToWorkspacesPage({
@@ -64,11 +70,7 @@ describe('navigateToWorkspacesPage', () => {
             lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, key: 'someKey'},
         });
 
-        const dispatch = jest.spyOn(navigationRef, 'dispatch');
-        expect(dispatch).toHaveBeenCalledWith({
-            type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
-            payload: {policyID: fakePolicyID, screenName: 'Workspace_Overview'},
-        });
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_INITIAL.getRoute(fakePolicyID));
     });
 
     it('navigates to WORKSPACES_LIST if policy is pending delete', () => {

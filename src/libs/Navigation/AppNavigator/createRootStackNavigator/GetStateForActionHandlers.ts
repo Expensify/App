@@ -1,14 +1,12 @@
-import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
-import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
-import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
-import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
-import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
-import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -21,6 +19,15 @@ import type {
     ReplaceFullscreenUnderRHPActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
+
+const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([
+    ...Object.keys(SIDEBAR_TO_SPLIT),
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
+    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.HOME,
+]);
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
@@ -44,6 +51,101 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
 const screensWithEnteringAnimation = new Set<string>();
 
 /**
+ * Stores the original TAB_NAVIGATOR route before a tab-switch pre-insertion
+ * (handleReplaceFullscreenUnderRHP). Restored on cancel by handleRemoveFullscreenUnderRHP,
+ * or cleared by clearPreInsertedOriginalTabRoute when navigation commits successfully.
+ */
+let preInsertedOriginalTabRoute: StackNavigationState<ParamListBase>['routes'][number] | undefined;
+
+function getPreInsertedOriginalTabRoute(): StackNavigationState<ParamListBase>['routes'][number] | undefined {
+    return preInsertedOriginalTabRoute;
+}
+
+function clearPreInsertedOriginalTabRoute() {
+    preInsertedOriginalTabRoute = undefined;
+}
+
+/** Shape of `action.payload.params` when pushing the root tab navigator with a nested tab route (`screen` + optional `params`). */
+type TabNavigatorPushPayloadParams = {
+    screen: string;
+    params?: Record<string, unknown>;
+};
+
+/**
+ * True when this push is `TAB_NAVIGATOR` with nested `{ screen, params }`. That combination is the case we patch below:
+ * the stack route can carry `screen`/`params` as *initial* child navigation hints, which is not the same as having a
+ * full `params.state` subtree computed up front.
+ */
+function isPushTabNavigatorWithScreenParam(action: PushActionType): boolean {
+    return (
+        action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
+        !!action.payload.params &&
+        typeof action.payload.params === 'object' &&
+        'screen' in action.payload.params &&
+        typeof (action.payload.params as {screen?: unknown}).screen === 'string'
+    );
+}
+
+/**
+ * Returns stack state after rehydrating a `TAB_NAVIGATOR` push, with `params.state` holding the full tab subtree
+ * (same shape as deep links). Without that, `useNavigationBuilder` runs a follow-up NAVIGATE after mount and
+ * `fullHistory` gains a duplicate entry (e.g. Home).
+ */
+function getRehydratedTabNavigatorStateAfterPush(rehydratedState: StackNavigationState<ParamListBase>, tabPushParams: TabNavigatorPushPayloadParams): StackNavigationState<ParamListBase> {
+    const rehydratedLastRoute = rehydratedState.routes.at(-1);
+
+    if (rehydratedLastRoute?.name !== NAVIGATORS.TAB_NAVIGATOR) {
+        return rehydratedState;
+    }
+
+    const {screen: screenName, params: nestedParams} = tabPushParams;
+    const existingTabState = rehydratedLastRoute.state as NavigationState | undefined;
+    const existingTabRoute = existingTabState?.routes?.find((r) => r.name === screenName);
+    const tabParams = (nestedParams ?? existingTabRoute?.params) as Record<string, unknown> | undefined;
+
+    const selectedTabRoute: NavigationPartialRoute = {
+        name: screenName,
+        ...(tabParams ? {params: tabParams} : {}),
+        ...(existingTabRoute?.state ? {state: existingTabRoute.state as PartialState<NavigationState>} : {}),
+    };
+
+    const tabNavigatorNestedState = buildTabNavigatorNestedState(selectedTabRoute);
+    const paramsWithoutNestedTarget = Object.fromEntries(
+        Object.entries((rehydratedLastRoute.params ?? {}) as Record<string, unknown>).filter(([key]) => key !== 'screen' && key !== 'params'),
+    ) as Record<string, unknown>;
+
+    const updatedLastRoute = {
+        ...rehydratedLastRoute,
+        params: {
+            ...paramsWithoutNestedTarget,
+            // RN tab partial state is wider than NavigationState; params.state accepts PartialState.
+            state: tabNavigatorNestedState as unknown as PartialState<NavigationState>,
+        },
+    };
+
+    return {
+        ...rehydratedState,
+        routes: [...rehydratedState.routes.slice(0, -1), updatedLastRoute],
+    } as StackNavigationState<ParamListBase>;
+}
+
+/**
+ * Returns the focused child route from a navigator `state` (respects `index`).
+ * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
+ */
+function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
+    if (!navState?.routes?.length) {
+        return undefined;
+    }
+    const idx =
+        typeof navState.index === 'number' && navState.routes[navState.index] !== undefined
+            ? navState.index
+            : // Partial states from linking should include `index`; fall back to first route.
+              0;
+    return navState.routes[idx] as NavigationPartialRoute;
+}
+
+/**
  * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
  *
  * Pushes WorkspaceNavigator onto the root stack and explicitly sets its nested state to
@@ -61,32 +163,47 @@ function prepareStateUnderWorkspaceOrDomainNavigator(
     splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
     splitNavigatorParams: Record<string, unknown>,
 ) {
-    const actionToPushWorkspaceNavigator = StackActions.push(NAVIGATORS.WORKSPACE_NAVIGATOR);
-    const stateWithWorkspaceNavigator = stackRouter.getStateForAction(state, actionToPushWorkspaceNavigator, configOptions);
+    const actionToPushRootTab = StackActions.push(NAVIGATORS.TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
+    const stateWithRootTab = stackRouter.getStateForAction(state, actionToPushRootTab, configOptions);
 
-    if (!stateWithWorkspaceNavigator) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator has not been found in the navigation state.');
+    if (!stateWithRootTab) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] TabNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const rehydratedState = stackRouter.getRehydratedState(stateWithWorkspaceNavigator, configOptions);
-    const workspaceNavigatorRoute = rehydratedState.routes.at(-1);
+    const rehydratedState = stackRouter.getRehydratedState(stateWithRootTab, configOptions);
+    const rootTabRoute = rehydratedState.routes.at(-1);
 
-    if (workspaceNavigatorRoute?.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
+    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.TAB_NAVIGATOR) {
         Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
         return null;
     }
 
-    // Directly set the nested state so WorkspacesList is always present underneath the split navigator.
-    // React Navigation will rehydrate this partial state (generating route keys) when WorkspaceNavigator mounts.
+    // Find the WORKSPACE_NAVIGATOR within the tab state and set its nested state
+    // so WorkspacesList is always present underneath the split navigator.
+    const tabState = rootTabRoute.state;
+    const workspaceNavIndex = tabState?.routes?.findIndex((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) ?? -1;
+
+    if (workspaceNavIndex < 0 || !tabState) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator not found in tab state.');
+        return null;
+    }
+
+    const workspaceNavRoute = tabState.routes[workspaceNavIndex];
     const nestedWorkspacesState = {
         routes: [{name: SCREENS.WORKSPACES_LIST}, {name: splitNavigatorName, params: splitNavigatorParams}],
         index: 1,
     };
 
+    const updatedTabRoutes = [...tabState.routes];
+    updatedTabRoutes[workspaceNavIndex] = {...workspaceNavRoute, state: nestedWorkspacesState};
+
+    const updatedTabState = {...tabState, routes: updatedTabRoutes, index: workspaceNavIndex};
+    const updatedRootTabRoute = {...rootTabRoute, state: updatedTabState};
+
     return {
         ...rehydratedState,
-        routes: [...rehydratedState.routes.slice(0, -1), {...workspaceNavigatorRoute, state: nestedWorkspacesState}],
+        routes: [...rehydratedState.routes.slice(0, -1), updatedRootTabRoute],
     };
 }
 
@@ -122,51 +239,42 @@ function handleOpenDomainSplitAction(
     });
 }
 
-/**
- * Filters preloaded routes when navigating to a central screen of a split navigator on narrow layout.
- * This removes the sidebar screen from the state so only the central screen is shown.
- */
-function getStateWithFilteredPreloadedRoutes(state: StackNavigationState<ParamListBase>, navigatorName: string, targetScreen?: string) {
-    const shouldFilterPreloadedRoutes =
-        getIsNarrowLayout() &&
-        isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
-
-    return shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
-}
-
 function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
+): StackNavigationState<ParamListBase> | null {
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
 
-    const lastRoute = state.routes.at(-1);
-
-    // On native, strip the RHP before pushing to prevent react-native-screens from freezing it.
-    const stateWithoutModal =
-        shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
-
-    const adjustedState = getStateWithFilteredPreloadedRoutes(stateWithoutModal, navigatorName, targetScreen);
-    const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
+    const stateWithNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithNavigator) {
         Log.hmmm(`[handlePushAction] ${navigatorName} has not been found in the navigation state.`);
         return null;
     }
 
-    const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
+    let resultState = stateWithNavigator as StackNavigationState<ParamListBase>;
 
-    // Transitioning to all central screens in each split should be animated
-    if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
-        screensWithEnteringAnimation.add(lastFullScreenRoute.key);
+    // Pushing TAB_NAVIGATOR with only { screen, params } makes useNavigationBuilder apply a follow-up
+    // NAVIGATE after mount; with backBehavior="fullHistory" that appends an extra tab history entry.
+    // getRehydratedTabNavigatorStateAfterPush sets params.state like deep links and avoids that.
+    // Rehydrate only in this branch — other fullscreen pushes rely on addRootHistoryRouterExtension alone.
+    if (isPushTabNavigatorWithScreenParam(action)) {
+        const rehydratedState = stackRouter.getRehydratedState(stateWithNavigator, configOptions);
+        const tabPushParams = action.payload.params as TabNavigatorPushPayloadParams;
+        resultState = getRehydratedTabNavigatorStateAfterPush(rehydratedState, tabPushParams);
     }
 
-    return stateWithNavigator;
+    const lastFullScreenRoute = resultState.routes.at(-1);
+
+    // Cross-tab TAB_NAVIGATOR pushes animate/allow swipe-back even though targetScreen names a tab.
+    const isTabNavigatorPush = navigatorName === NAVIGATORS.TAB_NAVIGATOR;
+    if (lastFullScreenRoute?.key && targetScreen && (isTabNavigatorPush || !SCREENS_WITH_NAVIGATION_TAB_BAR.has(targetScreen))) {
+        screensWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+    return resultState;
 }
 
 function handleReplaceReportsSplitNavigatorAction(
@@ -175,10 +283,7 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
-    const navigatorName = action.payload.name;
-    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -198,23 +303,19 @@ function handleReplaceReportsSplitNavigatorAction(
 /**
  * Handles the REPLACE_FULLSCREEN_UNDER_RHP action.
  *
- * Inserts a new fullscreen route (e.g. SearchFullscreenNavigator) underneath the
- * currently open modal (RHP) without destroying the original fullscreen route.
+ * Pre-inserts a destination screen underneath the currently open RHP so that dismissing
+ * the modal reveals the target without an extra navigation step.
  *
- * State transition: [Home, RHP] -> [Home, Search, RHP]
+ * When the target is a TAB_NAVIGATOR screen (Home, Search, etc.), we switch tabs within
+ * the single existing TAB_NAVIGATOR instance instead of pushing a duplicate. The original
+ * TAB_NAVIGATOR route is saved to `preInsertedOriginalTabRoute` so it can be fully
+ * restored if the user cancels (see handleRemoveFullscreenUnderRHP).
  *
- * This is intentionally different from a REPLACE (which would yield [Search, RHP]
- * and destroy the Home route). Preserving Home is critical for correct browser
- * history: when the RHP is dismissed in the next animation frame, useLinking sees
- * that the Home+RHP browser-history entry is stale and correctly replaces it with
- * a new Search entry, producing browser history [Home, Search].
+ * State transition for tab targets: [Tab(A), RHP] -> [Tab(B), RHP]
+ * State transition for other fullscreen targets: [FS, RHP] -> [FS, FS', RHP]
  *
- * The companion history-preservation logic lives in addRootHistoryRouterExtension
- * which keeps `state.history` unchanged for this action so that no browser history
- * update is triggered during the insert step itself.
- *
- * @see revealRouteBeforeDismissingModal in Navigation.ts - the caller that orchestrates
- *      this action followed by a DISMISS_MODAL on the next animation frame.
+ * @see removePreInsertedFullscreenIfNeeded in Navigation.ts — the caller that cleans up
+ *      the pre-insertion when the user cancels.
  */
 function handleReplaceFullscreenUnderRHP(
     state: StackNavigationState<ParamListBase>,
@@ -234,17 +335,67 @@ function handleReplaceFullscreenUnderRHP(
         return null;
     }
 
-    // 1. Pop the modal to get the clean fullscreen-only state.
+    const routesWithoutRHP = state.routes.slice(0, -1);
+
+    // When the target is a TAB_NAVIGATOR screen, switch tabs within the existing instance
+    // rather than pushing a duplicate navigator.
+    if (targetRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
+        const tabNavIndex = routesWithoutRHP.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+        if (tabNavIndex < 0) {
+            return null;
+        }
+        const existingTabRoute = routesWithoutRHP.at(tabNavIndex);
+        const existingTabState = existingTabRoute?.state as NavigationState | undefined;
+        if (!existingTabRoute || !existingTabState?.routes?.length) {
+            return null;
+        }
+        const focusedTargetTab = getFocusedRouteFromNavigatorState(targetRoute.state);
+        if (!focusedTargetTab) {
+            return null;
+        }
+        const targetTabIndex = existingTabState.routes.findIndex((r) => r.name === focusedTargetTab.name);
+        if (targetTabIndex < 0) {
+            return null;
+        }
+        // Only update the target tab's nested state; all other tabs are left intact.
+        const updatedTabRoutes = existingTabState.routes.map((r, i) => {
+            if (i !== targetTabIndex) {
+                return r;
+            }
+            // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
+            // it starts with a different screen, so back navigation from the new screen
+            // lands on the sidebar.
+            let mergedNestedState = focusedTargetTab.state;
+            const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
+            const newNestedRoutes = focusedTargetTab.state?.routes;
+            const existingFirstRoute = existingNestedRoutes?.at(0);
+            const newFirstRoute = newNestedRoutes?.at(0);
+            if (existingFirstRoute && newFirstRoute && existingFirstRoute.name !== newFirstRoute.name) {
+                const prependedRoutes = [existingFirstRoute, ...(newNestedRoutes ?? [])];
+                mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+            }
+            return {
+                ...r,
+                ...(focusedTargetTab.params !== undefined ? {params: focusedTargetTab.params} : {}),
+                ...(mergedNestedState !== undefined ? {state: mergedNestedState as typeof r.state} : {}),
+            };
+        });
+        const updatedTabState = {...existingTabState, routes: updatedTabRoutes, index: targetTabIndex};
+        const updatedTabRoute = {...existingTabRoute, state: updatedTabState} as StackNavigationState<ParamListBase>['routes'][number];
+        // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
+        preInsertedOriginalTabRoute = existingTabRoute;
+        const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
+        return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+    }
+
+    // For non-tab fullscreen targets: push the route underneath the RHP (existing behavior).
     const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
     if (!stateAfterPop) {
         return null;
     }
 
-    // 2. Push the target fullscreen route on top of the existing one(s).
-    //    getStateFromPath returns nested state (e.g. { name: 'SearchFullscreenNavigator', state: { routes: [{ name: 'Search_Central', params: { q: '...' } }] } })
-    //    but StackActions.push expects { screen, params } format, so we convert the nested state.
     let pushParams = targetRoute.params as Record<string, unknown> | undefined;
-    const nestedRoute = targetRoute.state?.routes?.at(-1);
+    const nestedRoute = getFocusedRouteFromNavigatorState(targetRoute.state);
     if (nestedRoute) {
         pushParams = {
             ...pushParams,
@@ -259,8 +410,6 @@ function handleReplaceFullscreenUnderRHP(
         return null;
     }
 
-    // 3. Re-add the modal on top so visually nothing changes yet - the user still sees
-    //    the RHP, but the new fullscreen route is now rendered behind it.
     const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
     return {
         ...rehydratedStateAfterPush,
@@ -270,13 +419,15 @@ function handleReplaceFullscreenUnderRHP(
 }
 
 /**
- * Reverses handleReplaceFullscreenUnderRHP by removing the fullscreen route that
- * was pre-inserted underneath the currently open modal.
+ * Reverses handleReplaceFullscreenUnderRHP when the user cancels without submitting.
  *
- * State transition: [Home, Search, RHP] -> [Home, RHP]
+ * For the tab-switch path (target was a TAB_NAVIGATOR screen): restores the original
+ * TAB_NAVIGATOR route that was saved during pre-insertion, putting the user back on
+ * the tab they were on before with all state intact.
+ * State transition: [Tab(B), RHP] -> [Tab(A), RHP]
  *
- * Used when the user backs out of the expense confirmation screen without submitting,
- * so the pre-inserted destination route is cleaned up.
+ * For the push path (target was a non-tab fullscreen): removes the pre-inserted route.
+ * State transition: [FS, FS', RHP] -> [FS, RHP]
  */
 function handleRemoveFullscreenUnderRHP(
     state: StackNavigationState<ParamListBase>,
@@ -290,6 +441,21 @@ function handleRemoveFullscreenUnderRHP(
     }
 
     const routesWithoutRHP = state.routes.slice(0, -1);
+
+    // Tab-switch path: restore the original TAB_NAVIGATOR route saved during pre-insertion.
+    if (preInsertedOriginalTabRoute) {
+        const tabNavIndex = routesWithoutRHP.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+        if (tabNavIndex < 0) {
+            preInsertedOriginalTabRoute = undefined;
+            return null;
+        }
+        const originalRoute = preInsertedOriginalTabRoute;
+        preInsertedOriginalTabRoute = undefined;
+        const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), originalRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
+        return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+    }
+
+    // Push path: remove the pre-inserted fullscreen route (existing behavior).
     if (routesWithoutRHP.length < 2) {
         return null;
     }
@@ -301,8 +467,7 @@ function handleRemoveFullscreenUnderRHP(
 
     const routesWithoutPreInserted = routesWithoutRHP.slice(0, -1);
     const newRoutes = [...routesWithoutPreInserted, rhpRoute];
-    const rehydratedState = stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
-    return rehydratedState;
+    return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
 }
 
 /**
@@ -369,4 +534,6 @@ export {
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
+    getPreInsertedOriginalTabRoute,
+    clearPreInsertedOriginalTabRoute,
 };
