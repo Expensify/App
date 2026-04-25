@@ -24,14 +24,15 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import useShouldNavigateToCreateReportUpgradePath from '@hooks/useShouldNavigateToCreateReportUpgradePath';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import navigateToCreateReportUpgradePath from '@libs/navigateToCreateReportUpgradePath';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -158,8 +159,7 @@ function EmptySearchViewContent({
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const shouldNavigateToUpgradePath = useShouldNavigateToCreateReportUpgradePath();
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
@@ -333,17 +333,7 @@ function EmptySearchViewContent({
                                           buttonAction: () => {
                                               interceptAnonymousUser(() => {
                                                   if (shouldNavigateToUpgradePath) {
-                                                      const freshReportID = generateReportID();
-                                                      const freshTransactionID = generateReportID();
-                                                      Navigation.navigate(
-                                                          ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                              action: CONST.IOU.ACTION.CREATE,
-                                                              iouType: CONST.IOU.TYPE.CREATE,
-                                                              transactionID: freshTransactionID,
-                                                              reportID: freshReportID,
-                                                              upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                                          }),
-                                                      );
+                                                      navigateToCreateReportUpgradePath();
                                                       return;
                                                   }
 
