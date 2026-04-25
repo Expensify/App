@@ -95,7 +95,7 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const isTransactionThreadView = isReportTransactionThread(report);
     const isExpensesReport = reportTransactions && reportTransactions.length > 1;
 
-    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canEvict: false});
+    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
     const iouAction = rawReportActions ? (Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) as OnyxTypes.ReportAction | undefined) : undefined;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
     const transactionID = getTransactionID(report) ?? linkedTransactionID;

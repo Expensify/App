@@ -135,21 +135,47 @@ function IOURequestStartPage({
     const hasCurrentPolicyPerDiemWithRates = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates;
     const hasAnyPolicyPerDiemWithRates = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
     const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && (hasCurrentPolicyPerDiemWithRates || hasAnyPolicyPerDiemWithRates);
+    const shouldShowTimeOption =
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
+        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
+
+    // Mirrors the tabs rendered below so a stale persisted selectedTab that isn't valid for this iouType is rejected.
+    const availableTabs = useMemo<Set<SelectedTabRequest>>(() => {
+        if (!shouldUseTab) {
+            return new Set();
+        }
+        const tabs = new Set<SelectedTabRequest>([CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]);
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            tabs.add(CONST.TAB_REQUEST.DISTANCE);
+        }
+        if (shouldShowPerDiemOption) {
+            tabs.add(CONST.TAB_REQUEST.PER_DIEM);
+        }
+        if (shouldShowTimeOption) {
+            tabs.add(CONST.TAB_REQUEST.TIME);
+        }
+        return tabs;
+    }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+
+    // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
+    // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
+    // by comparing the draft's reportID to the URL's so we don't inherit its stale iouRequestType.
+    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
 
     const transactionRequestType = useMemo(() => {
-        if (!transaction?.iouRequestType) {
-            if (shouldUseTab) {
-                if (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowPerDiemOption) {
-                    return undefined;
-                }
-                return selectedTab;
-            }
-
+        if (transaction?.iouRequestType && !isStaleTransactionDraft) {
+            return transaction.iouRequestType;
+        }
+        if (!shouldUseTab) {
             return CONST.IOU.REQUEST_TYPE.MANUAL;
         }
-
-        return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, shouldUseTab, selectedTab, shouldShowPerDiemOption]);
+        // selectedTab must be valid for the currently-rendered tab set; otherwise let
+        // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
+        if (selectedTab && availableTabs.has(selectedTab)) {
+            return selectedTab;
+        }
+        return undefined;
+    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -204,10 +230,6 @@ function IOURequestStartPage({
             },
         },
     );
-    const shouldShowTimeOption =
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
-        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
-
     const onBackButtonPress = () => {
         navigateBack();
         return true;

@@ -13,7 +13,6 @@ import {
     createDistanceRequest,
     handleNavigateAfterExpenseCreate,
     initMoneyRequest,
-    removeMoneyRequestOdometerImage,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -23,13 +22,13 @@ import {
     setMoneyRequestDescription,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
-    setMoneyRequestOdometerImage,
     setMoneyRequestTag,
     shouldOptimisticallyUpdateSearch,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
+import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport, deleteReport, notifyNewAction} from '@libs/actions/Report';
