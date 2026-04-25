@@ -1,8 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -16,18 +17,23 @@ import useSidePanelState from './useSidePanelState';
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();
+    const isFocused = useIsFocused();
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const isConciergeChat = reportID === conciergeReportID;
-    const lastReadTime = (report as OnyxEntry<Report>)?.lastReadTime ?? null;
-    const [capturedLastReadTime, setCapturedLastReadTime] = useState<string | null>(null);
-    if (isConciergeChat && !isInSidePanel && capturedLastReadTime === null && lastReadTime) {
-        setCapturedLastReadTime(lastReadTime);
+    const shouldHideConciergeDM = !isFocused || !isConciergeChat || isInSidePanel;
+    const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
+    const [prevShouldHideConciergeDM, setPrevShouldHideConciergeDM] = useState(true);
+
+    if (prevShouldHideConciergeDM !== shouldHideConciergeDM) {
+        setPrevShouldHideConciergeDM(shouldHideConciergeDM);
+        if (!shouldHideConciergeDM) {
+            setMainDMSessionStartTime(DateUtils.getDBTime());
+        }
     }
-    const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : capturedLastReadTime;
+    const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
     const hasUserSentMessageSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!actions || !sessionStartTime) {

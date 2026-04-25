@@ -94,11 +94,18 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const isConciergeSidePanel = isInSidePanel && isConciergeChat;
 
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
-    const [capturedLastReadTime, setCapturedLastReadTime] = useState<string | null>(null);
-    if (isConciergeChat && !isInSidePanel && capturedLastReadTime === null && report?.lastReadTime) {
-        setCapturedLastReadTime(report.lastReadTime);
+    const isFocused = useIsFocused();
+    const shouldHideConciergeDM = !isFocused || !isConciergeChat || isInSidePanel;
+    const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
+    const [prevShouldHideConciergeDM, setPrevShouldHideConciergeDM] = useState(true);
+
+    if (prevShouldHideConciergeDM !== shouldHideConciergeDM) {
+        setPrevShouldHideConciergeDM(shouldHideConciergeDM);
+        if (!shouldHideConciergeDM) {
+            setMainDMSessionStartTime(DateUtils.getDBTime());
+        }
     }
-    const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : capturedLastReadTime;
+    const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
     const hasUserSentMessage = useMemo(() => {
         if (!isConciergeChat || !sessionStartTime) {
@@ -150,7 +157,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const didLayout = useRef(false);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isFocused = useIsFocused();
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);

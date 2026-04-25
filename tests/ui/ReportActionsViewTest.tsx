@@ -440,7 +440,6 @@ describe('ReportActionsView', () => {
         it('should show welcome state in main DM when report has read messages (lastReadTime set)', () => {
             setupConciergeMocks();
 
-            const lastReadTime = '2024-01-01 00:00:00.000';
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                     return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
@@ -458,7 +457,7 @@ describe('ReportActionsView', () => {
                     return [[], {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, lastReadTime}, {status: 'loaded'}];
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -471,6 +470,7 @@ describe('ReportActionsView', () => {
                 reportActions: oldReportActions,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
+            mockUseIsFocused.mockReturnValue(true);
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
@@ -529,7 +529,6 @@ describe('ReportActionsView', () => {
         });
 
         it('should hide welcome and show filtered actions when user sends a message in main DM', () => {
-            const lastReadTime = '2024-01-01 00:00:00.000';
             const newMessageTime = DateUtils.getDBTime();
 
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
@@ -552,7 +551,7 @@ describe('ReportActionsView', () => {
                     return [[], {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, lastReadTime}, {status: 'loaded'}];
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -581,6 +580,7 @@ describe('ReportActionsView', () => {
                 reportActions: actionsWithNewMessage,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
+            mockUseIsFocused.mockReturnValue(true);
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
