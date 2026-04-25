@@ -358,7 +358,7 @@ describe('ReportActionsView', () => {
         });
     });
 
-    describe('Concierge Side Panel', () => {
+    describe('Concierge Chat History', () => {
         const CONCIERGE_REPORT_ID = '123';
         const CURRENT_USER_ACCOUNT_ID = 100;
 
@@ -437,8 +437,34 @@ describe('ReportActionsView', () => {
             expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
         });
 
-        it('should not show welcome state when not in side panel', () => {
+        it('should show welcome state in main DM when report has read messages (lastReadTime set)', () => {
             setupConciergeMocks();
+
+            const lastReadTime = '2024-01-01 00:00:00.000';
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
+                    return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, lastReadTime}, {status: 'loaded'}];
+                }
+                if (key.includes('report')) {
+                    return [undefined, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
@@ -448,10 +474,13 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
+            expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(passedActions?.length).toBeGreaterThanOrEqual(1);
+            expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
         });
 
-        it('should not show welcome state for non-concierge reports in side panel', () => {
+        it('should not show welcome state for non-concierge reports', () => {
             setupConciergeMocks();
 
             mockUsePaginatedReportActions.mockReturnValue({
@@ -465,7 +494,7 @@ describe('ReportActionsView', () => {
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
 
-        it('should hide welcome and show filtered actions when user sends a message', () => {
+        it('should hide welcome and show filtered actions when user sends a message in side panel', () => {
             setupConciergeMocks();
 
             const sessionStart = DateUtils.getDBTime();
@@ -495,9 +524,67 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
-            // ReportActionsList should be rendered with filtered actions
+            expect(mockReportActionsList).toHaveBeenCalled();
+        });
+
+        it('should hide welcome and show filtered actions when user sends a message in main DM', () => {
+            const lastReadTime = '2024-01-01 00:00:00.000';
+            const newMessageTime = DateUtils.getDBTime();
+
+            jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
+            mockUseNetwork.mockReturnValue({isOffline: false});
+
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
+                    return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key.includes('reportMetadata')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, lastReadTime}, {status: 'loaded'}];
+                }
+                if (key.includes('report')) {
+                    return [undefined, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            const actionsWithNewMessage: OnyxTypes.ReportAction[] = [
+                ...oldReportActions,
+                {
+                    reportActionID: 'new-msg-1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: newMessageTime,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    message: [{type: 'COMMENT', html: 'New message', text: 'New message'}],
+                    originalMessage: {},
+                    shouldShow: true,
+                    person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                    pendingAction: null,
+                    errors: {},
+                },
+            ];
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: actionsWithNewMessage,
+            });
+            mockUseIsInSidePanel.mockReturnValue(false);
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
             expect(mockReportActionsList).toHaveBeenCalled();
         });
     });

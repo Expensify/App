@@ -510,7 +510,7 @@ const translations = {
         year: 'Year',
         quarter: 'Quarter',
         concierge: {
-            sidePanelGreeting: 'Hi there, how can I help?',
+            greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
         },
         vacationDelegate: 'Vacation delegate',

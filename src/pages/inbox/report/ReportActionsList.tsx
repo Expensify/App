@@ -121,10 +121,10 @@ type ReportActionsListProps = {
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
 
-    /** Whether this is a Concierge chat in the side panel */
-    isConciergeSidePanel?: boolean;
+    /** Whether this is a Concierge chat with hidden history */
+    isConciergeChat?: boolean;
 
-    /** Whether the chat history is hidden (concierge side panel fresh state) */
+    /** Whether the chat history is hidden (concierge fresh state) */
     showHiddenHistory?: boolean;
 
     /** Whether there are previous messages that can be revealed */
@@ -167,7 +167,7 @@ function ReportActionsList({
     listID,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
-    isConciergeSidePanel,
+    isConciergeChat,
     showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
@@ -711,7 +711,7 @@ function ReportActionsList({
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
-            const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
+            const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeChat && !!showHiddenHistory && !!hasPreviousMessages;
 
             // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
             // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
@@ -787,7 +787,7 @@ function ReportActionsList({
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
             reportActionsFromOnyx,
-            isConciergeSidePanel,
+            isConciergeChat,
             showHiddenHistory,
             hasPreviousMessages,
             onShowPreviousMessages,
