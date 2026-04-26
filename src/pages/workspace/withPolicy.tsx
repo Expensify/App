@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,7 +41,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
-    | typeof SCREENS.WORKSPACE.ADDRESS
+    | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS
     | typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS
     | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
@@ -94,9 +94,12 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
         const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
 
-        if (policyID && policyID.length > 0) {
+        useEffect(() => {
+            if (!policyID) {
+                return;
+            }
             updateLastAccessedWorkspace(policyID);
-        }
+        }, [policyID]);
 
         return (
             <WrappedComponent

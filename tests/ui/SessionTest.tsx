@@ -22,8 +22,6 @@ jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
-
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
 // cspell:disable-next-line
@@ -94,7 +92,7 @@ describe('Deep linking', () => {
         jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
             const originalResult = await originalOpenApp();
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
             return originalResult;
         });
     });
@@ -118,7 +116,8 @@ describe('Deep linking', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
+        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
 
         expect(hasAuthToken()).toBe(true);
 
@@ -133,7 +132,7 @@ describe('Deep linking', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(lastVisitedPath).toBeDefined();
-        expect(lastVisitedPath).not.toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        expect(decodeURIComponent(lastVisitedPath ?? '')).not.toContain(reportPath);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

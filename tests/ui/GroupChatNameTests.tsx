@@ -35,8 +35,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
-
 jest.mock('@react-navigation/native');
 
 // Mock Avatar component to prevent act() warnings from state updates during render
@@ -198,7 +196,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             // Simulate setting an unread report and personal details
             await act(async () => {
                 await Promise.all([
-                    Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false),
+                    Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         reportID: REPORT_ID,
                         reportName,

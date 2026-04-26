@@ -1,5 +1,7 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,19 +18,17 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {getNextApproverAccountID, hasViolations as hasViolationsReportUtils, isReportOwner, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
-import {submitReport} from '@userActions/IOU';
+import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
-    isSubmittingAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startSubmittingAnimation: () => void;
 };
 
-function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitPrimaryActionProps) {
+function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
+    const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -42,6 +42,7 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -90,6 +91,7 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
+                delegateEmail,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

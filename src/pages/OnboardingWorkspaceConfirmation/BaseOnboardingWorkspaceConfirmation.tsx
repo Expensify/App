@@ -23,7 +23,7 @@ import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearWorkspaceDetailsDraft} from '@userActions/Onboarding';
-import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,7 +60,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
 
     const email = session?.email ?? '';
     const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
-    const defaultWorkspaceName = draftValues?.name ?? newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
+    const defaultWorkspaceName = draftValues?.name ?? generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     useEffect(() => {

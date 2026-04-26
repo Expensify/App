@@ -2,7 +2,7 @@ import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as Browser from '@libs/Browser';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
+import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 // eslint-disable-next-line no-restricted-syntax
 import * as EmojiUtils from '@libs/EmojiUtils';
 
@@ -664,5 +664,25 @@ describe('EmojiTest', () => {
             // Then the keycap should be preserved (not followed by another emoji)
             expect(result).toBe('*\uFE0F\u20E3');
         });
+    });
+
+    it('does not corrupt accent-normalized trie aliases when a plain word is later inserted as an emoji name', () => {
+        // Regression test for the campaña/campana aliasing bug:
+        // 'campaña' is a keyword for tent (⛺) in the Spanish locale.
+        // StringUtils.normalizeAccents('campaña') === 'campana', so the trie aliases
+        // the 'campana' node to share the same metaData object as 'campaña'.
+        // 'campana' is also the Spanish name of bell (🔔), processed later in createTrie().
+        const esTrie = emojiTrieForLocale.es;
+
+        const campañaNode = esTrie?.search('campaña');
+        const campanaNode = esTrie?.search('campana');
+
+        // 'campana' (bell) must resolve to bell
+        expect(campanaNode?.metaData.code).toBe('🔔');
+
+        // 'campaña' is a keyword node for tent — it must NOT be corrupted with bell's code
+        expect(campañaNode?.metaData.code).toBeUndefined();
+        expect(campañaNode?.metaData.suggestions?.some((s) => s.code === '⛺')).toBe(true);
+        expect(campañaNode?.metaData.suggestions?.some((s) => s.code === '🔔')).toBe(false);
     });
 });

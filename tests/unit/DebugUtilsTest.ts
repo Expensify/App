@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
@@ -1171,6 +1172,10 @@ describe('DebugUtils', () => {
         });
     });
     describe('getReasonAndReportActionForRBRInLHNRow', () => {
+        const sharedTransaction = createRandomTransaction(77777);
+        const sharedAllTransactions: OnyxCollection<Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${sharedTransaction.transactionID}`]: sharedTransaction,
+        };
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -1188,10 +1193,11 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         undefined,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         false,
                         {},
+                        false,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1238,16 +1244,24 @@ describe('DebugUtils', () => {
                         modifiedCreated: '',
                     },
                 });
+                const transactionForTest: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
+                    } as Transaction,
+                };
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                         chatReportR14932,
                         undefined,
-                        {},
+                        transactionForTest,
                         undefined,
                         false,
                         {},
+                        false,
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
             });
@@ -1306,9 +1320,25 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS);
+                    const mockTransactions: OnyxCollection<Transaction> = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
+                        } as Transaction,
+                    };
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_CHAT_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                            MOCK_CHAT_REPORT,
+                            chatReportR14932,
+                            MOCK_CHAT_REPORT_ACTIONS,
+                            mockTransactions,
+                            undefined,
+                            false,
+                            reportErrors,
+                            false,
+                        ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1371,9 +1401,17 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS);
+                    const mockTransactions: OnyxCollection<Transaction> = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
+                        } as Transaction,
+                    };
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors, false) ??
+                        {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1419,7 +1457,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1427,10 +1465,11 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         MOCK_REPORT_ACTIONS,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         false,
                         reportErrors,
+                        false,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1457,8 +1496,10 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions);
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, {}, undefined, false, reportErrors) ?? {};
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions);
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors, false) ??
+                    {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1469,10 +1510,11 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         undefined,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         true,
                         {},
+                        false,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1484,10 +1526,11 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         undefined,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         true,
                         {},
+                        false,
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
@@ -1536,8 +1579,99 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, {}, transactionViolations, false, {}) ?? {};
+                const violationTransactions: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        transactionID: '1',
+                        amount: 10,
+                        modifiedAmount: 10,
+                        reportID: '1',
+                    } as Transaction,
+                };
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
+            });
+            it('forwards isOffline through to SidebarUtils so the live IOU transaction-thread receipt error surfaces only when isOffline=false excludes the deleted pending-delete action', () => {
+                // Given: an expense report with two IOU actions — one live (with a receipt-errored transaction) and one deleted-with-pending-delete.
+                const OFFLINE_EXPENSE_REPORT: Report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: '2',
+                };
+                const OFFLINE_CHAT_REPORT: Report = {
+                    reportID: '2',
+                };
+                const liveTransactionID = 'tx-debug-live';
+                const deletedTransactionID = 'tx-debug-deleted';
+                const OFFLINE_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:20:44.171',
+                        message: [{type: 'TEXT', text: 'live'}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: liveTransactionID,
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    } as ReportAction,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '2': {
+                        reportActionID: '2',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:25:44.171',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        message: [{type: 'TEXT', text: '', html: ''}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: deletedTransactionID,
+                            amount: 20,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    } as ReportAction,
+                };
+                const OFFLINE_TRANSACTIONS: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                        transactionID: liveTransactionID,
+                        amount: 10,
+                        errors: {
+                            someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                        },
+                    } as unknown as Transaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                        transactionID: deletedTransactionID,
+                        amount: 20,
+                    } as unknown as Transaction,
+                };
+
+                const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                    OFFLINE_EXPENSE_REPORT,
+                    OFFLINE_CHAT_REPORT,
+                    OFFLINE_REPORT_ACTIONS,
+                    OFFLINE_TRANSACTIONS,
+                    {},
+                    false,
+                    {},
+                    true,
+                );
+                const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                    OFFLINE_EXPENSE_REPORT,
+                    OFFLINE_CHAT_REPORT,
+                    OFFLINE_REPORT_ACTIONS,
+                    OFFLINE_TRANSACTIONS,
+                    {},
+                    false,
+                    {},
+                    false,
+                );
+
+                // Online: deleted pending-delete is skipped → 1 IOU thread → receipt error surfaces.
+                expect(online?.reason).toBe('debug.reasonRBR.hasErrors');
+                // Offline: deleted pending-delete is counted → 2 IOU actions → no single thread → no receipt error via that path.
+                expect(offline).toBeNull();
             });
         });
     });

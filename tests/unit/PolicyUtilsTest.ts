@@ -26,6 +26,7 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasConfiguredRules,
     hasDependentTags,
     hasDynamicExternalWorkflow,
     hasIndependentTags,
@@ -2447,6 +2448,197 @@ describe('PolicyUtils', () => {
         it('returns false when policyTagList is undefined', () => {
             const policy = {hasMultipleTagLists: true} as Policy;
             expect(hasIndependentTags(policy, undefined)).toBe(false);
+        });
+    });
+
+    describe('hasConfiguredRules', () => {
+        it('returns false when policy is undefined', () => {
+            expect(hasConfiguredRules(undefined)).toBe(false);
+        });
+
+        it('returns false when policy has no rules configured', () => {
+            expect(hasConfiguredRules({} as Policy)).toBe(false);
+        });
+
+        describe('customRules', () => {
+            it('returns true when customRules is non-empty', () => {
+                expect(hasConfiguredRules({customRules: 'some rule'} as Policy)).toBe(true);
+            });
+
+            it('returns false when customRules is an empty string', () => {
+                expect(hasConfiguredRules({customRules: ''} as Policy)).toBe(false);
+            });
+
+            it('returns false when customRules is only whitespace', () => {
+                expect(hasConfiguredRules({customRules: '   '} as Policy)).toBe(false);
+            });
+        });
+
+        describe('rules.approvalRules', () => {
+            it('returns true when approvalRules has items', () => {
+                const policy = {rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}} as unknown as Policy;
+                expect(hasConfiguredRules(policy)).toBe(true);
+            });
+
+            it('returns false when approvalRules is empty', () => {
+                expect(hasConfiguredRules({rules: {approvalRules: []}} as unknown as Policy)).toBe(false);
+            });
+        });
+
+        describe('rules.expenseRules', () => {
+            it('returns true when expenseRules has items', () => {
+                const policy = {
+                    rules: {
+                        expenseRules: [
+                            {
+                                id: '1',
+                                applyWhen: [],
+                                tax: {field_id_TAX: {externalID: 'TAX_US'}},
+                            },
+                        ],
+                    },
+                } as unknown as Policy;
+                expect(hasConfiguredRules(policy)).toBe(true);
+            });
+
+            it('returns false when expenseRules is empty', () => {
+                expect(hasConfiguredRules({rules: {expenseRules: []}} as unknown as Policy)).toBe(false);
+            });
+        });
+
+        describe('rules.codingRules', () => {
+            it('returns true when codingRules has entries', () => {
+                const policy = {
+                    rules: {
+                        codingRules: {
+                            rule1: {
+                                ruleID: 'rule1',
+                                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                            },
+                        },
+                    },
+                } as unknown as Policy;
+                expect(hasConfiguredRules(policy)).toBe(true);
+            });
+
+            it('returns false when codingRules is empty', () => {
+                expect(hasConfiguredRules({rules: {codingRules: {}}} as unknown as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAmount', () => {
+            it('returns true when maxExpenseAmount is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmount: 500000} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAmount is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAmount is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAge', () => {
+            it('returns true when maxExpenseAge is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAge: 30} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAge is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAge is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAmountNoReceipt', () => {
+            it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoReceipt: 5000} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('maxExpenseAmountNoItemizedReceipt', () => {
+            it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoItemizedReceipt: 10000} as Policy)).toBe(true);
+            });
+
+            it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT} as Policy)).toBe(false);
+            });
+
+            it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
+                expect(hasConfiguredRules({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE} as Policy)).toBe(false);
+            });
+        });
+
+        describe('defaultBillable', () => {
+            it('returns true when defaultBillable is true', () => {
+                expect(hasConfiguredRules({defaultBillable: true} as Policy)).toBe(true);
+            });
+
+            it('returns false when defaultBillable is false', () => {
+                expect(hasConfiguredRules({defaultBillable: false} as Policy)).toBe(false);
+            });
+        });
+
+        describe('defaultReimbursable', () => {
+            it('returns true when defaultReimbursable is false', () => {
+                expect(hasConfiguredRules({defaultReimbursable: false} as Policy)).toBe(true);
+            });
+
+            it('returns false when defaultReimbursable is true', () => {
+                expect(hasConfiguredRules({defaultReimbursable: true} as Policy)).toBe(false);
+            });
+        });
+
+        describe('eReceipts', () => {
+            it('returns true when eReceipts is true', () => {
+                expect(hasConfiguredRules({eReceipts: true} as Policy)).toBe(true);
+            });
+
+            it('returns false when eReceipts is false', () => {
+                expect(hasConfiguredRules({eReceipts: false} as Policy)).toBe(false);
+            });
+        });
+
+        describe('requireCompanyCardsEnabled', () => {
+            it('returns true when requireCompanyCardsEnabled is true', () => {
+                expect(hasConfiguredRules({requireCompanyCardsEnabled: true} as Policy)).toBe(true);
+            });
+
+            it('returns false when requireCompanyCardsEnabled is false', () => {
+                expect(hasConfiguredRules({requireCompanyCardsEnabled: false} as Policy)).toBe(false);
+            });
+        });
+
+        describe('prohibitedExpenses', () => {
+            it('returns true when a prohibitedExpenses value differs from its default', () => {
+                // alcohol defaults to false — setting it to true triggers the rule
+                expect(hasConfiguredRules({prohibitedExpenses: {alcohol: true}} as Policy)).toBe(true);
+            });
+
+            it('returns true when gambling is disabled (differs from default true)', () => {
+                expect(hasConfiguredRules({prohibitedExpenses: {gambling: false}} as Policy)).toBe(true);
+            });
+
+            it('returns false when prohibitedExpenses matches all defaults', () => {
+                expect(hasConfiguredRules({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}} as Policy)).toBe(false);
+            });
+
+            it('returns false when prohibitedExpenses is an empty object', () => {
+                expect(hasConfiguredRules({prohibitedExpenses: {}} as Policy)).toBe(false);
+            });
         });
     });
 });

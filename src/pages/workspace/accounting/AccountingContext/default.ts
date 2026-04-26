@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AccountingActionsContextType, AccountingStateContextType} from './types';
 
-const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce(
+const popoverAnchorRefsInitialValue = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.reduce(
     (acc, key) => {
         acc[key] = {current: null};
         return acc;

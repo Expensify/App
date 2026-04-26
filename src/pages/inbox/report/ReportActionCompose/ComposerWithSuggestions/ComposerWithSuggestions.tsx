@@ -22,6 +22,7 @@ import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,6 +53,7 @@ import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScroll
 import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
+import useLastEditableAction from '@pages/inbox/report/ReportActionCompose/useLastEditableAction';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -60,7 +62,6 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
@@ -111,9 +112,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the input is disabled, defaults to false */
         disabled?: boolean;
 
-        /** Function to set whether the comment is empty */
-        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
-
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
@@ -135,9 +133,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
 
-        /** The last report action */
-        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
-
         /** Whether to include chronos */
         includeChronos?: boolean;
 
@@ -146,9 +141,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
 
         /** policy ID of the report */
         policyID?: string;
-
-        /** Whether the main composer was hidden */
-        didHideComposerInput?: boolean;
 
         /** Reference to the outer element */
         ref?: Ref<ComposerRef | null>;
@@ -213,7 +205,6 @@ function ComposerWithSuggestions({
     // Props: Report
     reportID,
     includeChronos,
-    lastReportAction,
     isGroupPolicyReport,
     policyID,
 
@@ -229,7 +220,6 @@ function ComposerWithSuggestions({
     inputPlaceholder,
     onPasteFile,
     disabled,
-    setIsCommentEmpty,
     onEnterKeyPress,
     shouldShowComposeInput,
     measureParentContainer = () => {},
@@ -245,11 +235,11 @@ function ComposerWithSuggestions({
 
     // For testing
     children,
-    didHideComposerInput,
 
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
+    const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -263,6 +253,7 @@ function ComposerWithSuggestions({
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
+    const isInSidePanel = useIsInSidePanel();
     const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [value, setValue] = useState(() => {
         if (draftComment) {
@@ -291,7 +282,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(value);
@@ -453,13 +444,6 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
-
-            /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
-                setIsCommentEmpty(isNewCommentEmpty);
-            }
             emojisPresentBefore.current = emojis;
 
             setValue(newCommentConverted);
@@ -495,7 +479,6 @@ function ComposerWithSuggestions({
             preferredLocale,
             preferredSkinTone,
             reportID,
-            setIsCommentEmpty,
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
@@ -684,12 +667,24 @@ function ComposerWithSuggestions({
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 
     /**
+     * Tracks whether there is a composer input inside the side panel on the screen.
+     */
+    const handleSidePanelFocus = useCallback(() => {
+        if (!isInSidePanel) {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        } else {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
+        }
+    }, [isInSidePanel]);
+
+    /**
      * Set focus callback
      * @param shouldTakeOverFocus - Whether this composer should gain focus priority
      */
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+                handleSidePanelFocus();
                 if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
@@ -697,7 +692,7 @@ function ComposerWithSuggestions({
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen, handleSidePanelFocus],
     );
 
     /**
@@ -797,6 +792,11 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // Do not focus side panels composer if it wasn't focused before
+        if (isInSidePanel && !ReportActionComposeFocusManager.sidePanelComposerRef.current) {
+            return;
+        }
+
         // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
@@ -814,7 +814,7 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen, isInSidePanel]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -913,10 +913,10 @@ function ComposerWithSuggestions({
     );
 
     const handleFocus = useCallback(() => {
-        // The last composer that had focus should re-gain focus
-        setUpComposeFocusManager(true);
+        handleSidePanelFocus();
+        setUpComposeFocusManager(!isInSidePanel);
         onFocus();
-    }, [onFocus, setUpComposeFocusManager]);
+    }, [onFocus, setUpComposeFocusManager, handleSidePanelFocus, isInSidePanel]);
 
     // When using the suggestions box (Suggestions) we need to imperatively
     // set the cursor to the end of the suggestion/mention after it's selected.

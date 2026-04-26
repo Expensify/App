@@ -204,6 +204,9 @@ type SelectionListStyle = {
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the default "Select all" label in the list header (merged after textStrong) */
+    listHeaderSelectAllTextStyle?: StyleProp<TextStyle>;
+
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 

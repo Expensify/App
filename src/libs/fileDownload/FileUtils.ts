@@ -903,5 +903,6 @@ export {
     getFilesFromClipboardEvent,
     cleanFileObject,
     cleanFileObjectName,
+    JPEG_QUALITY,
 };
 export type {FileValidationError};

@@ -4,6 +4,7 @@ import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -14,22 +15,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
-import {
-    getReportTransactions,
-    isChatThread,
-    isHiddenForCurrentUser,
-    isOneTransactionThread,
-    isPolicyExpenseChat,
-    isReportTransactionThread,
-    isTaskReport,
-    isValidReportIDFromPath,
-} from '@libs/ReportUtils';
+import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -74,8 +67,8 @@ function ReportFetchHandler() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
 
     const reportID = reportOnyx?.reportID;
@@ -87,6 +80,7 @@ function ReportFetchHandler() {
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
+    const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -97,6 +91,9 @@ function ReportFetchHandler() {
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
 
     const isTransactionThreadView = isReportTransactionThread(report);
+
+    // Track whether the current route is an own workspace chat. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
 
     const indexOfLinkedMessage = reportActionIDFromRoute ? reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) : -1;
     const doesCreatedActionExists = !!reportActions?.findLast((action) => isCreatedAction(action));
@@ -133,10 +130,12 @@ function ReportFetchHandler() {
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
-        const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
+        const currentReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter(
+            (transaction): transaction is Transaction => !!transaction && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransaction.at(0));
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransactions.at(0));
     });
 
     const onUnmount = useEffectEvent(() => {
@@ -155,6 +154,21 @@ function ReportFetchHandler() {
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
+
+    // When a delegate splits an expense the server sends a temporary Onyx SET that wipes the
+    // workspace chat. The navigation guards in ReportScreen block any redirect, but the report
+    // stays blank until something re-fetches it. This effect detects the wipe and re-fetches.
+    // See issue #84248.
+    const prevReportID = usePrevious(report?.reportID);
+    useEffect(() => {
+        const wasJustWiped = !!prevReportID && prevReportID === reportIDFromRoute && !report?.reportID;
+        if (!wasJustWiped || !isCurrentRouteOwnWorkspaceChatRef.current) {
+            return;
+        }
+        fetchReport();
+        // fetchReport is a stable useEffectEvent callback and does not need to be listed as a dependency.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report?.reportID, prevReportID, reportIDFromRoute]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {

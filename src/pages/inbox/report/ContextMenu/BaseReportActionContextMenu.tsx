@@ -164,11 +164,9 @@ function BaseReportActionContextMenu({
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
         selector: withDEWRoutedActionsObject,
     });
     const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
-        canEvict: false,
         selector: withDEWRoutedActionsObject,
     });
 
@@ -288,6 +286,7 @@ function BaseReportActionContextMenu({
                 iouTransaction,
                 transactions,
                 isHarvestReport,
+                currentUserAccountID: currentUserPersonalDetails?.accountID,
             }),
     );
 

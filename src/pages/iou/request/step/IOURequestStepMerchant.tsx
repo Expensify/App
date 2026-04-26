@@ -19,8 +19,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
-import {setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
+import {setMoneyRequestMerchant} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -123,7 +124,9 @@ function IOURequestStepMerchant({
             shouldNavigateAfterSaveRef.current = true;
             return;
         }
-        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing, hasReceipt(transaction));
+        // updateMoneyRequestMerchant's optimisticData already sets merchant on TRANSACTION{id},
+        // also calling setMoneyRequestMerchant would trigger a redundant Onyx commit and
+        // re-render every subscriber of that key for nothing.
         if (isEditing) {
             updateMoneyRequestMerchant({
                 transactionID,
@@ -138,6 +141,8 @@ function IOURequestStepMerchant({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
             });
+        } else {
+            setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, true, hasReceipt(transaction));
         }
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;

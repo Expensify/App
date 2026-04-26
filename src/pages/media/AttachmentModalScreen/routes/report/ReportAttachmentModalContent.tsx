@@ -38,9 +38,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         onClose,
     } = route.params;
 
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-    });
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -52,7 +50,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
     const submitRef = useRef<View | HTMLElement>(null);
@@ -102,9 +100,12 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
+        type,
     });
 
-    const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
+    // Skip API root normalization for search attachments because this route is only opened from preview,
+    // which already passes a resolved source. Keep normalization for other types to support email entry points.
+    const source = useMemo(() => getValidatedImageSource(sourceParam, type !== CONST.ATTACHMENT_TYPE.SEARCH), [sourceParam, type]);
     const modalType = useReportAttachmentModalType(source);
 
     // eslint-disable-next-line rulesdir/no-negated-variables

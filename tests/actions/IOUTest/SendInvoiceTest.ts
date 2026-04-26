@@ -614,6 +614,7 @@ describe('actions/SendInvoice', () => {
                 policy,
                 companyName,
                 companyWebsite,
+                senderPolicyTags: undefined,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
@@ -641,6 +642,7 @@ describe('actions/SendInvoice', () => {
                 currentUserAccountID: 1,
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                senderPolicyTags: undefined,
             });
 
             mockFetch?.fail?.();
@@ -680,6 +682,7 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
+                senderPolicyTags: undefined,
             });
 
             // Then onyxData should be passed to API.write
@@ -707,32 +710,27 @@ describe('actions/SendInvoice', () => {
             const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
                 [tagName]: ['old tag'],
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-                [tagName]: {name: tagName},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
-
             // When sending an invoice
             sendInvoice({
                 currentUserAccountID: 1,
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
+                senderPolicyTags: {
+                    [tagName]: {
+                        name: tagName,
+                        required: false,
+                        tags: {},
+                        orderWeight: 0,
+                    },
+                },
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
             // Then the transaction tag should be added to the recently used tags collection
-            const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-                    callback: (recentlyUsedTags) => {
-                        resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
-                    },
-                });
-            });
-            expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
-            expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+            const newPolicyRecentlyUsedTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+            expect(newPolicyRecentlyUsedTags?.[tagName]?.length).toBe(2);
+            expect(newPolicyRecentlyUsedTags?.[tagName]?.at(0)).toBe(transactionTag);
         });
 
         it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
@@ -760,6 +758,7 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
+                senderPolicyTags: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(

@@ -36,7 +36,7 @@ type AddUnreportedExpenseFooterProps = {
 };
 
 function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddUnreportedExpenseFooterProps) {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -58,6 +58,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -93,8 +94,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     reportNextStep,
                     policyCategories,
                     allTransactions: selectedTransactions,
-                    translate,
-                    toLocaleDigit,
+                    policyTagList,
                 });
             }
         });

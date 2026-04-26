@@ -19,7 +19,6 @@ const SCENARIO_NAMES = {
  */
 const PROMPT_NAMES = {
     BIOMETRICS_HSM: 'biometrics',
-    BIOMETRICS: 'biometrics',
     PASSKEYS: 'passkeys',
 } as const;
 

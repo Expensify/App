@@ -110,7 +110,7 @@ function CardListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={cardItem.total}
@@ -122,7 +122,7 @@ function CardListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pv1, styles.gap3] : [styles.pv1Half, styles.justifyContentStart]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -131,7 +131,7 @@ function CardListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -165,6 +165,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                             subscriptAvatarBorderColor={backgroundColor}
                                             noRightMarginOnSubscriptContainer
                                             accountIDs={[cardItem.accountID]}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>

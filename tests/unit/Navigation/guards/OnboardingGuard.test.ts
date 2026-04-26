@@ -326,7 +326,7 @@ describe('OnboardingGuard', () => {
     });
 
     describe('redirect to onboarding', () => {
-        it('should redirect when authenticated user needs onboarding', async () => {
+        it('should redirect when authenticated user needs onboarding and is not on onboarding', async () => {
             // Given a new user from a public email domain who has not completed the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
@@ -336,7 +336,7 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the guard evaluates a navigation action to a non-onboarding screen
+            // When the guard evaluates a navigation action while the user is on a non-onboarding screen
             const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             // Then the user should be redirected to onboarding because new users must complete the setup flow before accessing the app
@@ -355,17 +355,142 @@ describe('OnboardingGuard', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the guard evaluates a navigation action
+            // When the guard evaluates a navigation action while the user is on a non-onboarding screen
             const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             // Then the user should be redirected to onboarding because their domain/policy context determines which onboarding step they should land on
             expect(result.type).toBe('REDIRECT');
             expect(result.route).toContain('onboarding');
         });
+    });
 
-        it('should redirect when user tries to access wrong onboarding step', async () => {
-            // Given a new user from a public domain who is currently on the onboarding purpose screen but may need to be on a different step
-            const onboardingState: NavigationState = {
+    describe('infinite loop prevention (APP-7FR)', () => {
+        // A realistic navigation state that matches what the guard's REDIRECT reset produces:
+        // HOME at the bottom, OnboardingModalNavigator on top (focused).
+        const stateWithOnboardingNavigator: NavigationState = {
+            key: 'root',
+            index: 1,
+            routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
+            routes: [
+                {key: 'home', name: SCREENS.HOME},
+                {
+                    key: 'onboarding-modal',
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    state: {
+                        key: 'onboarding-stack',
+                        index: 0,
+                        routeNames: [SCREENS.ONBOARDING.WORK_EMAIL],
+                        routes: [{key: 'work-email', name: SCREENS.ONBOARDING.WORK_EMAIL}],
+                        stale: false,
+                        type: 'stack',
+                    },
+                },
+            ],
+            stale: false,
+            type: 'stack',
+        };
+
+        it('should ALLOW when user is already on onboarding to prevent redirect loop', async () => {
+            // Given a HybridApp user who needs onboarding (all shouldSkipOnboarding conditions are false)
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates any action while the user is already on the OnboardingModalNavigator
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, mockAction, authenticatedContext);
+
+            // Then navigation should be ALLOWED because the user is already on onboarding;
+            // redirecting again would produce a redundant state reset that causes an infinite loop
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should prove the guard reaches a stable state (no infinite loop)', async () => {
+            // Given a user who needs onboarding
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard first evaluates on a non-onboarding state, it redirects
+            const firstResult = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+            expect(firstResult.type).toBe('REDIRECT');
+
+            // And then subsequent evaluations on the post-redirect state (OnboardingModalNavigator mounted)
+            // reach a stable ALLOW state, breaking any potential loop
+            const secondResult = OnboardingGuard.evaluate(stateWithOnboardingNavigator, mockAction, authenticatedContext);
+            expect(secondResult.type).toBe('ALLOW');
+
+            const thirdResult = OnboardingGuard.evaluate(stateWithOnboardingNavigator, mockAction, authenticatedContext);
+            expect(thirdResult.type).toBe('ALLOW');
+        });
+
+        it('should still redirect when user is NOT on onboarding and needs it', async () => {
+            // Given a user who needs onboarding and is on the HOME screen (not on onboarding)
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates on a state without OnboardingModalNavigator
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            // Then the guard should redirect because the user needs onboarding and isn't on it yet
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
+
+        it('should still redirect when onboarding is in routes but not focused', async () => {
+            // Given a user who needs onboarding, and a state where OnboardingModalNavigator
+            // exists in routes but HOME is focused (index: 0)
+            const stateWithOnboardingUnfocused: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
+                routes: [
+                    {key: 'home', name: SCREENS.HOME},
+                    {key: 'onboarding-modal', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+                ],
+                stale: false,
+                type: 'stack',
+            };
+
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates while onboarding is NOT focused
+            const result = OnboardingGuard.evaluate(stateWithOnboardingUnfocused, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            // Then the guard should still redirect because the user isn't actively on onboarding
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
+
+        it('should still BLOCK RESET to non-onboarding even when on onboarding', async () => {
+            // Given a user on onboarding who has not completed it
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Note: shouldPreventReset uses findFocusedRoute which checks the deepest focused route name.
+            // In a state with onboarding screens at the root level (as used by shouldPreventReset tests),
+            // the focused route IS an onboarding screen name.
+            const onboardingRootState: NavigationState = {
                 key: 'root',
                 index: 0,
                 routeNames: [SCREENS.ONBOARDING.PURPOSE],
@@ -374,79 +499,23 @@ describe('OnboardingGuard', () => {
                 type: 'root',
             };
 
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                isFromPublicDomain: true,
-            });
-            await waitForBatchedUpdates();
-
-            // When the guard evaluates a navigation action while the user is on a potentially incorrect onboarding step
-            const result = OnboardingGuard.evaluate(onboardingState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
-
-            // Then the user should be redirected to the correct onboarding step because the guard enforces the proper step sequence
-            expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
-        });
-
-        it('should redirect when user in onboarding tries to access non-onboarding path', async () => {
-            // Given a new user from a public domain who is currently on the onboarding purpose screen
-            const onboardingState: NavigationState = {
-                key: 'root',
-                index: 0,
-                routeNames: [SCREENS.ONBOARDING.PURPOSE],
-                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
-                stale: false,
-                type: 'root',
+            const resetToHome: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.HOME],
+                    routes: [{key: 'home', name: SCREENS.HOME}],
+                    stale: false,
+                    type: 'root',
+                },
             };
 
-            // When the user attempts to navigate to the HOME screen before completing onboarding
-            const homeAction: NavigationAction = {
-                type: 'NAVIGATE',
-                payload: {name: SCREENS.HOME},
-            };
+            const result = OnboardingGuard.evaluate(onboardingRootState, resetToHome, authenticatedContext) as {type: 'BLOCK'; reason?: string};
 
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                isFromPublicDomain: true,
-            });
-            await waitForBatchedUpdates();
-
-            const result = OnboardingGuard.evaluate(onboardingState, homeAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
-
-            // Then the user should be redirected back to onboarding because they must complete the setup flow before accessing other parts of the app
-            expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
-        });
-
-        it('should always redirect to correct onboarding step when user needs onboarding', async () => {
-            // Given a new user from a public domain who is currently on the work-email onboarding step but the guard determines they belong on a different step
-            const onboardingState: NavigationState = {
-                key: 'root',
-                index: 0,
-                routeNames: [SCREENS.ONBOARDING.WORK_EMAIL],
-                routes: [{key: 'work-email', name: SCREENS.ONBOARDING.WORK_EMAIL}],
-                stale: false,
-                type: 'root',
-            };
-
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                isFromPublicDomain: true,
-            });
-            await waitForBatchedUpdates();
-
-            // When the guard evaluates a navigation action while the user is on a specific onboarding step
-            const result = OnboardingGuard.evaluate(onboardingState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
-
-            // Then the guard should redirect to the correct onboarding step because the step sequence is dynamically determined by the user's account state
-            expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            // Then the RESET should still be blocked by shouldPreventReset (runs before the new check)
+            expect(result.type).toBe('BLOCK');
+            expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
         });
     });
 });
