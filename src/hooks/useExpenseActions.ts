@@ -321,6 +321,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     defaultExpensePolicy &&
                     shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultExpensePolicy)
                 ) {
+                    onDuplicateReset?.();
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
                 }
@@ -384,6 +385,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     targetPolicyForDuplicate &&
                     shouldRestrictUserBillableActions(targetPolicyForDuplicate.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, targetPolicyForDuplicate)
                 ) {
+                    onDuplicateReset?.();
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(targetPolicyForDuplicate.id));
                     return;
                 }

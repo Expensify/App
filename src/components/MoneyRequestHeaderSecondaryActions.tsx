@@ -358,6 +358,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     defaultExpensePolicy &&
                     shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultExpensePolicy)
                 ) {
+                    dropdownMenuRef.current?.setIsMenuVisible(false);
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
                 }
