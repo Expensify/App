@@ -423,8 +423,9 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
-    fromMovedReportPolicy?: Policy,
-    toMovedReportPolicy?: Policy,
+    // TODO: fromMovedReportPolicy and toMovedReportPolicy will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
+    fromMovedReportPolicy?: OnyxEntry<Policy>,
+    toMovedReportPolicy?: OnyxEntry<Policy>,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;

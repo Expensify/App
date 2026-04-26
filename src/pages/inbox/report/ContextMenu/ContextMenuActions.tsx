@@ -295,6 +295,7 @@ type ContextMenuActionPayload = {
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
+    // TODO: movedFromReportPolicy and movedToReportPolicy will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     movedFromReportPolicy?: OnyxEntry<Policy>;
     movedToReportPolicy?: OnyxEntry<Policy>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];

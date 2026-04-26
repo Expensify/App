@@ -781,6 +781,7 @@ function getOptionData({
     lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    // TODO: movedFromReportPolicy and movedToReportPolicy will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     movedFromReportPolicy?: OnyxEntry<Policy>;
     movedToReportPolicy?: OnyxEntry<Policy>;
     currentUserAccountID: number;
