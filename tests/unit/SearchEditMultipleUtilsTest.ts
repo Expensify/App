@@ -1,10 +1,12 @@
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, SearchResults, Transaction} from '@src/types/onyx';
-import {withSnapshotReports, withSnapshotTransactions} from '../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
+import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import {isBulkEditTaxTrackingEnabled, withSnapshotReports, withSnapshotTransactions} from '../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
 
 const POLICY_A = 'policyA';
 const POLICY_B = 'policyB';
+const POLICY_C = 'policyC';
 const REPORT_ID = 'report1';
 const TRANSACTION_ID_1 = 'tx1';
 const TRANSACTION_ID_2 = 'tx2';
@@ -128,6 +130,65 @@ describe('SearchEditMultipleUtils', () => {
         it('returns activePolicyID when no transactions selected', () => {
             const result = getSearchBulkEditPolicyID([], POLICY_A, undefined, undefined);
             expect(result).toBe(POLICY_A);
+        });
+    });
+
+    describe('isBulkEditTaxTrackingEnabled', () => {
+        const taxEnabledPolicy = {id: POLICY_A, tax: {trackingEnabled: true}} as unknown as Policy;
+        const taxDisabledPolicy = {id: POLICY_B, tax: {trackingEnabled: false}} as unknown as Policy;
+        const activeTaxEnabledPolicy = {id: POLICY_C, tax: {trackingEnabled: true}} as unknown as Policy;
+
+        it('returns true when all transactions are unreported and the bulk-edit workspace has tax enabled', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID), transactionPolicy: undefined},
+                {transaction: makeTransaction(TRANSACTION_ID_2, CONST.REPORT.UNREPORTED_REPORT_ID), transactionPolicy: undefined},
+            ];
+            expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, false)).toBe(true);
+        });
+
+        it('returns false when all transactions are unreported and the bulk-edit workspace has tax disabled', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID), transactionPolicy: undefined},
+                {transaction: makeTransaction(TRANSACTION_ID_2, CONST.REPORT.UNREPORTED_REPORT_ID), transactionPolicy: undefined},
+            ];
+            expect(isBulkEditTaxTrackingEnabled(contexts, taxDisabledPolicy, false)).toBe(false);
+        });
+
+        it('returns true when reported transactions all share a tax-enabled policy', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, 'report1'), transactionPolicy: taxEnabledPolicy},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'report2'), transactionPolicy: taxEnabledPolicy},
+            ];
+            expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, false)).toBe(true);
+        });
+
+        it('returns false for cross-policy selection when one reported transaction is in a tax-disabled workspace', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, 'report1'), transactionPolicy: taxEnabledPolicy},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'report2'), transactionPolicy: taxDisabledPolicy},
+            ];
+            expect(isBulkEditTaxTrackingEnabled(contexts, activeTaxEnabledPolicy, false)).toBe(false);
+        });
+
+        it('returns true for a mix of unreported and tax-enabled reported transactions', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID), transactionPolicy: undefined},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'report1'), transactionPolicy: taxEnabledPolicy},
+            ];
+            expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, false)).toBe(true);
+        });
+
+        it('returns false when a tax-disabled reported transaction is mixed with unreported transactions', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID), transactionPolicy: undefined},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'report1'), transactionPolicy: taxDisabledPolicy},
+            ];
+            expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, false)).toBe(false);
+        });
+
+        it('returns false when the selection contains per-diem or time transactions, regardless of policy', () => {
+            const contexts = [{transaction: makeTransaction(TRANSACTION_ID_1, 'report1'), transactionPolicy: taxEnabledPolicy}];
+            expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, true)).toBe(false);
         });
     });
 });

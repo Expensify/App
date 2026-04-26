@@ -28,8 +28,6 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
     );
 }
 
-export default ActionSheetAwareScrollView;
-
 /**
  * This function should be used as renderScrollComponent prop for FlatList
  * @param props - props that will be passed to the ScrollView from FlatList

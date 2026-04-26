@@ -4719,7 +4719,6 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.EXPORTED_TO]: 'search.exportedTo',
     [FILTER_KEYS.FEED]: 'search.filters.feed',
     [FILTER_KEYS.FROM]: 'common.from',
-    [FILTER_KEYS.GROUP_CURRENCY]: 'common.groupCurrency',
     [FILTER_KEYS.HAS]: 'search.has',
     [FILTER_KEYS.IN]: 'common.in',
     [FILTER_KEYS.IS]: 'search.filters.is',
