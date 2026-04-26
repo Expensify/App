@@ -128,7 +128,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 currentUserAccountID: personalDetail.accountID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             return;
         }
 
@@ -140,7 +140,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,
-                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        participants:
+                            displayReport.participantsList
+                                ?.filter((u) => u.accountID !== personalDetail.accountID)
+                                .map((u) => ({
+                                    login: u.login ?? '',
+                                    accountID: u.accountID,
+                                })) ?? [],
+                        personalDetails,
                         newReportObject: report,
                         betas,
                     });
@@ -158,7 +165,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, {forceReplace: true});
+                Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
             () => {},
             fileType,

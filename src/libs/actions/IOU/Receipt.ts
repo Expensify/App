@@ -337,7 +337,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-function checkIfScanFileCanBeRead(
+function checkIfLocalFileIsAccessible(
     receiptFilename: string | undefined,
     receiptPath: ReceiptSource | undefined,
     receiptType: string | undefined,
@@ -352,4 +352,4 @@ function checkIfScanFileCanBeRead(
     return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-export {checkIfScanFileCanBeRead, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};

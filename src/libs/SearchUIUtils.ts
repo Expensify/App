@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subDays, subMonths} from 'date-fns';
+import {addDays, format, parse, subDays} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -37,7 +37,6 @@ import type {
 import type {
     GroupedItem,
     QueryFilters,
-    SearchAction,
     SearchAmountFilterKeys,
     SearchColumnType,
     SearchCustomColumnIds,
@@ -167,6 +166,7 @@ import {
     buildSearchQueryString,
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
+    getDateRangeForPreset,
     isAmountFilterKey,
     isFilterSupported,
     isSearchDatePreset,
@@ -490,7 +490,6 @@ type SearchTypeMenuItem = {
     icon: Extract<
         ExpensifyIconName,
         | 'Receipt'
-        | 'ChatBubbles'
         | 'MoneyBag'
         | 'CreditCard'
         | 'MoneyHourglass'
@@ -500,9 +499,8 @@ type SearchTypeMenuItem = {
         | 'Folder'
         | 'Basket'
         | 'CalendarSolid'
-        | 'ExpensifyCard'
         | 'Document'
-        | 'Send'
+        | 'Pencil'
         | 'ThumbsUp'
         | 'CheckCircle'
     >;
@@ -584,11 +582,15 @@ type GetSectionsParams = {
  * changes the sort order.  Every other search key requires the current
  * sortBy/sortOrder to match the menu item's defaults for it to be active.
  */
-const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS]);
+const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
 }
+
+const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
+const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
+const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
 
 /**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
@@ -596,10 +598,7 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon: Extract<
-        ExpensifyIconName,
-        'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'ExpensifyCard'
-    >,
+    icon: Extract<ExpensifyIconName, 'Receipt' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
@@ -656,11 +655,15 @@ function createTopSearchMenuItem(
  * If you are trying to access data about a specific search, you do NOT need to subscribe to the data (such as feeds) if it does not
  * affect the specific query you are looking for
  */
-function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defaultFeedID?: string): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+function getSuggestedSearches(
+    accountID: number = CONST.DEFAULT_NUMBER_ID,
+    defaultFeedID?: string,
+    shouldShowExpensifyCard?: boolean,
+): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            translationPath: 'common.expenses',
+            translationPath: 'search.tabs.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'Receipt',
             searchQuery: buildCannedSearchQuery(),
@@ -679,7 +682,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-            translationPath: 'common.reports',
+            translationPath: 'search.tabs.reports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'Document',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
@@ -696,30 +699,11 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
                 return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.CHATS,
-            translationPath: 'common.chats',
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: 'ChatBubbles',
-            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
-            translationPath: 'common.submit',
+            translationPath: 'search.tabs.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: 'Send',
+            icon: 'Pencil',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
@@ -740,7 +724,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
-            translationPath: 'search.bulkActions.approve',
+            translationPath: 'search.tabs.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'ThumbsUp',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -763,7 +747,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.PAY]: {
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
-            translationPath: 'search.bulkActions.pay',
+            translationPath: 'search.tabs.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'MoneyBag',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -787,7 +771,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
-            translationPath: 'common.export',
+            translationPath: 'search.tabs.export',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'CheckCircle',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -811,7 +795,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            translationPath: 'search.cardStatements',
+            translationPath: 'search.tabs.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'CreditCard',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -835,7 +819,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            translationPath: 'search.unapprovedCash',
+            translationPath: 'search.tabs.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'MoneyHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -859,7 +843,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
-            translationPath: 'search.unapprovedCard',
+            translationPath: 'search.tabs.unapprovedCard',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'CreditCardHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -881,46 +865,15 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
                 return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]: {
-            key: CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD,
-            translationPath: 'workspace.common.expensifyCard',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'ExpensifyCard',
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
-                    withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                    view: CONST.SEARCH.VIEW.TABLE,
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {
             key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-            translationPath: 'workspace.common.reimburse',
+            translationPath: 'search.tabs.reconciliation',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'Bank',
             searchQuery: buildQueryStringFromFilterFormValues(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
+                    withdrawalType: shouldShowExpensifyCard ? CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD : CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
                     withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                     view: CONST.SEARCH.VIEW.TABLE,
@@ -945,7 +898,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
             key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            translationPath: 'search.topSpenders',
+            translationPath: 'search.tabs.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'User',
             searchQuery: buildQueryStringFromFilterFormValues(
@@ -981,7 +934,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         },
         [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            'search.topCategories',
+            'search.tabs.topCategories',
             'Folder',
             CONST.SEARCH.GROUP_BY.CATEGORY,
             CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -989,7 +942,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
         ),
         [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            'search.topMerchants',
+            'search.tabs.topMerchants',
             'Basket',
             CONST.SEARCH.GROUP_BY.MERCHANT,
             CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -1048,7 +1001,7 @@ function getSuggestedSearchesVisibility(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = false;
@@ -1146,7 +1099,6 @@ function getSuggestedSearchesVisibility(
         visibility: {
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
-            [CONST.SEARCH.SEARCH_KEYS.CHATS]: true,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
@@ -1154,14 +1106,14 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]: shouldShowExpensifyCardSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReimbursementsSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
         hasGroupPoliciesWithExpenseChat,
+        shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
     };
 }
 
@@ -1258,27 +1210,6 @@ function isTransactionGroupListItemType(item: ListItem): item is TransactionGrou
  */
 function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-}
-
-/**
- * Type guard that checks if something is a TransactionMemberGroupListItemType
- */
-function isTransactionMemberGroupListItemType(item: ListItem): item is TransactionMemberGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.FROM;
-}
-
-/**
- * Type guard that checks if something is a TransactionCardGroupListItemType
- */
-function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
-}
-
-/**
- * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
- */
-function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
 }
 
 /**
@@ -2718,7 +2649,11 @@ function getReportSections({
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction =
+                    reportItem?.pendingAction ??
+                    (reportItem?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                        ? reportItem.pendingFields.preview
+                        : (reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.preview));
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
@@ -4219,9 +4154,8 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
-    const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
-    return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
+    return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
 
 type TypeMenuSectionsParams = {
@@ -4254,107 +4188,101 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
-    const {visibility: suggestedSearchesVisibility, hasGroupPoliciesWithExpenseChat} = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
+    const {
+        visibility: suggestedSearchesVisibility,
+        hasGroupPoliciesWithExpenseChat,
+        shouldShowExpensifyCard,
+    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
 
-    // Explore section
+    // Expense reports section
     {
-        const exploreSection: SearchTypeMenuSection = {
-            translationPath: 'common.explore',
+        const expenseReportsSection: SearchTypeMenuSection = {
+            translationPath: 'search.tabs.expenseReports',
             menuItems: [],
         };
 
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
-        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
+            expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
         }
 
-        if (exploreSection.menuItems.length > 0) {
-            typeMenuSections.push(exploreSection);
-        }
-    }
+        if (!isTrackIntentUser) {
+            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
+                expenseReportsSection.menuItems.push({
+                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
+                    emptyState: {
+                        title: 'search.searchResults.emptySubmitResults.title',
+                        subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                        buttons: hasGroupPoliciesWithExpenseChat
+                            ? [
+                                  {
+                                      success: true,
+                                      buttonText: 'report.newReport.createExpense',
+                                      buttonAction: () => {
+                                          interceptAnonymousUser(() => {
+                                              if (shouldRedirectToExpensifyClassic) {
+                                                  setIsOpenConfirmNavigateExpensifyClassicModalOpen(true);
+                                                  return;
+                                              }
 
-    // Todo section (hidden for track-intent users)
-    if (!isTrackIntentUser) {
-        const todoSection: SearchTypeMenuSection = {
-            translationPath: 'common.todo',
-            menuItems: [],
-        };
-
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
-            todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
-                emptyState: {
-                    title: 'search.searchResults.emptySubmitResults.title',
-                    subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: hasGroupPoliciesWithExpenseChat
-                        ? [
-                              {
-                                  success: true,
-                                  buttonText: 'report.newReport.createExpense',
-                                  buttonAction: () => {
-                                      interceptAnonymousUser(() => {
-                                          if (shouldRedirectToExpensifyClassic) {
-                                              setIsOpenConfirmNavigateExpensifyClassicModalOpen(true);
-                                              return;
-                                          }
-
-                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                      });
+                                              startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
+                                          });
+                                      },
                                   },
-                              },
-                          ]
-                        : [],
-                },
-            });
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
-            todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-                emptyState: {
-                    title: 'search.searchResults.emptyApproveResults.title',
-                    subtitle: 'search.searchResults.emptyApproveResults.subtitle',
-                },
-            });
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
-            todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
-                emptyState: {
-                    title: 'search.searchResults.emptyPayResults.title',
-                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                },
-            });
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
-            todoSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-                emptyState: {
-                    title: 'search.searchResults.emptyExportResults.title',
-                    subtitle: 'search.searchResults.emptyExportResults.subtitle',
-                },
-            });
+                              ]
+                            : [],
+                    },
+                });
+            }
+            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
+                expenseReportsSection.menuItems.push({
+                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
+                    emptyState: {
+                        title: 'search.searchResults.emptyApproveResults.title',
+                        subtitle: 'search.searchResults.emptyApproveResults.subtitle',
+                    },
+                });
+            }
+            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
+                expenseReportsSection.menuItems.push({
+                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
+                    emptyState: {
+                        title: 'search.searchResults.emptyPayResults.title',
+                        subtitle: 'search.searchResults.emptyPayResults.subtitle',
+                    },
+                });
+            }
         }
 
-        if (todoSection.menuItems.length > 0) {
-            typeMenuSections.push(todoSection);
+        if (expenseReportsSection.menuItems.length > 0) {
+            typeMenuSections.push(expenseReportsSection);
         }
     }
 
-    // Monthly accrual section
+    // Accounting section
     {
-        const monthlyAccrualSection: SearchTypeMenuSection = {
-            translationPath: 'search.monthlyAccrual',
+        const accountingSection: SearchTypeMenuSection = {
+            translationPath: 'search.tabs.accounting',
             menuItems: [],
         };
+
+        if (!isTrackIntentUser) {
+            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
+                accountingSection.menuItems.push({
+                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
+                    emptyState: {
+                        title: 'search.searchResults.emptyExportResults.title',
+                        subtitle: 'search.searchResults.emptyExportResults.subtitle',
+                    },
+                });
+            }
+        }
 
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
-            monthlyAccrualSection.menuItems.push({
+            accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -4363,7 +4291,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             });
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]) {
-            monthlyAccrualSection.menuItems.push({
+            accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD],
                 emptyState: {
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -4372,20 +4300,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             });
         }
 
-        if (monthlyAccrualSection.menuItems.length > 0) {
-            typeMenuSections.push(monthlyAccrualSection);
-        }
-    }
-
-    // Reconciliation section
-    {
-        const reconciliationSection: SearchTypeMenuSection = {
-            translationPath: 'search.reconciliation',
-            menuItems: [],
-        };
-
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]) {
-            reconciliationSection.menuItems.push({
+            accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
                 emptyState: {
                     title: 'search.searchResults.emptyStatementsResults.title',
@@ -4393,17 +4309,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                 },
             });
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]) {
-            reconciliationSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD],
-                emptyState: {
-                    title: 'search.searchResults.emptyStatementsResults.title',
-                    subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
-                },
-            });
-        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]) {
-            reconciliationSection.menuItems.push({
+            accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {
                     title: 'search.searchResults.emptyStatementsResults.title',
@@ -4412,8 +4319,8 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             });
         }
 
-        if (reconciliationSection.menuItems.length > 0) {
-            typeMenuSections.push(reconciliationSection);
+        if (accountingSection.menuItems.length > 0) {
+            typeMenuSections.push(accountingSection);
         }
     }
 
@@ -4434,7 +4341,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     // Insights section
     {
         const insightsSection: SearchTypeMenuSection = {
-            translationPath: 'common.insights',
+            translationPath: 'search.tabs.insights',
             menuItems: [],
         };
 
@@ -4555,10 +4462,6 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getGroupByOptions(translate: LocalizedTranslate) {
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
-}
-
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
     const sortableColumns: Array<SingleSelectItem<SearchColumnType>> = [];
     for (const column of columns) {
@@ -4640,42 +4543,6 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
         default:
             return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
     }
-}
-
-/**
- * Returns the start and end date range for a date preset.
- */
-function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
-    const now = new Date();
-    let start: Date;
-    let end: Date;
-    const lastMonth = subMonths(now, 1);
-
-    switch (preset) {
-        case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
-            start = startOfMonth(now);
-            end = endOfMonth(now);
-            break;
-        case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
-            start = startOfMonth(lastMonth);
-            end = endOfMonth(lastMonth);
-            break;
-        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
-            start = startOfYear(now);
-            end = now;
-            break;
-        case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
-            start = startOfMonth(subMonths(now, 11));
-            end = endOfMonth(now);
-            break;
-        default:
-            return {start: '', end: ''};
-    }
-
-    return {
-        start: format(start, 'yyyy-MM-dd'),
-        end: format(end, 'yyyy-MM-dd'),
-    };
 }
 
 /**
@@ -4852,7 +4719,6 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.EXPORTED_TO]: 'search.exportedTo',
     [FILTER_KEYS.FEED]: 'search.filters.feed',
     [FILTER_KEYS.FROM]: 'common.from',
-    [FILTER_KEYS.GROUP_CURRENCY]: 'common.groupCurrency',
     [FILTER_KEYS.HAS]: 'search.has',
     [FILTER_KEYS.IN]: 'common.in',
     [FILTER_KEYS.IS]: 'search.filters.is',
@@ -5152,10 +5018,6 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
 
 function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
-}
-
-function getActionOptions(translate: LocaleContextProps['translate']) {
-    return Object.values(CONST.SEARCH.ACTION_FILTERS).map<SingleSelectItem<SearchAction>>((value) => ({text: translate(`search.filters.action.${value}`), value}));
 }
 
 /**
@@ -5861,9 +5723,6 @@ export {
     getSortedSections,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
-    isTransactionMemberGroupListItemType,
-    isTransactionCardGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
@@ -5891,7 +5750,6 @@ export {
     getValidGroupBy,
     getStatusOptions,
     getTypeOptions,
-    getGroupByOptions,
     getSortByOptions,
     getSortOrderOptions,
     getGroupBySections,
@@ -5899,21 +5757,16 @@ export {
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
-    hasDeletedTransactionInData,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
-    getDateRangeForPreset,
     createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
-    getActionOptions,
     getColumnsToShow,
     getHasOptions,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
-    getTransactionFromTransactionListItem,
     getSearchColumnTranslationKey,
-    isColumnSortable,
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
@@ -5929,9 +5782,11 @@ export {
     mapFiltersFormToLabelValueList,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
-    isEligibleForApproveSuggestion,
     applySelectionToItem,
     GENERIC_SEARCH_KEYS,
+    TODO_SEARCH_KEYS,
+    MONTHLY_ACCRUAL_SEARCH_KEYS,
+    RECONCILIATION_SEARCH_KEYS,
     FILTER_GROUP_MAP,
     FILTER_LABEL_MAP,
     doesSearchItemMatchSort,

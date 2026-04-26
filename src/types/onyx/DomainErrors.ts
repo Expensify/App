@@ -1,3 +1,5 @@
+import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
@@ -35,6 +37,16 @@ type DomainMemberErrors = {
 } & GeneralDomainMemberErrors;
 
 /**
+ * Errors related to a domain security group
+ */
+type DomainSecurityGroupErrors = {
+    /**
+     * Errors related to the security group name
+     */
+    nameErrors?: OnyxCommon.Errors;
+};
+
+/**
  * Collection of errors related to domain operations received from the backend
  */
 type DomainErrors = {
@@ -67,7 +79,7 @@ type DomainErrors = {
      * Errors related to the 2FA toggle
      */
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
-};
+} & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupErrors>;
 
-export type {GeneralDomainMemberErrors, DomainMemberErrors};
+export type {GeneralDomainMemberErrors, DomainMemberErrors, DomainSecurityGroupErrors};
 export default DomainErrors;

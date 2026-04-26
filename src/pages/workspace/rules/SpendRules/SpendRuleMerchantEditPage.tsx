@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -32,7 +32,8 @@ type MatchTypeItem = ListItem & {
 };
 
 function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
-    const {policyID, ruleID, merchantIndex} = route.params;
+    const navigation = useNavigation();
+    const {policyID, merchantIndex} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -48,9 +49,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const [merchantName, setMerchantName] = useState(existingMerchantName ?? '');
     const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchantMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
-    const goBack = () => {
-        Navigation.goBack(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, ruleID));
-    };
+    const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
     const submit = () => {
         const trimmedMerchantName = merchantName.trim();

@@ -1,6 +1,8 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
@@ -27,6 +29,7 @@ import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 import useOnyx from './useOnyx';
+import useSortedActions from './useSortedActions';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
@@ -52,6 +55,8 @@ type UseAutocompleteSuggestionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     translate: LocaleContextProps['translate'];
+    /** Map of display values to IDs for filters (e.g. workspace name → policy ID); used to exclude by ID when names duplicate */
+    autocompleteSubstitutions?: SubstitutionMap;
 };
 
 // Static autocomplete lists derived from CONST values, computed once at module load
@@ -98,6 +103,7 @@ function useAutocompleteSuggestions({
     personalDetails,
     feedKeysWithCards,
     translate,
+    autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
@@ -105,6 +111,7 @@ function useAutocompleteSuggestions({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
@@ -233,6 +240,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                sortedActions,
                 conciergeReportID,
             }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -270,6 +278,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                sortedActions,
                 conciergeReportID,
             }).recentReports.filter((chat) => {
                 if (!chat.text) {
@@ -407,6 +416,8 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+            // Intentionally scoped to POLICY_ID for this fix: workspace names can collide while policy IDs remain unique.
+            // Other filters currently continue to use value-based exclusion.
             const workspaceList: Array<{id: string; name: string}> = [];
             for (const singlePolicy of Object.values(policies)) {
                 if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
@@ -414,8 +425,30 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
+            const policyIdRanges = ranges.filter((range) => range.key === autocompleteKey);
+            const keyValueCount = new Map<string, number>();
+            const alreadySelectedPolicyIds =
+                autocompleteSubstitutions &&
+                new Set(
+                    policyIdRanges
+                        .map((range) => {
+                            const baseKey = getSubstitutionMapKey(range.key, range.value);
+                            const index = keyValueCount.get(baseKey) ?? 0;
+                            keyValueCount.set(baseKey, index + 1);
+                            const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
+                        })
+                        .filter(Boolean),
+                );
+
             const filteredPolicies = workspaceList
-                .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(workspace.name.toLowerCase()))
+                .filter((workspace) => {
+                    const matchesSearch = workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase());
+                    if (alreadySelectedPolicyIds?.size) {
+                        return matchesSearch && !alreadySelectedPolicyIds.has(workspace.id);
+                    }
+                    return matchesSearch && !alreadyAutocompletedKeys.has(workspace.name.toLowerCase());
+                })
                 .sort()
                 .slice(0, 10);
 
