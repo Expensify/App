@@ -12,7 +12,17 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
-import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {
+    getReportOrDraftReport,
+    isAdminRoom,
+    isAnnounceRoom,
+    isGroupChat,
+    isMoneyRequest,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isPolicyExpenseChat,
+    isReportParticipant,
+} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -81,6 +91,7 @@ function ReportNavigateAwayHandler() {
 
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
+    const [deletedReportParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(deletedReportParentID)}`);
 
     // Track whether the current route is an own workspace chat. A vacation delegate split sends
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
@@ -216,6 +227,13 @@ function ReportNavigateAwayHandler() {
 
         // Try to navigate to parent report if available
         if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+            if (deletedReportParent && !isReportParticipant(currentUserAccountID, deletedReportParent)) {
+                Navigation.popToSidebar();
+                Navigation.isNavigationReady().then(() => {
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                });
+                return;
+            }
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
             });
@@ -226,7 +244,7 @@ function ReportNavigateAwayHandler() {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, deletedReportParent, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, isCurrentRouteOwnWorkspaceChatRef]);
 
     return null;
 }
