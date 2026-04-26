@@ -4,9 +4,11 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,63 +19,23 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency, isCard} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SpendRuleForm} from '@src/types/form';
-import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SpendRulesSectionProps = {
     policyID: string;
 };
 
-type SpendRuleSummaryPart = {
-    badgeLabel: string;
-    text: string;
-    isNeutral?: boolean;
-};
-
-function getSpendRuleSummaryParts(
-    formValues: SpendRuleForm,
-    selectedCurrency: string | undefined,
-    actionLabel: string,
-    translate: ReturnType<typeof useLocalize>['translate'],
-): SpendRuleSummaryPart[] {
-    const summaryParts: SpendRuleSummaryPart[] = [];
-    const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
-    const categories = getTruncatedSpendRuleSummary(
-        formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
-        (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
-    );
-    const maxAmount = formValues.maxAmount.trim();
-
-    if (merchantNames) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
-    }
-
-    if (categories) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
-    }
-
-    if (maxAmount) {
-        summaryParts.push({
-            badgeLabel: translate('workspace.rules.spendRules.max'),
-            text: `${translate('iou.amount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD)}`,
-            isNeutral: true,
-        });
-    }
-
-    return summaryParts;
-}
-
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -86,14 +48,24 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     useEffect(() => {
-        openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [policyID, defaultFundID]);
+        if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
+            return;
+        }
+        if (expensifyCardSettings?.isLoading) {
+            return;
+        }
+        if (expensifyCardSettings?.hasOnceLoaded) {
+            return;
+        }
 
-    const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [defaultFundID, expensifyCardSettings?.hasOnceLoaded, expensifyCardSettings?.isLoading, policyID]);
+
+    const isSpendRulesListLoading = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
 
     const showBuiltInProtectionModal = () => {
         showConfirmModal({
@@ -123,17 +95,21 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 return undefined;
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
-            const selectedCurrency = getSelectedCardsSharedCurrency(formValues.cardIDs, cardsList);
+            const activeCardIDs = formValues.cardIDs.filter((cardID) => !!cardsList?.[cardID]);
+            if (activeCardIDs.length === 0) {
+                return undefined;
+            }
+            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
             const cardSummary = getTruncatedSpendRuleSummary(
-                formValues.cardIDs.map((cardID) => {
+                activeCardIDs.map((cardID) => {
                     const card = cardsList?.[cardID];
-                    if (!card || !isCard(card)) {
+                    if (!card) {
                         return cardID;
                     }
 
                     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                    return getCardDescriptionForSearchTable(card, displayName || undefined) || cardID;
+                    return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
                 }),
                 (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
             );
@@ -142,12 +118,13 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 ruleID,
                 actionLabel,
                 cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
                 created: cardRule.created,
+                pendingAction: cardRule.pendingAction,
             };
         })
-        .filter((rule) => rule !== undefined)
+        .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .sort((a, b) => localeCompare(a.created, b.created));
 
     const renderSectionTitle = () => (
@@ -210,56 +187,62 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
-            {isCardSettingsLoading ? (
+            {isSpendRulesListLoading ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         reasonAttributes={{
                             context: 'SpendRulesSection',
                             isOffline,
-                            hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
+                            hasOnceLoaded: !isSpendRulesListLoading,
                         }}
                     />
                 </View>
             ) : (
                 createdRules.map((rule) => (
-                    <MenuItem
+                    <OfflineWithFeedback
                         key={rule.ruleID}
-                        wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
-                        titleComponent={
-                            <View>
-                                {rule.summaryParts.map((part) => (
-                                    <View
-                                        key={part.text}
-                                        style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
-                                    >
-                                        <Badge
-                                            text={part.badgeLabel}
-                                            badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                            error={!part.isNeutral && rule.isBlock}
-                                            success={!part.isNeutral && !rule.isBlock}
-                                            isCondensed
-                                        />
-                                        <Text
-                                            style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
-                                            numberOfLines={2}
+                        pendingAction={rule.pendingAction}
+                    >
+                        <MenuItem
+                            wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
+                            titleComponent={
+                                <View>
+                                    {rule.summaryParts.map((part) => (
+                                        <View
+                                            key={part.text}
+                                            style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
                                         >
-                                            {part.text}
-                                        </Text>
-                                    </View>
-                                ))}
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                    numberOfLines={2}
-                                >
-                                    {rule.cardSummary}
-                                </Text>
-                            </View>
-                        }
-                        accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                        interactive={false}
-                    />
+                                            <Badge
+                                                text={part.badgeLabel}
+                                                badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
+                                                error={!part.isNeutral && rule.isBlock}
+                                                success={!part.isNeutral && !rule.isBlock}
+                                                isCondensed
+                                            />
+                                            <Text
+                                                style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                                                numberOfLines={2}
+                                            >
+                                                {part.text}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                        numberOfLines={2}
+                                    >
+                                        {rule.cardSummary}
+                                    </Text>
+                                </View>
+                            }
+                            accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                            shouldShowRightIcon
+                            disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
+                        />
+                    </OfflineWithFeedback>
                 ))
             )}
             {!isProduction && (

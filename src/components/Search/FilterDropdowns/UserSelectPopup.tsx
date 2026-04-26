@@ -1,5 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -23,7 +24,7 @@ type UserSelectPopupProps = {
     value: string[];
 
     /** The popup label */
-    label?: string;
+    label: string;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
@@ -45,7 +46,8 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -176,20 +178,31 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
-            style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}
         >
-            <SelectionList
-                data={listData}
-                ref={selectionListRef}
-                textInputOptions={textInputOptions}
-                canSelectMultiple
-                ListItem={UserSelectionListItem}
-                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
-                onSelectRow={selectUser}
-                isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                onEndReached={onListEndReached}
-            />
+            <View
+                style={[
+                    styles.getSelectionListPopoverHeight({
+                        itemCount: listData.length || 1,
+                        windowHeight,
+                        isInLandscapeMode,
+                        hasTitle: isSmallScreenWidth,
+                        isSearchable: shouldShowSearchInput,
+                    }),
+                ]}
+            >
+                <SelectionList
+                    data={listData}
+                    ref={selectionListRef}
+                    textInputOptions={textInputOptions}
+                    canSelectMultiple
+                    ListItem={UserSelectionListItem}
+                    onSelectRow={selectUser}
+                    isLoadingNewOptions={isLoadingNewOptions}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                    onEndReached={onListEndReached}
+                    style={{contentContainerStyle: [styles.pb0]}}
+                />
+            </View>
         </BasePopup>
     );
 }

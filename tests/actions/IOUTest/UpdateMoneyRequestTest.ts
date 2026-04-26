@@ -73,6 +73,9 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
+    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
+    reserveDeferredWriteChannel: jest.fn(),
+    resetForTesting: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
@@ -630,6 +633,39 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 });
             });
             expect(recentAttendees?.length).toBe(CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
+        });
+
+        it('should keep displayName-only attendees in recent attendees', async () => {
+            const transaction = createRandomTransaction(1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            updateMoneyRequestAttendees({
+                transactionID: transaction.transactionID,
+                transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
+                parentReport: undefined,
+                attendees: [{avatarUrl: '', displayName: 'Display Name Only'}],
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                violations: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: '',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const recentAttendees = await new Promise<OnyxEntry<Attendee[]>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: ONYXKEYS.NVP_RECENT_ATTENDEES,
+                    callback: (attendees) => {
+                        Onyx.disconnect(connection);
+                        resolve(attendees);
+                    },
+                });
+            });
+
+            expect(recentAttendees).toContainEqual({avatarUrl: '', displayName: 'Display Name Only'});
         });
     });
 

@@ -1,8 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -19,17 +18,52 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {assignReportToMe} from '@libs/actions/IOU';
+import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
-import {APPROVER_TYPE} from '@pages/ReportChangeApproverPage';
-import type {ApproverType} from '@pages/ReportChangeApproverPage';
+import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
+import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+
+type SelectedReportRef = {reportID: string | undefined};
+
+/**
+ * Decides whether the bulk change-approver page should auto-apply the only
+ * available approver option. Mirrors the single-report flow, but guards the
+ * decision until all selected reports are actually loaded in Onyx — otherwise
+ * the permission check that drives `approverTypes` can report a stale value.
+ */
+function shouldAutoApplyApprover({
+    isLoadingBulkChangeApproverPage,
+    selectedReports,
+    onyxReports,
+    approverTypes,
+    selectedApproverType,
+}: {
+    isLoadingBulkChangeApproverPage: boolean;
+    selectedReports: SelectedReportRef[];
+    onyxReports: Record<string, Report> | undefined;
+    approverTypes: Array<{keyForList: ApproverType}>;
+    selectedApproverType: ApproverType | undefined;
+}): boolean {
+    if (isLoadingBulkChangeApproverPage || selectedReports.length === 0) {
+        return false;
+    }
+
+    const allReportsLoaded = selectedReports.every((selectedReport) => selectedReport.reportID && onyxReports?.[selectedReport.reportID]);
+    if (!allReportsLoaded) {
+        return false;
+    }
+
+    return approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList;
+}
+
+export {shouldAutoApplyApprover};
 
 function SearchChangeApproverPage() {
     const {translate} = useLocalize();
@@ -37,7 +71,6 @@ function SearchChangeApproverPage() {
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
-    const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -48,7 +81,6 @@ function SearchChangeApproverPage() {
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isLoadingBulkChangeApproverPage = true] = useOnyx(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE);
     const {isOffline} = useNetwork();
-    const [isSaving, setIsSaving] = useState(false);
 
     const getOnyxReports = (allReports: OnyxCollection<Report>) => {
         const reports = Object.create(null) as Record<string, Report>;
@@ -63,6 +95,7 @@ function SearchChangeApproverPage() {
     };
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
 
+    const hasAutoAppliedRef = useRef(false);
     const prevSelectedReportsLength = useRef(0);
     useEffect(() => {
         if (!hasLoadedApp || !selectedReports.length || prevSelectedReportsLength.current === selectedReports.length) {
@@ -86,11 +119,6 @@ function SearchChangeApproverPage() {
     const selectedPolicies = getSelectedPolicies();
 
     const changeApprover = () => {
-        if (!selectedApproverType) {
-            setHasError(true);
-            return;
-        }
-
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
@@ -109,7 +137,6 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        setIsSaving(true);
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
@@ -174,7 +201,9 @@ function SearchChangeApproverPage() {
     };
     const approverTypes = getApproverTypes();
 
-    useEffect(() => {
+    // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
+    // avoiding a single-frame flash of an empty list after reports are cleared.
+    useLayoutEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
             return;
         }
@@ -183,6 +212,23 @@ function SearchChangeApproverPage() {
             Navigation.closeRHPFlow();
         });
     }, [approverTypes, selectedReports.length]);
+
+    const shouldAutoApply = shouldAutoApplyApprover({
+        isLoadingBulkChangeApproverPage,
+        selectedReports,
+        onyxReports,
+        approverTypes,
+        selectedApproverType,
+    });
+
+    useEffect(() => {
+        if (hasAutoAppliedRef.current || !shouldAutoApply) {
+            return;
+        }
+
+        hasAutoAppliedRef.current = true;
+        changeApprover();
+    }, [shouldAutoApply, changeApprover]);
 
     const confirmButtonOptions = {
         showButton: true,
@@ -199,7 +245,7 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if ((!isOffline && isLoadingBulkChangeApproverPage) || isSaving) {
+    if (!isOffline && isLoadingBulkChangeApproverPage) {
         return (
             <FullScreenLoadingIndicator
                 shouldUseGoBackButton
@@ -234,21 +280,12 @@ function SearchChangeApproverPage() {
                             return;
                         }
                         setSelectedApproverType(option.keyForList);
-                        setHasError(false);
                     }}
                     confirmButtonOptions={confirmButtonOptions}
                     shouldUpdateFocusedIndex
                     customListHeader={listHeader}
                     initiallyFocusedItemKey={selectedApproverType}
-                >
-                    {hasError && (
-                        <FormHelpMessage
-                            isError
-                            style={[styles.ph5, styles.mb3]}
-                            message={translate('common.error.pleaseSelectOne')}
-                        />
-                    )}
-                </SelectionList>
+                />
             )}
         </ScreenWrapper>
     );

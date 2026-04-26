@@ -1,5 +1,6 @@
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardFeedsStatusByDomainID, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
@@ -26,13 +27,34 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
 
+    // When workspaceAccountID is 0, find the domain ID by looking for a feed linked to this policy.
+    // This handles domain-based card accounts where no workspace account exists yet.
+    let effectiveWorkspaceAccountID = workspaceAccountID;
+    if (workspaceAccountID === CONST.DEFAULT_NUMBER_ID && policyID && allFeeds) {
+        const linkedDomainEntry = Object.entries(allFeeds).find(([onyxKey, feeds]) => {
+            const domainID = Number(onyxKey.split('_').at(-1));
+            if (!domainID) {
+                return false;
+            }
+            const companyCards = feeds?.settings?.companyCards;
+            if (!companyCards) {
+                return false;
+            }
+            return Object.values(companyCards).some((feedSettings) => feedSettings?.preferredPolicy === policyID || (feedSettings?.linkedPolicyIDs ?? []).includes(policyID));
+        });
+        if (linkedDomainEntry) {
+            effectiveWorkspaceAccountID = Number(linkedDomainEntry[0].split('_').at(-1));
+        }
+    }
+
     let workspaceFeeds: CombinedCardFeeds | undefined;
     if (policyID && allFeeds) {
         const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) => {
-            if (combinedCardFeed?.linkedPolicyIDs) {
-                return combinedCardFeed.linkedPolicyIDs.includes(policyID);
+            const validLinkedPolicyIDs = combinedCardFeed?.linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                return validLinkedPolicyIDs.includes(policyID);
             }
-            return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === workspaceAccountID;
+            return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === effectiveWorkspaceAccountID;
         };
         workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate, feedKeysWithCards);
     }

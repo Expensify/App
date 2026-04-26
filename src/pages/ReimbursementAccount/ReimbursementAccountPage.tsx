@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
@@ -60,6 +60,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import getStartPageForContinueSetup from './NonUSD/utils/getStartPageForContinueSetup';
+import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
 import getFieldsForStep from './USD/utils/getFieldsForStep';
 import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRouteParams';
 import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoint';
@@ -76,7 +77,7 @@ const OFFLINE_ACCESSIBLE_STEPS = [
     CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
 ] as const;
 
-function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: ReimbursementAccountPageProps) {
     const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -297,11 +298,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 return;
             }
 
-            if (
-                prevReimbursementAccount &&
-                prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
-            ) {
+            if (prevReimbursementAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction) {
                 setShouldShowContinueSetupButton(hasInProgressUSDVBBA(achData));
             }
 
@@ -332,6 +329,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 // so we don't clear it. We only want to clear the errors if we are moving between steps.
                 hideBankAccountErrors();
             }
+
+            // Use the current page navigation object to set the param to the correct route in the stack
+            const stepToOpen = getRouteForCurrentStep(currentStep);
+            if (stepToOpen && !isNonUSDSetup) {
+                navigation.setParams({stepToOpen});
+            }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
@@ -351,19 +354,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // so we're always showing manual setup with locked numbers he can not change
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
-            const stepToPageName: Record<string, string> = {
-                [CONST.BANK_ACCOUNT.STEP.COUNTRY]: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY,
-                [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT]: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
-                [CONST.BANK_ACCOUNT.STEP.REQUESTOR]: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
-                [CONST.BANK_ACCOUNT.STEP.COMPANY]: CONST.BANK_ACCOUNT.PAGE_NAMES.COMPANY,
-                [CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS]: CONST.BANK_ACCOUNT.PAGE_NAMES.BENEFICIAL_OWNERS,
-                [CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT]: CONST.BANK_ACCOUNT.PAGE_NAMES.ACH_CONTRACT,
-                [CONST.BANK_ACCOUNT.STEP.VALIDATION]: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION,
-            };
-            const page = stepToPageName[currentStep] ?? CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY;
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page, backTo}));
+            setUSDBankAccountStep(currentStep);
         });
-    }, [currentStep, policyIDParam, backTo]);
+    }, [currentStep]);
 
     const continueNonUSDVBBASetup = () => {
         const {page: startPage, subPage: startSubPage} = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
@@ -529,6 +522,20 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setUSDBankAccountStep={setUSDBankAccountStep}
                 onBackButtonPress={goBack}
                 isNonUSDWorkspace={isNonUSDSetup}
+            />
+        );
+    }
+
+    if (!isNonUSDSetup && USDBankAccountStep !== null) {
+        return (
+            <USDVerifiedBankAccountFlow
+                USDBankAccountStep={USDBankAccountStep}
+                policyID={policyIDParam}
+                onBackButtonPress={goBack}
+                requestorStepRef={requestorStepRef}
+                onfidoToken={onfidoToken}
+                setUSDBankAccountStep={setUSDBankAccountStep}
+                setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
             />
         );
     }

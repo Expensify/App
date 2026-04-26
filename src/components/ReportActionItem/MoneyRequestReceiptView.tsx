@@ -62,7 +62,7 @@ import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/Violati
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {cleanUpMoneyRequest} from '@userActions/IOU';
+import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -128,9 +128,7 @@ function MoneyRequestReceiptView({
     const parentReportID = report?.parentReportID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        canEvict: false,
-    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});

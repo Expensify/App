@@ -11,6 +11,7 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
+import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
@@ -22,10 +23,9 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainMemberError, closeUserAccount, exportMembersToCSV} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {hasDomainMemberDetailsErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -34,7 +34,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {DomainMemberErrors} from '@src/types/onyx/DomainErrors';
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
@@ -43,7 +42,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Profile']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => setSelectedMembers([]);
@@ -73,7 +72,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
-    const groupPopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('common.group')}
             items={groupOptions}
@@ -82,6 +81,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             onChange={handleGroupChange}
             defaultValue={groupOptions.at(0)?.value}
             selectionListStyle={{listItemWrapperStyle: {minHeight: 40}}}
+            shouldShowList={isExpanded}
         />
     );
 
@@ -119,6 +119,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             />
         );
     };
+    useClearSelectedDomainMembersOnMoveComplete(clearSelectedMembers);
 
     useSearchBackPress({
         onClearSelection: clearSelectedMembers,
@@ -177,6 +178,15 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             icon: icons.RemoveMembers,
             onSelected: () => {
                 setIsModalVisible(true);
+            },
+        },
+        {
+            text: translate('domain.members.moveToGroup'),
+            value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.MOVE_TO_GROUP,
+            icon: icons.Transfer,
+            onSelected: () => {
+                setDomainMembersSelectedForMove(selectedMembers);
+                Navigation.navigate(ROUTES.DOMAIN_MEMBERS_MOVE_TO_GROUP.getRoute(domainAccountID));
             },
         },
     ];
@@ -261,25 +271,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         );
     };
 
-    const getCustomRowProps = (accountID: number, email?: string) => {
-        const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction ?? domainPendingActions?.[accountID]?.lockAccount;
-
-        const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
-        const accountIDErrors = domainErrors?.memberErrors?.[accountID];
-        const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
-        const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
-        const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
-
-        const mergedErrors: DomainMemberErrors = {
-            errors: {...getLatestError(accountIDErrors?.errors), ...getLatestError(accountIDErrors?.lockAccountErrors), ...emailError},
-            vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
-            twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
-        };
-        const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
-        return {errors: getLatestError(mergedErrors?.errors), pendingAction: emailPendingAction ?? accountIDPendingAction, brickRoadIndicator};
-    };
+    const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
 
     return (
         <>

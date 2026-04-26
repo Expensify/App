@@ -15,7 +15,7 @@ function GPSInProgressModal() {
     const stopGpsAndSwitchToOD = async () => {
         setIsGPSInProgressModalOpen(false);
         await stopGpsTrip(isOffline);
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
     };
 
     return (

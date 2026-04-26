@@ -43,10 +43,12 @@ async function setManageTeamUserState(overrides?: {
     integration?: string | null;
     areCompanyCardsEnabled?: boolean;
     areRulesEnabled?: boolean;
+    areAccountingEnabled?: boolean;
+    areCategoriesEnabled?: boolean;
     hasAccountingConnection?: boolean;
     hasCustomCategories?: boolean;
     hasCompanyCardConnection?: boolean;
-    hasNonDefaultRules?: boolean;
+    hasConfiguredRules?: boolean;
     trialStartDate?: string;
 }) {
     const trialStart = overrides?.trialStartDate ?? '2026-03-01';
@@ -62,8 +64,11 @@ async function setManageTeamUserState(overrides?: {
         id: TEST_POLICY_ID,
         name: 'Test Workspace',
         type: CONST.POLICY.TYPE.TEAM,
+        role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
         areRulesEnabled: overrides?.areRulesEnabled ?? true,
+        areConnectionsEnabled: overrides?.areAccountingEnabled,
+        areCategoriesEnabled: overrides?.areCategoriesEnabled,
     };
 
     if (overrides?.hasAccountingConnection) {
@@ -114,6 +119,62 @@ describe('GettingStartedSection', () => {
             expect(screen.queryByText('homePage.gettingStartedSection.title')).toBeNull();
         });
 
+        it('does not render when user is not an admin (role is user)', async () => {
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            });
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
+                {
+                    id: TEST_POLICY_ID,
+                    name: 'Test Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                    areCompanyCardsEnabled: true,
+                    areRulesEnabled: true,
+                } as never,
+            );
+            await waitForBatchedUpdates();
+
+            renderGettingStartedSection();
+
+            expect(screen.queryByText('homePage.gettingStartedSection.title')).toBeNull();
+        });
+
+        it('does not render when user is not an admin (role is auditor)', async () => {
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            });
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
+                {
+                    id: TEST_POLICY_ID,
+                    name: 'Test Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    areCompanyCardsEnabled: true,
+                    areRulesEnabled: true,
+                } as never,
+            );
+            await waitForBatchedUpdates();
+
+            renderGettingStartedSection();
+
+            expect(screen.queryByText('homePage.gettingStartedSection.title')).toBeNull();
+        });
+
+        it('renders when user is an admin', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+
+            expect(screen.getByText('homePage.gettingStartedSection.title')).toBeTruthy();
+        });
+
         it('renders when manage-team intent is set via fallback ONBOARDING_PURPOSE_SELECTED', async () => {
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM as never);
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
@@ -124,6 +185,7 @@ describe('GettingStartedSection', () => {
                     id: TEST_POLICY_ID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
                     areCompanyCardsEnabled: true,
                     areRulesEnabled: true,
                 } as never,
@@ -156,7 +218,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Connect to [system]" row for QBO integration', async () => {
-            await setManageTeamUserState({integration: 'quickbooksOnline'});
+            await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
 
             renderGettingStartedSection();
 
@@ -164,7 +226,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Connect to [system]" row for Xero integration', async () => {
-            await setManageTeamUserState({integration: 'xero'});
+            await setManageTeamUserState({integration: 'xero', areAccountingEnabled: true});
 
             renderGettingStartedSection();
 
@@ -172,7 +234,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Customize accounting categories" for non-direct-connect integrations', async () => {
-            await setManageTeamUserState({integration: 'other'});
+            await setManageTeamUserState({integration: 'other', areCategoriesEnabled: true});
 
             renderGettingStartedSection();
 
@@ -181,7 +243,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('shows "Customize accounting categories" when no integration is selected', async () => {
-            await setManageTeamUserState({integration: 'none'});
+            await setManageTeamUserState({integration: 'none', areCategoriesEnabled: true});
 
             renderGettingStartedSection();
 
@@ -212,17 +274,18 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.setupRules')).toBeTruthy();
         });
 
-        it('always shows "Set up spend rules" row even when rules feature is disabled', async () => {
+        it('does not show "Set up spend rules" row when rules feature is disabled', async () => {
             await setManageTeamUserState({areRulesEnabled: false});
 
             renderGettingStartedSection();
 
-            expect(screen.getByText('homePage.gettingStartedSection.setupRules')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.setupRules')).toBeNull();
         });
 
         it('renders rows in the expected order: workspace, accounting, cards, rules', async () => {
             await setManageTeamUserState({
                 integration: 'quickbooksOnline',
+                areAccountingEnabled: true,
                 areCompanyCardsEnabled: true,
                 areRulesEnabled: true,
             });
@@ -256,6 +319,7 @@ describe('GettingStartedSection', () => {
         it('accounting row is checked when workspace has a successful connection', async () => {
             await setManageTeamUserState({
                 integration: 'quickbooksOnline',
+                areAccountingEnabled: true,
                 hasAccountingConnection: true,
             });
 
@@ -278,7 +342,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('navigates to workspace accounting when "Connect to [system]" row is pressed', async () => {
-            await setManageTeamUserState({integration: 'quickbooksOnline'});
+            await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
 
             renderGettingStartedSection();
 
@@ -289,7 +353,7 @@ describe('GettingStartedSection', () => {
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {
-            await setManageTeamUserState({integration: 'other'});
+            await setManageTeamUserState({integration: 'other', areCategoriesEnabled: true});
 
             renderGettingStartedSection();
 

@@ -6,14 +6,14 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -37,6 +37,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -79,17 +80,16 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
         const isFromGlobalCreate = transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
-        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-            name: 'submit-to-destination-visible',
-            op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-            attributes: {
-                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
-                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: false,
-                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: !!isFromGlobalCreate,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.INVOICE,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'invoice',
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
+                iouType: CONST.IOU.TYPE.INVOICE,
+                requestType: 'invoice',
+                isFromGlobalCreate: !!isFromGlobalCreate,
+                hasReceipt: false,
             },
-        });
+            {skipSubmitExpenseSpan: true},
+        );
         sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,

@@ -19,6 +19,7 @@
  */
 import {AppState} from 'react-native';
 import type {OnyxKey} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import Log from './Log';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
@@ -33,9 +34,26 @@ type DeferredChannel = {
      * when the optimistic updates have been applied.
      */
     optimisticWatchKey?: OnyxKey;
+
+    /** True when the channel was created by reserveDeferredWriteChannel. */
+    isReserved?: boolean;
+
+    /**
+     * Set when flushDeferredWrite is called while the channel is still reserved.
+     * Signals that the target component already laid out and tried to flush,
+     * so registerDeferredWrite should execute the real callback immediately
+     * instead of creating a new deferred channel.
+     */
+    flushRequested?: boolean;
 };
 
 const channels = new Map<string, DeferredChannel>();
+
+// Watch keys that outlive their channel. When a reserved channel is flushed
+// immediately (flushRequested path), the channel is deleted but the watch key
+// must remain accessible so Search's lazy getOptimisticWatchKey() resolution
+// can still find it.
+const flushedWatchKeys = new Map<string, OnyxKey>();
 
 function clearChannelTimeout(channel: DeferredChannel) {
     clearTimeout(channel.safetyTimeoutId);
@@ -56,8 +74,22 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
 
     const existing = channels.get(key);
     if (existing) {
-        Log.warn(`[DeferredLayoutWrite] Overwriting unflushed deferred write for key "${key}" - flushing the pending one first`);
-        flushDeferredWrite(key);
+        if (existing.isReserved) {
+            clearChannelTimeout(existing);
+            const shouldFlushImmediately = existing.flushRequested;
+            channels.delete(key);
+
+            if (shouldFlushImmediately) {
+                if (optimisticWatchKey) {
+                    flushedWatchKeys.set(key, optimisticWatchKey);
+                }
+                callback();
+                return;
+            }
+        } else {
+            Log.warn(`[DeferredLayoutWrite] Overwriting unflushed deferred write for key "${key}" - flushing the pending one first`);
+            flushDeferredWrite(key);
+        }
     }
 
     const safetyTimeoutId = setTimeout(() => {
@@ -71,10 +103,20 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
 /**
  * Execute and clear the pending deferred write for the given key.
  * Called by the target component when actual content (not skeleton) lays out.
+ *
+ * If the channel is still reserved (real callback not yet registered), the
+ * flush is deferred: the channel is marked `flushRequested` so that
+ * registerDeferredWrite will execute the real callback immediately when it
+ * arrives, instead of creating a new channel that nobody would flush.
  */
 function flushDeferredWrite(key: string) {
     const channel = channels.get(key);
     if (!channel) {
+        return;
+    }
+
+    if (channel.isReserved) {
+        channel.flushRequested = true;
         return;
     }
 
@@ -96,6 +138,27 @@ function cancelDeferredWrite(key: string) {
     channels.delete(key);
 }
 
+/**
+ * Pre-create a channel so that hasDeferredWrite(key) returns true immediately.
+ * The real callback will be registered later via registerDeferredWrite, which
+ * silently replaces the reservation. A safety timeout is still set in case
+ * the real registration never arrives.
+ */
+function reserveDeferredWriteChannel(key: string) {
+    if (channels.has(key)) {
+        return;
+    }
+
+    flushedWatchKeys.delete(key);
+
+    const safetyTimeoutId = setTimeout(() => {
+        Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
+        channels.delete(key);
+    }, DEFAULT_SAFETY_TIMEOUT_MS);
+
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true});
+}
+
 function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
 }
@@ -106,7 +169,7 @@ function hasDeferredWrite(key: string): boolean {
  * or the channel was registered without a watch key.
  */
 function getOptimisticWatchKey(key: string): OnyxKey | undefined {
-    return channels.get(key)?.optimisticWatchKey;
+    return channels.get(key)?.optimisticWatchKey ?? flushedWatchKeys.get(key);
 }
 
 // Flush every pending deferred write when the app moves to background so
@@ -122,4 +185,64 @@ AppState.addEventListener('change', (nextState) => {
     }
 });
 
-export {registerDeferredWrite, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
+/**
+ * Decide whether to defer the API write behind a pending layout transition
+ * (Search pre-insert or dismiss-modal) or execute it immediately.
+ *
+ * Priority order (first match wins):
+ *   1. SEARCH channel  - checked via the caller-provided `shouldDeferForSearch` flag
+ *   2. DISMISS_MODAL   - checked automatically via `hasDeferredWrite`
+ *   3. Immediate exec  - no active channel, run now
+ *
+ * Callers pre-compute `shouldDeferForSearch` using their own eligibility logic.
+ * The dismiss-modal channel is detected automatically via `hasDeferredWrite`.
+ */
+function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey; onDeferred?: () => void}) {
+    const {shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred} = options;
+
+    if (shouldDeferForSearch) {
+        onDeferred?.();
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    // Retries skip deferral to avoid infinite loops (retry -> defer -> flush -> retry).
+    // The trade-off is that a retry's optimistic data may be applied mid-animation,
+    // but this is acceptable: retries are rare and the alternative is a stuck write.
+    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+        onDeferred?.();
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    // handleSearchDismiss reserves the SEARCH channel before calling
+    // createTransaction(..., false, false). shouldDeferForSearch is false
+    // (gated by shouldHandleNavigation) but the channel is waiting for a
+    // write - honor it so the reserved channel doesn't linger unused.
+    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        onDeferred?.();
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    apiWrite();
+}
+
+/**
+ * Clear all channels and flushed watch keys. Only for use in tests.
+ * Exported from production code (rather than a test helper) so jest.mock
+ * can auto-resolve it alongside the other exports. Gated behind __DEV__
+ * so the function is a no-op in production (bundler dead-code eliminates the branch).
+ */
+function resetForTesting() {
+    if (!__DEV__) {
+        return;
+    }
+    for (const channel of channels.values()) {
+        clearChannelTimeout(channel);
+    }
+    channels.clear();
+    flushedWatchKeys.clear();
+}
+
+export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey, deferOrExecuteWrite, resetForTesting};

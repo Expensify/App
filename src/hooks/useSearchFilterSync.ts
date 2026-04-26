@@ -5,7 +5,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 /**
  * Syncs computed filter form values to the SEARCH_ADVANCED_FILTERS_FORM Onyx key
- * whenever they change. Call from SearchFiltersBar which already computes formValues
+ * whenever they change. Call from SearchAdvanceFiltersButton which already computes formValues
  * via useFilterFormValues.
  *
  * The isFocused guard prevents the blurred (previous) SearchPage instance—kept

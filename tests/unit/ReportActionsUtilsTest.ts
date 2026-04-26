@@ -4,6 +4,7 @@ import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronos
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
+import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -23,6 +24,9 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
+    getHumanAgentAccountIDFromReportAction,
+    getHumanAgentFirstName,
+    getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
@@ -52,7 +56,7 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -75,7 +79,7 @@ describe('ReportActionsUtils', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         return waitForBatchedUpdates();
     });
 
@@ -1151,12 +1155,12 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for a deleted IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount({reportID: deletedIOUReportID} as Report, currentUserAccountID);
             expect(result).toBe(false);
         });
 
         it('should return true for an active IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount({reportID: activeIOUReportID} as Report, currentUserAccountID);
             expect(result).toBe(true);
         });
 
@@ -1183,7 +1187,7 @@ describe('ReportActionsUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
 
             // Then: should return true
-            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
             expect(result).toBe(true);
 
             // When: all transactions from the current user account have been deleted
@@ -1193,8 +1197,34 @@ describe('ReportActionsUtils', () => {
             });
 
             // Then: should return false
-            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
             expect(result).toBe(false);
+        });
+
+        it('should use explicit allReports parameter when provided and reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '6';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // Set up transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Pass report explicitly instead of relying on Onyx state
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
+            expect(result).toBe(true);
         });
     });
 
@@ -1287,9 +1317,27 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             };
-            const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
+            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should translate the REIMBURSED action using originalMessage.method when paymentMethod is absent (Pusher path)', () => {
+            // Given a REIMBURSED action that arrived via Pusher with only `method` set (as Auth stores it)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '2',
+                created: '2024-01-01',
+                originalMessage: {
+                    method: 'Check',
+                },
+            };
+            // When we get the message fragments
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            // Then the translated message is used (not raw backend text)
+            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
+            expect(fragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+            expect(expectedMessage).toContain('check');
         });
 
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
@@ -1938,6 +1986,47 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
+        it('should return true for REIMBURSED action from OldDot', () => {
+            // Given a REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for REIMBURSED action from NewDot', () => {
+            // Given a REIMBURSED action created from NewDot (isNewDot=true)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+                originalMessage: {isNewDot: true},
+            };
+
+            // Then the action should NOT be visible (IOU PAY action is shown instead)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
@@ -1952,6 +2041,27 @@ describe('ReportActionsUtils', () => {
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED action from OldDot', () => {
+            // Given a MARKED_REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Marked as reimbursed',
+                    },
+                ],
+                originalMessage: {},
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
@@ -1969,6 +2079,27 @@ describe('ReportActionsUtils', () => {
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
+        });
+
+        it('should return false for MARKED_REIMBURSED action from NewDot', () => {
+            // Given a MARKED_REIMBURSED action created from NewDot (isNewDot=true)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Marked as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true},
+            };
+
+            // Then the action should NOT be visible (IOU PAY action is shown instead)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
@@ -4914,6 +5045,185 @@ describe('ReportActionsUtils', () => {
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+    });
+
+    describe('getIntegrationSyncFailedMessage', () => {
+        const testPolicyID = 'test-policy-123';
+
+        it('should render message without recurrence text when recurrenceCount is absent', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-1',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'QuickBooks Online',
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Auth token expired',
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Auth token expired');
+            expect(result).not.toContain('Repeated');
+        });
+
+        it('should append recurrence text when recurrenceCount > 1', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-2',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'NetSuite',
+                    source: 'AUTOSYNC',
+                    errorMessage: 'Login Error',
+                    recurrenceCount: 3,
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Login Error');
+            expect(result).toContain('Repeated 3 times');
+        });
+
+        it('should not append recurrence text when recurrenceCount is 1', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-3',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'Xero',
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Rate limit',
+                    recurrenceCount: 1,
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Rate limit');
+            expect(result).not.toContain('Repeated');
+        });
+    });
+
+    describe('getHumanAgentAccountIDFromReportAction', () => {
+        const HUMAN_AGENT_ACCOUNT_ID = 12345;
+
+        function makeConciergeAction(originalMessageOverrides: Record<string, unknown> = {}): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: {
+                    html: 'hello',
+                    lastModified: '2026-01-01 00:00:00.000',
+                    whisperedTo: [],
+                    ...originalMessageOverrides,
+                },
+            };
+        }
+
+        it('returns undefined when the report action is null', () => {
+            expect(getHumanAgentAccountIDFromReportAction(null)).toBeUndefined();
+        });
+
+        it('returns undefined when the report action is undefined', () => {
+            expect(getHumanAgentAccountIDFromReportAction(undefined)).toBeUndefined();
+        });
+
+        it('returns undefined when the actor is not Concierge', () => {
+            const action: ReportAction = {
+                ...makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID}),
+                actorAccountID: 42,
+            };
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBeUndefined();
+        });
+
+        it('returns undefined when the Concierge action has no original message', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: undefined,
+            };
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBeUndefined();
+        });
+
+        it('returns undefined when humanAgentAccountID is missing from originalMessage', () => {
+            expect(getHumanAgentAccountIDFromReportAction(makeConciergeAction())).toBeUndefined();
+        });
+
+        it('returns undefined when humanAgentAccountID is not a number (e.g. a string)', () => {
+            const action = makeConciergeAction({humanAgentAccountID: '12345'});
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBeUndefined();
+        });
+
+        it('returns the humanAgentAccountID when the Concierge action carries one', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentAccountIDFromReportAction(action)).toBe(HUMAN_AGENT_ACCOUNT_ID);
+        });
+    });
+
+    describe('getHumanAgentFirstName', () => {
+        const HUMAN_AGENT_ACCOUNT_ID = 54321;
+
+        function makeConciergeAction(originalMessageOverrides: Record<string, unknown> = {}): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: {
+                    html: 'hello',
+                    lastModified: '2026-01-01 00:00:00.000',
+                    whisperedTo: [],
+                    ...originalMessageOverrides,
+                },
+            };
+        }
+
+        function makePersonalDetails(firstName: string | undefined, displayName = 'Pat Agent'): PersonalDetailsList {
+            return {
+                [HUMAN_AGENT_ACCOUNT_ID]: {
+                    accountID: HUMAN_AGENT_ACCOUNT_ID,
+                    firstName,
+                    displayName,
+                },
+            };
+        }
+
+        it('returns undefined when there is no human agent on the action', () => {
+            const action = makeConciergeAction();
+            expect(getHumanAgentFirstName(action, makePersonalDetails('Pat'))).toBeUndefined();
+        });
+
+        it('returns the agent firstName (not the full displayName) when available', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, makePersonalDetails('Pat', 'Pat Agent'))).toBe('Pat');
+        });
+
+        it('returns undefined when personalDetails has no entry for the agent', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, {})).toBeUndefined();
+        });
+
+        it('returns undefined when personalDetails are not loaded yet', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, undefined)).toBeUndefined();
+        });
+
+        it('returns undefined when the agent firstName is an empty string so the generic fallback can be used', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, makePersonalDetails(''))).toBeUndefined();
+        });
+
+        it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
+            const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
+            expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
         });
     });
 });

@@ -1,5 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useCallback, useContext, useMemo, useRef} from 'react';
+import {useCallback, useContext, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -58,9 +58,8 @@ function useAttachmentUploadValidation({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const personalPolicy = usePersonalPolicy();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [hasOnlyPersonalPolicies = true] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);

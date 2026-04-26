@@ -69,6 +69,7 @@ function CreateReportMenuItem() {
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: chatEnabledPaidGroupPolicies}, [session?.email]);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const isVisible = canRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
@@ -136,13 +137,14 @@ function CreateReportMenuItem() {
                     // If we couldn't guess the workspace to create the report, or a guessed workspace is past its grace period and we have other workspaces to choose from
                     if (
                         !workspaceIDForReportCreation ||
-                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds) && groupPoliciesWithChatEnabled.length > 1)
+                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                            groupPoliciesWithChatEnabled.length > 1)
                     ) {
                         Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                         return;
                     }
 
-                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                         // Check if empty report confirmation should be shown
                         if (shouldShowEmptyReportConfirmation) {
                             openCreateReportConfirmation();

@@ -2,7 +2,6 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {translate} from '@libs/Localize';
 import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
@@ -128,6 +127,10 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
+    return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+};
+
 const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
 
@@ -157,6 +160,11 @@ const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => 
 
 const hasReusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => !!getReusablePoliciesConnectedToQBD(policies, currentPolicyID).length;
 
+// Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
+// en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
+// cspell:disable-next-line
+const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
+
 function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
@@ -166,13 +174,10 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
     const displayNameForWorkspace = getDisplayNameForWorkspace(email);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = Object.values(CONST.LOCALES)
-        .map((lang) => translate(lang, 'workspace.common.workspace'))
-        .join('|');
 
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
-    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${WORKSPACE_TRANSLATIONS})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(policies ?? {})
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
@@ -204,4 +209,5 @@ export {
     hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToQBDSelector,
     lastWorkspaceNumberSelector,
+    hasOnlyPersonalPoliciesSelector,
 };

@@ -17,6 +17,7 @@ import RenderHTML from '@components/RenderHTML';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,7 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
@@ -45,7 +46,7 @@ import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
-import {approveMoneyRequest} from '@userActions/IOU';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,7 +107,9 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const expenseReportPolicy = usePolicy(iouReport?.policyID);
+    const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -166,7 +169,7 @@ function SettlementButton({
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email ?? '');
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
@@ -224,7 +227,7 @@ function SettlementButton({
                 return true;
             }
 
-            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return true;
             }
@@ -278,7 +281,7 @@ function SettlementButton({
     };
 
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
-    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
@@ -418,10 +421,11 @@ function SettlementButton({
                     introSelected,
                     activePolicyID,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                    currentUserEmailParam: email,
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
+                    policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 }).policyID;
             };
 
@@ -498,6 +502,7 @@ function SettlementButton({
             } else {
                 approveMoneyRequest({
                     expenseReport: iouReport,
+                    expenseReportPolicy,
                     policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,9 +29,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
+
+type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 
 type FullySetUpCardSetting = {
     key: string;
@@ -80,7 +82,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const {connection} = route.params;
-    const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
+    const connectionName = getConnectionNameFromRouteParam(connection) as AccountingConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
     const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
 
@@ -95,14 +97,14 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         if (!policyID) {
             return '';
         }
-        const backTo = ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection);
+
         switch (connection) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
                 return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:

@@ -57,7 +57,7 @@ function BasePicker<TPickerValue>({
     const picker = useRef<RNPickerSelect>(null);
 
     useEffect(() => {
-        if (!!value || !items || items.length !== 1 || !onInputChange) {
+        if (!!value || items?.length !== 1 || !onInputChange) {
             return;
         }
 

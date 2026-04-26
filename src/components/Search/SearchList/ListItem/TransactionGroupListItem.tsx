@@ -78,8 +78,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    nonPersonalAndWorkspaceCards,
     isFirstItem,
     isLastItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    onUndelete,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -137,7 +141,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             conciergeReportID,
-        }) as [TransactionListItemType[], number];
+        }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
@@ -197,6 +201,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
@@ -451,6 +456,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 />
             );
         }
@@ -534,6 +541,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected),
+                    isLargeScreenWidth && isLastItem && styles.overflowHidden,
                 ]}
             >
                 {({hovered}) => (
@@ -568,6 +576,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
+                                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onUndelete={onUndelete}
                             />
                         </AnimatedCollapsible>
                     </View>
