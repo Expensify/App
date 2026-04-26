@@ -7138,6 +7138,11 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         }
     }
 
+    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        delete originalMessage.IOUReportID;
+    }
+
     if (type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // Split expense made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
         if (isOwnPolicyExpenseChat && type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {

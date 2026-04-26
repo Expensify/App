@@ -700,10 +700,10 @@ function PureReportActionItem({
         if (isIOURequestReportAction(action)) {
             const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
             const chatReportID = isIOUReport(report) ? report?.chatReportID : reportID;
+            const isSplitBill = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+            const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
             children = emptyHTML;
             if (report?.type === CONST.REPORT.TYPE.CHAT) {
-                const isSplitBill = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
-                const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
@@ -748,6 +748,49 @@ function PureReportActionItem({
                         </View>
                     );
                 }
+            } else if (action.reportID) {
+                children = (
+                    <TransactionPreview
+                        iouReportID={action.reportID}
+                        chatReportID={chatReportID}
+                        reportID={reportID}
+                        action={action}
+                        isHovered={hovered}
+                        contextMenuAnchor={popoverAnchorRef.current}
+                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                        shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                        isBillSplit={isSplitBillActionReportActionsUtils(action)}
+                        isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                        containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, displayAsGroup ? [] : styles.mt2]}
+                        transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
+                        onPreviewPressed={() => {
+                            if (shouldShowSplitPreview) {
+                                Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+                                return;
+                            }
+
+                            if (!action.childReportID) {
+                                const createdTransactionThreadReport = createTransactionThreadReport(
+                                    introSelected,
+                                    personalDetail.email ?? '',
+                                    personalDetail.accountID,
+                                    betas,
+                                    iouReport,
+                                    action,
+                                );
+                                if (createdTransactionThreadReport?.reportID) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+                                    return;
+                                }
+                                return;
+                            }
+
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                        }}
+                        originalReportID={originalReportID}
+                        isWhisper={isWhisper}
+                    />
+                );
             }
         } else if (isTripPreview(action)) {
             children = (

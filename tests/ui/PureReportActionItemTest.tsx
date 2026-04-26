@@ -2305,11 +2305,13 @@ describe('PureReportActionItem', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                IOUTransactionID: 'txn123',
-                IOUReportID: 'iouReport1',
-            });
+            const action = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: 'txn123',
+                }),
+                reportID: 'iouReport1',
+            } as ReportAction;
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
