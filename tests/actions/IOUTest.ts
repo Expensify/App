@@ -745,9 +745,6 @@ describe('actions/IOU', () => {
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                    // The IOUReportID should be correct
-                                    expect(originalMessage?.IOUReportID).toBe(iouReportID);
-
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
 
@@ -974,9 +971,6 @@ describe('actions/IOU', () => {
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(iouCreatedAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                    // The IOUReportID should be correct
-                                    expect(originalMessage?.IOUReportID).toBe(iouReportID);
-
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
 
@@ -1104,8 +1098,8 @@ describe('actions/IOU', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
+                reportID: iouReportID,
                 originalMessage: {
-                    IOUReportID: iouReportID,
                     IOUTransactionID: existingTransaction.transactionID,
                     amount: existingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
@@ -1199,9 +1193,6 @@ describe('actions/IOU', () => {
                                     );
 
                                     const newOriginalMessage = newIOUAction ? getOriginalMessage(newIOUAction) : null;
-
-                                    // The IOUReportID should be correct
-                                    expect(getOriginalMessage(iouAction)?.IOUReportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(newOriginalMessage?.comment).toBe(comment);
@@ -1380,9 +1371,6 @@ describe('actions/IOU', () => {
 
                                         // The CREATED action should not be created after the IOU action
                                         expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
-
-                                        // The IOUReportID should be correct
-                                        expect(originalMessage?.IOUReportID).toBe(iouReportID);
 
                                         // The comment should be included in the IOU action
                                         expect(originalMessage?.comment).toBe(comment);
@@ -3105,7 +3093,6 @@ describe('actions/IOU', () => {
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: julesIOUReportID,
                     IOUTransactionID: julesExistingTransaction?.transactionID,
                     amount: julesExistingTransaction?.amount ?? 0,
                     currency: CONST.CURRENCY.USD,
@@ -3315,7 +3302,6 @@ describe('actions/IOU', () => {
                                     const carlosOriginalMessage = carlosIOUAction ? getOriginalMessage(carlosIOUAction) : undefined;
 
                                     expect(carlosIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                    expect(carlosOriginalMessage?.IOUReportID).toBe(carlosIOUReport?.reportID);
                                     expect(carlosOriginalMessage?.comment).toBe(comment);
                                     expect(carlosOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                                     expect(Date.parse(carlosIOUCreatedAction?.created ?? '')).toBeLessThan(Date.parse(carlosIOUAction?.created ?? ''));
@@ -3333,7 +3319,6 @@ describe('actions/IOU', () => {
                                     const julesOriginalMessage = julesIOUAction ? getOriginalMessage(julesIOUAction) : undefined;
 
                                     expect(julesIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                    expect(julesOriginalMessage?.IOUReportID).toBe(julesIOUReport?.reportID);
                                     expect(julesOriginalMessage?.comment).toBe(comment);
                                     expect(julesOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                                     expect(Date.parse(julesIOUCreatedAction?.created ?? '')).toBeLessThan(Date.parse(julesIOUAction?.created ?? ''));
@@ -3350,7 +3335,6 @@ describe('actions/IOU', () => {
 
                                     expect(vitCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(vitIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                    expect(vitOriginalMessage?.IOUReportID).toBe(vitIOUReport?.reportID);
                                     expect(vitOriginalMessage?.comment).toBe(comment);
                                     expect(vitOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
                                     expect(Date.parse(vitCreatedAction?.created ?? '')).toBeLessThan(Date.parse(vitIOUAction?.created ?? ''));
