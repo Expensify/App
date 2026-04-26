@@ -423,12 +423,15 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             isChatReportArchived,
             outstandingReportsByPolicyID,
             transaction: transactionToMove,
+            report: moneyRequestReport,
+            policy,
+            reportActions,
         });
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
         return canMoveExpense && canUserPerformWriteAction;
-    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
+    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport, policy]);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
     const getCanIOUBePaid = useCallback(

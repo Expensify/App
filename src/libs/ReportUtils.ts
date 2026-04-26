@@ -144,6 +144,7 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
+    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -4910,6 +4911,8 @@ function canEditMultipleTransactions(
     return true;
 }
 
+type MoveExpenseReportActions = OnyxEntry<ReportActions> | ReportAction[] | undefined;
+
 /**
  * Checks if the current user can edit the provided property of an expense
  *
@@ -4923,6 +4926,7 @@ function canEditFieldOfMoneyRequest({
     transaction,
     report,
     policy,
+    reportActions,
 }: {
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
@@ -4932,6 +4936,7 @@ function canEditFieldOfMoneyRequest({
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
+    reportActions?: MoveExpenseReportActions;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -5030,7 +5035,7 @@ function canEditFieldOfMoneyRequest({
             return true;
         }
 
-        if (shouldTreatAsForwardedForMoveExpense(moneyRequestReport)) {
+        if (shouldTreatAsForwardedForMoveExpense(moneyRequestReport, reportActions) || shouldBlockForwardedMoveFromSnapshot(moneyRequestReport, reportPolicy)) {
             return false;
         }
 
@@ -11531,9 +11536,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '');
 }
 
-function hasForwardedAction(reportID: string): boolean {
-    const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+function getMoveExpenseReportActions(reportID: string, reportActions?: MoveExpenseReportActions): ReportAction[] {
+    const actions = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? getAllReportActions(reportID));
+    return actions.filter((action): action is ReportAction => !!action);
+}
+
+function hasForwardedAction(reportID: string, reportActions?: MoveExpenseReportActions): boolean {
+    return getMoveExpenseReportActions(reportID, reportActions).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
 const MOVE_FORWARDING_WORKFLOW_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
@@ -11556,12 +11565,12 @@ const MOVE_FORWARDING_RESET_ACTIONS: ReadonlySet<ReportAction['actionName']> = n
  * Returns true when the latest workflow action for the current processing cycle indicates the report
  * has already been advanced away from the original submit-to approver.
  */
-function hasCurrentForwardingWorkflowAction(reportID: string): boolean {
-    const reportActions = getSortedReportActions(
-        Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && !isDeletedAction(action) && !isPendingRemove(action)),
+function hasCurrentForwardingWorkflowAction(reportID: string, reportActions?: MoveExpenseReportActions): boolean {
+    const sortedReportActions = getSortedReportActions(
+        getMoveExpenseReportActions(reportID, reportActions).filter((action): action is ReportAction => !!action && !isDeletedAction(action) && !isPendingRemove(action)),
         true,
     );
-    const latestWorkflowAction = reportActions.find((action) => MOVE_FORWARDING_WORKFLOW_ACTIONS.has(action.actionName) || MOVE_FORWARDING_RESET_ACTIONS.has(action.actionName));
+    const latestWorkflowAction = sortedReportActions.find((action) => MOVE_FORWARDING_WORKFLOW_ACTIONS.has(action.actionName) || MOVE_FORWARDING_RESET_ACTIONS.has(action.actionName));
 
     if (!latestWorkflowAction) {
         return false;
@@ -11575,7 +11584,7 @@ function hasCurrentForwardingWorkflowAction(reportID: string): boolean {
  * We require current workflow history, not only submitToAccountID !== managerID, because
  * policy approver changes can create the same mismatch for reports that were never forwarded.
  */
-function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boolean {
+function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, reportActions?: MoveExpenseReportActions): boolean {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
 
     if (!iouReport || !policy || !iouReport.reportID || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
@@ -11588,15 +11597,40 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boole
         return false;
     }
 
-    return hasCurrentForwardingWorkflowAction(iouReport.reportID);
+    return hasCurrentForwardingWorkflowAction(iouReport.reportID, reportActions);
 }
 
-function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>): boolean {
+function shouldBlockForwardedMoveFromSnapshot(iouReport: OnyxInputOrEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (!iouReport || !policy || !isExpenseReport(iouReport) || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID) || !iouReport.submitted) {
+        return false;
+    }
+
+    const nextStep = iouReport.nextStep;
+    if (nextStep?.messageKey !== CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE || nextStep.actorAccountID !== iouReport.managerID) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, iouReport);
+    if (!isNumber(submitToAccountID) || submitToAccountID === iouReport.managerID) {
+        return false;
+    }
+
+    const submitToLogin = getLoginByAccountID(submitToAccountID);
+    const managerLogin = getLoginByAccountID(iouReport.managerID);
+    if (!submitToLogin || !managerLogin) {
+        return false;
+    }
+
+    const submitToEmployee = policy.employeeList?.[submitToLogin];
+    return submitToEmployee?.forwardsTo === managerLogin || submitToEmployee?.overLimitForwardsTo === managerLogin;
+}
+
+function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>, reportActions?: MoveExpenseReportActions): boolean {
     if (!iouReport || !isExpenseReport(iouReport) || !iouReport.reportID) {
         return false;
     }
 
-    return hasForwardedAction(iouReport.reportID) || hasForwardedByManagerChange(iouReport);
+    return hasForwardedAction(iouReport.reportID, reportActions) || hasForwardedByManagerChange(iouReport, reportActions);
 }
 
 function isReportOutstanding(

@@ -1002,6 +1002,9 @@ function getSecondaryReportActions({
                 isChatReportArchived,
                 outstandingReportsByPolicyID,
                 transaction,
+                report,
+                policy,
+                reportActions,
             });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
 
@@ -1093,7 +1096,15 @@ function getSecondaryTransactionThreadActions(
     if (
         reportTransaction?.transactionID &&
         reportAction &&
-        canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, isChatReportArchived, outstandingReportsByPolicyID, transaction: reportTransaction}) &&
+        canEditFieldOfMoneyRequest({
+            reportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+            isChatReportArchived,
+            outstandingReportsByPolicyID,
+            transaction: reportTransaction,
+            report: parentReport,
+            policy,
+        }) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

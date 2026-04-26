@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -67,7 +67,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportActions, SaveSearch, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -114,6 +114,7 @@ function mapTransactionItemToSelectedEntry(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    reportActions?: OnyxEntry<ReportActions>,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
@@ -138,6 +139,7 @@ function mapTransactionItemToSelectedEntry(
                 transaction: item,
                 report: item.report,
                 policy: item.policy,
+                reportActions,
             }),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -178,6 +180,10 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType)
     ];
 }
 
+function getReportActionsForTransactionItem(item: TransactionListItemType, reportActions?: OnyxCollection<ReportActions>): OnyxEntry<ReportActions> {
+    return item.reportID ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`] : undefined;
+}
+
 function prepareTransactionsList(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -186,6 +192,7 @@ function prepareTransactionsList(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    reportActions?: OnyxCollection<ReportActions>,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -200,6 +207,7 @@ function prepareTransactionsList(
         currentUserLogin,
         currentUserAccountID,
         outstandingReportsByPolicyID,
+        getReportActionsForTransactionItem(item, reportActions),
         false,
     );
 
@@ -776,6 +784,7 @@ function Search({
                             transaction: transactionItem,
                             report: transactionItem.report,
                             policy: transactionItem.policy,
+                            reportActions: getReportActionsForTransactionItem(transactionItem, reportActions),
                         }),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -831,6 +840,7 @@ function Search({
                         transaction: transactionItem,
                         report: transactionItem.report,
                         policy: transactionItem.policy,
+                        reportActions: getReportActionsForTransactionItem(transactionItem, reportActions),
                     }),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -965,6 +975,7 @@ function Search({
                     email ?? '',
                     accountID,
                     outstandingReportsByPolicyID,
+                    reportActions,
                 );
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1030,14 +1041,33 @@ function Search({
                             const originalItemTransaction =
                                 searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                            return mapTransactionItemToSelectedEntry(
+                                transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                email ?? '',
+                                accountID,
+                                outstandingReportsByPolicyID,
+                                getReportActionsForTransactionItem(transactionItem, reportActions),
+                            );
                         }),
                 ),
             };
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            filteredData,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            email,
+            accountID,
+            outstandingReportsByPolicyID,
+            searchResults?.data,
+            reportActions,
+        ],
     );
 
     const onSelectRow = useCallback(
@@ -1337,7 +1367,15 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            getReportActionsForTransactionItem(transactionItem, reportActions),
+                        );
                     });
             });
             updatedTransactions = Object.fromEntries(allSelections);
@@ -1349,7 +1387,15 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            getReportActionsForTransactionItem(transactionItem, reportActions),
+                        );
                     }),
             );
         }
@@ -1368,6 +1414,7 @@ function Search({
         accountID,
         outstandingReportsByPolicyID,
         searchResults?.data,
+        reportActions,
     ]);
 
     const onLayout = useCallback(() => {

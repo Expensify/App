@@ -5,7 +5,7 @@ import {canEditFieldOfMoneyRequest, canEditMoneyRequest} from '@libs/ReportUtils
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Policy, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -160,6 +160,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             const FORWARDED_APPROVER_ACCOUNT_ID = 7777;
             const FORWARDED_MANAGER_ACCOUNT_ID = 8888;
             const FORWARDED_APPROVER_EMAIL = 'forwarded.approver@expensify.test';
+            const FORWARDED_MANAGER_EMAIL = 'forwarded.manager@expensify.test';
             const FORWARDED_APPROVER_ACCOUNT_ID_2 = 6666;
             const FORWARDED_APPROVER_EMAIL_2 = 'forwarded.approver.2@expensify.test';
 
@@ -285,6 +286,66 @@ describe('canEditFieldOfMoneyRequest', () => {
                 } else {
                     await Onyx.merge(reportMetadataKey, {pendingExpenseAction: null});
                 }
+                await waitForBatchedUpdates();
+            };
+
+            const seedForwardedSnapshotMoveFixture = async ({
+                nextStep = {
+                    actorAccountID: FORWARDED_MANAGER_ACCOUNT_ID,
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                },
+                submitToEmployee = {
+                    email: FORWARDED_APPROVER_EMAIL,
+                    forwardsTo: FORWARDED_MANAGER_EMAIL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            }: {
+                nextStep?: Report['nextStep'] | null;
+                submitToEmployee?: NonNullable<Policy['employeeList']>[string];
+            } = {}) => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                    [FORWARDED_APPROVER_ACCOUNT_ID]: {
+                        accountID: FORWARDED_APPROVER_ACCOUNT_ID,
+                        login: FORWARDED_APPROVER_EMAIL,
+                    },
+                    [FORWARDED_MANAGER_ACCOUNT_ID]: {
+                        accountID: FORWARDED_MANAGER_ACCOUNT_ID,
+                        login: FORWARDED_MANAGER_EMAIL,
+                    },
+                });
+                await Onyx.merge(policyKey, {
+                    ...expensePolicy,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            email: currentUserEmail,
+                            submitsTo: FORWARDED_APPROVER_EMAIL,
+                            role: CONST.POLICY.ROLE.USER,
+                        },
+                        [FORWARDED_APPROVER_EMAIL]: submitToEmployee,
+                        [FORWARDED_MANAGER_EMAIL]: {
+                            email: FORWARDED_MANAGER_EMAIL,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                        },
+                    },
+                });
+                await Onyx.merge(reportKey, {
+                    ...expenseReport,
+                    managerID: FORWARDED_MANAGER_ACCOUNT_ID,
+                    submitted: '2026-04-03 10:00:00',
+                    nextStep: nextStep ?? undefined,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(reportActionsKey, {});
+                await Onyx.set(reportMetadataKey, null);
                 await waitForBatchedUpdates();
             };
 
@@ -415,6 +476,123 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should hide move when the report snapshot shows the submit-to approver forwards to the current manager', async () => {
+                await seedForwardedSnapshotMoveFixture();
+                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
+                const submitToAccountID = getSubmitToAccountID(currentPolicy, currentReport);
+
+                expect(submitToAccountID).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
+                expect(currentReport?.managerID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
+                expect(currentReport?.nextStep?.actorAccountID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
+                expect(currentReport?.nextStep?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE);
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                    reportActions: {},
+                });
+
+                expect(canEditReportField).toBe(false);
+            });
+
+            it.each([
+                ['missing nextStep', null],
+                [
+                    'nextStep is not waiting to approve',
+                    {
+                        actorAccountID: FORWARDED_MANAGER_ACCOUNT_ID,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    },
+                ],
+                [
+                    'nextStep points to the submit-to approver instead of the manager',
+                    {
+                        actorAccountID: FORWARDED_APPROVER_ACCOUNT_ID,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    },
+                ],
+            ] satisfies Array<[string, Report['nextStep'] | null]>)('should keep move enabled when the snapshot guard is incomplete because %s', async (_caseName, nextStep) => {
+                await seedForwardedSnapshotMoveFixture({nextStep});
+                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
+
+                expect(getSubmitToAccountID(currentPolicy, currentReport)).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
+                expect(currentReport?.managerID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                    reportActions: {},
+                });
+
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should keep move enabled when submit-to differs from manager but the policy does not forward to that manager', async () => {
+                await seedForwardedSnapshotMoveFixture({
+                    submitToEmployee: {
+                        email: FORWARDED_APPROVER_EMAIL,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                });
+                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
+
+                expect(getSubmitToAccountID(currentPolicy, currentReport)).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
+                expect(currentReport?.managerID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                    reportActions: {},
+                });
+
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should hide move when passed report actions contain FORWARDED even if the global report action cache is empty', async () => {
+                await seedForwardedSnapshotMoveFixture({
+                    nextStep: undefined,
+                    submitToEmployee: {
+                        email: FORWARDED_APPROVER_EMAIL,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                });
+
+                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
+                const forwardedAction = createMoveWorkflowAction(601, CONST.REPORT.ACTIONS.TYPE.FORWARDED, '2026-03-01 09:00:00.000');
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                    reportActions: {
+                        [forwardedAction.reportActionID]: forwardedAction,
+                    },
+                });
+
                 expect(canEditReportField).toBe(false);
             });
 
