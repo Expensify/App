@@ -2642,6 +2642,8 @@ ${amount} para ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude no cartão reportada',
         description: 'Desativamos permanentemente seu cartão atual. Quando você voltar para ver os detalhes do cartão, um novo cartão virtual estará disponível.',
+        descriptionCardNotReplaced:
+            'Seu cartão foi desativado permanentemente, mas não pode ser substituído enquanto estiver congelado. Por favor, descongele-o ou peça a um administrador de domínio para emitir um novo.',
         buttonText: 'Entendido, obrigado!',
     },
     activateCardPage: {

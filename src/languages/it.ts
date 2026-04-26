@@ -2651,6 +2651,8 @@ ${amount} per ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Frode della carta segnalata',
         description: 'Abbiamo disattivato definitivamente la tua carta esistente. Quando tornerai a visualizzare i dettagli della carta, avrai a disposizione una nuova carta virtuale.',
+        descriptionCardNotReplaced:
+            'La tua carta è stata disattivata definitivamente, ma non può essere sostituita mentre è bloccata. Per favore, sbloccala oppure chiedi a un amministratore di dominio di emetterne una nuova.',
         buttonText: 'Ricevuto, grazie!',
     },
     activateCardPage: {
