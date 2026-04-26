@@ -103,11 +103,7 @@ function getRestrictedPolicyID(
 ): string | undefined {
     return items
         .map((item) => item.policyID)
-        .find(
-            (policyID): policyID is string =>
-                !!policyID &&
-                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
-        );
+        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed));
 }
 
 type ShouldShowBulkDuplicateParams = {
@@ -1057,10 +1053,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
-                        if (
-                            defaultExpensePolicy &&
-                            shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultExpensePolicy)
-                        ) {
+                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                             return;
                         }
@@ -1377,10 +1370,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    if (
-                        defaultExpensePolicy &&
-                        shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultExpensePolicy)
-                    ) {
+                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                         return;
                     }

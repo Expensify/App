@@ -354,10 +354,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
-                if (
-                    defaultExpensePolicy &&
-                    shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultExpensePolicy)
-                ) {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     dropdownMenuRef.current?.setIsMenuVisible(false);
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
