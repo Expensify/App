@@ -192,9 +192,9 @@ function ReportActionItemParentAction({
                         introSelected,
                         isSelfTourViewed,
                         allBetas,
+                        personalDetails,
                         undefined,
                         true,
-                        personalDetails,
                     )
                 }
             >
@@ -228,9 +228,9 @@ function ReportActionItemParentAction({
                                     introSelected,
                                     isSelfTourViewed,
                                     allBetas,
-                                    undefined,
-                                    undefined,
                                     personalDetails,
+                                    undefined,
+                                    undefined,
                                 )
                             }
                         >

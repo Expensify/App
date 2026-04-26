@@ -365,7 +365,7 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true, personalDetails);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -402,7 +402,7 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true, personalDetails);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true, true);
         }
     };
 
