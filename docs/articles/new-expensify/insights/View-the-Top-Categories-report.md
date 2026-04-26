@@ -30,10 +30,10 @@ The Top Categories report is available to all workspace members on web and mobil
 ## Where to find the Top Categories report
 
 **Web:**  
-Click **Reports** in the left navigation, then click **Top categories** under the **Insights** section
+Click **Spend** in the left navigation, then click **Top categories** under the **Insights** section
 
 **Mobile:**  
-Tap **Reports** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top categories**.
+Tap **Spend** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top categories**.
 
 ---
 
@@ -66,11 +66,11 @@ The Top Categories report is a suggested search template. You cannot save change
 
 To create and save a custom report:
 
-1. Go to the **Reports** or **Expenses** tab.
+1. Go to the **Spend** or **Expenses** tab.
 2. Use filters to adjust the category grouping or timeframe.
 3. Apply filters and click **Save search** to save your custom report.
 
-[Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#How-to-use-Reports-search-query-commands)
+[Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-use-spend-search-query-commands)
 
 ---
 
@@ -110,7 +110,7 @@ The Top Categories report can’t be exported with its grouped totals or summary
 
 To export expenses:
 
-1. Go to the **Reports** or **Expenses** tab.
+1. Go to the **Spend** or **Expenses** tab.
 2. Use filters to group by category and apply the same timeframe.
 3. Expand the category group, select the expenses, and click **Export to CSV**.
 

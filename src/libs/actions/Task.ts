@@ -1488,7 +1488,6 @@ export {
     setDetailsValue,
     setAssigneeValue,
     setShareDestinationValue,
-    clearOutTaskInfo,
     reopenTask,
     buildTaskData,
     completeTask,

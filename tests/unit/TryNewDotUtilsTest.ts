@@ -1,5 +1,6 @@
+import {subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import {isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
+import {hasBeenInNewDot30Days, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -66,6 +67,71 @@ describe('TryNewDotUtils', () => {
     it('blocks all Hybrid OldApp exits for users locked to NewApp', () => {
         expect(shouldBlockOldAppExit({isLockedToNewApp: true} as TryNewDot, false, true)).toBe(true);
         expect(shouldBlockOldAppExit({isLockedToNewApp: true} as TryNewDot, false, false)).toBe(true);
+    });
+
+    it('blocks the OldDot redirect when the classicRedirect nudge has gone stale', () => {
+        const tryNewDot = {
+            classicRedirect: {
+                dismissed: false,
+                timestamp: subDays(new Date(), 31).toISOString(),
+            },
+        } as unknown as TryNewDot;
+
+        expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(true);
+    });
+
+    it('still shows the OldDot redirect when the classicRedirect nudge is fresh', () => {
+        const tryNewDot = {
+            classicRedirect: {
+                dismissed: false,
+                timestamp: subDays(new Date(), 5).toISOString(),
+            },
+        } as unknown as TryNewDot;
+
+        expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(false);
+    });
+
+    it('reports that a user has been in NewDot 30 days when the nudge is over a month old and not dismissed', () => {
+        const tryNewDot = {
+            classicRedirect: {
+                dismissed: false,
+                timestamp: subDays(new Date(), 31).toISOString(),
+            },
+        } as unknown as TryNewDot;
+
+        expect(hasBeenInNewDot30Days(tryNewDot)).toBe(true);
+    });
+
+    it('does not report 30 days in NewDot when the nudge is less than a month old', () => {
+        const tryNewDot = {
+            classicRedirect: {
+                dismissed: false,
+                timestamp: subDays(new Date(), 10).toISOString(),
+            },
+        } as unknown as TryNewDot;
+
+        expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
+    });
+
+    it('does not report 30 days in NewDot once the user has dismissed the nudge', () => {
+        const tryNewDot = {
+            classicRedirect: {
+                dismissed: true,
+                timestamp: subDays(new Date(), 60).toISOString(),
+            },
+        } as unknown as TryNewDot;
+
+        expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
+    });
+
+    it('does not report 30 days in NewDot when no timestamp is set', () => {
+        const tryNewDot = {
+            classicRedirect: {
+                dismissed: false,
+            },
+        } as unknown as TryNewDot;
+
+        expect(hasBeenInNewDot30Days(tryNewDot)).toBe(false);
     });
 
     it('preserves isLockedToNewApp when nvp_tryNewDot is merged', async () => {

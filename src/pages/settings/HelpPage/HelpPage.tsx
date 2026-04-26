@@ -28,7 +28,7 @@ const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
-    const illustrations = useMemoizedLazyIllustrations(['LifeRing', 'TopiaryDollarSign']);
+    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'LifeRing', 'TopiaryDollarSign']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -105,7 +105,8 @@ function HelpPage() {
         {
             key: 'initialSettingsPage.helpPage.helpSite',
             title: translate('initialSettingsPage.helpPage.helpSite'),
-            icon: icons.Monitor,
+            icon: illustrations.Chalkboard,
+            iconType: CONST.ICON_TYPE_AVATAR,
             iconRight: icons.NewWindow,
             onPress: () => openExternalLink(CONST.NEWHELP_URL),
             shouldShowRightIcon: true,

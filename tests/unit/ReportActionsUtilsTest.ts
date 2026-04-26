@@ -26,6 +26,7 @@ import {
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
+    getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
@@ -5044,6 +5045,69 @@ describe('ReportActionsUtils', () => {
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+    });
+
+    describe('getIntegrationSyncFailedMessage', () => {
+        const testPolicyID = 'test-policy-123';
+
+        it('should render message without recurrence text when recurrenceCount is absent', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-1',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'QuickBooks Online',
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Auth token expired',
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Auth token expired');
+            expect(result).not.toContain('Repeated');
+        });
+
+        it('should append recurrence text when recurrenceCount > 1', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-2',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'NetSuite',
+                    source: 'AUTOSYNC',
+                    errorMessage: 'Login Error',
+                    recurrenceCount: 3,
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Login Error');
+            expect(result).toContain('Repeated 3 times');
+        });
+
+        it('should not append recurrence text when recurrenceCount is 1', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                reportActionID: 'sync-fail-3',
+                actorAccountID: 1,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    label: 'Xero',
+                    source: 'NEWEXPENSIFY',
+                    errorMessage: 'Rate limit',
+                    recurrenceCount: 1,
+                },
+            } as ReportAction;
+
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
+            expect(result).toContain('Rate limit');
+            expect(result).not.toContain('Repeated');
         });
     });
 
