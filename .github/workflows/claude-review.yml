@@ -100,30 +100,38 @@ jobs:
     env:
       PR_NUMBER: ${{ github.event.pull_request.number || needs.resolvePR.outputs.PR_NUMBER }}
     steps:
+      # Always check out the trusted base ref. Claude reads PR contents via the
+      # gh pr diff/view tools, and the path filter below uses gh pr view --json files,
+      # so we never need fork code on disk. This avoids the pwn-request pattern under
+      # pull_request_target where running repo scripts against PR-head code would
+      # expose secrets to fork-controlled changes.
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
-          # For pull_request_target the default ref is fine; for repository_dispatch we
-          # need to explicitly point at the PR's head SHA so paths-filter and Claude see
-          # the code being reviewed (not the default branch).
-          ref: ${{ github.event.pull_request.head.sha || needs.resolvePR.outputs.HEAD_SHA }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      # Determine which review prompts to run from the PR's file list via the API,
+      # so the same step works for pull_request_target and repository_dispatch
+      # without needing PR-head code or extra git history on disk.
       - name: Filter paths
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
-        with:
-          base: ${{ github.event.pull_request.base.ref || needs.resolvePR.outputs.BASE_REF }}
-          ref: ${{ github.event.pull_request.head.sha || needs.resolvePR.outputs.HEAD_SHA }}
-          filters: |
-            code:
-              - 'src/**'
-            docs:
-              - 'docs/**/*.md'
-              - 'docs/**/*.csv'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FILES=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json files --jq '.files[].path')
+          if echo "$FILES" | grep -qE '^src/'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$FILES" | grep -qE '^docs/.+\.(md|csv)$'; then
+            echo "docs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Add claude utility scripts to PATH
         run: |
