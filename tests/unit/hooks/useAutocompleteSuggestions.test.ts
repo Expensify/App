@@ -364,11 +364,17 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.text).toBe('Test Workspace');
     });
 
+    /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use accountID-keyed maps and email-keyed exclusion records */
     describe('Expensify team exclusion on from: autocomplete', () => {
         const personalDetailsWithStaff = {
             '1': {accountID: 1, login: 'am@expensify.com'},
             '2': {accountID: 2, login: 'guide@team.expensify.com'},
             '3': {accountID: 3, login: 'customer@acme.com'},
+        };
+
+        const lastSearchOptionsCallExclusions = (): Record<string, boolean> | undefined => {
+            const calls = getSearchOptions.mock.calls as Array<[{excludeFromSuggestionsOnly?: Record<string, boolean>}]>;
+            return calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
         };
 
         it('passes Expensify-team exclusions to getSearchOptions for from: when current user is a customer', () => {
@@ -387,8 +393,7 @@ describe('useAutocompleteSuggestions', () => {
                 }),
             );
 
-            const callArgs = getSearchOptions.mock.calls.at(-1)?.[0];
-            expect(callArgs?.excludeFromSuggestionsOnly).toEqual({'am@expensify.com': true, 'guide@team.expensify.com': true});
+            expect(lastSearchOptionsCallExclusions()).toEqual({'am@expensify.com': true, 'guide@team.expensify.com': true});
         });
 
         it('does not exclude Expensify team for from: when current user is Expensify staff', () => {
@@ -407,8 +412,7 @@ describe('useAutocompleteSuggestions', () => {
                 }),
             );
 
-            const callArgs = getSearchOptions.mock.calls.at(-1)?.[0];
-            expect(callArgs?.excludeFromSuggestionsOnly).toEqual({});
+            expect(lastSearchOptionsCallExclusions()).toEqual({});
         });
 
         it('does not apply Expensify-team exclusions to to: autocomplete', () => {
@@ -427,8 +431,8 @@ describe('useAutocompleteSuggestions', () => {
                 }),
             );
 
-            const callArgs = getSearchOptions.mock.calls.at(-1)?.[0];
-            expect(callArgs?.excludeFromSuggestionsOnly).toEqual({});
+            expect(lastSearchOptionsCallExclusions()).toEqual({});
         });
     });
+    /* eslint-enable @typescript-eslint/naming-convention */
 });
