@@ -7,11 +7,18 @@ permissions:
 on:
   pull_request_target:
     types: [opened, ready_for_review]
-  pull_request_review:
-    types: [submitted]
+  # Re-run via repository_dispatch when a Contributor+ approves a PR.
+  # Web-Expensify's GitHub webhook fires this event after verifying C+ membership.
+  # We use repository_dispatch (not pull_request_review) because pull_request_review
+  # on fork PRs is treated like pull_request: no secrets, read-only token. Anyone
+  # who can hit /repos/Expensify/App/dispatches already needs Contents: write on
+  # this repo, so externals/forks cannot fire it.
+  repository_dispatch:
+    types: [claude-review-request]
 
 concurrency:
-  group: claude-review-${{ github.event.pull_request.html_url }}
+  # Scope to PR so rapid C+ re-approvals on the same PR cancel earlier in-progress runs.
+  group: claude-review-${{ github.event.pull_request.html_url || format('pr-{0}', github.event.client_payload.pr_number) }}
   cancel-in-progress: true
 
 jobs:
@@ -23,42 +30,95 @@ jobs:
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
       AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
 
-  checkCPlusApproval:
-    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+  resolvePR:
+    if: github.event_name == 'repository_dispatch'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
-      IS_CPLUS: ${{ steps.check.outputs.IS_CPLUS }}
+      PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
+      HEAD_SHA: ${{ steps.pr.outputs.HEAD_SHA }}
+      BASE_REF: ${{ steps.pr.outputs.BASE_REF }}
+      IS_DRAFT: ${{ steps.pr.outputs.IS_DRAFT }}
+      TITLE: ${{ steps.pr.outputs.TITLE }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 1
+      # Defense in depth: GitHub already restricts /dispatches to tokens with Contents:
+      # write on this repo, which excludes externals and forks. On top of that we require
+      # the dispatcher to be either OSBotify or a GitHub App (a "*[bot]" actor); a real
+      # human committer triggering this event by hand would fail this check.
+      - name: Verify dispatcher
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          if [[ "$ACTOR" == "OSBotify" || "$ACTOR" == *"[bot]" ]]; then
+            echo "::notice::claude-review-request dispatched by $ACTOR"
+          else
+            echo "::error::Unexpected dispatcher for claude-review-request: $ACTOR"
+            exit 1
+          fi
 
-      - name: Check Contributor+ membership
-        id: check
-        uses: ./.github/actions/composite/isContributorPlus
-        with:
-          USERNAME: ${{ github.event.review.user.login }}
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      # Treat the client_payload as untrusted: pass through env vars and validate format
+      # before letting any value reach a shell command. Avoids ${{ ... }} interpolation
+      # injection from a forged-by-an-insider payload.
+      - name: Validate payload
+        env:
+          PR_NUMBER_RAW: ${{ github.event.client_payload.pr_number }}
+          REVIEWER_RAW: ${{ github.event.client_payload.reviewer }}
+        run: |
+          if ! [[ "$PR_NUMBER_RAW" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid pr_number in client_payload: $PR_NUMBER_RAW"
+            exit 1
+          fi
+          if ! [[ "$REVIEWER_RAW" =~ ^[A-Za-z0-9-]{1,39}$ ]]; then
+            echo "::error::Invalid reviewer in client_payload"
+            exit 1
+          fi
+
+      # Re-resolve PR data from GitHub rather than trusting the dispatch payload for
+      # anything beyond pr_number. This way a bogus payload can only point Claude at a
+      # different real PR; it cannot fabricate code or metadata.
+      - name: Resolve PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.client_payload.pr_number }}
+        run: |
+          JSON=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json number,title,isDraft,headRefOid,baseRefName)
+          {
+            echo "PR_NUMBER=$(echo "$JSON" | jq -r '.number')"
+            echo "HEAD_SHA=$(echo "$JSON" | jq -r '.headRefOid')"
+            echo "BASE_REF=$(echo "$JSON" | jq -r '.baseRefName')"
+            echo "IS_DRAFT=$(echo "$JSON" | jq -r '.isDraft')"
+            echo "TITLE<<RESOLVE_EOF"
+            echo "$JSON" | jq -r '.title'
+            echo "RESOLVE_EOF"
+          } >> "$GITHUB_OUTPUT"
 
   review:
-    needs: [validate, checkCPlusApproval]
+    needs: [validate, resolvePR]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
-      && !contains(github.event.pull_request.title, 'Revert')
       && (
-        (github.event_name == 'pull_request_target' && needs.validate.outputs.IS_AUTHORIZED == 'true')
-        || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        (github.event_name == 'pull_request_target'
+          && needs.validate.outputs.IS_AUTHORIZED == 'true'
+          && github.event.pull_request.draft != true
+          && !contains(github.event.pull_request.title, 'Revert'))
+        || (github.event_name == 'repository_dispatch'
+          && needs.resolvePR.result == 'success'
+          && needs.resolvePR.outputs.IS_DRAFT == 'false'
+          && !contains(needs.resolvePR.outputs.TITLE, 'Revert'))
       )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
-      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_NUMBER: ${{ github.event.pull_request.number || needs.resolvePR.outputs.PR_NUMBER }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
+          # For pull_request_target the default ref is fine; for repository_dispatch we
+          # need to explicitly point at the PR's head SHA so paths-filter and Claude see
+          # the code being reviewed (not the default branch).
+          ref: ${{ github.event.pull_request.head.sha || needs.resolvePR.outputs.HEAD_SHA }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -67,6 +127,8 @@ jobs:
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
+          base: ${{ github.event.pull_request.base.ref || needs.resolvePR.outputs.BASE_REF }}
+          ref: ${{ github.event.pull_request.head.sha || needs.resolvePR.outputs.HEAD_SHA }}
           filters: |
             code:
               - 'src/**'
@@ -97,7 +159,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
-          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ env.PR_NUMBER }}"
           claude_args: |
             --model claude-opus-4-6
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.schema.outputs.json }}'
@@ -133,7 +195,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
-          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ env.PR_NUMBER }}"
           claude_args: |
             --model claude-opus-4-6
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
