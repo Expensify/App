@@ -6,13 +6,14 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -29,7 +30,6 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -93,6 +93,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const {login} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
@@ -134,8 +135,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
-
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
     const hasMembersError = shouldShowEmployeeListError(policy);
@@ -164,6 +163,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
+        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]:
+            isBetaEnabled(CONST.BETAS.GUSTO) && (policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
@@ -185,8 +186,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
-    const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
-
     const fetchPolicyData = () => {
         if (policyDraft?.id || !isFocused) {
             return;
@@ -246,6 +245,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]) {
+            workspaceMenuItems.push({
+                translationKey: 'workspace.common.hr',
+                icon: expensifyIcons.Users,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.HR,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
             });
         }
 
@@ -427,15 +437,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={
-                shouldShowNavigationTabBar &&
-                !shouldDisplayLHB && (
-                    <NavigationTabBar
-                        selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingButtons={false}
-                    />
-                )
-            }
+            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContentStyle={styles.overflowVisible}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -448,7 +451,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
+                    onBackButtonPress={() =>
+                        // On narrow, goBack() pops the workspace split; goBack with a route can't resolve inside TAB_NAVIGATOR.
+                        shouldUseNarrowLayout && !route.params?.backTo ? Navigation.goBack() : Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)
+                    }
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
@@ -489,7 +495,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         </View>
                     </OfflineWithFeedback>
                 </ScrollView>
-                {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

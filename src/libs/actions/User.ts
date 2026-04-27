@@ -56,10 +56,12 @@ import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
+import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
@@ -187,9 +189,10 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod};
-
-    API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    getDeviceInfoWithID().then((deviceInfo) => {
+        const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    });
 }
 
 /**
@@ -1324,14 +1327,13 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
+function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof name>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
@@ -1339,8 +1341,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureData: Array<OnyxUpdate<typeof name>> | undefined = shouldRevertValue
+    const failureData: AnyOnyxUpdate[] | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,

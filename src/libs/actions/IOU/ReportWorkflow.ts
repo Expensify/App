@@ -17,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {arePaymentsEnabled, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
@@ -30,7 +29,6 @@ import {
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getApprovalChain,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReportOrDraftReport,
@@ -262,6 +260,39 @@ function canSubmitReport(
     );
 }
 
+function getBadgeFromIOUReport(
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
+): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
+    if (
+        canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
+        canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
+    ) {
+        return CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    if (canApproveIOU(iouReport, policy, reportMetadata)) {
+        return CONST.REPORT.ACTION_BADGE.APPROVE;
+    }
+    const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
+        iouReport,
+        chatReport,
+        policy,
+        getReportTransactions(iouReport?.reportID),
+        getAllTransactionViolations(),
+        getCurrentUserEmail(),
+        getUserAccountID(),
+        getAllReportActions(iouReport?.reportID),
+    );
+    if (isWaitingSubmitFromCurrentUser) {
+        return CONST.REPORT.ACTION_BADGE.SUBMIT;
+    }
+    return undefined;
+}
+
 function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -272,34 +303,13 @@ function getIOUReportActionWithBadge(
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     const reportAction = Object.values(chatReportActions).find((action) => {
-        if (!action || action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+        if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
-        // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
-        if (
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
-        ) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
-            return true;
-        }
-        if (canApproveIOU(iouReport, policy, reportMetadata)) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
-            return true;
-        }
-        const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
-            iouReport,
-            chatReport,
-            policy,
-            getReportTransactions(iouReport?.reportID),
-            getAllTransactionViolations(),
-            getCurrentUserEmail(),
-            getUserAccountID(),
-            getAllReportActions(iouReport?.reportID),
-        );
-        if (isWaitingSubmitFromCurrentUser) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy);
+        if (badge) {
+            actionBadge = badge;
             return true;
         }
         return false;
@@ -344,7 +354,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, expenseReportPolicy)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -1286,8 +1296,8 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
           });
-    const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    const managerID = submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1493,7 +1503,7 @@ function submitReport({
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
+        managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
@@ -1740,6 +1750,7 @@ export {
     canSubmitReport,
     canUnapproveIOU,
     determineIouReportID,
+    getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
     reopenReport,

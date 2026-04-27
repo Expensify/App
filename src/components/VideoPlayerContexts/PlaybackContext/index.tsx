@@ -192,4 +192,4 @@ function usePlaybackActionsContext() {
     return playbackActionsContext;
 }
 
-export {ContextActions as PlaybackActionsContext, ContextState as PlaybackStateContext, PlaybackContextProvider, usePlaybackStateContext, usePlaybackActionsContext};
+export {PlaybackContextProvider, usePlaybackStateContext, usePlaybackActionsContext};

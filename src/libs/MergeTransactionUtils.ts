@@ -26,6 +26,7 @@ import {
     getReimbursable,
     getTaxName,
     getWaypoints,
+    hasValidModifiedAmount,
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
@@ -285,8 +286,12 @@ function getMergeableDataAndConflictFields(
         }
 
         if (field === 'attendees') {
-            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
-            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
+                .filter((login): login is string => !!login)
+                .sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
+                .filter((login): login is string => !!login)
+                .sort(localeCompare);
 
             if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
@@ -610,8 +615,9 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
-        if (mergeTransaction?.taxValue && transaction?.amount) {
-            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, transaction.amount, getCurrencyDecimals(getCurrency(transaction))));
+        const amount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+        if (mergeTransaction?.taxValue && amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, amount, getCurrencyDecimals(getCurrency(transaction))));
         }
     }
 
@@ -633,8 +639,11 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         // Distance expense tax rate is fixed to the distance rate, so just carry it over
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
-        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
         updatedValues.taxAmount = transaction?.taxAmount;
+        // Don't erase this prop
+        // The selected rate might not have tax tracking
+        // The backend needs it to remove tax from the transaction
         updatedValues.taxPolicyID = policy?.id;
 
         // Copy odometer readings from the selected transaction for odometer distance requests
@@ -686,7 +695,6 @@ export {
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTransactionsAndReportsFromSearch,
-    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

@@ -47,8 +47,6 @@ import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
-    setBankAccountFormValidationErrors,
-    resetReimbursementAccount,
     resetUSDBankAccount,
     resetNonUSDBankAccount,
     hideBankAccountErrors,
@@ -317,6 +315,7 @@ function addPersonalBankAccount(
         addressState: account?.addressState,
         addressZip: account?.addressZipCode,
         addressCountry: account?.country,
+        confirmedOwnershipDetails: account?.confirmedOwnershipDetails,
     };
     if (policyID) {
         parameters.policyID = policyID;

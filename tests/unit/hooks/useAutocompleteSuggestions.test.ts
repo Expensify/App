@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 
 const onyxData: Record<string, unknown> = {};
 
@@ -323,5 +325,37 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'unknownKey:test'}));
 
         expect(result.current).toEqual([]);
+    });
+
+    it('excludes already selected workspaces by policy ID when names are duplicated', () => {
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, value: 'test workspace'},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, value: 'Test Workspace', start: 0, length: 24},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, value: 'Test Workspace', start: 25, length: 24},
+            ],
+        });
+
+        const policiesWithSameName = {
+            policyOne: {id: 'policyA', name: 'Test Workspace'},
+            policyTwo: {id: 'policyB', name: 'Test Workspace'},
+            policyThree: {id: 'policyC', name: 'Test Workspace'},
+        } as unknown as NonNullable<OnyxCollection<Policy>>;
+
+        const {result} = renderHook(() =>
+            useAutocompleteSuggestions({
+                ...defaultParams,
+                autocompleteQueryValue: 'workspace:"Test Workspace","Test Workspace"',
+                policies: policiesWithSameName,
+                autocompleteSubstitutions: Object.fromEntries([
+                    ['policyID:Test Workspace', 'policyA'],
+                    ['policyID:Test Workspace:1', 'policyB'],
+                ]),
+            }),
+        );
+
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)?.autocompleteID).toBe('policyC');
+        expect(result.current.at(0)?.text).toBe('Test Workspace');
     });
 });

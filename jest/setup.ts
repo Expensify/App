@@ -288,7 +288,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 
