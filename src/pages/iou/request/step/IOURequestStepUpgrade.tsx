@@ -81,6 +81,7 @@ function IOURequestStepUpgrade({
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -143,6 +144,7 @@ function IOURequestStepUpgrade({
                 policy: newPolicy,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
+                policyTagList: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`],
                 allTransactions,
             });
 
@@ -222,6 +224,7 @@ function IOURequestStepUpgrade({
         allPolicies,
         allReportNextSteps,
         allPolicyCategories,
+        allPolicyTags,
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
