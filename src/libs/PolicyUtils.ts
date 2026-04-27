@@ -595,6 +595,28 @@ function getGuideAndAccountManagerInfo(
 }
 
 /**
+ * Build a soft-exclusion map of every Expensify-team login (Guides, Account Managers, support staff)
+ * present in personalDetails. Used by the Reports From filter so internal staff don't leak into
+ * suggestions for customer accounts. Returns empty when the current user is themselves Expensify
+ * team, so they still see their colleagues.
+ */
+function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, currentUserLogin: string | undefined): Record<string, boolean> {
+    if (!currentUserLogin || isExpensifyTeam(currentUserLogin)) {
+        return {};
+    }
+
+    const exclusions: Record<string, boolean> = {};
+    for (const details of Object.values(personalDetails ?? {})) {
+        const login = details?.login?.toLowerCase();
+        if (!login || !isExpensifyTeam(login)) {
+            continue;
+        }
+        exclusions[login] = true;
+    }
+    return exclusions;
+}
+
+/**
  * Get soft exclusions (Guide/Account Manager) that should be hidden from auto-suggestions
  * but can still be manually entered by the user.
  *
@@ -2143,6 +2165,7 @@ export {
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
+    getExpensifyTeamExclusions,
     filterGuideAndAccountManager,
     isMultiLevelTags,
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
