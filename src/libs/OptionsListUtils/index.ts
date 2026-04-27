@@ -2755,6 +2755,7 @@ type SearchOptionsConfig = {
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     conciergeReportID: string | undefined;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
 };
 
 /**
@@ -2785,6 +2786,7 @@ function getSearchOptions({
     allPolicyTags,
     sortedActions,
     conciergeReportID,
+    excludeFromSuggestionsOnly = {},
 }: SearchOptionsConfig): Options {
     const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
         betas,
@@ -2812,6 +2814,7 @@ function getSearchOptions({
         reportAttributesDerived,
         allPolicyTags,
         sortedActions,
+        excludeFromSuggestionsOnly,
     });
 
     return optionList;
