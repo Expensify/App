@@ -768,15 +768,18 @@ function Search({
                 // This ensures report-level selection persists when new transactions are added.
                 // Also check if the report itself was selected (when it was empty) by checking the reportID key
                 const reportKey = transactionGroup.keyForList;
-                const wasReportSelected = reportKey && reportKey in selectedTransactions;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const hasAnySelected = isExpenseReportType && (wasReportSelected || transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions));
+                const wasReportSelected = !!(reportKey && reportKey in selectedTransactions);
+                const hasIndividualSelectedInGroup = transactionGroup.transactions.some(
+                    (transaction) => (!!transaction.keyForList && transaction.keyForList in selectedTransactions) || transaction.transactionID in selectedTransactions,
+                );
+                const propagateSelectionToAllRows = (isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup)) || (wasReportSelected && !isExpenseReportType);
 
                 for (const transactionItem of transactionGroup.transactions) {
-                    const isSelected = transactionItem.transactionID in selectedTransactions;
+                    const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                    const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
 
-                    // Include transaction if: already individually selected, part of select-all, or (for expense reports) part of a partially-selected report
-                    const shouldInclude = isSelected || areAllMatchingItemsSelected || (isExpenseReportType && hasAnySelected);
+                    // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
+                    const shouldInclude = isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows;
                     if (!shouldInclude) {
                         continue;
                     }
@@ -797,7 +800,9 @@ function Search({
                         searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                         transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
-                    newTransactionList[transactionItem.transactionID] = {
+                    const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
+
+                    newTransactionList[listKey] = {
                         transaction: transactionItem,
                         action: transactionItem.action,
                         canHold: canHoldRequest,
@@ -814,7 +819,7 @@ function Search({
                             policy: transactionItem.policy,
                         }),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
+                        isSelected: areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -836,7 +841,8 @@ function Search({
                 if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
                     continue;
                 }
-                if (!(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
+                const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                if (!(listKey in selectedTransactions) && !(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
                     continue;
                 }
 
@@ -853,7 +859,9 @@ function Search({
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
-                newTransactionList[transactionItem.transactionID] = {
+                const flatPreviousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
+
+                newTransactionList[listKey] = {
                     transaction: transactionItem,
                     action: transactionItem.action,
                     canHold: canHoldRequest,
@@ -870,7 +878,7 @@ function Search({
                         policy: transactionItem.policy,
                     }),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                    isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
