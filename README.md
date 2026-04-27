@@ -104,3 +104,11 @@ We use Reassure for monitoring performance regression. More detailed information
 [CodeCov](https://about.codecov.io/) is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
 
 ----
+
+## 💰 Bounty Contribution
+
+- **Task:** [$250] Expense - "Waiting for you to approve expenses" after Cancel Payment if A
+- **Reward:** $250
+- **Source:** GitHub-Bounty
+- **Date:** 2026-04-27
+
