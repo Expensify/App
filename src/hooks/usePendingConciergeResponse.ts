@@ -15,8 +15,10 @@ import useOnyx from './useOnyx';
 const STALE_THRESHOLD_MS = 10_000;
 /** Default trickle duration. Roughly matches the p50 follow-up generation window so the reveal lands close to when followups arrive. */
 const DEFAULT_STREAM_DURATION_MS = 30_000;
-/** Trickle tick cadence. ~75 updates over the 30s default — enough granularity for a smooth ease-out, sparse enough to keep render churn low. */
-const TICK_INTERVAL_MS = 400;
+/** Trickle tick cadence. 150ms keeps each visible chunk small enough to feel
+ * continuous (closer to the ChatGPT/Claude streaming feel) without spamming
+ * dispatches faster than RNW can comfortably re-render the synthetic bubble. */
+const TICK_INTERVAL_MS = 150;
 /** Hard cap on running trickle. If the loop is still alive past this, force completion to avoid pinning a synthetic bubble forever. */
 const TRICKLE_HARD_CAP_MS = 60_000;
 /** Once the real reportComment lands in REPORT_ACTIONS, finish the remaining reveal within this window. */
