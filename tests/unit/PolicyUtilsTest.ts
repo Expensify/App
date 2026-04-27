@@ -16,6 +16,7 @@ import {
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getExpensifyTeamExclusions,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
@@ -2638,6 +2639,67 @@ describe('PolicyUtils', () => {
 
             it('returns false when prohibitedExpenses is an empty object', () => {
                 expect(hasConfiguredRules({prohibitedExpenses: {}} as Policy)).toBe(false);
+            });
+        });
+    });
+
+    describe('getExpensifyTeamExclusions', () => {
+        const customerLogin = 'customer@acme.com';
+        const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
+            const result: PersonalDetailsList = {};
+            logins.forEach((login, index) => {
+                const accountID = index + 1;
+                result[accountID] = {accountID, login};
+            });
+            return result;
+        };
+
+        it('returns empty when currentUserLogin is undefined', () => {
+            const details = buildPersonalDetails(['am@expensify.com']);
+            expect(getExpensifyTeamExclusions(details, undefined)).toEqual({});
+        });
+
+        it('returns empty when current user is @expensify.com (sees colleagues)', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'guide@team.expensify.com']);
+            expect(getExpensifyTeamExclusions(details, 'staff@expensify.com')).toEqual({});
+        });
+
+        it('returns empty when current user is @team.expensify.com (sees colleagues)', () => {
+            const details = buildPersonalDetails(['am@expensify.com']);
+            expect(getExpensifyTeamExclusions(details, 'guide@team.expensify.com')).toEqual({});
+        });
+
+        it('returns @expensify.com logins for a non-Expensify customer', () => {
+            const details = buildPersonalDetails(['am@expensify.com', customerLogin]);
+            expect(getExpensifyTeamExclusions(details, customerLogin)).toEqual({'am@expensify.com': true});
+        });
+
+        it('returns @team.expensify.com logins for a non-Expensify customer', () => {
+            const details = buildPersonalDetails(['guide@team.expensify.com', customerLogin]);
+            expect(getExpensifyTeamExclusions(details, customerLogin)).toEqual({'guide@team.expensify.com': true});
+        });
+
+        it('returns both @expensify.com and @team.expensify.com logins together', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'guide@team.expensify.com', customerLogin]);
+            expect(getExpensifyTeamExclusions(details, customerLogin)).toEqual({
+                'am@expensify.com': true,
+                'guide@team.expensify.com': true,
+            });
+        });
+
+        it('ignores entries with no login field', () => {
+            const details: PersonalDetailsList = {
+                '1': {accountID: 1, login: 'am@expensify.com'},
+                '2': {accountID: 2},
+            };
+            expect(getExpensifyTeamExclusions(details, customerLogin)).toEqual({'am@expensify.com': true});
+        });
+
+        it('lowercases the keys', () => {
+            const details = buildPersonalDetails(['AM@Expensify.com', 'Guide@Team.Expensify.com']);
+            expect(getExpensifyTeamExclusions(details, customerLogin)).toEqual({
+                'am@expensify.com': true,
+                'guide@team.expensify.com': true,
             });
         });
     });
