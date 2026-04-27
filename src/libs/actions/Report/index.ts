@@ -3835,8 +3835,8 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
-    shouldNotifyNewAction = false,
     bankAccountList: OnyxEntry<BankAccountList>,
+    shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
 ) {

@@ -129,8 +129,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isASAPSubmitBetaEnabled,
             policyForNewReport,
             betas,
-            false,
             bankAccountList,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         selectReport(

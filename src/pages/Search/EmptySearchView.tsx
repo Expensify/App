@@ -184,8 +184,8 @@ function EmptySearchViewContent({
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
             betas,
-            false,
             bankAccountList,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {

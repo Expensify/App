@@ -45,13 +45,13 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors, bankAccountList);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, bankAccountList, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors, bankAccountList);
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, bankAccountList, ancestors);
                 }
                 clearSelectedTransactions();
             }

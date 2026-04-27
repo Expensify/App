@@ -97,8 +97,8 @@ function CreateReportMenuItem() {
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
             allBetas,
-            false,
             bankAccountList,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {

@@ -851,8 +851,8 @@ function duplicateReport({
         isASAPSubmitBetaEnabled,
         targetPolicy,
         betas,
-        false,
         undefined,
+        false,
         undefined,
         newReportName,
     );

@@ -117,8 +117,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             hasViolations,
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
             betas,
-            false,
             bankAccountList,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         const selectedTransactionsKeys = Object.keys(selectedTransactions);

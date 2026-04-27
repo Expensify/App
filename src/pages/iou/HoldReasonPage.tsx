@@ -60,7 +60,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, ancestors, bankAccountList);
+        putOnHold(transactionID, values.comment, reportID, isOffline, bankAccountList, ancestors);
         Navigation.goBack(backTo);
     };
 

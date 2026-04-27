@@ -104,8 +104,8 @@ function SearchActionsBarCreateButton() {
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 allBetas,
-                false,
                 bankAccountList,
+                false,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {

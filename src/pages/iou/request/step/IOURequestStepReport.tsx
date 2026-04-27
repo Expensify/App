@@ -256,8 +256,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isASAPSubmitBetaEnabled,
             policyForNewReport,
             betas,
-            false,
             bankAccountList,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
