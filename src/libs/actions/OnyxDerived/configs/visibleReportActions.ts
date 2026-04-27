@@ -44,8 +44,7 @@ export default createOnyxDerivedValueConfig({
     // (for UNREPORTED_TRANSACTION/MOVED_TRANSACTION visibility) AND to provide the current
     // report collection to the visibility check, avoiding stale data from global connections.
     // SESSION dependency is needed for whisper targeting when user changes.
-    // NETWORK is needed to recompute when online/offline status changes (for DELETE action visibility).
-    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION, ONYXKEYS.NETWORK],
+    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION],
     compute: ([allReportActions, allReports], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
             return {};
@@ -54,14 +53,12 @@ export default createOnyxDerivedValueConfig({
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const sessionUpdates = sourceValues?.[ONYXKEYS.SESSION];
-        const networkUpdates = sourceValues?.[ONYXKEYS.NETWORK];
 
         // Track which reportID entries have been cloned to avoid mutating cached nested objects.
         const clonedReportIDs = new Set<string>();
 
         // Session change = user changed, need full recompute due to whisper targeting
-        // Network change = online/offline status changed, need full recompute for DELETE action visibility
-        if (sessionUpdates || networkUpdates) {
+        if (sessionUpdates) {
             const result: VisibleReportActionsDerivedValue = {};
 
             for (const [reportActionsKey, reportActions] of Object.entries(allReportActions)) {
