@@ -45,7 +45,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
-                [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
+                [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
             },
         },
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
@@ -523,8 +523,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
-                            path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
+                        [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION,
                         },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route,

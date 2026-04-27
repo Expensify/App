@@ -47,6 +47,7 @@ import {
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticWorkspaceChats,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
@@ -7076,6 +7077,69 @@ describe('ReportUtils', () => {
             const reportData = result.announceChatData.onyxOptimisticData.find((data) => data.key.startsWith(`${ONYXKEYS.COLLECTION.REPORT}`) && !data.key.includes('Draft'));
             const report = reportData?.value as Report | undefined;
             expect(report?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
+        });
+    });
+
+    describe('buildOptimisticWorkspaceChats', () => {
+        const policyID = 'policy-workspace-chats-1';
+        const policyName = 'Workspace Chats Policy';
+
+        it('should build #admins and expense chats using the explicit currentUserAccountID for participants and pending members', () => {
+            const explicitCurrentUser = 777;
+            const explicitCurrentUserEmail = 'owner@expensifail.com';
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, explicitCurrentUser, explicitCurrentUserEmail);
+
+            expect(result.adminsChatData.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+            expect(result.adminsChatData.policyID).toBe(policyID);
+            expect(result.adminsChatData.participants).toBeDefined();
+            expect(Object.keys(result.adminsChatData.participants ?? {}).map(Number)).toEqual([explicitCurrentUser]);
+
+            expect(result.expenseChatData.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            expect(result.expenseChatData.policyID).toBe(policyID);
+            expect(result.expenseChatData.ownerAccountID).toBe(explicitCurrentUser);
+            expect(result.expenseChatData.isOwnPolicyExpenseChat).toBe(true);
+            expect(Object.keys(result.expenseChatData.participants ?? {}).map(Number)).toEqual([explicitCurrentUser]);
+
+            expect(result.pendingChatMembers).toHaveLength(1);
+            expect(result.pendingChatMembers.at(0)?.accountID).toBe(String(explicitCurrentUser));
+            expect(result.pendingChatMembers.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should use the provided currentUserEmail as the text of the expense CREATED report action', () => {
+            const explicitCurrentUser = 888;
+            const explicitCurrentUserEmail = 'duplicate-user@expensifail.com';
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, explicitCurrentUser, explicitCurrentUserEmail);
+
+            const createdAction = result.expenseReportActionData[result.expenseCreatedReportActionID];
+            expect(createdAction).toBeDefined();
+            expect(createdAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const messages = Array.isArray(createdAction.message) ? createdAction.message : [];
+            expect(messages.at(0)?.text).toBe(explicitCurrentUserEmail);
+        });
+
+        it('should default the expense CREATED report action text to an empty string when currentUserEmail is undefined', () => {
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, undefined);
+
+            const createdAction = result.expenseReportActionData[result.expenseCreatedReportActionID];
+            const messages = Array.isArray(createdAction.message) ? createdAction.message : [];
+            expect(messages.at(0)?.text).toBe('');
+        });
+
+        it('should produce no participants or pending members when currentUserAccountID is undefined', () => {
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, undefined, 'anon@expensifail.com');
+
+            expect(Object.keys(result.adminsChatData.participants ?? {})).toHaveLength(0);
+            expect(Object.keys(result.expenseChatData.participants ?? {})).toHaveLength(0);
+            expect(result.expenseChatData.ownerAccountID).toBe(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+            expect(result.pendingChatMembers).toHaveLength(0);
+        });
+
+        it('should use the provided expenseReportId as the expense chat reportID', () => {
+            const providedExpenseReportID = 'expense-report-123';
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, 'user@expensifail.com', providedExpenseReportID);
+
+            expect(result.expenseChatReportID).toBe(providedExpenseReportID);
+            expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
         });
     });
 

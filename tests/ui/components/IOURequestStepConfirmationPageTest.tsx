@@ -14,6 +14,7 @@ import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
+import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
@@ -64,11 +65,11 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...actualNav,
         startMoneyRequest: jest.fn(),
-        createDistanceRequest: jest.fn(),
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
+        createDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
     };
 });
@@ -1293,7 +1294,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -1376,8 +1377,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(IOU.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = IOU.createDistanceRequest as jest.MockedFunction<typeof IOU.createDistanceRequest>;
+            await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
+            const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
         });
