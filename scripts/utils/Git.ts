@@ -6,7 +6,7 @@ import path from 'path';
 import {promisify} from 'util';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
-import {log, error as logError, warn as logWarn} from './Logger';
+import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
 function exec(command: string, options?: ExecOptions) {
@@ -64,7 +64,8 @@ type DiffHunk = {
  */
 type FileDiff = {
     filePath: string;
-    diffType: 'added' | 'removed' | 'modified';
+    diffType: 'added' | 'removed' | 'modified' | 'renamed';
+    previousFilePath?: string;
     hunks: DiffHunk[];
     addedLines: Set<number>;
     removedLines: Set<number>;
@@ -77,6 +78,12 @@ type FileDiff = {
 type DiffResult = {
     files: FileDiff[];
     hasChanges: boolean;
+};
+
+type ChangedFile = {
+    filename: string;
+    status: 'added' | 'modified' | 'removed' | 'renamed';
+    previousFilename?: string;
 };
 
 /**
@@ -110,8 +117,8 @@ class Git {
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
     static diff(fromRef: string, toRef?: string, filePaths?: string | string[], shouldIncludeUntrackedFiles = false): DiffResult {
-        // Build git diff command (with 0 context lines for easier parsing)
-        let command = `git diff -U0 ${fromRef}`;
+        // Build git diff command (with 0 context lines for easier parsing, -M for rename detection)
+        let command = `git diff -U0 -M ${fromRef}`;
         if (toRef) {
             command += ` ${toRef}`;
         }
@@ -160,13 +167,13 @@ class Git {
         const files: FileDiff[] = [];
         let currentFile: FileDiff | null = null;
         let currentHunk: DiffHunk | null = null;
-        let oldFilePath: string | null = null; // Track old file path to determine fileDiffType
+        let oldFilePath: string | null = null;
+        let renameFromPath: string | null = null;
 
         for (const line of lines) {
             // File header: diff --git a/file b/file
             if (line.startsWith('diff --git')) {
                 if (currentFile) {
-                    // Push the current hunk to the current file before processing the new file
                     if (currentHunk) {
                         currentFile.hunks.push(currentHunk);
                     }
@@ -174,38 +181,48 @@ class Git {
                 }
                 currentFile = null;
                 currentHunk = null;
-                oldFilePath = null; // Reset for next file
+                oldFilePath = null;
+                renameFromPath = null;
+                continue;
+            }
+
+            // Rename detection: "rename from <path>" appears before --- / +++
+            if (line.startsWith('rename from ')) {
+                renameFromPath = line.slice('rename from '.length);
+                continue;
+            }
+
+            if (line.startsWith('rename to ') || line.startsWith('similarity index ')) {
                 continue;
             }
 
             // Old file path: --- a/file or --- /dev/null (for new files)
-            // This comes before +++ in git diff output
             if (line.startsWith('--- ')) {
-                oldFilePath = line.slice(4); // Store the old file path (remove '--- ')
+                oldFilePath = line.slice(4);
                 continue;
             }
 
             // New file path: +++ b/file or +++ /dev/null (for removed files)
             if (line.startsWith('+++ ')) {
-                const newFilePath = line.slice(4); // Remove '+++ '
+                const newFilePath = line.slice(4);
 
-                // Determine fileDiffType based on old and new file paths
-                // Note: oldFilePath should always be set by the time we see +++, but handle null for type safety
-                let fileDiffType: 'added' | 'removed' | 'modified' = 'modified';
+                let fileDiffType: FileDiff['diffType'] = 'modified';
                 let diffFilePath: string;
+                let previousFilePath: string | undefined;
 
                 const oldPath = oldFilePath ?? '';
 
                 if (oldPath === '/dev/null') {
-                    // New file: use the new file path
                     fileDiffType = 'added';
                     diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
                 } else if (newFilePath === '/dev/null') {
-                    // Removed file: use the old file path
                     fileDiffType = 'removed';
                     diffFilePath = oldPath.startsWith('a/') ? oldPath.slice(2) : oldPath;
+                } else if (renameFromPath) {
+                    fileDiffType = 'renamed';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                    previousFilePath = renameFromPath;
                 } else {
-                    // Modified file: use the new file path
                     fileDiffType = 'modified';
                     diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
                 }
@@ -213,6 +230,7 @@ class Git {
                 currentFile = {
                     filePath: diffFilePath,
                     diffType: fileDiffType,
+                    previousFilePath,
                     hunks: [],
                     addedLines: new Set(),
                     removedLines: new Set(),
@@ -374,7 +392,7 @@ class Git {
         }
 
         try {
-            log(`🔄 Fetching missing ref: ${ref}`);
+            console.log(`🔄 Fetching missing ref: ${ref}`);
             await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
 
             // Verify the ref is now available
@@ -458,22 +476,40 @@ class Git {
         }
     }
 
-    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
+    /**
+     * Get changed files with their status (added, modified, removed, renamed).
+     * In CI, uses the GitHub API with pagination for accuracy.
+     * Locally, uses git diff against the provided ref.
+     */
+    static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
         if (IS_CI) {
-            const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
+            const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: context.payload.pull_request?.number ?? 0,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                per_page: 100,
             });
 
-            return changedFiles.map((file) => file.filename);
+            return files.map((file) => ({
+                filename: file.filename,
+                status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
+                previousFilename: file.previous_filename,
+            }));
         }
 
-        // Get the diff output and check status
         const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
-        const files = diffResult.files.map((file) => file.filePath);
-        return files;
+        return diffResult.files.map((file) => ({
+            filename: file.filePath,
+            status: file.diffType,
+            previousFilename: file.previousFilePath,
+        }));
+    }
+
+    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
+        const files = await this.getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles);
+        return files.map((file) => file.filename);
     }
 
     /**
@@ -583,4 +619,4 @@ class Git {
 }
 
 export default Git;
-export type {DiffResult, FileDiff, DiffHunk, DiffLine};
+export type {DiffResult, FileDiff, DiffHunk, DiffLine, ChangedFile};

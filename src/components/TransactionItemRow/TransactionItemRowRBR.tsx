@@ -39,6 +39,9 @@ type TransactionItemRowRBRInnerProps = {
 
     /** Error message for missing required fields in the transaction */
     missingFieldError?: string;
+
+    /** Whether to use the narrow (mobile) layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
 type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
@@ -46,7 +49,7 @@ type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
     transactionThreadReportID?: string;
 };
 
-function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRInnerProps) {
+function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError, shouldUseNarrowLayout}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -91,12 +94,12 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
                 />
                 <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
                     {hasHTMLTags ? (
-                        <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
+                        <RenderHTML html={`<rbr shouldShowEllipsis="1" ${shouldUseNarrowLayout ? '' : 'issmall'}>${RBRMessages}</rbr>`} />
                     ) : (
                         <Text
                             numberOfLines={1}
                             ellipsizeMode="tail"
-                            style={[styles.textLabelError, styles.textMicro]}
+                            style={[styles.textLabelError, shouldUseNarrowLayout ? styles.lh16 : styles.textMicro]}
                         >
                             {RBRMessages}
                         </Text>
@@ -107,7 +110,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     );
 }
 
-function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError, transactionThreadReportID}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError, transactionThreadReportID, shouldUseNarrowLayout}: TransactionItemRowRBRProps) {
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
 
     const hasThreadErrors = transactionThreadActions ? Object.values(transactionThreadActions).some((action) => !isEmptyObject(action.errors)) : false;
@@ -125,6 +128,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
             report={report}
             containerStyles={containerStyles}
             missingFieldError={missingFieldError}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 }

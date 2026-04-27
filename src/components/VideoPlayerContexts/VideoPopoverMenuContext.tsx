@@ -119,10 +119,4 @@ function useVideoPopoverMenuActions() {
     return context;
 }
 
-function useVideoPopoverMenuContext() {
-    const state = useVideoPopoverMenuState();
-    const actions = useVideoPopoverMenuActions();
-    return {...state, ...actions};
-}
-
-export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext, useVideoPopoverMenuState, useVideoPopoverMenuActions};
+export {VideoPopoverMenuContextProvider, useVideoPopoverMenuState, useVideoPopoverMenuActions};

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,6 +51,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
 
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
+    const delegateAccountID = useDelegateAccountID();
 
     function sendCommentToChronos() {
         addComment({
@@ -61,6 +63,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateAccountID,
         });
     }
 
@@ -68,6 +71,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         {
             value: 'timer' as const,
             text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
+            onSelected: () => callFunctionIfActionIsAllowed(sendCommentToChronos)(),
         },
         {
             value: 'scheduleOOO' as const,
@@ -89,7 +93,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
                     callFunctionIfActionIsAllowed(sendCommentToChronos)();
                 }}
                 options={options}
-                style={styles.flex1}
+                wrapperStyle={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_BUTTON}
             />
         </View>

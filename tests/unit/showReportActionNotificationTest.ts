@@ -84,7 +84,6 @@ describe('showReportActionNotification', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
             created: '2026-01-01 00:00:00.000',
-            originalMessage: {actionableForAccountIDs: [CURRENT_USER_ACCOUNT_ID]},
             message: [{type: 'COMMENT', html: 'expense modified', text: 'expense modified'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
         };
@@ -112,7 +111,6 @@ describe('showReportActionNotification', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
             created: '2026-01-01 00:00:00.000',
-            originalMessage: {actionableForAccountIDs: [CURRENT_USER_ACCOUNT_ID]},
             message: [{type: 'COMMENT', html: 'expense modified', text: 'expense modified'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
         };
@@ -148,24 +146,6 @@ describe('showReportActionNotification', () => {
         await waitForBatchedUpdates();
 
         expect(mockShowCommentNotification).toHaveBeenCalledTimes(1);
-        expect(mockShowModifiedExpenseNotification).not.toHaveBeenCalled();
-    });
-
-    it('should not display notifications for non-actionable actions', async () => {
-        await setupReport();
-
-        const reportAction = {
-            reportActionID: 'action4',
-            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-            actorAccountID: OTHER_USER_ACCOUNT_ID,
-            created: '2026-01-01 00:00:00.000',
-            message: [{type: 'COMMENT', html: 'expense modified', text: 'expense modified'}],
-            person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
-        };
-
-        Report.showReportActionNotification(REPORT_ID, reportAction as Parameters<typeof Report.showReportActionNotification>[1], CURRENT_USER_ACCOUNT_ID, CURRENT_USER_LOGIN, undefined);
-        await waitForBatchedUpdates();
-
         expect(mockShowModifiedExpenseNotification).not.toHaveBeenCalled();
     });
 });

@@ -45,6 +45,7 @@ import {
     enableCompanyCards,
     enableExpensifyCard,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyReceiptPartners,
     enablePolicyRules,
@@ -152,6 +153,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Gears',
         'ReceiptPartners',
         'Clock',
+        'Members',
     ]);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -473,38 +475,63 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
+    integrateItems.push({
+        icon: illustrations.ReceiptPartners,
+        titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
+        isActive: policy?.receiptPartners?.enabled ?? false,
+        pendingAction: policy?.pendingFields?.receiptPartners,
+        disabledAction: () => {
+            if (!isUberConnected) {
+                return;
+            }
+            setIsReceiptPartnersWarningModalOpen(true);
+        },
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            enablePolicyReceiptPartners(policyID, isEnabled);
+        },
+        disabled: isUberConnected,
+        errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
+        onCloseError: () => {
+            if (!policyID) {
+                return;
+            }
+            clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
+        },
+        onPress: () => {
+            if (!policyID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+        },
+    });
+
+    if (isBetaEnabled(CONST.BETAS.GUSTO)) {
         integrateItems.push({
-            icon: illustrations.ReceiptPartners,
-            titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
-            isActive: policy?.receiptPartners?.enabled ?? false,
-            pendingAction: policy?.pendingFields?.receiptPartners,
-            disabledAction: () => {
-                if (!isUberConnected) {
-                    return;
-                }
-                setIsReceiptPartnersWarningModalOpen(true);
-            },
+            icon: illustrations.Members,
+            titleTranslationKey: 'workspace.hr.title',
+            subtitleTranslationKey: 'workspace.hr.subtitle',
+            isActive: ((policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false,
+            pendingAction: policy?.pendingFields?.isHREnabled,
+            disabled: !!policy?.connections?.gusto,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;
                 }
-                enablePolicyReceiptPartners(policyID, isEnabled);
-            },
-            disabled: isUberConnected,
-            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
-            onCloseError: () => {
-                if (!policyID) {
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
-                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
+                enablePolicyHR(policyID, isEnabled);
             },
             onPress: () => {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
             },
         });
     }
@@ -694,23 +721,21 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
                 />
-                {isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && (
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
-                        onConfirm={() => {
-                            if (!policyID) {
-                                return;
-                            }
-                            setIsReceiptPartnersWarningModalOpen(false);
-                            // TODO: Navigate to Receipt Partners settings page when it exists
-                            // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
-                        }}
-                        isVisible={isReceiptPartnersWarningModalOpen}
-                        prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText')}
-                        confirmText={translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')}
-                        shouldShowCancelButton={false}
-                    />
-                )}
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
+                    onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        setIsReceiptPartnersWarningModalOpen(false);
+                        // TODO: Navigate to Receipt Partners settings page when it exists
+                        // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
+                    }}
+                    isVisible={isReceiptPartnersWarningModalOpen}
+                    prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText')}
+                    confirmText={translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')}
+                    shouldShowCancelButton={false}
+                />
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}
                     isVisible={isDisableExpensifyCardWarningModalOpen}

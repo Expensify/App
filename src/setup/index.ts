@@ -34,8 +34,6 @@ export default function () {
     Onyx.init({
         keys: ONYXKEYS,
         enableDevTools,
-        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 50000,
         evictableKeys: [
             ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             ONYXKEYS.COLLECTION.SNAPSHOT,
@@ -47,8 +45,7 @@ export default function () {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-            [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
-            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
@@ -61,6 +58,9 @@ export default function () {
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
         ramOnlyKeys: [
+            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
+            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,

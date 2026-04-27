@@ -2,16 +2,24 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    getValidConnectedIntegration,
+    hasAccountingFeatureConnection,
+    hasConfiguredRules,
+    hasCustomCategories,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
-import {enablePolicyCategories} from '@userActions/Policy/Category';
-import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
+import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 
 type GettingStartedItem = {
     key: string;
@@ -46,6 +54,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
@@ -77,12 +86,14 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
 
-    if (isDirectConnect) {
-        const integrationName = CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration);
+    if (isAccountingEnabled) {
+        const integrationName = isDirectConnect
+            ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
+            : undefined;
         items.push({
             key: 'connectAccounting',
-            label: translate('homePage.gettingStartedSection.connectAccounting', {integrationName}),
-            isComplete: hasAccountingConnections(policy),
+            label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
             isFeatureEnabled: policy.areConnectionsEnabled,
             enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
@@ -111,10 +122,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
-            isComplete: hasNonDefaultRules(policy),
+            isComplete: hasConfiguredRules(policy),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areRulesEnabled,
-            enableFeature: () => enablePolicyRules(policy, true, false),
         });
     }
 

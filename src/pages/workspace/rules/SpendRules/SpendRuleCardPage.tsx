@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -6,6 +6,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
@@ -19,15 +20,14 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
@@ -37,7 +37,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
-import {getParentRoute} from './SpendRulesUtils';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -75,6 +74,7 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
 }
 
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
+    const navigation = useNavigation();
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -82,6 +82,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const {cardList, ...allCards} = cardsList ?? {};
+    const hasAnyCards = Object.keys(allCards).length > 0;
+
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const illustrations = useMemoizedLazyIllustrations(['HandCard']);
@@ -96,7 +99,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const parentRoute = getParentRoute(policyID, ruleID);
+    const goBack = () => navigation.goBack();
 
     const {isOffline} = useNetwork({
         onReconnect: () => {
@@ -181,10 +184,12 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }
 
         updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-        Navigation.goBack(parentRoute);
+        goBack();
     };
 
-    const headerMessage = getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false);
+    const hasCards = listData.length > 0;
+    const hasEligibleCards = eligibleCards.length > 0;
+    const headerMessage = hasEligibleCards ? getHeaderMessage(hasCards, false, inputValue, countryCode, false) : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -210,16 +215,20 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.rules.spendRules.cardPageTitle')}
-                        onBackButtonPress={() => Navigation.goBack(parentRoute)}
+                        onBackButtonPress={goBack}
                     />
                     <SelectionList
                         canSelectMultiple
-                        textInputOptions={{
-                            headerMessage,
-                            value: inputValue,
-                            label: translate('common.search'),
-                            onChangeText: setInputValue,
-                        }}
+                        textInputOptions={
+                            hasEligibleCards
+                                ? {
+                                      headerMessage,
+                                      value: inputValue,
+                                      label: translate('common.search'),
+                                      onChangeText: setInputValue,
+                                  }
+                                : undefined
+                        }
                         data={listData}
                         style={{
                             listHeaderWrapperStyle: [styles.pt5, styles.pb2],
@@ -234,19 +243,23 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
-                            <BlockingView
-                                icon={illustrations.HandCard}
-                                iconWidth={variables.iconSection}
-                                iconHeight={variables.iconSection}
-                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
-                                titleStyles={styles.mb2}
-                                subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
-                                subtitleStyle={styles.textSupporting}
-                            />
+                            !inputValue.trim() || hasCards ? (
+                                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                                    <BlockingView
+                                        icon={illustrations.HandCard}
+                                        iconWidth={variables.iconSection}
+                                        iconHeight={variables.iconSection}
+                                        title={translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCards' : 'workspace.rules.spendRules.noCardsIssuedTitle')}
+                                        titleStyles={styles.mb2}
+                                        subtitle={translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCardsSubtitle' : 'workspace.rules.spendRules.noCardsIssuedSubtitle')}
+                                        subtitleStyle={styles.textSupporting}
+                                    />
+                                </ScrollView>
+                            ) : undefined
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
-                                buttonText={translate('common.save')}
+                                buttonText={hasEligibleCards ? translate('common.save') : translate('common.buttonConfirm')}
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}

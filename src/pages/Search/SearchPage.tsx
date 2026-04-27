@@ -26,7 +26,7 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
-    useDocumentTitle(translate('common.search'));
+    useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
@@ -57,7 +57,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isSorting, setIsSorting] = useState(false);
 
     let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data !== undefined) {
+    if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
         searchResults = lastNonEmptySearchResults.current;
@@ -140,6 +140,7 @@ function SearchPage({route}: SearchPageProps) {
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     footerData={footerData}
                     shouldShowFooter={shouldShowFooter}
+                    onSortPressedCallback={onSortPressedCallback}
                 />
             ) : (
                 <SearchPageWide
