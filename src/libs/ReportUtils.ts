@@ -9003,11 +9003,6 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
 }
 
 // We need oneTransactionThreadReport to get the correct last visible action created
-type LastVisibleActionDetails = {
-    created: string;
-    actorAccountID?: number;
-};
-
 function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
     if (!report) {
         return false;
@@ -12558,27 +12553,10 @@ function getReportLastMessage(reportID: string, isReportArchived: boolean | unde
     return result;
 }
 
-function getReportLastVisibleActionDetails(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>): LastVisibleActionDetails {
-    const reportLastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
-    const reportLastActorAccountID = report?.lastActorAccountID;
-    const threadLastVisibleActionCreated = oneTransactionThreadReport?.lastVisibleActionCreated ?? '';
-    const threadLastActorAccountID = oneTransactionThreadReport?.lastActorAccountID;
-
-    if (threadLastVisibleActionCreated > reportLastVisibleActionCreated) {
-        return {
-            created: threadLastVisibleActionCreated,
-            actorAccountID: threadLastActorAccountID,
-        };
-    }
-
-    return {
-        created: reportLastVisibleActionCreated,
-        actorAccountID: reportLastActorAccountID,
-    };
-}
-
 function getReportLastVisibleActionCreated(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>) {
-    return getReportLastVisibleActionDetails(report, oneTransactionThreadReport).created;
+    const reportLastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
+    const threadLastVisibleActionCreated = oneTransactionThreadReport?.lastVisibleActionCreated ?? '';
+    return reportLastVisibleActionCreated > threadLastVisibleActionCreated ? reportLastVisibleActionCreated : threadLastVisibleActionCreated;
 }
 
 function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): string {
