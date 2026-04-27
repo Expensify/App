@@ -162,6 +162,9 @@ function mapTransactionItemToSelectedEntry(
 }
 
 function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType | TransactionGroupListItemType): [string, SelectedTransactionInfo] {
+    const currency = isTransactionReportGroupListItemType(item) ? item.currency : '';
+    const amount = isTransactionReportGroupListItemType(item) ? (item.totalDisplaySpend ?? 0) : (item as TransactionReportGroupListItemType).total;
+
     return [
         item.keyForList ?? '',
         {
@@ -177,8 +180,9 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             action: (item as TransactionReportGroupListItemType).action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
             reportID: item.reportID,
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
-            amount: 0,
-            currency: '',
+            amount: amount ?? 0,
+            currency: currency ?? '',
+            ...(currency ? {groupCurrency: currency} : {}),
         },
     ];
 }
