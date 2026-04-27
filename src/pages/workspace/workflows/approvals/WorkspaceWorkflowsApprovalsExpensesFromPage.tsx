@@ -156,16 +156,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner]);
 
+    const workflowAvailableMembers = approvalWorkflow?.availableMembers;
+    const workflowApprovers = approvalWorkflow?.approvers;
+
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
-        const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
+        const approversEmail = workflowApprovers?.map((member) => member?.email);
 
-        if (!approvalWorkflow?.availableMembers) {
+        if (!workflowAvailableMembers) {
             return members;
         }
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-        const availableMembers = approvalWorkflow.availableMembers
+        const availableMembers = workflowAvailableMembers
             .map((member) => {
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
@@ -231,8 +234,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return members;
     }, [
         selectedMembers,
-        approvalWorkflow?.availableMembers,
-        approvalWorkflow?.approvers,
+        workflowAvailableMembers,
+        workflowApprovers,
         policy?.employeeList,
         policy?.owner,
         policy?.preventSelfApproval,
@@ -348,7 +351,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return () => {
             clearInviteDraft(route.params.policyID);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route.params.policyID]);
 
     const toggleMember = useCallback(
