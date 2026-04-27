@@ -1053,19 +1053,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         const subMenuItems = getExportOptions();
-        if(subMenuItems.length === 1) {
-            return subMenuItems;
-        }
+        const singleExportSubMenuItem = subMenuItems.length === 1 ? subMenuItems.at(0) : undefined;
 
-        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
-            icon: expensifyIcons.Export,
-            rightIcon: expensifyIcons.ArrowRight,
-            text: translate('common.export'),
-            backButtonText: translate('common.export'),
-            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-            shouldCloseModalOnSelect: true,
-            subMenuItems: subMenuItems,
-        };
+        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon' | 'shouldCallAfterModalHide'> = singleExportSubMenuItem
+            ? {
+                  icon: expensifyIcons.Export,
+                  text: singleExportSubMenuItem.text,
+                  value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                  shouldCloseModalOnSelect: singleExportSubMenuItem.shouldCloseModalOnSelect ?? true,
+                  shouldCallAfterModalHide: singleExportSubMenuItem.shouldCallAfterModalHide,
+                  onSelected: () => singleExportSubMenuItem.onSelected?.(),
+                  description: singleExportSubMenuItem.description,
+                  displayInDefaultIconColor: singleExportSubMenuItem.displayInDefaultIconColor,
+                  additionalIconStyles: singleExportSubMenuItem.additionalIconStyles,
+              }
+            : {
+                  icon: expensifyIcons.Export,
+                  rightIcon: expensifyIcons.ArrowRight,
+                  text: translate('common.export'),
+                  backButtonText: translate('common.export'),
+                  value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                  shouldCloseModalOnSelect: true,
+                  subMenuItems,
+              };
 
         if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
