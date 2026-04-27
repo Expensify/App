@@ -17,14 +17,18 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 
     /** Ref to the underlying list instance. */
     ref: FlatListRefType;
+
+    /** Whether the list should handle `maintainVisibleContentPosition` */
+    shouldMaintainVisibleContentPosition?: boolean;
 };
 
-function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, ...restProps}: InvertedFlashListProps<T>) {
-    const {displayedData, onStartReached} = useFlashListScrollKey<T>({
+function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, shouldMaintainVisibleContentPosition, ...restProps}: InvertedFlashListProps<T>) {
+    const {displayedData, onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         onStartReached: onStartReachedProp,
+        shouldMaintainVisibleContentPosition,
     });
 
     return (
@@ -36,6 +40,7 @@ function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReac
             data={displayedData}
             keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
         />
     );
 }

@@ -51,7 +51,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     // Dismiss if the yearMonth route param is missing, malformed, or in the future
     useEffect(() => {
         const currentYearMonth = format(new Date(), CONST.DATE.YEAR_MONTH_FORMAT);
-        if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
+        if (yearMonth?.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
     }, [yearMonth]);
