@@ -11,6 +11,7 @@ import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTr
 import {createTransactionThreadReport, exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
+import {getTargetTransactionThreadReportIDForSelection} from '@libs/MergeTransactionUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -430,32 +431,13 @@ function useSelectedTransactionsActions({
                     icon: expensifyIcons.ArrowCollapse,
                     value: MERGE,
                     onSelected: () => {
+                        const isSingleSelection = selectedTransactionsList.length === 1;
                         let targetTransactionThreadReportIDOverride: string | undefined;
+                        const iouReportAction = isSingleSelection ? getIOUActionForTransactionID(reportActions, transactionID) : undefined;
 
-                        if (selectedTransactionsList.length === 1) {
+                        if (isSingleSelection) {
                             const selectedTransactionMeta = selectedTransactionsMeta?.[transactionID];
-                            const selectedTransactionChildReportID = selectedTransactionMeta?.reportAction?.childReportID;
-                            if (selectedTransactionChildReportID && selectedTransactionChildReportID !== CONST.FAKE_REPORT_ID) {
-                                targetTransactionThreadReportIDOverride = selectedTransactionChildReportID;
-                            }
-
-                            const selectedTransactionThreadReportID = selectedTransactionMeta?.transaction?.transactionThreadReportID;
-                            if (!targetTransactionThreadReportIDOverride && selectedTransactionThreadReportID && selectedTransactionThreadReportID !== CONST.FAKE_REPORT_ID) {
-                                targetTransactionThreadReportIDOverride = selectedTransactionThreadReportID;
-                            }
-
-                            if (
-                                !targetTransactionThreadReportIDOverride &&
-                                selectedTransaction.transactionThreadReportID &&
-                                selectedTransaction.transactionThreadReportID !== CONST.FAKE_REPORT_ID
-                            ) {
-                                targetTransactionThreadReportIDOverride = selectedTransaction.transactionThreadReportID;
-                            }
-
-                            const iouReportAction = getIOUActionForTransactionID(reportActions, transactionID);
-                            if (!targetTransactionThreadReportIDOverride && iouReportAction?.childReportID && iouReportAction.childReportID !== CONST.FAKE_REPORT_ID) {
-                                targetTransactionThreadReportIDOverride = iouReportAction.childReportID;
-                            }
+                            targetTransactionThreadReportIDOverride = getTargetTransactionThreadReportIDForSelection(selectedTransaction, selectedTransactionMeta, iouReportAction);
 
                             if (!targetTransactionThreadReportIDOverride) {
                                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];

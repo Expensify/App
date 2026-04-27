@@ -33,7 +33,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getTargetTransactionThreadReportIDForSearchSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import {getTargetTransactionThreadReportIDForSelection, getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -1340,7 +1340,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             const selectedTransactionInfo = selectedTransactions[transactionID];
                             const isSingleSelection = selectedTransactionsKeys.length === 1;
                             let targetTransactionThreadReportIDOverride = isSingleSelection
-                                ? getTargetTransactionThreadReportIDForSearchSelection(searchSnapshotTransaction ?? searchedTransactions.at(0), selectedTransactionInfo)
+                                ? getTargetTransactionThreadReportIDForSelection(searchSnapshotTransaction ?? searchedTransactions.at(0), selectedTransactionInfo)
                                 : undefined;
 
                             if (!targetTransactionThreadReportIDOverride && isSingleSelection) {
