@@ -63,18 +63,14 @@ function hasPendingScanStateAndUnknownDirection(transaction: Transaction): boole
 function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
     const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
 
-    if (originalMessage?.deleted) {
-        return true;
-    }
-
-    if (isDeletedParentAction(iouAction)) {
+    if (originalMessage?.deleted || isDeletedParentAction(iouAction)) {
         return true;
     }
 
     const message = iouAction.message;
 
     if (Array.isArray(message)) {
-        return message.some((fragment) => !!fragment?.deleted || fragment?.html === '');
+        return message.length === 0 || message.some((fragment) => !!fragment?.deleted || fragment?.html === '');
     }
 
     return !!message?.deleted || message?.html === '';
@@ -117,7 +113,7 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
     }
 
     const hasCompleteActionCoverage = activeMoneyRequestCount > 0 && uniqueIOUActionActorMap.size >= activeMoneyRequestCount;
-    const areAllActiveChildRequestsCreatedByOneActor = new Set(uniqueIOUActionActorMap.values()).size < 2;
+    const areAllActiveChildRequestsCreatedByOneActor = uniqueIOUActionActorMap.size > 0 && new Set(uniqueIOUActionActorMap.values()).size < 2;
     const canInferFromIOUActionsDuringPartialHydration = loadedTransactionCount > 0 && hasCompleteActionCoverage && activeIOUActions.length > 0 && areAllActiveChildRequestsCreatedByOneActor;
 
     // After refresh, the preview action can hydrate before all active child transactions.
@@ -210,11 +206,13 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
             return undefined;
         }
         const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
-        const filteredTransactions = getAllNonDeletedTransactions(reportTransactions, iouActions ?? []);
         const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+        const orphanedInclusiveTransactions = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
+        const filteredTransactions =
+            orphanedInclusiveTransactions.length < allReportTransactions.length ? getAllNonDeletedTransactions(reportTransactions, iouActions ?? []) : orphanedInclusiveTransactions;
 
         if (filteredTransactions.length < allReportTransactions.length && filteredTransactions.length < activeMoneyRequestCount) {
-            return getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
+            return orphanedInclusiveTransactions;
         }
 
         return filteredTransactions;
