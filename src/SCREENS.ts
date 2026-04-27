@@ -107,6 +107,7 @@ const SCREENS = {
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
         CHANGE_APPROVER: {
             ROOT: 'Search_Change_Approver_Root',
+            SEARCH: 'Search_Change_Approver_Search',
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
         },
     },

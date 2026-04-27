@@ -3113,6 +3113,7 @@ type SearchReportActionsParamList = {
         reportID: string;
     };
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.SEARCH]: undefined;
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
