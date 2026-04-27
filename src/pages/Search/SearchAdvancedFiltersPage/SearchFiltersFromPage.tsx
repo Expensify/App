@@ -39,6 +39,7 @@ function SearchFiltersFromPage() {
                             from: selectedAccountIDs,
                         });
                     }}
+                    shouldExcludeExpensifyTeamMembers
                 />
             </View>
         </ScreenWrapper>
