@@ -78,7 +78,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
-    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow?.availableMembers.length === 0;
+    const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
 
@@ -125,13 +126,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
                     const personalDetail = getPersonalDetailByEmail(member.email);
 
-                    // For non-policy members, try to get accountID from draft or personal details
-                    if (!isPolicyMember) {
+                    // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
+                    // example a freshly invited user whose personal details haven't fully synced yet
+                    // (the helper requires personalDetail.login). Without a real accountID,
+                    // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
+                    // assigned to that account.
+                    if (!accountID) {
                         const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
-                        if (draftAccountID != null) {
-                            accountID = draftAccountID;
-                        } else if (personalDetail?.accountID) {
+                        if (personalDetail?.accountID) {
                             accountID = personalDetail.accountID;
+                        } else if (draftAccountID) {
+                            accountID = draftAccountID;
                         }
                     }
 
@@ -159,19 +164,31 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner]);
 
-    const workflowAvailableMembers = approvalWorkflow?.availableMembers;
     const workflowApprovers = approvalWorkflow?.approvers;
+
+    // Derive available members live from policy.employeeList instead of approvalWorkflow.availableMembers,
+    // which is a snapshot taken once when the EditPage first mounts and never refreshed. Without this,
+    // a member invited mid-flow won't appear in the picker when the user returns to expenses-from.
+    const liveAvailableMembers = useMemo<Member[]>(() => {
+        const employees = policy?.employeeList ?? {};
+        return Object.values(employees)
+            .filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map((employee) => {
+                const personalDetail = getPersonalDetailByEmail(employee.email ?? '');
+                return {
+                    email: employee.email ?? '',
+                    displayName: personalDetail?.displayName ?? employee.email ?? '',
+                    avatar: personalDetail?.avatar,
+                };
+            });
+    }, [policy?.employeeList]);
 
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
         const approversEmail = workflowApprovers?.map((member) => member?.email);
 
-        if (!workflowAvailableMembers) {
-            return members;
-        }
-
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-        const availableMembers = workflowAvailableMembers
+        const availableMembers = liveAvailableMembers
             .map((member) => {
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
@@ -237,7 +254,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return members;
     }, [
         selectedMembers,
-        workflowAvailableMembers,
+        liveAvailableMembers,
         workflowApprovers,
         policy?.employeeList,
         policy?.owner,
@@ -254,6 +271,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         // Going back means we're done with this expenses-from session, so any
         // hand-off to the invite-message page is no longer in flight.
         isHandingOffToInviteRef.current = false;
+
+        // Drop any selected members who never made it into the workspace. They
+        // were staged for invite but never confirmed, so leaving them in
+        // approvalWorkflow.members would carry an un-invited user into the form
+        // and fail backend validation with "Approvals can only be set for
+        // members of the policy".
+        const stagedMembers = approvalWorkflow?.members ?? [];
+        const confirmedMembers = stagedMembers.filter((m) => !!policy?.employeeList?.[m.email]);
+        if (confirmedMembers.length !== stagedMembers.length) {
+            setApprovalWorkflowMembers(confirmedMembers);
+        }
+
         let backTo;
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
@@ -261,7 +290,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
         Navigation.goBack(backTo);
-    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
+    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action, approvalWorkflow?.members, policy?.employeeList]);
 
     const nextStep = useCallback(() => {
         const existingMembers: Member[] = [];
