@@ -39,16 +39,16 @@ type ChatActionableButtonsProps = {
     reportID: string | undefined;
     originalReportID: string;
     userBillingFundID: number | undefined;
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
 };
 
-function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID, introSelected}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);

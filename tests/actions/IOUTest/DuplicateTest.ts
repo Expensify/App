@@ -2402,7 +2402,13 @@ describe('actions/Duplicate', () => {
     describe('bulkDuplicateExpenses', () => {
         let writeSpy: jest.SpyInstance;
 
-        const mockPolicy = createRandomPolicy(1);
+        const mockPolicy: Policy = {
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            harvesting: {enabled: false},
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        };
         const fakePolicyCategories = createRandomPolicyCategories(3);
         const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
@@ -2422,7 +2428,9 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy.id}`, mockPolicy);
+            await waitForBatchedUpdates();
         });
 
         afterEach(() => {
