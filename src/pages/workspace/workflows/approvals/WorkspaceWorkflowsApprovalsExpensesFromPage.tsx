@@ -342,51 +342,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
-    const toggleMember = useCallback(
-        (members: SelectionListApprover[]) => {
-            // Persist non-policy members to the invite draft AND to approvalWorkflow.members
-            // so they survive re-renders triggered by Onyx updates (e.g. personalDetails
-            // changes from search results). The effect that syncs selectedMembers from
-            // approvalWorkflow.members filters non-policy members unless they're in the
-            // invite draft, so both stores must stay in sync to avoid dropping the locally
-            // selected new member.
-            const nextDraft: Record<string, number> = {};
-            const workflowMembers: Member[] = [];
-            for (const member of members) {
-                if (!member.login) {
-                    continue;
-                }
-                const iconSource = member.icons?.at(0)?.source;
-                workflowMembers.push({
-                    displayName: member.text ?? member.login,
-                    email: member.login,
-                    avatar: typeof iconSource === 'string' ? iconSource : undefined,
-                });
-                if (policy?.employeeList?.[member.login]) {
-                    continue;
-                }
-                const iconId = member.icons?.at(0)?.id;
-                nextDraft[member.login] = typeof iconId === 'number' ? iconId : (invitedEmailsToAccountIDsDraft?.[member.login] ?? CONST.DEFAULT_NUMBER_ID);
-            }
-            setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
-            setApprovalWorkflowMembers(workflowMembers);
-
-            setSelectedMembers((prevSelected) => {
-                // When editing an existing workflow, recently invited members must remain in the list
-                // even if the policy employee list hasn't synced yet (Test 6).
-                // When creating a new workflow, any member including Owner can be deselected (Test 5).
-                if (approvalWorkflow?.action !== CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-                    return members;
-                }
-                const policyOrInvitedMembers = prevSelected.filter((m) => m.login && (policy?.employeeList?.[m.login] ?? invitedEmailsToAccountIDsDraft?.[m.login] != null));
-                const alreadyInNewSelection = new Set(members.map((m) => m.login));
-                const membersToKeep = policyOrInvitedMembers.filter((pm) => !alreadyInNewSelection.has(pm.login));
-                return [...members, ...membersToKeep];
-            });
-        },
-        [approvalWorkflow?.action, policy?.employeeList, invitedEmailsToAccountIDsDraft, route.params.policyID],
-    );
-
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow.
     useEffect(() => {
@@ -479,7 +434,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             translate,
         ],
     );
-
 
     return (
         <AccessOrNotFoundWrapper
