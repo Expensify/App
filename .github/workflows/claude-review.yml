@@ -7,12 +7,10 @@ permissions:
 on:
   pull_request_target:
     types: [opened, ready_for_review]
-  # Re-run via repository_dispatch when a Contributor+ approves a PR.
-  # Web-Expensify's GitHub webhook fires this event after verifying C+ membership.
-  # We use repository_dispatch (not pull_request_review) because pull_request_review
-  # on fork PRs is treated like pull_request: no secrets, read-only token. Anyone
-  # who can hit /repos/Expensify/App/dispatches already needs Contents: write on
-  # this repo, so externals/forks cannot fire it.
+  # Re-run via repository_dispatch when a Contributor+ approves a PR. We use
+  # repository_dispatch instead of pull_request_review because pull_request_review on
+  # fork PRs is treated like pull_request: no secrets, read-only token. /dispatches
+  # requires Contents: write on this repo, so externals/forks cannot fire it.
   repository_dispatch:
     types: [claude-review-request]
 
