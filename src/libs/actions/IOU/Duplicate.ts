@@ -43,20 +43,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, RequestMoneyInformation} from '.';
-import {
-    createDistanceRequest,
-    getAllReportActionsFromIOU,
-    getAllReports,
-    getAllTransactions,
-    getAllTransactionViolations,
-    getCurrentUserEmail,
-    getMoneyRequestParticipantsFromReport,
-    getUserAccountID,
-} from '.';
+import type {RequestMoneyInformation} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail, getMoneyRequestParticipantsFromReport, getUserAccountID} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
+import type {CreateDistanceRequestInformation} from './Split';
+import {createDistanceRequest} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 import {requestMoney, trackExpense} from './TrackExpense';
 
