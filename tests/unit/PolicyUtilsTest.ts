@@ -2647,10 +2647,10 @@ describe('PolicyUtils', () => {
         const customerLogin = 'customer@acme.com';
         const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
             const result: PersonalDetailsList = {};
-            logins.forEach((login, index) => {
+            for (const [index, login] of logins.entries()) {
                 const accountID = index + 1;
                 result[accountID] = {accountID, login};
-            });
+            }
             return result;
         };
 
