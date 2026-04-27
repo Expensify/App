@@ -29,7 +29,9 @@ import {
     getClearedPendingFields,
     getMerchant,
     getUpdatedTransaction,
+    hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
     isScanning,
@@ -883,6 +885,58 @@ type UpdateMoneyRequestDataKeys =
     | typeof ONYXKEYS.COLLECTION.NEXT_STEP
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
 
+/**
+ * After getViolationsOnyxData runs, post-process the violations to add or remove the SmartScan
+ * modifiedAmount notice. We do this here (rather than in ViolationsUtils) because we need both
+ * the original transaction (which still holds the scanned amount in modifiedAmount) and the
+ * updated transaction (where modifiedAmount has been overwritten with the user's edit).
+ */
+function addOptimisticSmartScanModifiedAmountViolation({
+    transaction,
+    updatedTransaction,
+    transactionViolations,
+    hasModifiedAmount,
+}: {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    updatedTransaction: OnyxTypes.Transaction;
+    transactionViolations: OnyxTypes.TransactionViolation[];
+    hasModifiedAmount: boolean;
+}): OnyxTypes.TransactionViolation[] {
+    if (
+        !hasModifiedAmount ||
+        !transaction?.receipt?.source ||
+        isDistanceRequestTransactionUtils(transaction) ||
+        isExpensifyCardTransaction(transaction) ||
+        !hasValidModifiedAmount(transaction)
+    ) {
+        return transactionViolations;
+    }
+
+    const scannedAmount = Math.abs(Number(transaction.modifiedAmount));
+    const editedAmount = Math.abs(Number(updatedTransaction.modifiedAmount));
+
+    const isSmartScanModifiedAmount = (v: OnyxTypes.TransactionViolation) =>
+        v.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (!v.data?.type || v.data.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.SMARTSCAN);
+
+    const withoutSmartScanModifiedAmount = transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
+
+    if (!scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
+        return withoutSmartScanModifiedAmount;
+    }
+
+    return [
+        ...withoutSmartScanModifiedAmount,
+        {
+            name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+            type: CONST.VIOLATION_TYPES.NOTICE,
+            showInReview: true,
+            data: {
+                type: CONST.MODIFIED_AMOUNT_VIOLATION_DATA.SMARTSCAN,
+            },
+        },
+    ];
+}
+
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
     const {
         transactionID,
@@ -1321,7 +1375,18 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             iouReport,
             isFromExpenseReport,
         );
-        optimisticData.push(violationsOnyxData);
+        const violationsWithSmartScanModifiedAmount = addOptimisticSmartScanModifiedAmountViolation({
+            transaction,
+            updatedTransaction,
+            transactionViolations: (violationsOnyxData.value as OnyxTypes.TransactionViolation[]) ?? [],
+            hasModifiedAmount,
+        });
+        const finalViolationsOnyxData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: violationsWithSmartScanModifiedAmount,
+        };
+        optimisticData.push(finalViolationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -1334,7 +1399,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: finalViolationsOnyxData.value,
                     },
                 },
             });
@@ -1350,12 +1415,12 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             });
         }
         if (
-            violationsOnyxData &&
+            finalViolationsOnyxData &&
             ((iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN ||
                 (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
         ) {
             const currentNextStep = iouReportNextStep ?? {};
-            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+            const shouldFixViolations = Array.isArray(finalViolationsOnyxData.value) && finalViolationsOnyxData.value.length > 0;
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
             const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, getAllTransactionViolations(), currentUserAccountIDParam, currentUserEmailParam);
             const optimisticNextStep = buildOptimisticNextStep({
