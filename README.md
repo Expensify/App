@@ -104,3 +104,11 @@ We use Reassure for monitoring performance regression. More detailed information
 [CodeCov](https://about.codecov.io/) is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
 
 ----
+
+## 💰 Bounty Contribution
+
+- **Task:** [$250] Android - App crashes reopening while the GPS trip is in progress after d
+- **Reward:** $250
+- **Source:** GitHub-Paid
+- **Date:** 2026-04-27
+
