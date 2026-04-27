@@ -83,9 +83,12 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             return;
         }
 
-        // Single-chunk payloads keep the original binary reveal — trickling a
-        // 1–2 sentence answer over 30s would feel broken.
-        const shouldTrickle = tokens.length >= 3 && !!fullHtml;
+        // Threshold matches word-level tokenization — a typical 1–2 sentence
+        // reply produces ~10–18 anchors and feels stretched if trickled over
+        // 30s, so binary reveal is preserved for those. Multi-paragraph
+        // replies (intro + list + closing) clear 20 anchors easily and get
+        // the smooth ChatGPT-style stream.
+        const shouldTrickle = tokens.length >= 20 && !!fullHtml;
         if (!shouldTrickle) {
             const timer = setTimeout(() => applyPendingConciergeAction(reportID, reportAction), Math.max(0, remainingDelay));
             return () => clearTimeout(timer);
