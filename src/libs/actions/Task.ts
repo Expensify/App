@@ -1149,7 +1149,7 @@ function getShareDestination(
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, backTo?: Route): Route | undefined {
     if (!report) {
         return undefined;
     }
@@ -1157,6 +1157,10 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID);
     if (!shouldDeleteTaskReport) {
         return undefined;
+    }
+
+    if (backTo) {
+        return backTo;
     }
 
     if (report?.parentReportID) {
@@ -1185,6 +1189,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     ancestors: ReportUtils.Ancestor[] = [],
+    backTo?: Route,
 ) {
     if (!report) {
         return;
@@ -1309,9 +1314,9 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, backTo);
     if (urlToNavigateBack) {
-        Navigation.goBack();
+        Navigation.goBack(urlToNavigateBack);
         return urlToNavigateBack;
     }
 }

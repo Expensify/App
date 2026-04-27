@@ -125,7 +125,7 @@ import {
     updateGroupChatAvatar,
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
+import {canActionTask, canModifyTask, deleteTask, getNavigationUrlOnTaskDelete, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -914,6 +914,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 conciergeReportID,
                 delegateEmail,
                 ancestors,
+                backTo,
             );
             return;
         }
@@ -973,6 +974,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
+        if (caseID === CASES.DEFAULT) {
+            const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, backTo);
+
+            if (urlToNavigateBack) {
+                setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+            }
+            return;
+        }
+
         let urlToNavigateBack: string | undefined;
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
@@ -1037,7 +1047,20 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
-    }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
+    }, [
+        backTo,
+        caseID,
+        chatIOUReport,
+        conciergeReportID,
+        iouReport,
+        iouTransactionID,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+        moneyRequestReport,
+        report,
+        requestParentReportAction,
+        route.params.reportID,
+    ]);
 
     const showDeleteModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -1052,6 +1075,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (caseID === CASES.DEFAULT) {
+                deleteTransaction();
+                return;
+            }
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.

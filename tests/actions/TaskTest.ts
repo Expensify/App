@@ -32,6 +32,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
@@ -1029,6 +1030,16 @@ describe('actions/Task', () => {
             expect(result).toBe(`r/${parentReportID}`);
         });
 
+        it('should prefer backTo when report has no visible actions', () => {
+            const parentReportID = 'parent_123';
+            const taskReport = {...getFakeReport(), parentReportID};
+            const backTo = '/search' as Route;
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', backTo);
+            expect(result).toBe(backTo);
+        });
+
         it('should return most recent report route when no parentReportID and getMostRecentReportID returns a value', () => {
             const taskReport = {...getFakeReport(), parentReportID: undefined};
             const mostRecentReportID = 'recent_456';
@@ -1359,7 +1370,41 @@ describe('actions/Task', () => {
             const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
 
             expect(result).toBe(`r/${parentReportID}`);
-            expect(Navigation.goBack).toHaveBeenCalled();
+            expect(Navigation.goBack).toHaveBeenCalledWith(`r/${parentReportID}`);
+        });
+
+        it('should navigate back to backTo when provided and the task report is deleted', async () => {
+            const taskReportID = 'task_report_delete_back_to';
+            const parentReportID = 'parent_report_delete_back_to';
+            const backTo = '/search' as Route;
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task From Search',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined, [], backTo);
+
+            expect(result).toBe(backTo);
+            expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
         });
 
         it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {
@@ -1388,7 +1433,7 @@ describe('actions/Task', () => {
 
             expect(result).toBe(`r/${conciergeReportID}`);
             expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
-            expect(Navigation.goBack).toHaveBeenCalled();
+            expect(Navigation.goBack).toHaveBeenCalledWith(`r/${conciergeReportID}`);
         });
 
         it('should not return navigation URL when task report has visible actions', async () => {
