@@ -12,7 +12,6 @@ function useUndeleteTransactions() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
@@ -25,7 +24,6 @@ function useUndeleteTransactions() {
             email: currentUserPersonalDetails.email ?? '',
             policy,
             allTransactions,
-            policyTagList,
         });
     };
 }
