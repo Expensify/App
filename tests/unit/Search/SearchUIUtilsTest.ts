@@ -2614,6 +2614,33 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
+        it('should prefer preview delete over stale total when deriving expense report pending action', () => {
+            const localSearchResults: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    pendingFields: {
+                        total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: localSearchResults,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+            })[0] as TransactionReportGroupListItemType[];
+
+            expect(result.find((item) => item.reportID === reportID2)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        });
+
         it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
             // Reproduce the bug: the search API response does not include the report owner in
             // personalDetailsList (data.personalDetailsList is empty/undefined), so without the

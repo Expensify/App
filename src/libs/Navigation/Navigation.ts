@@ -1,10 +1,9 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
-import {CommonActions, StackActions} from '@react-navigation/native';
+import {CommonActions, StackActions, TabActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {nanoid} from 'nanoid/non-secure';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -25,14 +24,16 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {SidePanel} from '@src/types/onyx';
+import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
-import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getActiveTabName from './helpers/getActiveTabName';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
@@ -369,12 +370,9 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return true;
     }
 
-    if (!('params' in minimalAction.payload)) {
-        return false;
-    }
-
     const routeParams = getRouteParamsToCompare(route.params as Record<string, string | undefined>);
-    const minimalActionParams = getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>);
+    const minimalActionParams =
+        'params' in minimalAction.payload ? getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>) : ({} as Record<string, string | undefined>);
 
     return shallowCompare(routeParams, minimalActionParams);
 }
@@ -441,27 +439,37 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
+    // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
+    if (targetState.type === 'tab' && targetState?.key) {
+        const payload = minimalAction.payload as NavigationRoute;
+        if (!payload?.name) {
+            Log.hmmm('[Navigation] Unable to go up. Tab target missing screen name.');
+            return;
+        }
+        // Cross-tab PUSH stacks a new TAB_NAVIGATOR on the root. When an underlying TAB_NAVIGATOR
+        // already has the target tab active, pop to it instead of jumping — otherwise the pushed
+        // tab's deep leaf lingers and resurfaces with a close animation on later tab switches.
+        const topRootIndex = rootState.index ?? rootState.routes.length - 1;
+        const underlyingTabNavIndex = rootState.routes.findLastIndex(
+            (route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.routes?.at(route.state?.index ?? 0)?.name === payload.name,
+        );
+        if (underlyingTabNavIndex !== -1) {
+            navigationRef.current.dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            return;
+        }
+        const jumpParams = 'params' in payload ? payload.params : undefined;
+        navigationRef.current.dispatch({
+            ...TabActions.jumpTo(payload.name, jumpParams),
+            target: targetState.key,
+        });
+        return;
+    }
+
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
-        const actionPayload = minimalAction.payload as NavigationRoute;
-
-        // StackRouter's REPLACE drops `path`, use a targeted RESET for dynamic routes to preserve it.
-        if (actionPayload?.path && findMatchingDynamicSuffix(backToRoute)) {
-            const routes = targetState.routes.with(targetState.index ?? targetState.routes.length - 1, {
-                key: `${actionPayload.name}-${nanoid()}`,
-                name: actionPayload.name,
-                params: actionPayload.params,
-                path: actionPayload.path,
-            });
-
-            const resetAction = {type: CONST.NAVIGATION_ACTIONS.RESET, payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
-            navigationRef.current.dispatch(resetAction);
-            return;
-        }
-
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
@@ -530,10 +538,21 @@ function popToSidebar() {
         return;
     }
 
-    // WorkspaceSplitNavigator and DomainSplitNavigator are nested inside WorkspaceNavigator.
-    const activeRoute = currentRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? currentRoute.state?.routes.at(-1) : currentRoute;
+    // Split navigators can be nested inside TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
+    // Drill through the nesting to find the actual split navigator.
+    // Drill through TAB_NAVIGATOR → WORKSPACE_NAVIGATOR to find the active split navigator.
+    let activeRoute = currentRoute as typeof currentRoute | undefined;
+    if (currentRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
+        const tabRoutes = currentRoute.state?.routes;
+        const activeTab = tabRoutes?.[currentRoute.state?.index ?? 0];
+        if (activeTab?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            activeRoute = activeTab.state?.routes?.at(-1) as typeof currentRoute | undefined;
+        } else {
+            activeRoute = activeTab as typeof currentRoute | undefined;
+        }
+    }
 
-    if (!isSplitNavigatorName(activeRoute?.name)) {
+    if (!activeRoute || !isSplitNavigatorName(activeRoute.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
@@ -806,7 +825,7 @@ const dismissModalWithReport = (
 
         const topmostReportID = getTopmostReportId();
         areReportsIDsDefined = !!topmostReportID && !!reportID;
-        const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
             dismissModal();
@@ -814,11 +833,6 @@ const dismissModalWithReport = (
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
-        if (getIsNarrowLayout()) {
-            navigate(reportRoute, {forceReplace: true});
-            return;
-        }
-
         dismissModal({
             afterTransition: () => {
                 navigate(reportRoute);
@@ -963,23 +977,17 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
 
 /**
  * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
- * Wide-layout only. Used after expense submission so the user sees the target screen (e.g. Search)
- * sliding in behind the closing RHP instead of a blank flash.
+ * Used after expense submission (and similar flows) so the target screen (e.g. Search inside TabNavigator)
+ * is ready behind the modal: one dismiss animation instead of dismiss-then-navigate (two animations).
  *
  * Two-frame sequence:
  *   Frame 1 - REPLACE_FULLSCREEN_UNDER_RHP inserts the target fullscreen route underneath
- *             the modal: [Home, RHP] -> [Home, Search, RHP]. Browser history is NOT touched
- *             (the custom history extension preserves the old history array).
- *   Frame 2 - DISMISS_MODAL pops the RHP: [Home, Search, RHP] -> [Home, Search].
- *             useLinking detects the stale Home+RHP entry and replaces it with a Search
- *             push, yielding correct browser history [Home, Search].
+ *             the modal (e.g. a new TabNavigator slice with Search selected): [Tab, RHP] -> [Tab, Tab', RHP].
+ *             Browser history is NOT touched (the custom history extension preserves the old history array).
+ *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
+ *             useLinking syncs browser history to the new top fullscreen route.
  */
 function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void}) {
-    if (getIsNarrowLayout()) {
-        Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
-        return;
-    }
-
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;
@@ -1031,7 +1039,10 @@ function preInsertFullscreenUnderRHP(route: Route) {
     }
 
     const stateFromPath = getStateFromPath(route);
-    const targetRouteName = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name))?.name;
+    const outermostFullScreen = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name));
+    // Use the active inner tab name (e.g. REPORTS_SPLIT_NAVIGATOR) when the outermost
+    // fullscreen is a TAB_NAVIGATOR wrapper, so callers comparing against specific tab names match.
+    const targetRouteName = getActiveTabName(outermostFullScreen);
 
     const stateBefore = navigationRef.current.getRootState();
     const routeCountBefore = stateBefore.routes.length;
@@ -1043,7 +1054,10 @@ function preInsertFullscreenUnderRHP(route: Route) {
     });
 
     const stateAfter = navigationRef.current.getRootState();
-    if (stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
+    // When the target is a tab (no push), route count and the top key are unchanged.
+    // Check the stored original route to detect a successful tab-switch pre-insertion.
+    const wasTabSwitched = !!getPreInsertedOriginalTabRoute();
+    if (!wasTabSwitched && stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
         Log.hmmm(`[Navigation] preInsertFullscreenUnderRHP dispatch was ignored`, {route});
         return;
     }
@@ -1065,6 +1079,7 @@ function getPreInsertedFullscreenRouteName() {
 function clearFullscreenPreInsertedFlag() {
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
+    clearPreInsertedOriginalTabRoute();
 }
 
 /**
@@ -1101,7 +1116,31 @@ function removePreInsertedFullscreenIfNeeded() {
         return;
     }
 
-    // RHP already dismissed - the pre-inserted fullscreen is now the topmost route; pop it.
+    // RHP already dismissed. For the tab-switch path, jump back to the original tab.
+    // For the push path, pop the pre-inserted route directly.
+    const originalTabRoute = getPreInsertedOriginalTabRoute();
+    if (originalTabRoute) {
+        clearPreInsertedOriginalTabRoute();
+        const originalTabState = originalTabRoute.state as NavigationState | undefined;
+        const originalFocusedTabIndex = originalTabState?.index ?? 0;
+        const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
+        if (originalTabName) {
+            requestAnimationFrame(() => {
+                const currentState = navigationRef.getRootState();
+                const tabNavRoute = currentState?.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+                if (!tabNavRoute?.state?.key) {
+                    return;
+                }
+                navigationRef.current?.dispatch({
+                    ...TabActions.jumpTo(originalTabName),
+                    target: tabNavRoute.state.key,
+                });
+            });
+        }
+        return;
+    }
+
+    // Push path: the pre-inserted fullscreen is now the topmost route; pop it.
     // Deferred to the next frame to avoid dispatching during a React commit.
     // Capture the route key now so the rAF callback can match on identity, not just name.
     const targetRouteKey = rootState.routes.at(-1)?.key;

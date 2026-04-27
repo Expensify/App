@@ -884,6 +884,7 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         GUSTO: 'gustoNewDot',
+        BULK_DUPLICATE_REPORT: 'bulkDuplicateReport',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -2817,7 +2818,6 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
-        TRAVEL_INVOICING_VENDOR: 'travelInvoicingVendorID',
         TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
         PAYABLE_ACCT: 'payableAcct',
@@ -7553,6 +7553,7 @@ const CONST = {
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
             DUPLICATE: 'duplicate',
+            DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
         },
         BULK_DUPLICATE_LIMIT: 50,
@@ -9556,7 +9557,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
-            REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
+            CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
@@ -9619,12 +9620,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'More power, right where you need it',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
-                publishedDate: '2026-03-23',
-            },
-            {
                 title: 'New global partnerships: banking, travel, accounting, & more',
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
@@ -9635,6 +9630,12 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
                 publishedDate: '2026-04-15',
+            },
+            {
+                title: 'New BYOC partnership: Institute of Commercial Payments',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
+                publishedDate: '2026-04-21',
             },
         ],
     },
@@ -9648,6 +9649,7 @@ const CONST = {
         AUTH_IMAGES: 'auth-images',
     },
 
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO: 0.9,
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 
     MAP_VIEW_LAYERS: {

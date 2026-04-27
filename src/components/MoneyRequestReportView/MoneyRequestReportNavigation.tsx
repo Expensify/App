@@ -1,31 +1,69 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults} from '@src/types/onyx';
+import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
     shouldDisplayNarrowVersion: boolean;
 };
 
-function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
+type SnapshotGuard = {
+    hasMultiple: boolean;
+    includesReport: boolean;
+};
 
-    const type = lastSearchQuery?.queryJSON?.type;
+const EMPTY_GUARD: SnapshotGuard = {hasMultiple: false, includesReport: false};
+
+const selectIsExpenseReportSearch = (lastSearchQuery: OnyxEntry<LastSearchParams>): boolean => lastSearchQuery?.queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+const selectQueryHash = (lastSearchQuery: OnyxEntry<LastSearchParams>): number | undefined => lastSearchQuery?.queryJSON?.hash;
+
+const buildSnapshotGuardSelector =
+    (reportID: string | undefined) =>
+    (snapshot: OnyxEntry<SearchResults>): SnapshotGuard => {
+        const data = snapshot?.data;
+        if (!data || !reportID) {
+            return EMPTY_GUARD;
+        }
+        const prefix = ONYXKEYS.COLLECTION.REPORT;
+        let count = 0;
+        let includesReport = false;
+        for (const key of Object.keys(data)) {
+            if (!key.startsWith(prefix)) {
+                continue;
+            }
+            count++;
+            if (!includesReport && key.slice(prefix.length) === reportID) {
+                includesReport = true;
+            }
+            if (count > 1 && includesReport) {
+                break;
+            }
+        }
+        return {hasMultiple: count > 1, includesReport};
+    };
+
+function MoneyRequestReportNavigationInner({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
+    const styles = useThemeStyles();
+
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
-
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
-    const styles = useThemeStyles();
-    const isExpenseReportSearch = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const shouldDisplayNavigationArrows = isExpenseReportSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
+    const shouldDisplayNavigationArrows = allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
@@ -100,18 +138,40 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         goToReportId(allReports.at(prevIndex));
     };
 
+    if (!shouldDisplayNavigationArrows) {
+        return null;
+    }
+
     return (
-        shouldDisplayNavigationArrows && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
-                <PrevNextButtons
-                    isPrevButtonDisabled={hidePrevButton}
-                    isNextButtonDisabled={hideNextButton}
-                    onNext={goToNextReport}
-                    onPrevious={goToPrevReport}
-                />
-            </View>
-        )
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+            {!shouldDisplayNarrowVersion && <Text style={styles.mutedTextLabel}>{`${currentIndex + 1} of ${allReportsCount}`}</Text>}
+            <PrevNextButtons
+                isPrevButtonDisabled={hidePrevButton}
+                isNextButtonDisabled={hideNextButton}
+                onNext={goToNextReport}
+                onPrevious={goToPrevReport}
+            />
+        </View>
+    );
+}
+
+function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
+    const [isExpenseReportSearch] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectIsExpenseReportSearch});
+    const [hash] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: selectQueryHash});
+    const snapshotGuardSelector = buildSnapshotGuardSelector(reportID);
+    const [snapshotGuard = EMPTY_GUARD] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {selector: snapshotGuardSelector});
+
+    const shouldMount = isExpenseReportSearch && snapshotGuard.hasMultiple && snapshotGuard.includesReport;
+
+    if (!shouldMount) {
+        return null;
+    }
+
+    return (
+        <MoneyRequestReportNavigationInner
+            reportID={reportID}
+            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+        />
     );
 }
 

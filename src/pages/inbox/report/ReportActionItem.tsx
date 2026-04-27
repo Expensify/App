@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -17,22 +16,19 @@ import {
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper, toggleEmojiReaction} from '@userActions/Report';
+import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper} from '@userActions/Report';
 import {clearError} from '@userActions/Transaction';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'betas'> & {
+type ReportActionItemProps = Omit<PureReportActionItemProps, 'personalPolicyID'> & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
     /** Draft message for the report action */
     draftMessage?: string;
-
-    /** Emoji reactions for the report action */
-    emojiReactions?: OnyxEntry<ReportActionReactions>;
 
     /** User wallet tierName */
     userWalletTierName: string | undefined;
@@ -54,7 +50,6 @@ function ReportActionItem({
     action,
     report,
     draftMessage,
-    emojiReactions,
     userWalletTierName,
     isUserValidated,
     personalDetails,
@@ -64,26 +59,14 @@ function ReportActionItem({
     ...props
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
-    const originalMessage = getOriginalMessage(action);
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    const taskReportID = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
-    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
-    const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
-    const [linkedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
-    const iouReportOfLinkedReportID = linkedReport && 'iouReportID' in linkedReport ? linkedReport.iouReportID : undefined;
-    const [iouReportOfLinkedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportOfLinkedReportID}`);
-
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -105,20 +88,12 @@ function ReportActionItem({
         <PureReportActionItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            introSelected={introSelected}
-            betas={betas}
             personalPolicyID={personalPolicyID}
             action={action}
             report={report}
             policy={policy}
-            currentUserAccountID={currentUserAccountID}
             draftMessage={draftMessage}
             iouReport={iouReport}
-            taskReport={taskReport}
-            cardList={cardList}
-            linkedReport={linkedReport}
-            iouReportOfLinkedReport={iouReportOfLinkedReport}
-            emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             isUserValidated={isUserValidated}
             parentReport={parentReport}
@@ -128,7 +103,6 @@ function ReportActionItem({
             deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
-            toggleEmojiReaction={toggleEmojiReaction}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}

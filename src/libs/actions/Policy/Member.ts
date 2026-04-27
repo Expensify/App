@@ -818,8 +818,11 @@ function buildAddMembersToWorkspaceOnyxData(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -836,12 +839,11 @@ function buildAddMembersToWorkspaceOnyxData(
         policyID,
         role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR ? accountIDs : [],
     );
-    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs]);
+    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     // create onyx data for policy expense chats for each new member
-    // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, undefined, undefined, policyExpenseChatNotificationPreference);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, reportActionsList, undefined, policyExpenseChatNotificationPreference);
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -951,7 +953,10 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number | undefined,
     approverEmail?: string,
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -963,7 +968,10 @@ function addMembersToWorkspace(
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
+        currentUserAccountID,
         approverEmail,
+        undefined,
+        reportActionsList,
     );
 
     const params: AddMembersToWorkspaceParams = {

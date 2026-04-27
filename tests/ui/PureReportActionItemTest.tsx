@@ -109,11 +109,6 @@ describe('PureReportActionItem', () => {
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
-                                taskReport={undefined}
-                                linkedReport={undefined}
-                                iouReportOfLinkedReport={undefined}
-                                currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                betas={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -401,12 +396,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -457,11 +447,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -515,12 +500,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -567,11 +547,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -642,11 +617,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -704,11 +674,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -793,11 +758,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1109,11 +1069,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1294,11 +1249,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1391,12 +1341,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     isClosedExpenseReportWithNoExpenses
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1424,12 +1369,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     missingPaymentMethod="bankAccount"
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1459,12 +1399,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     missingPaymentMethod="wallet"
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1497,13 +1432,8 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1536,13 +1466,8 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1578,13 +1503,8 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{55555: {accountData: {accountNumber: '000012345'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1621,13 +1541,8 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{77777: {accountData: {accountNumber: '000067890'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1715,11 +1630,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1758,11 +1668,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2199,6 +2104,65 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(assertion)).toBeOnTheScreen();
         });
 
+        it('isCardBrokenConnectionAction falls back to card.cardName from CARD_LIST when originalMessage has no cardName', async () => {
+            const CARD_ID_KEY = '100';
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Onyx Card'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN, {cardID: 100});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Onyx Card/)).toBeOnTheScreen();
+        });
+
+        it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection', async () => {
+            const CARD_ID_KEY = '100';
+
+            (openLink as jest.Mock).mockClear();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN, {cardID: 100, cardName: 'Broken Card'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            const bankLoginLink = screen.getByText('Log into your bank');
+            fireEvent.press(bankLoginLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+        });
+
+        it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {
+            const CARD_ID_KEY = '100';
+
+            (openLink as jest.Mock).mockClear();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Healthy Card', lastScrapeResult: 200},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN, {cardID: 100, cardName: 'Healthy Card'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Healthy Card/)).toBeOnTheScreen();
+            expect(screen.getByText(/Log into your bank/)).toBeOnTheScreen();
+            expect(screen.queryAllByRole('link', {name: /Log into your bank/i})).toHaveLength(0);
+        });
+
         // isActionableJoinRequest renders ReportActionItemBasicMessage inside a View wrapper
         it('isActionableJoinRequest renders join request message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST, {});
@@ -2284,11 +2248,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2308,12 +2267,50 @@ describe('PureReportActionItem', () => {
             expect(screen.getByLabelText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
         });
 
+        it('isTripPreview renders TripRoomPreview with live reportName from Onyx', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}tripReportLive`, {
+                    reportID: 'tripReportLive',
+                    reportName: 'Paris Trip 2026',
+                    currency: 'USD',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReportLive'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Paris Trip 2026')).toBeOnTheScreen();
+        });
+
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {taskReportID: 'task123'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getAllByLabelText(translateLocal('task.task')).length).toBeGreaterThan(0);
+        });
+
+        it('isCreatedTaskReportAction renders TaskPreview with live title from Onyx', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}task456`, {
+                    reportID: 'task456',
+                    reportName: 'LiveTaskTitle',
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {taskReportID: 'task456'}),
+                childReportID: 'task456',
+            } as ReportAction;
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/LiveTaskTitle/)).toBeOnTheScreen();
         });
 
         it('REPORT_PREVIEW renders MoneyRequestReportPreview', async () => {
@@ -2340,11 +2337,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                     reportNameValuePairsOrigin="harvest"
                                     reportNameValuePairsOriginalID="origReport123"
                                 />
@@ -2395,11 +2387,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     isThreadReportParentAction
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

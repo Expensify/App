@@ -77,6 +77,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -193,7 +194,7 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     AnyRequest,
@@ -2441,32 +2442,72 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
-    // If no action created date is provided, use the last action's from other user
-    const actionCreationTime =
-        reportAction?.created || (latestReportActionFromOtherUsers?.created ?? getReportLastVisibleActionCreated(report, transactionThreadReport) ?? DateUtils.getDBTime(0));
+    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
+    const otherUserActionTime = latestReportActionFromOtherUsers?.created;
+
+    // Prefer the latest action from other users so the unread divider appears before their
+    // message, but cap it at lastVisibleActionCreated so isUnread() stays true (IOU reports
+    // can have action timestamps exceeding lastVisibleActionCreated).
+    let actionCreationTime: string;
+    if (reportAction?.created) {
+        actionCreationTime = reportAction.created;
+    } else if (otherUserActionTime && lastVisibleActionCreated && otherUserActionTime <= lastVisibleActionCreated) {
+        actionCreationTime = otherUserActionTime;
+    } else {
+        actionCreationTime = lastVisibleActionCreated || DateUtils.getDBTime(0);
+    }
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
 
+    const lastActorAccountID =
+        reportAction?.actorAccountID && reportAction.actorAccountID !== currentUserAccountID
+            ? reportAction.actorAccountID
+            : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
+
+    const reportValue = {
+        lastReadTime,
+        ...(lastActorAccountID && {lastActorAccountID}),
+    };
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: reportValue,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: reportValue,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                lastReadTime,
+                lastReadTime: report?.lastReadTime ?? null,
+                lastActorAccountID: report?.lastActorAccountID ?? null,
             },
         },
     ];
 
+    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
+
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
-        reportActionID: reportAction?.reportActionID,
+        reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
@@ -6607,14 +6648,14 @@ function updatePolicyIdForReportAndThreads(
     }
 }
 
-function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, reportID: string) {
+function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) {
     if (isChangePolicyTrainingModalDismissed) {
         return;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
-        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path));
     });
 }
 
@@ -7137,8 +7178,8 @@ function changeReportPolicy(
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY, params, {optimisticData, successData, failureData});
 
     // If the dismissedProductTraining.changeReportModal is not set,
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
+    // navigate to the change policy educational modal over the current report.
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed);
 }
 
 /**
@@ -7157,6 +7198,7 @@ function changeReportPolicyAndInviteSubmitter({
     formatPhoneNumber,
     isReportLastVisibleArchived,
     reportNextStep,
+    reportActionsList,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7170,6 +7212,8 @@ function changeReportPolicyAndInviteSubmitter({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<ReportActions>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -7192,8 +7236,10 @@ function changeReportPolicyAndInviteSubmitter({
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
+        currentUserAccountID,
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        reportActionsList,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
@@ -7236,8 +7282,8 @@ function changeReportPolicyAndInviteSubmitter({
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER, params, {optimisticData, successData, failureData});
 
     // If the dismissedProductTraining.changeReportModal is not set,
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    navigateToTrainingModal(isChangePolicyTrainingModalDismissed, report.reportID);
+    // navigate to the change policy educational modal over the current report.
+    navigateToTrainingModal(isChangePolicyTrainingModalDismissed);
 }
 
 /**
@@ -7354,14 +7400,12 @@ export {
     addAttachmentWithComment,
     addComment,
     addPolicyReport,
-    broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
     buildOptimisticChangePolicyData,
     buildOptimisticResolvedFollowups,
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
-    clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
     setNewRoomFormLoading,
@@ -7401,7 +7445,6 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
-    createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToAndCreateGroupChat,

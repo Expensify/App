@@ -912,6 +912,7 @@
         "Zürcher",
         "CARDFROZEN",
         "CARDUNFROZEN",
+        "backgrounded",
         "Kolkata"
     ],
     "ignorePaths": [

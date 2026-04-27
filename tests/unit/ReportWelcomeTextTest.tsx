@@ -162,7 +162,7 @@ describe('ReportWelcomeText', () => {
         expect(screen.getByText('Expensify')).toBeTruthy();
     });
 
-    it('uses personal details from Onyx via useMappedPersonalDetails', async () => {
+    it('uses personal details from Onyx', async () => {
         const report: Report = {
             reportID: '5',
             type: CONST.REPORT.TYPE.CHAT,

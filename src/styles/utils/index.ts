@@ -546,6 +546,15 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
+function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height' | 'width' | 'maxWidth' | 'maxHeight'> {
+    return {
+        width: '100%',
+        height: '100%',
+        maxWidth: width,
+        maxHeight: height,
+    };
+}
+
 function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
@@ -1400,6 +1409,7 @@ const staticStyleUtils = {
     getTextColorStyle,
     getTransparentColor,
     getWidthAndHeightStyle,
+    getPDFViewStyle,
     getWidthStyle,
     getWrappingStyle,
     getZoomSizingStyle,
@@ -2287,6 +2297,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 return {};
         }
     },
+
+    getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        overflow: 'visible',
+        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
+        paddingBottom: safeAreaPaddingBottom,
+        backgroundColor: theme.appBG,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

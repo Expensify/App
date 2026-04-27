@@ -18,6 +18,8 @@ Workspace Admins can choose between two reimbursement methods when paying an app
 
 The payment method is selected when the Workspace Admin clicks **Pay** on an approved report.
 
+**Note:** For reports containing only non-reimbursable expenses (e.g. company card expenses), direct reimbursement is not available. The only payment option is **Pay elsewhere**.
+
 [Learn about report statuses and actions](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
 ---
@@ -51,7 +53,7 @@ The steps to send reimbursement are the same for ACH reimbursement, global reimb
 
 To pay one report:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. On the report you wish to reimburse, select **Pay**.
 4. Choose a payment method:
@@ -69,7 +71,7 @@ Workspace Admins can also pay multiple reports at the same time.
 
 To pay reports in bulk:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
 4. Select **Selected**.
@@ -127,6 +129,10 @@ Expensify does not issue checks. Workspace Admins can select **Pay elsewhere** a
 ## What is the difference between ACH reimbursement and global reimbursement?
 
 ACH reimbursement applies to US-based USD payments. Global reimbursement supports international payments and multiple currencies.
+
+## Why is direct reimbursement not available for some reports?
+
+If a report contains only non-reimbursable expenses (e.g. company card expenses), direct reimbursement (ACH or global reimbursement) is not offered. Only **Pay elsewhere** is available, because non-reimbursable expenses are paid by the company directly and do not require reimbursement to the employee.
 
 ## When is Pay elsewhere used?
 

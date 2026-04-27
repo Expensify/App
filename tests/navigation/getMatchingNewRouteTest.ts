@@ -44,6 +44,17 @@ describe('getBestMatchingPath', () => {
         );
     });
 
+    it('redirects old NetSuite invoice item preference path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/connections/netsuite/export/invoice-item-preference/invoice-item/select')).toBe(
+            '/workspaces/abc/connections/netsuite/export/invoice-item-preference/select/invoice-item/select',
+        );
+    });
+
+    it('preserves query params when redirecting old NetSuite invoice item preference path', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/connections/netsuite/export/invoice-item-preference/invoice-item/select?backTo=/home')).toBe(
+            '/workspaces/abc/connections/netsuite/export/invoice-item-preference/select/invoice-item/select?backTo=/home',
+        );
+    });
     it('redirects old settings category edit path to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/category/Meals/category-edit');
     });
