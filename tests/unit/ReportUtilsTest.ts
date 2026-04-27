@@ -138,7 +138,6 @@ import {
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
-    isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportActionHtmlToText,
     parseReportRouteParams,
@@ -7557,81 +7556,6 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
 
             expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
-        });
-    });
-
-    describe('isUnread', () => {
-        it('returns false when the newest visible action was sent by the current user from the parent report', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
-                lastActorAccountID: currentUserAccountID,
-            };
-            const transactionThreadReport = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '2',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:00.000',
-            };
-
-            expect(isUnread(report, transactionThreadReport, false)).toBe(false);
-        });
-
-        it('returns false when the newest visible action was sent by the current user from the transaction thread', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:00.000',
-            };
-            const transactionThreadReport = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '2',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
-                lastActorAccountID: currentUserAccountID,
-            };
-
-            expect(isUnread(report, transactionThreadReport, false)).toBe(false);
-        });
-
-        it('returns true when the newest visible action was sent by another user from the transaction thread', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:00.000',
-            };
-            const transactionThreadReport = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '2',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
-                lastActorAccountID: currentUserAccountID + 1,
-            };
-
-            expect(isUnread(report, transactionThreadReport, false)).toBe(true);
-        });
-
-        it('returns true when there is an unread mention even if the newest visible action was sent by the current user', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '1',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
-                lastActorAccountID: currentUserAccountID,
-                lastMentionedTime: '2024-03-01 12:00:02.000',
-            };
-            const transactionThreadReport = {
-                ...LHNTestUtils.getFakeReport(),
-                reportID: '2',
-                lastReadTime: '2024-03-01 12:00:00.000',
-                lastVisibleActionCreated: '2024-03-01 12:00:00.000',
-            };
-
-            expect(isUnread(report, transactionThreadReport, false)).toBe(true);
         });
     });
 

@@ -9022,13 +9022,10 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
-    const lastReadTime = report.lastReadTime ?? '';
+    const reportLastReadTime = report.lastReadTime ?? '';
+    const threadLastReadTime = oneTransactionThreadReport?.lastReadTime ?? '';
+    const lastReadTime = reportLastReadTime > threadLastReadTime ? reportLastReadTime : threadLastReadTime;
     const lastMentionedTime = report.lastMentionedTime ?? '';
-   const lastVisibleActionDetails = getReportLastVisibleActionDetails(report, oneTransactionThreadReport);
-
-    if (lastVisibleActionDetails.actorAccountID === deprecatedCurrentUserAccountID) {
-        return false;
-    }
 
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
     return lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
