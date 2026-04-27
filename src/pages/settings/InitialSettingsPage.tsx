@@ -11,8 +11,8 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -139,6 +139,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -163,8 +164,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
     const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
-
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const {
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
@@ -562,10 +561,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
+            bottomContent={tabBarContent}
+            bottomContentStyle={styles.overflowVisible}
         >
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {shouldUseNarrowLayout && (
                 <TopBarWithLoadingBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}

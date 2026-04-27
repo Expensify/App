@@ -31,7 +31,6 @@ import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
-import {EditingCellProvider} from './components/Table/EditableCell';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
@@ -116,7 +115,6 @@ function App() {
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
                                         SidePanelContextProvider,
-                                        EditingCellProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

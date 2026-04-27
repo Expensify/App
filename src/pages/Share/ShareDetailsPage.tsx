@@ -128,7 +128,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 currentUserAccountID: personalDetail.accountID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             return;
         }
 
@@ -165,7 +165,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, {forceReplace: true});
+                Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
             () => {},
             fileType,

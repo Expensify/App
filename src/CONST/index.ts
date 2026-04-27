@@ -257,8 +257,6 @@ const CONST = {
     POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
-    POPOVER_CATEGORY_PICKER_WIDTH: 350,
-    POPOVER_CATEGORY_PICKER_MAX_HEIGHT: 450,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
@@ -8936,9 +8934,6 @@ const CONST = {
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
         },
-        TABLE: {
-            EDITABLE_CELL: 'Table-EditableCell',
-        },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
             LIST_BOUNDARY_LOADER_RETRY: 'Report-ListBoundaryLoaderRetry',
@@ -9562,7 +9557,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
-            REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
+            CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
         },
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
@@ -9625,12 +9620,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'More power, right where you need it',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
-                publishedDate: '2026-03-23',
-            },
-            {
                 title: 'New global partnerships: banking, travel, accounting, & more',
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
@@ -9641,6 +9630,12 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
                 publishedDate: '2026-04-15',
+            },
+            {
+                title: 'New BYOC partnership: Institute of Commercial Payments',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
+                publishedDate: '2026-04-21',
             },
         ],
     },
@@ -9654,6 +9649,7 @@ const CONST = {
         AUTH_IMAGES: 'auth-images',
     },
 
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO: 0.9,
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 
     MAP_VIEW_LAYERS: {
