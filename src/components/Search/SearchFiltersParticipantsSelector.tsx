@@ -11,6 +11,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -55,9 +56,17 @@ type SearchFiltersParticipantsSelectorProps = {
 
     /** Whether to allow name-only options (for attendee filter only) */
     shouldAllowNameOnlyOptions?: boolean;
+
+    /** Whether to soft-exclude Expensify team members (Guides/Account Managers) from suggestions. Used by the From filter so internal staff don't leak into customer suggestions. */
+    shouldExcludeExpensifyTeamMembers?: boolean;
 };
 
-function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, shouldAllowNameOnlyOptions = false}: SearchFiltersParticipantsSelectorProps) {
+function SearchFiltersParticipantsSelector({
+    initialAccountIDs,
+    onFiltersUpdate,
+    shouldAllowNameOnlyOptions = false,
+    shouldExcludeExpensifyTeamMembers = false,
+}: SearchFiltersParticipantsSelectorProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -76,12 +85,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
+    const expensifyTeamExclusions = useMemo(() => {
+        if (!shouldExcludeExpensifyTeamMembers) {
+            return CONST.EMPTY_OBJECT as Record<string, boolean>;
+        }
+        return getExpensifyTeamExclusions(personalDetails, currentUserEmail);
+    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserEmail]);
+
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         includeUserToInvite: true,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        excludeFromSuggestionsOnly: expensifyTeamExclusions,
         includeRecentReports: true,
         shouldInitialize: didScreenTransitionEnd,
         includeCurrentUser: true,
