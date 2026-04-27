@@ -56,6 +56,7 @@ function TransactionListItem<TItem extends ListItem>({
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
+    isFirstItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     policyForMovingExpenses,
@@ -109,7 +110,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionListItemStyle,
-        !isLargeScreenWidth && styles.pt3,
+        !isLargeScreenWidth && styles.p4,
+        !isLargeScreenWidth && styles.noBorderRadius,
         item.isSelected && styles.activeComponentBG,
         isLargeScreenWidth
             ? {
@@ -122,7 +124,7 @@ function TransactionListItem<TItem extends ListItem>({
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
+        borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -214,12 +216,14 @@ function TransactionListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    !isLargeScreenWidth && styles.mb2,
                     styles.mh5,
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
+                    !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    !isLargeScreenWidth && !isLastItem && styles.borderBottom,
                 ]}
             >
                 {({hovered}) => (
@@ -227,10 +231,9 @@ function TransactionListItem<TItem extends ListItem>({
                         {!isLargeScreenWidth && (
                             <UserInfoAndActionButtonRow
                                 item={transactionItem}
-                                handleActionButtonPress={handleActionButtonPress}
                                 shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
-                                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
-                                isDisabledItem={!!isDisabled}
+                                stateNum={transactionItem.report?.stateNum}
+                                statusNum={transactionItem.report?.statusNum}
                             />
                         )}
                         <TransactionItemRow
@@ -256,7 +259,7 @@ function TransactionListItem<TItem extends ListItem>({
                             isActionColumnWide={transactionItem.isActionColumnWide}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : isLargeScreenWidth && styles.noBorderRadius]}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? [styles.p0, styles.pt3] : isLargeScreenWidth && styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}

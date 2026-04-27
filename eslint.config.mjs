@@ -6,10 +6,12 @@ import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
+import rulesdir from 'eslint-plugin-rulesdir';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
+import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
@@ -18,6 +20,12 @@ import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+const require = createRequire(import.meta.url);
+const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify/package.json'));
+const expensifyRulesDir = path.resolve(expensifyConfigDirectory, 'eslint-plugin-expensify');
+const localRulesDir = path.resolve(dirname, 'eslint-plugin-local-rules');
+
+rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
     {
@@ -170,7 +178,7 @@ const config = defineConfig([
         extends: new FlatCompat({baseDirectory: dirname}).extends(
             'airbnb-typescript',
             'plugin:storybook/recommended',
-            'plugin:react-native-a11y/basic',
+            'plugin:react-native-a11y/all',
             'plugin:@dword-design/import-alias/recommended',
             'plugin:you-dont-need-lodash-underscore/all',
             'prettier',
@@ -286,6 +294,8 @@ const config = defineConfig([
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
+            'rulesdir/require-live-region-for-status-updates': 'error',
+            'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -299,7 +309,8 @@ const config = defineConfig([
             ],
 
             // React and React Native specific rules
-            'react-native-a11y/has-accessibility-hint': ['off'],
+            'react-native-a11y/has-accessibility-hint': 'off',
+            'react-native-a11y/has-valid-accessibility-ignores-invert-colors': 'error',
             'react/require-default-props': 'off',
             'react/prop-types': 'off',
             'react/jsx-key': 'error',

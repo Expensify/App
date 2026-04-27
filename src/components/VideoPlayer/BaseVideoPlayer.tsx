@@ -83,12 +83,14 @@ function BaseVideoPlayer({
         useVideoPlayer(sourceURL, (player) => {
             player.loop = isLooping;
             player.muted = true;
-            player.timeUpdateEventInterval = 0.1;
+            player.timeUpdateEventInterval = 0;
         }),
     );
     /* eslint-enable no-param-reassign */
 
-    const isPlaying = videoPlayerRef.current.playing;
+    // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
+    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
+
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
@@ -285,6 +287,8 @@ function BaseVideoPlayer({
 
     useEventListener(videoPlayerRef.current, 'playingChange', (payload: PlayingChangeEventPayload) => {
         const isVideoPlaying = payload.isPlaying;
+        // Toggled in the listener (not a `useEffect`) — the web setter synchronously emits `timeUpdate`, which would re-enter `useEvent` from render.
+        videoPlayerRef.current.timeUpdateEventInterval = isVideoPlaying ? 0.1 : 0;
         if (isVideoPlaying && isEnded) {
             setIsEnded(false);
         }
