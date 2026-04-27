@@ -1,3 +1,4 @@
+import {prefetchOnAppStart} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,6 +12,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import Log from './Log';
 import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
@@ -60,14 +62,25 @@ function processHTTPRequest<TKey extends OnyxKey>(
     url: string,
     method: RequestType = 'get',
     body: FormData | null = null,
+    headers: Record<string, string> = {},
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
-    return fetch(url, {
+
+    const shouldPrefetch = !!headers.prefetchKey;
+    // const shouldPrefetch = false;
+    const fetchFn = shouldPrefetch ? (prefetchOnAppStart as unknown as typeof fetch) : fetch;
+
+    if (shouldPrefetch) {
+        console.warn('[HttpUtils] Prefetching request', {url, method, body, headers});
+    }
+
+    return fetchFn(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
+        headers,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
@@ -170,6 +183,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
 function xhr<TKey extends OnyxKey>(
     command: string,
     data: Record<string, unknown>,
+    headers: Record<string, string> = {},
     type: RequestType = CONST.NETWORK.METHOD.POST,
     shouldUseSecure = false,
     initiatedOffline = false,
@@ -178,7 +192,7 @@ function xhr<TKey extends OnyxKey>(
         const url = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
-        return processHTTPRequest(url, type, formData, abortSignalController?.signal);
+        return processHTTPRequest(url, type, formData, headers, abortSignalController?.signal);
     });
 }
 

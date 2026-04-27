@@ -99,6 +99,11 @@ type RequestDataBase<TKey extends OnyxKey> = {
 
     /** The unique ID of the request */
     requestID?: number;
+
+    /**
+     * Additional headers to be sent with the request.
+     */
+    headers?: Record<string, string>;
 };
 
 /** Model of overall requests sent to the API */
