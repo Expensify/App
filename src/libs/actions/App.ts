@@ -22,6 +22,7 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -633,12 +634,24 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
 
         if (transitionFromOldDot) {
             Navigation.navigate(routeToNavigate);
-        } else if (Navigation.isTopmostRouteModalScreen()) {
-            Navigation.dismissModal({
-                afterTransition: () => Navigation.navigate(routeToNavigate),
-            });
         } else {
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            const openWorkspaceSplit = () => {
+                navigationRef.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
+                    payload: {
+                        policyID: policyIDWithDefault,
+                        screenName: SCREENS.WORKSPACE.INITIAL,
+                    },
+                });
+            };
+
+            if (Navigation.isTopmostRouteModalScreen()) {
+                Navigation.dismissModal({
+                    afterTransition: openWorkspaceSplit,
+                });
+            } else {
+                openWorkspaceSplit();
+            }
         }
     });
 }
