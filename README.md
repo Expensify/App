@@ -104,3 +104,11 @@ We use Reassure for monitoring performance regression. More detailed information
 [CodeCov](https://about.codecov.io/) is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
 
 ----
+
+## 💰 Bounty Contribution
+
+- **Task:** [Due for payment 2026-04-30] [$250] Agent Zero status indicator gets stuck until
+- **Reward:** $250
+- **Source:** GitHub-Paid
+- **Date:** 2026-04-27
+
