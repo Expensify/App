@@ -40,13 +40,6 @@ jobs:
       IS_DRAFT: ${{ steps.pr.outputs.IS_DRAFT }}
       TITLE: ${{ steps.pr.outputs.TITLE }}
     steps:
-      # Defense in depth: GitHub already restricts /dispatches to tokens with Contents:
-      # write on this repo, which excludes externals and forks. On top of that we pin the
-      # dispatcher to the exact GitHub App that Web-Expensify authenticates as when it
-      # calls createDispatchEvent() via EXPENSIFY_GITHUB_APP_PRIVATE_KEY (App ID 179547,
-      # https://github.com/apps/expensify-bot). Any other actor — even another Expensify
-      # bot or an org admin with a PAT — will fail this check, so a leaked token from a
-      # different code path cannot reach the Anthropic-key-holding job below.
       - name: Verify dispatcher
         if: github.actor != 'expensify-bot[bot]'
         run: |
