@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
+import {RequestError} from '@octokit/request-error';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
+
+const OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS = 3;
+
+/** Milliseconds to wait before the next `listForRepo` attempt after a retryable failure. */
+const OPEN_STAGING_DEPLOY_LIST_RETRY_DELAY_MS = [2000, 5000, 10_000] as const;
 
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
@@ -92,13 +98,59 @@ function getDeployChecklistInternalQA(issue: OctokitIssueItem): ChecklistItem[] 
     );
 }
 
-async function getDeployChecklist(): Promise<DeployChecklistData> {
-    const {data} = await GithubUtils.octokit.issues.listForRepo({
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        labels: CONST.LABELS.STAGING_DEPLOY,
-        state: 'open',
+function sleep(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, milliseconds);
     });
+}
+
+function isRetryableDeployChecklistListError(error: unknown): boolean {
+    if (error instanceof RequestError) {
+        if (error.status === 401 || error.status === 404 || error.status === 403 || error.status === 422) {
+            return false;
+        }
+        if (error.status >= 500 || error.status === 408 || error.status === 429) {
+            return true;
+        }
+        if (error.status && error.status >= 400) {
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
+
+/**
+ * Lists open StagingDeployCash-labeled issues with retries on transient GitHub failures.
+ * Used by the deploy-lock action so we never treat API errors as “unlocked”.
+ */
+async function listOpenStagingDeployChecklistIssuesWithRetry(): Promise<OctokitIssueItem[]> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS; attempt++) {
+        try {
+            const {data} = await GithubUtils.octokit.issues.listForRepo({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                labels: CONST.LABELS.STAGING_DEPLOY,
+                state: 'open',
+            });
+            return data;
+        } catch (error) {
+            lastError = error;
+            console.warn(`listForRepo ${CONST.LABELS.STAGING_DEPLOY} attempt ${attempt}/${OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS} failed`, error);
+            const canRetry = attempt < OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS && isRetryableDeployChecklistListError(error);
+            if (!canRetry) {
+                throw error;
+            }
+            const delayMs = OPEN_STAGING_DEPLOY_LIST_RETRY_DELAY_MS[attempt - 1] ?? 10_000;
+            await sleep(delayMs);
+        }
+    }
+    throw lastError;
+}
+
+async function getDeployChecklist(): Promise<DeployChecklistData> {
+    const data = await listOpenStagingDeployChecklistIssuesWithRetry();
 
     if (!data.length) {
         throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
@@ -264,5 +316,5 @@ async function generateDeployChecklistBodyAndAssignees({
     return {issueBody, issueAssignees};
 }
 
-export {getDeployChecklist, getDeployChecklistData, generateDeployChecklistBodyAndAssignees, parseChecklistSection};
+export {getDeployChecklist, getDeployChecklistData, generateDeployChecklistBodyAndAssignees, listOpenStagingDeployChecklistIssuesWithRetry, parseChecklistSection};
 export type {ChecklistItem, DeployChecklistBody, DeployChecklistParams, DeployChecklistData};

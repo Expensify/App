@@ -3,8 +3,9 @@
  */
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
+import {RequestError} from '@octokit/request-error';
 import type {Writable} from 'type-fest';
-import {generateDeployChecklistBodyAndAssignees, getDeployChecklist} from '@github/libs/DeployChecklistUtils';
+import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, listOpenStagingDeployChecklistIssuesWithRetry} from '@github/libs/DeployChecklistUtils';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -203,6 +204,45 @@ describe('DeployChecklistUtils', () => {
         test('Test finding no issues', () => {
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
             return getDeployChecklist().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
+        });
+    });
+
+    describe('listOpenStagingDeployChecklistIssuesWithRetry', () => {
+        test('returns issue list on first successful response', async () => {
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{number: 5, labels: []}]}) as unknown as ListForRepoMethod;
+            const issues = await listOpenStagingDeployChecklistIssuesWithRetry();
+            expect(issues).toHaveLength(1);
+            expect(issues[0].number).toBe(5);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
+        });
+
+        test('404 does not retry', async () => {
+            const err404 = new RequestError('Not Found', 404, {
+                request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
+            });
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockRejectedValue(err404) as unknown as ListForRepoMethod;
+            await expect(listOpenStagingDeployChecklistIssuesWithRetry()).rejects.toThrow(RequestError);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
+        });
+
+        test('retries on 503 then succeeds', async () => {
+            const err503 = new RequestError('Service Unavailable', 503, {
+                request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
+            });
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockRejectedValueOnce(err503)
+                .mockResolvedValueOnce({data: [{number: 88, labels: []}]}) as unknown as ListForRepoMethod;
+
+            jest.useFakeTimers();
+            const pending = listOpenStagingDeployChecklistIssuesWithRetry();
+            await jest.advanceTimersByTimeAsync(2000);
+            const issues = await pending;
+            jest.useRealTimers();
+
+            expect(issues).toHaveLength(1);
+            expect(issues[0].number).toBe(88);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
     });
 
