@@ -12,7 +12,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {isPolicyAccessible} from '@libs/PolicyUtils';
+import {isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -20,11 +20,13 @@ import {
     buildOptimisticHoldReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     buildTransactionThread,
+    canAddTransaction,
     generateReportID,
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
+    getReimbursable,
     getRequestType,
     getTransactionType,
     hasCustomUnitOutOfPolicyViolation,
@@ -593,6 +595,7 @@ function createExpenseByType({
                     ...(params.transactionParams ?? {}),
                     comment: {
                         ...transaction.comment,
+                        hold: undefined,
                         originalTransactionID: undefined,
                         source: undefined,
                         waypoints,
@@ -741,6 +744,7 @@ function duplicateExpenseTransaction({
                 ...(params.transactionParams ?? {}),
                 comment: {
                     ...transaction.comment,
+                    hold: undefined,
                     originalTransactionID: undefined,
                     source: undefined,
                     waypoints,
@@ -991,8 +995,12 @@ function bulkDuplicateExpenses({
     }
 
     const optimisticChatReportID = generateReportID();
-    const optimisticIOUReportID = generateReportID();
-    const sharedReportPreviewActionID = NumberUtils.rand64();
+
+    // These are mutable: when the current IOU report can't accept more
+    // transactions (e.g. instant-submit + submit-and-close with non-reimbursable
+    // expenses), we generate fresh IDs so each expense gets its own report.
+    let currentOptimisticIOUReportID = generateReportID();
+    let currentReportPreviewActionID = NumberUtils.rand64();
 
     // After the first iteration creates a new optimistic IOU report, subsequent
     // iterations must know its ID so getMoneyRequestInformation can find and
@@ -1004,6 +1012,19 @@ function bulkDuplicateExpenses({
     let currentTargetReport = targetReport;
     let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
 
+    // When instant-submit + submit-and-close is active AND the duplicated
+    // expenses are all non-reimbursable (or the policy disables reimbursement
+    // entirely), canAddTransaction will reject the optimistic report after
+    // the first expense auto-submits and closes it.  In that scenario every
+    // iteration will create a new report, so we must never defer auto-submit
+    // — otherwise the first expense's report stays in Draft because the
+    // server was told to wait for more expenses that will never arrive.
+    const allNonReimbursable = transactionsToDuplicate.every((t) => !getReimbursable(t));
+    const policyWillSplitReport =
+        isInstantSubmitEnabled(targetPolicy) &&
+        isSubmitAndClose(targetPolicy) &&
+        (allNonReimbursable || targetPolicy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
         if (!item) {
@@ -1013,10 +1034,34 @@ function bulkDuplicateExpenses({
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
+        // If the policy pre-check determined every expense must live on its
+        // own report, or the previous iteration's report can't accept more
+        // transactions, reset so this iteration creates its own independent
+        // report.  policyWillSplitReport is needed because canAddTransaction
+        // reads transactions from Onyx, which hasn't been updated yet for
+        // optimistic reports (callbacks are deferred).
+        let reportWasSplit = false;
+        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport))) {
+            optimisticIOUReport = undefined;
+            currentOptimisticIOUReportID = generateReportID();
+            currentReportPreviewActionID = NumberUtils.rand64();
+            reportWasSplit = true;
+            if (currentTargetReport) {
+                currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
+            }
+        }
+
+        // Defer auto-submit only when this isn't the last expense AND the
+        // report wasn't just split AND the policy won't force each expense
+        // onto its own report.  Once a split happens every subsequent expense
+        // will also split (the policy closes reports immediately), so none of
+        // them should defer.
+        const shouldDeferAutoSubmit = !isLastExpense && !reportWasSplit && !policyWillSplitReport;
+
         const result = duplicateExpenseTransaction({
             transaction: item,
             optimisticChatReportID,
-            optimisticIOUReportID,
+            optimisticIOUReportID: currentOptimisticIOUReportID,
             isASAPSubmitBetaEnabled,
             introSelected,
             activePolicyID,
@@ -1034,9 +1079,9 @@ function bulkDuplicateExpenses({
             recentWaypoints,
             targetPolicyTags,
             shouldPlaySound: false,
-            shouldDeferAutoSubmit: !isLastExpense,
+            shouldDeferAutoSubmit,
             existingIOUReport: optimisticIOUReport,
-            optimisticReportPreviewActionID: sharedReportPreviewActionID,
+            optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUserAccountID: getUserAccountID(),
             currentUserLogin: getCurrentUserEmail(),
         });
@@ -1046,7 +1091,7 @@ function bulkDuplicateExpenses({
         }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
-            currentTargetReport = {...currentTargetReport, iouReportID: optimisticIOUReportID};
+            currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
         }
     }
 

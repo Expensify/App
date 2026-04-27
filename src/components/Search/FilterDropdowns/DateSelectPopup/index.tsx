@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
@@ -46,6 +47,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
@@ -128,13 +130,15 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
         closeOverlay();
     }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
 
+    const maxPopupHeight = Math.round(windowHeight * 0.875);
+
     // For non-Range modes, use original simple styles. For Range, use custom layout
     const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     if (!isSmallScreenWidth) {
         return (
-            <View style={[styles.pv4, styles.gap2, style]}>
-                <View>
+            <View style={[styles.pv4, styles.gap2, {maxHeight: maxPopupHeight}, style]}>
+                <ScrollView>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader
                             isCompact={false}
@@ -158,7 +162,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                             style={[styles.mh5, styles.mt2]}
                         />
                     )}
-                </View>
+                </ScrollView>
                 <View style={[styles.flexRow, styles.gap2, useRangeLayout ? styles.mh5 : styles.ph5, useRangeLayout && styles.alignItemsCenter, useRangeLayout && styles.pt1]}>
                     {useRangeLayout && (
                         <View style={[styles.flex1, styles.mr2]}>
@@ -188,7 +192,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const mobileButtonRowStyle = useRangeLayout ? [styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2] : [styles.flexRow, styles.gap2, styles.ph5];
 
     return (
-        <View style={[styles.pv4, mobileContainerStyle, style, isInLandscapeMode ? styles.h100 : undefined]}>
+        <View style={[styles.pv4, {maxHeight: maxPopupHeight}, mobileContainerStyle, style, isInLandscapeMode ? styles.h100 : undefined]}>
             {!selectedDateModifier && !!label && <Text style={mobileLabelStyle}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}

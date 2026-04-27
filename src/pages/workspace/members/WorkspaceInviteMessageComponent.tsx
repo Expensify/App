@@ -14,6 +14,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -67,6 +68,7 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -157,6 +159,7 @@ function WorkspaceInviteMessageComponent({
             formatPhoneNumber,
             currentUserPersonalDetails?.accountID,
             shouldShowApproverRow ? validatedApprover : undefined,
+            filteredReportActions,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);

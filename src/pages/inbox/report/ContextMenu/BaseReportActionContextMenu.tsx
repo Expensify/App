@@ -13,6 +13,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -243,6 +244,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const delegateAccountID = useDelegateAccountID();
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -417,6 +419,7 @@ function BaseReportActionContextMenu({
                             isOffline,
                             conciergeReportID,
                             personalDetails,
+                            delegateAccountID,
                         };
 
                         if ('renderContent' in contextAction) {

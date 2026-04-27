@@ -27,16 +27,16 @@ type DeepLinkHandlerProps = {
 function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata, isSelfTourViewedMetadata)) {
+        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
             return;
         }
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
@@ -74,7 +74,17 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewedMetadata, betas]);
+    }, [
+        conciergeReportID,
+        introSelected,
+        betas,
+        allReportsMetadata.status,
+        sessionMetadata.status,
+        conciergeReportIDMetadata.status,
+        introSelectedMetadata.status,
+        isSelfTourViewedMetadata.status,
+        betasMetadata.status,
+    ]);
 
     return null;
 }

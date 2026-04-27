@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Lass uns anfangen`,
         showMore: 'Mehr anzeigen',
         showLess: 'Weniger anzeigen',
+        plusMore: ({count}: {count: number}) => `+${count} weitere`,
         merchant: 'Händler',
         change: 'Ändern',
         category: 'Kategorie',
@@ -6892,6 +6893,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 merchants: 'Händler',
                 noAvailableCards: 'Alle Karten haben bereits eine Regel',
                 noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
+                noCardsIssuedTitle: 'Keine Expensify Karten ausgestellt',
+                noCardsIssuedSubtitle: 'Geben Sie Expensify Karten aus, um Ausgabelimits festzulegen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',
@@ -7807,8 +7810,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         spendOverTime: 'Ausgaben im Zeitverlauf',
         tabs: {
             expenseReports: 'Spesenabrechnungen',
-            reports: 'Alle Berichte',
-            expenses: 'Alle Ausgaben',
+            reports: 'Berichte',
+            expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
             pay: 'Zahlungsbereit',

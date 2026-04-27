@@ -137,7 +137,11 @@ function SearchTransactionsChangeReport() {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
             return;
         }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        if (
+            policyForMovingExpensesID &&
+            policyForMovingExpenses &&
+            shouldRestrictUserBillableActions(policyForMovingExpenses, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }

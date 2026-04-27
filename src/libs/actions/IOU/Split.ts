@@ -1617,11 +1617,13 @@ function updateSplitTransactions({
         const failureDataComments: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
         const addCommentToSplitTransactionThread = (commentAction: OnyxTypes.ReportAction) => {
             const newReportActionID = NumberUtils.rand64();
+            // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             const reportComment = buildOptimisticAddCommentReportAction({
                 text: '',
                 actorAccountID: commentAction.actorAccountID,
                 reportID: transactionThreadReportID,
                 reportActionID: newReportActionID,
+                delegateAccountIDParam: undefined,
             });
             const reportActionComment = {
                 ...reportComment.reportAction,
