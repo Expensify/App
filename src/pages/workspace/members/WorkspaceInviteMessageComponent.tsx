@@ -72,7 +72,8 @@ function WorkspaceInviteMessageComponent({
         if (!backTo || typeof backTo !== 'string') {
             return false;
         }
-        return (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
+        const path = (backTo as string).split('?').at(0) ?? '';
+        return path.endsWith('/workflows/approvals/expenses-from');
     }, [backTo]);
 
     const headerTitle = useMemo(() => {

@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -49,6 +49,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    // Set true when nextStep navigates to the invite-message page so the cleanup
+    // effect below knows to leave the draft intact for that page to consume.
+    const isHandingOffToInviteRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
         return getExcludedUsers(policy?.employeeList);
@@ -248,6 +251,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     ]);
 
     const goBack = useCallback(() => {
+        // Going back means we're done with this expenses-from session, so any
+        // hand-off to the invite-message page is no longer in flight.
+        isHandingOffToInviteRef.current = false;
         let backTo;
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
@@ -312,6 +318,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
+            // The invite-message page reads the draft we just set, so the cleanup
+            // effect must skip its clear if this page unmounts during the hand-off.
+            isHandingOffToInviteRef.current = true;
+
             // The dynamic invite-message route is appended to the current expenses-from URL,
             // so the back navigation parent (with any nested backTo query param) is preserved
             // automatically without needing to construct a backToRoute manually.
@@ -346,9 +356,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
     // Clean up invite draft when leaving the expenses-from page to prevent
-    // stale non-member data from persisting in the approval workflow.
+    // stale non-member data from persisting in the approval workflow. Skip
+    // when handing off to the invite-message page, which still needs the draft.
     useEffect(() => {
         return () => {
+            if (isHandingOffToInviteRef.current) {
+                return;
+            }
             clearInviteDraft(route.params.policyID);
         };
     }, [route.params.policyID]);
@@ -384,15 +398,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 setApprovalWorkflowMembers(workflowMembers);
 
                 setSelectedMembers((prevSelected) => {
-                    // When editing an existing workflow, recently invited members must remain in the list
-                    // even if the policy employee list hasn't synced yet (Test 6).
-                    // When creating a new workflow, any member including Owner can be deselected (Test 5).
+                    // In edit mode, members already saved on the workflow must survive a transient
+                    // deselect caused by Onyx re-syncing (e.g. policy employeeList lags behind a fresh
+                    // invite). Only the originally-saved set is force-kept so that the user can still
+                    // intentionally remove any other policy member from the workflow.
+                    // In create mode, any member including Owner can be deselected (Test 5).
                     if (approvalWorkflow?.action !== CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
                         return nextMembers;
                     }
-                    const policyOrInvitedMembers = prevSelected.filter((m) => m.login && (policy?.employeeList?.[m.login] ?? invitedEmailsToAccountIDsDraft?.[m.login] != null));
+                    const originalWorkflowEmails = new Set((approvalWorkflow?.members ?? []).map((m) => m.email));
                     const alreadyInNewSelection = new Set(nextMembers.map((m) => m.login));
-                    const membersToKeep = policyOrInvitedMembers.filter((pm) => !alreadyInNewSelection.has(pm.login));
+                    const membersToKeep = prevSelected.filter((m) => !!m.login && originalWorkflowEmails.has(m.login) && !alreadyInNewSelection.has(m.login));
                     return [...nextMembers, ...membersToKeep];
                 });
             };
@@ -426,6 +442,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         },
         [
             approvalWorkflow?.action,
+            approvalWorkflow?.members,
             policy?.employeeList,
             invitedEmailsToAccountIDsDraft,
             route.params.policyID,
