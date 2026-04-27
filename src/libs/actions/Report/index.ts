@@ -3253,7 +3253,7 @@ function updateReportField({
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -3601,7 +3601,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
-    bankAccountList?: OnyxEntry<BankAccountList>,
+    bankAccountList: OnyxEntry<BankAccountList>,
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -3836,8 +3836,8 @@ function createNewReport(
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
     shouldNotifyNewAction = false,
+    bankAccountList: OnyxEntry<BankAccountList>,
     shouldDismissEmptyReportsConfirmation?: boolean,
-    bankAccountList?: OnyxEntry<BankAccountList>,
     reportName?: string,
 ) {
     const optimisticReportID = generateReportID();
@@ -6713,7 +6713,7 @@ function buildOptimisticChangePolicyData({
     isReportLastVisibleArchived: boolean | undefined;
     reportNextStep?: ReportNextStepDeprecated;
     optimisticPolicyExpenseChatReport?: Report;
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7209,7 +7209,7 @@ function changeReportPolicy({
     isASAPSubmitBetaEnabled: boolean;
     reportNextStep?: ReportNextStepDeprecated;
     isReportLastVisibleArchived?: boolean;
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -7272,7 +7272,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>;

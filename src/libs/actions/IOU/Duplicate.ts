@@ -730,6 +730,7 @@ function duplicateExpenseTransaction({
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        bankAccountList: undefined,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -931,6 +932,7 @@ function duplicateReport({
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
+            bankAccountList: undefined,
         };
 
         const result = createExpenseByType({

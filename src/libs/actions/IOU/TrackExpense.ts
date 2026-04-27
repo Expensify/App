@@ -1575,6 +1575,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        bankAccountList,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1679,6 +1680,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        bankAccountList,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2014,6 +2016,7 @@ function convertBulkTrackedExpensesToIOU({
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList: undefined,
             policyParams: {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 policyTagList: getMoneyRequestPolicyTags({

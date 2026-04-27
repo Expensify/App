@@ -190,7 +190,7 @@ type CreateDistanceRequestInformation = {
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
 };
@@ -241,7 +241,7 @@ type UpdateSplitTransactionsParams = {
     policyRecentlyUsedCurrencies: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     isFromSplitExpensesFlow?: boolean;
     policyTags: OnyxTypes.PolicyTagLists;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -1102,6 +1102,7 @@ function completeSplitBill(
             },
             quickAction,
             personalDetails,
+            bankAccountList: undefined,
         });
 
         splits.push({
@@ -1469,6 +1470,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            bankAccountList: undefined,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -3665,6 +3667,7 @@ function createSplitsAndOnyxData({
             hasViolations,
             quickAction,
             personalDetails,
+            bankAccountList: undefined,
         });
 
         const individualSplit = {

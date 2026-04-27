@@ -252,7 +252,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 const deprecatedAllPolicies: OnyxCollection<Policy> = {};

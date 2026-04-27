@@ -48,7 +48,7 @@ type SelectPaymentTypeParams = {
     betas: OnyxEntry<Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
-    bankAccountList?: OnyxEntry<Record<string, BankAccount>>;
+    bankAccountList: OnyxEntry<Record<string, BankAccount>>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
 };

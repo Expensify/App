@@ -257,8 +257,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             policyForNewReport,
             betas,
             false,
-            shouldDismissEmptyReportsConfirmation,
             bankAccountList,
+            shouldDismissEmptyReportsConfirmation,
         );
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
     };

@@ -2486,7 +2486,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2559,7 +2559,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -2597,7 +2597,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, undefined);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2633,7 +2633,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, undefined);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -2677,7 +2677,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL]);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -3041,6 +3041,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: true,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3097,6 +3098,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3163,6 +3165,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3255,6 +3258,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3335,6 +3339,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3389,6 +3394,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3476,6 +3482,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3518,6 +3525,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3546,6 +3554,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3573,6 +3582,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3600,6 +3610,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3629,6 +3640,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3679,6 +3691,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4122,6 +4135,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                bankAccountList: undefined,
             });
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(buildNextStepNew).toHaveBeenCalledWith({
@@ -4172,6 +4186,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                bankAccountList: undefined,
             });
 
             // Find the transaction optimistic data
@@ -4229,6 +4244,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                bankAccountList: undefined,
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -4273,6 +4289,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                bankAccountList: undefined,
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -4330,6 +4347,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                bankAccountList: undefined,
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)

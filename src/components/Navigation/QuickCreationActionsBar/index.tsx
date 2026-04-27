@@ -53,6 +53,7 @@ function QuickCreationActionsBar() {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -118,6 +119,7 @@ function QuickCreationActionsBar() {
                 defaultChatEnabledPolicy,
                 allBetas,
                 false,
+                bankAccountList,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -128,7 +130,7 @@ function QuickCreationActionsBar() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, bankAccountList],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

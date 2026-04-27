@@ -545,6 +545,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList: undefined,
     });
 
     return {

@@ -185,8 +185,8 @@ function EmptySearchViewContent({
             defaultChatEnabledPolicy,
             betas,
             false,
-            shouldDismissEmptyReportsConfirmation,
             bankAccountList,
+            shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(

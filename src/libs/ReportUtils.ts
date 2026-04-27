@@ -5124,7 +5124,7 @@ const changeMoneyRequestHoldStatus = (
     reportAction: OnyxEntry<ReportAction>,
     iouTransaction: OnyxEntry<Transaction>,
     isOffline: boolean,
-    bankAccountList?: OnyxEntry<BankAccountList>,
+    bankAccountList: OnyxEntry<BankAccountList>,
 ): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;

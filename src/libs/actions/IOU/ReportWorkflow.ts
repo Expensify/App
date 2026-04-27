@@ -90,7 +90,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type SubmitReportFunctionParams = {

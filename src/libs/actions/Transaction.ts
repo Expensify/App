@@ -479,7 +479,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -836,7 +836,7 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
-    bankAccountList?: OnyxEntry<BankAccountList>;
+    bankAccountList: OnyxEntry<BankAccountList>;
     policyTagList: OnyxEntry<PolicyTagLists>;
 };
 

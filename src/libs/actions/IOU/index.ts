@@ -204,7 +204,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     shouldDeferAutoSubmit?: boolean;
 };
 
@@ -237,7 +237,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -284,7 +284,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};

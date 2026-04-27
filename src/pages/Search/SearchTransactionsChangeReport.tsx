@@ -104,8 +104,8 @@ function SearchTransactionsChangeReport() {
             policyForMovingExpenses,
             betas,
             false,
-            shouldDismissEmptyReportsConfirmation,
             bankAccountList,
+            shouldDismissEmptyReportsConfirmation,
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};

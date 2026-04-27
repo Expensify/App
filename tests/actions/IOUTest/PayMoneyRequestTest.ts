@@ -155,6 +155,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -421,6 +422,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -582,6 +584,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -764,7 +767,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, [], undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -1149,6 +1152,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1270,6 +1274,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1373,6 +1378,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
             }
             await waitForBatchedUpdates();

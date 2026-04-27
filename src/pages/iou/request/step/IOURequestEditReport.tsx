@@ -130,8 +130,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             policyForNewReport,
             betas,
             false,
-            shouldDismissEmptyReportsConfirmation,
             bankAccountList,
+            shouldDismissEmptyReportsConfirmation,
         );
         selectReport(
             {

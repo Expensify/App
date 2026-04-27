@@ -70,6 +70,7 @@ function CreateReportMenuItem() {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const isVisible = canRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
@@ -97,6 +98,7 @@ function CreateReportMenuItem() {
             defaultChatEnabledPolicy,
             allBetas,
             false,
+            bankAccountList,
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {

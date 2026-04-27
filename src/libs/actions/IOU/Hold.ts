@@ -47,7 +47,7 @@ function putOnHold(
     initialReportID: string | undefined,
     isOffline: boolean,
     ancestors: Ancestor[] = [],
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
 ) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
@@ -345,7 +345,7 @@ function putTransactionsOnHold(
     reportID: string,
     isOffline: boolean,
     ancestors: Ancestor[] = [],
-    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
@@ -356,7 +356,7 @@ function putTransactionsOnHold(
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();

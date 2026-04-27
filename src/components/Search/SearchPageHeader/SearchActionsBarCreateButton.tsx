@@ -105,8 +105,8 @@ function SearchActionsBarCreateButton() {
                 defaultChatEnabledPolicy,
                 allBetas,
                 false,
-                shouldDismissEmptyReportsConfirmation,
                 bankAccountList,
+                shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(

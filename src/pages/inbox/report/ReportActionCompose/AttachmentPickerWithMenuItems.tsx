@@ -202,7 +202,7 @@ function AttachmentPickerWithMenuItems({
         policyName: policy?.name ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
             selectOption(
-                () => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, true, shouldDismissEmptyReportsConfirmation, bankAccountList),
+                () => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, true, bankAccountList, shouldDismissEmptyReportsConfirmation),
                 true,
             ),
     });
@@ -211,7 +211,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, true, false, bankAccountList);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, true, bankAccountList);
         }
     };
 

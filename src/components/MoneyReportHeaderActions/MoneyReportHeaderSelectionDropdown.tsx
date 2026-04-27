@@ -451,6 +451,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            bankAccountList,
         });
     };
 

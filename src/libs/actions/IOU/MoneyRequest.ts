@@ -287,6 +287,7 @@ function createTransaction({
                 draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
+                bankAccountList: undefined,
             });
         }
     }
@@ -759,6 +760,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 personalDetails,
                 recentWaypoints,
                 betas,
+                bankAccountList: undefined,
             });
             return;
         }

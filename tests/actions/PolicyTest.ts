@@ -2674,6 +2674,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2743,6 +2744,7 @@ describe('actions/Policy', () => {
                 },
                 transactionViolations: {},
                 betas: [],
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 

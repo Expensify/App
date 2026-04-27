@@ -69,6 +69,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -168,6 +169,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 startApprovedAnimation();
             },
             delegateEmail,
+            bankAccountList,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
