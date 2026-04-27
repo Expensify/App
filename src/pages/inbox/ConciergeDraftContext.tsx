@@ -18,6 +18,13 @@ type ConciergeDraftState = {
 
 type ConciergeDraftActions = {
     clearDraft: () => void;
+    /**
+     * Apply a draft event from a non-Pusher source (e.g. the local pacer in
+     * usePendingConciergeResponse for pregenerated replies whose body is
+     * already on the client). Uses the same reducer as the Pusher path so the
+     * reportActionID-based reconciliation continues to work unchanged.
+     */
+    dispatchLocalDraftEvent: (event: ConciergeDraftEvent) => void;
 };
 
 const defaultState: ConciergeDraftState = {
@@ -27,6 +34,7 @@ const defaultState: ConciergeDraftState = {
 
 const defaultActions: ConciergeDraftActions = {
     clearDraft: () => {},
+    dispatchLocalDraftEvent: () => {},
 };
 
 const ConciergeDraftStateContext = createContext<ConciergeDraftState>(defaultState);
@@ -59,6 +67,13 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const clearDraft = useCallback(() => {
         setDraft(null);
     }, []);
+
+    const dispatchLocalDraftEvent = useCallback(
+        (event: ConciergeDraftEvent) => {
+            setDraft((currentDraft) => applyConciergeDraftEvent(currentDraft, event, reportID));
+        },
+        [reportID],
+    );
 
     useEffect(() => {
         const channelName = getReportChannelName(reportID);
@@ -109,8 +124,9 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const actionsValue = useMemo<ConciergeDraftActions>(
         () => ({
             clearDraft,
+            dispatchLocalDraftEvent,
         }),
-        [clearDraft],
+        [clearDraft, dispatchLocalDraftEvent],
     );
 
     return (
