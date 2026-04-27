@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useRef} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +11,6 @@ import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -62,8 +62,6 @@ function AuthScreensInitHandler() {
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastWorkspaceNumberWithEmailSelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
             const policyOwnerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail') ?? session?.email ?? '';
@@ -72,25 +70,12 @@ function AuthScreensInitHandler() {
         [currentUrl, session?.email],
     );
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
-    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
-    const isLoadingAppRef = useRef(isLoadingApp);
-
-    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    isLoadingAppRef.current = isLoadingApp;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
-
-    const handleNetworkReconnect = () => {
-        if (isLoadingAppRef.current) {
-            App.openApp();
-        } else {
-            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
-        }
-    };
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -111,9 +96,6 @@ function AuthScreensInitHandler() {
                 Session.cleanupSession();
             };
         }
-
-        NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect());
 
         // Pusher initialization span
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
@@ -151,7 +133,17 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies, lastWorkspaceNumber, translate);
+        App.setUpPoliciesAndNavigate(
+            session,
+            introSelected,
+            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            activePolicyID,
+            isSelfTourViewed,
+            betas,
+            hasActiveAdminPolicies,
+            lastWorkspaceNumber,
+            translate,
+        );
 
         Download.clearDownloads();
 

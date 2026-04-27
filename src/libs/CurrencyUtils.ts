@@ -201,14 +201,6 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         .join('');
 }
 
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string): boolean {
-    const currency = currencyList?.[currencyCode];
-    return !!currency;
-}
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
@@ -221,6 +213,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
-    isValidCurrencyCode,
     convertToShortDisplayString,
 };

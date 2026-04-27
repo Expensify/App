@@ -282,6 +282,8 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: POLICY_NAME,
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -474,6 +476,8 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Distance Disabled Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -513,6 +517,256 @@ describe('actions/Policy', () => {
             expect(policy?.areDistanceRatesEnabled).toBe(false);
             expect(policy?.areInvoicesEnabled).toBe(false);
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
+        });
+
+        it('duplicate workspace with overview, travel, and codingRules options', async () => {
+            const basePolicy = createRandomPolicy(15, CONST.POLICY.TYPE.TEAM);
+            const fakePolicy: PolicyType = {
+                ...basePolicy,
+                outputCurrency: 'EUR',
+                address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
+                isTravelEnabled: true,
+                tax: {trackingEnabled: true},
+                rules: {codingRules: {rule1: {filters: {left: 'merchant', operator: 'eq', right: 'Acme'}, category: 'Travel'}}},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Overview Travel CodingRules Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: true,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    overview: true,
+                    travel: true,
+                    codingRules: true,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.outputCurrency).toBe('EUR');
+            expect(policy?.address).toEqual(fakePolicy.address);
+            expect(policy?.isTravelEnabled).toBe(true);
+            expect(policy?.tax).toEqual(fakePolicy.tax);
+            expect(policy?.rules).toEqual({codingRules: fakePolicy.rules?.codingRules});
+        });
+
+        it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const basePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.TEAM);
+            const memberAEmail = 'member-a@expensifail.com';
+            const memberBEmail = 'member-b@expensifail.com';
+            const memberCEmail = 'member-c@expensifail.com';
+            const fakePolicy: PolicyType = {
+                ...basePolicy,
+                employeeList: {
+                    [memberAEmail]: {email: memberAEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    [memberBEmail]: {email: memberBEmail, role: CONST.POLICY.ROLE.USER},
+                    [memberCEmail]: {email: memberCEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            const memberAID = 200;
+            const memberBID = 201;
+            const memberCID = 202;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [memberAID]: {accountID: memberAID, login: memberAEmail},
+                [memberBID]: {accountID: memberBID, login: memberBEmail},
+                [memberCID]: {accountID: memberCID, login: memberCEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Workspace With Members',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Welcome to the workspace',
+                parts: {
+                    people: true,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connection);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            // With 3 employees copied to the duplicate policy, the optimistic #announce room should be created
+            const announceChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+            expect(announceChat).toBeTruthy();
+            expect(announceChat?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
+            // Participants of the optimistic announce room should include every duplicated employee
+            expect(Object.keys(announceChat?.participants ?? {}).length).toBe(3);
+        });
+
+        it('duplicate workspace with a file uses its uri and name on the policy avatar', async () => {
+            const fakePolicy = createRandomPolicy(17, CONST.POLICY.TYPE.TEAM);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const file = {uri: 'file://tmp/avatar.png', name: 'avatar.png', type: 'image/png'} as File;
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Workspace With Avatar',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                file,
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.avatarURL).toBe(file.uri);
+            expect(policy?.originalFileName).toBe(file.name);
+        });
+
+        it('duplicate workspace propagates the caller currentUserEmail to the expense chat CREATED report action message', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(18, CONST.POLICY.TYPE.TEAM);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const callerEmail = 'explicit-caller@expensifail.com';
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: callerEmail,
+                policyName: 'Workspace Propagating Caller Email',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connection);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            const expenseChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            expect(expenseChat).toBeTruthy();
+
+            const reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const expenseChatActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChat?.reportID}`] ?? {});
+            const createdAction = expenseChatActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(createdAction).toBeTruthy();
+            const messages = Array.isArray(createdAction?.message) ? createdAction?.message : [];
+            expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
@@ -1843,7 +2097,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, policyID, false, CONST.CURRENCY.EUR);
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, CONST.CURRENCY.EUR);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -1853,6 +2107,69 @@ describe('actions/Policy', () => {
             expect(draft?.harvesting?.enabled).toBe(true);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.EUR);
         });
+
+        it('should set owner and ownerAccountID from explicit parameters', async () => {
+            // Set Onyx session to a DIFFERENT accountID/email to verify the explicit parameters are used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 999;
+            const customEmail = 'custom@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Verify owner and ownerAccountID use the explicit parameters, not the Onyx session
+            expect(draft?.owner).toBe(customEmail);
+            expect(draft?.ownerAccountID).toBe(customAccountID);
+
+            // Verify that the Onyx session values are NOT used
+            expect(draft?.owner).not.toBe(ESH_EMAIL);
+            expect(draft?.ownerAccountID).not.toBe(ESH_ACCOUNT_ID);
+        });
+
+        it('should set approver from explicit currentUserEmail parameter', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 888;
+            const customEmail = 'approver@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(draft?.approver).toBe(customEmail);
+            expect(draft?.approver).not.toBe(ESH_EMAIL);
+        });
+
+        it('should set employeeList using explicit currentUserEmail parameter', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 777;
+            const customEmail = 'employee@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Verify the employeeList uses the explicit email parameter
+            expect(draft?.employeeList?.[customEmail]).toBeDefined();
+            expect(draft?.employeeList?.[customEmail]?.email).toBe(customEmail);
+            expect(draft?.employeeList?.[customEmail]?.submitsTo).toBe(customEmail);
+            expect(draft?.employeeList?.[customEmail]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            // Verify the Onyx session email is NOT used in employeeList
+            expect(draft?.employeeList?.[ESH_EMAIL]).toBeUndefined();
+        });
     });
 
     describe('createDraftWorkspace', () => {
@@ -1861,7 +2178,16 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            const params = Policy.createDraftWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_EMAIL, true, policyID, CONST.CURRENCY.USD);
+            const params = Policy.createDraftWorkspace(
+                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                WORKSPACE_NAME,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                ESH_EMAIL,
+                true,
+                policyID,
+                CONST.CURRENCY.USD,
+            );
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -1889,7 +2215,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            Policy.createDraftWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, ESH_EMAIL, false, policyID, CONST.CURRENCY.EUR);
+            Policy.createDraftWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, ESH_EMAIL, false, policyID, CONST.CURRENCY.EUR);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -1899,6 +2225,37 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
             expect(draft?.harvesting?.enabled).toBe(true);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('should set owner, ownerAccountID, approver, and employeeList from explicit parameters instead of Onyx session', async () => {
+            // Set Onyx session to a DIFFERENT accountID/email to verify the explicit parameters are used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 999;
+            const customEmail = 'custom@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, customEmail, false, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Verify explicit params are used, not the Onyx session values
+            expect(draft?.owner).toBe(customEmail);
+            expect(draft?.ownerAccountID).toBe(customAccountID);
+            expect(draft?.approver).toBe(customEmail);
+            expect(draft?.employeeList?.[customEmail]).toEqual({
+                submitsTo: customEmail,
+                email: customEmail,
+                role: CONST.POLICY.ROLE.ADMIN,
+                errors: {},
+            });
+
+            // Verify the Onyx session values are NOT used
+            expect(draft?.owner).not.toBe(ESH_EMAIL);
+            expect(draft?.ownerAccountID).not.toBe(ESH_ACCOUNT_ID);
+            expect(draft?.employeeList?.[ESH_EMAIL]).toBeUndefined();
         });
     });
 
@@ -3343,7 +3700,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -3356,7 +3713,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -3371,7 +3728,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL_2, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -3389,7 +3746,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
@@ -3400,7 +3757,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
@@ -3422,7 +3779,7 @@ describe('actions/Policy', () => {
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.newGenerateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });
@@ -5688,6 +6045,202 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('buildOptimisticDistanceRateCustomUnits', () => {
+        it('returns custom units with the provided currency', () => {
+            const result = Policy.buildOptimisticDistanceRateCustomUnits('EUR');
+
+            expect(result.outputCurrency).toBe('EUR');
+            expect(result.customUnitID).toBeDefined();
+            expect(result.customUnitRateID).toBeDefined();
+
+            const unit = result.customUnits[result.customUnitID];
+            expect(unit).toBeDefined();
+            expect(unit.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            expect(unit.attributes).toEqual({unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+
+            const rate = unit.rates[result.customUnitRateID];
+            expect(rate).toBeDefined();
+            expect(rate.name).toBe(CONST.CUSTOM_UNITS.DEFAULT_RATE);
+            expect(rate.rate).toBe(CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
+            expect(rate.enabled).toBe(true);
+            expect(rate.currency).toBe('EUR');
+        });
+
+        it('falls back to USD when no currency is provided and no personal details exist', () => {
+            const result = Policy.buildOptimisticDistanceRateCustomUnits();
+
+            expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
+            const rate = result.customUnits[result.customUnitID].rates[result.customUnitRateID];
+            expect(rate.currency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('generates unique IDs for customUnitID and customUnitRateID', () => {
+            const result1 = Policy.buildOptimisticDistanceRateCustomUnits('USD');
+            const result2 = Policy.buildOptimisticDistanceRateCustomUnits('USD');
+
+            expect(result1.customUnitID).not.toBe(result2.customUnitID);
+            expect(result1.customUnitRateID).not.toBe(result2.customUnitRateID);
+        });
+
+        it('uses empty string currency and falls back properly', () => {
+            const result = Policy.buildOptimisticDistanceRateCustomUnits('');
+
+            // Empty string is falsy, so it should fall back
+            expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
+        });
+    });
+
+    describe('createDraftInitialWorkspace', () => {
+        it('creates a draft workspace with correct default values', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft).toBeDefined();
+            expect(policyDraft?.id).toBe(policyID);
+            expect(policyDraft?.name).toBe(WORKSPACE_NAME);
+            expect(policyDraft?.type).toBe(CONST.POLICY.TYPE.TEAM);
+            expect(policyDraft?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policyDraft?.outputCurrency).toBe('USD');
+            expect(policyDraft?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(policyDraft?.isPolicyExpenseChatEnabled).toBe(true);
+            expect(policyDraft?.areCategoriesEnabled).toBe(true);
+            expect(policyDraft?.areCompanyCardsEnabled).toBe(true);
+            expect(policyDraft?.areExpensifyCardsEnabled).toBe(false);
+            expect(policyDraft?.makeMeAdmin).toBe(false);
+            expect(policyDraft?.defaultBillable).toBe(false);
+            expect(policyDraft?.defaultReimbursable).toBe(true);
+            expect(policyDraft?.requiresCategory).toBe(true);
+        });
+
+        it('enables workflows by default for MANAGE_TEAM choice', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.areWorkflowsEnabled).toBe(true);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(policyDraft?.harvesting?.enabled).toBe(false);
+        });
+
+        it('disables workflows for non-MANAGE_TEAM choices', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.areWorkflowsEnabled).toBe(false);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+            expect(policyDraft?.harvesting?.enabled).toBe(true);
+        });
+
+        it('uses makeMeAdmin when specified', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, true, 'USD');
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.makeMeAdmin).toBe(true);
+        });
+
+        it('creates a CORPORATE type workspace when specified', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace(
+                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                WORKSPACE_NAME,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                policyID,
+                false,
+                'USD',
+                undefined,
+                CONST.POLICY.TYPE.CORPORATE,
+            );
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('sets custom units with the provided currency', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'GBP');
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.outputCurrency).toBe('GBP');
+            expect(policyDraft?.customUnits).toBeDefined();
+
+            const customUnitKeys = Object.keys(policyDraft?.customUnits ?? {});
+            expect(customUnitKeys).toHaveLength(1);
+
+            const unit = policyDraft?.customUnits?.[customUnitKeys.at(0) ?? ''];
+            expect(unit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+
+            const rateKeys = Object.keys(unit?.rates ?? {});
+            expect(rateKeys).toHaveLength(1);
+
+            const rate = unit?.rates?.[rateKeys.at(0) ?? ''];
+            expect(rate?.currency).toBe('GBP');
+            expect(rate?.enabled).toBe(true);
+        });
+
+        it('enables workflows for LOOKING_AROUND choice', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD');
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.areWorkflowsEnabled).toBe(true);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+        });
+
+        it('sets avatar URL when file is provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const fakeFile = {uri: 'file://test-avatar.png', name: 'test-avatar.png'} as File;
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, 'USD', fakeFile);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.avatarURL).toBe('file://test-avatar.png');
+            expect(policyDraft?.originalFileName).toBe('test-avatar.png');
+        });
+    });
+
     describe('createWorkspaceFromIOUPayment', () => {
         it('should set ownerAccountID from explicit currentUserAccountID parameter', async () => {
             // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
@@ -5717,8 +6270,8 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, undefined, mockTranslate);
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -5749,9 +6302,86 @@ describe('actions/Policy', () => {
             };
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            const result = Policy.createWorkspaceFromIOUPayment(nonIOUReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, 'owner@example.com', undefined, undefined, mockTranslate);
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            const result = Policy.createWorkspaceFromIOUPayment(
+                nonIOUReport,
+                undefined,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                'owner@example.com',
+                undefined,
+                CONST.CURRENCY.USD,
+                undefined,
+                mockTranslate,
+                {},
+            );
             expect(result).toBeUndefined();
+        });
+
+        it('should use reportActionsList parameter instead of deprecated Onyx connection', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const employeeAccountID = 300;
+            const iouReportOwnerEmail = 'employee@example.com';
+
+            const existingChatReportID = '700';
+
+            // Create a report preview action for the existing chat
+            const reportPreviewAction: ReportAction = {
+                reportActionID: 'previewAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: 'childReport1',
+                created: '2024-01-01',
+                message: [],
+            };
+
+            // Pass reportActionsList explicitly - this should be used instead of the deprecated Onyx connection
+            const reportActionsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${existingChatReportID}`]: {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                },
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '800',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '801',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 2000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            const result = Policy.createWorkspaceFromIOUPayment(
+                iouReport,
+                undefined,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                iouReportOwnerEmail,
+                undefined,
+                CONST.CURRENCY.USD,
+                undefined,
+                mockTranslate,
+                reportActionsList,
+            );
+
+            // Verify the function returns a valid result (not undefined)
+            expect(result).toBeDefined();
+            expect(result?.policyID).toBeDefined();
+            expect(result?.workspaceChatReportID).toBeDefined();
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
         });
     });
 });

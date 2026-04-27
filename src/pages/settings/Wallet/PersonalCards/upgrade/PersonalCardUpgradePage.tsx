@@ -12,7 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import {generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
@@ -33,7 +34,8 @@ function PersonalCardUpgradePage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID, email = ''} = currentUserPersonalDetails;
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const lastWorkspaceNumberWithEmailSelector = (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, email);
@@ -42,7 +44,8 @@ function PersonalCardUpgradePage() {
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
-            policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,

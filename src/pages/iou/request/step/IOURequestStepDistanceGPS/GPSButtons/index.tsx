@@ -10,13 +10,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {isTripCaptured as isTripCapturedUtil, stopGpsTrip as stopGpsTripUtil} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Unit} from '@src/types/onyx/Policy';
+import GPSTooltip from './GPSTooltip';
 import openSettings from './openSettings';
 
 type ButtonsProps = {
@@ -34,9 +35,12 @@ type ButtonsProps = {
 
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
+
+    /** Function to call when the trip is stopped */
+    onTripStopped: () => void;
 };
 
-function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit}: ButtonsProps) {
+function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit, onTripStopped}: ButtonsProps) {
     const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
@@ -50,7 +54,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const isTripCaptured = !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
+    const isTripCaptured = isTripCapturedUtil(gpsDraftDetails);
 
     const checkSettingsAndPermissions = async () => {
         setShouldShowStartError(false);
@@ -77,6 +81,12 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         startGpsTripNotification(translate, reportID, unit);
     };
 
+    const stopGpsTrip = () => {
+        setShowStopConfirmation(false);
+        stopGpsTripUtil(isOffline);
+        onTripStopped();
+    };
+
     const onNext = () => {
         if (gpsDraftDetails?.distanceInMeters === 0) {
             setShowZeroDistanceModal(true);
@@ -94,13 +104,13 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     return (
         <>
             {isTripCaptured ? (
-                <View style={[styles.p5, styles.pt0, styles.gap3]}>
+                <View style={[styles.gap2, styles.flexRow]}>
                     <Button
                         onPress={() => setShowDiscardConfirmation(true)}
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.flexShrink0]}
+                        style={[styles.flex1]}
                         text={translate('gps.discard')}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
                     />
@@ -110,23 +120,27 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.flexShrink0]}
+                        style={[styles.flex1]}
                         text={translate('common.next')}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
                     />
                 </View>
             ) : (
-                <Button
-                    onPress={gpsDraftDetails?.isTracking ? () => setShowStopConfirmation(true) : checkSettingsAndPermissions}
-                    success={!gpsDraftDetails?.isTracking}
-                    danger={gpsDraftDetails?.isTracking}
-                    allowBubble
-                    pressOnEnter
-                    large
-                    style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
-                    text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
-                />
+                <GPSTooltip>
+                    <View>
+                        <Button
+                            onPress={gpsDraftDetails?.isTracking ? () => setShowStopConfirmation(true) : checkSettingsAndPermissions}
+                            success={!gpsDraftDetails?.isTracking}
+                            danger={gpsDraftDetails?.isTracking}
+                            allowBubble
+                            pressOnEnter
+                            large
+                            style={[styles.w100, styles.flexShrink0]}
+                            text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
+                        />
+                    </View>
+                </GPSTooltip>
             )}
 
             <BackgroundLocationPermissionsFlow
@@ -142,10 +156,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 danger
                 title={translate('gps.stopGpsTrackingModal.title')}
                 isVisible={showStopConfirmation}
-                onConfirm={() => {
-                    setShowStopConfirmation(false);
-                    stopGpsTrip(isOffline);
-                }}
+                onConfirm={stopGpsTrip}
                 onCancel={() => setShowStopConfirmation(false)}
                 confirmText={translate('gps.stopGpsTrackingModal.confirm')}
                 cancelText={translate('gps.stopGpsTrackingModal.cancel')}

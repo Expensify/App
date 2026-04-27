@@ -1,31 +1,34 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import ActionButtons from './ActionButtons';
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
-    label: string;
+    label?: string;
 
     /** The current date values */
     value: SearchDateValues;
 
     /** The date presets */
     presets?: SearchDatePreset[];
+
+    /** Additional style props */
+    style?: StyleProp<ViewStyle>;
 
     /** Function to call when changes are applied */
     onChange: (value: SearchDateValues) => void;
@@ -37,13 +40,12 @@ type DateSelectPopupProps = {
     setPopoverWidth?: (width: number | undefined) => void;
 };
 
-function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
@@ -126,14 +128,12 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         closeOverlay();
     }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
 
-    const maxPopupHeight = Math.round(windowHeight * 0.875);
-
     // For non-Range modes, use original simple styles. For Range, use custom layout
     const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     if (!isSmallScreenWidth) {
         return (
-            <View style={[styles.pv4, styles.gap2]}>
+            <View style={[styles.pv4, styles.gap2, style]}>
                 <View>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader
@@ -182,15 +182,14 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         );
     }
 
-    const topPaddingStyle = selectedDateModifier ? styles.pt3 : undefined;
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
-    const mobileContainerStyle = useRangeLayout ? [topPaddingStyle, styles.flexGrow1, {maxHeight: maxPopupHeight}] : styles.gap2;
+    const mobileContainerStyle = useRangeLayout ? [styles.flexGrow1] : styles.gap2;
     const mobileLabelStyle = useRangeLayout ? [styles.textLabel, styles.ph5, styles.pb3] : [styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1];
     const mobileButtonRowStyle = useRangeLayout ? [styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2] : [styles.flexRow, styles.gap2, styles.ph5];
 
     return (
-        <View style={mobileContainerStyle}>
-            {!selectedDateModifier && <Text style={mobileLabelStyle}>{label}</Text>}
+        <View style={[styles.pv4, mobileContainerStyle, style, isInLandscapeMode ? styles.h100 : undefined]}>
+            {!selectedDateModifier && !!label && <Text style={mobileLabelStyle}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"

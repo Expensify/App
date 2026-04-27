@@ -2,6 +2,7 @@ import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU';
 import {setSplitShares} from '@libs/actions/IOU/Split';
@@ -9,6 +10,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -33,7 +35,7 @@ type DistanceRequestControllerProps = {
     shouldCalculateDistanceAmount: boolean;
     isDistanceRequestWithPendingRoute: boolean;
     hasRoute: boolean;
-    lastSelectedRate: string | undefined;
+    defaultMileageRateCustomUnitRateID: string | undefined;
     selectedParticipants: Participant[];
     selectedParticipantsProp: Participant[];
     setFormError: (error: TranslationPaths | '') => void;
@@ -65,7 +67,7 @@ function DistanceRequestController({
     shouldCalculateDistanceAmount,
     isDistanceRequestWithPendingRoute,
     hasRoute,
-    lastSelectedRate,
+    defaultMileageRateCustomUnitRateID,
     selectedParticipants,
     selectedParticipantsProp,
     setFormError,
@@ -73,6 +75,8 @@ function DistanceRequestController({
 }: DistanceRequestControllerProps) {
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultMileageRateCustomUnitRateID) : defaultMileageRateCustomUnitRateID;
     const prevPolicy = usePrevious(policy);
     const isFirstUpdatedDistanceAmount = useRef(false);
 
@@ -164,9 +168,7 @@ function DistanceRequestController({
     }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
-            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
+        if (!isDistanceRequest || !transactionID || isReadOnly) {
             return;
         }
 
@@ -199,11 +201,9 @@ function DistanceRequestController({
         translate,
         toLocaleDigit,
         isDistanceRequest,
-        isPolicyExpenseChat,
         transaction,
         transactionID,
         isReadOnly,
-        isMovingTransactionFromTrackExpense,
         getCurrencySymbol,
         isManualDistanceRequest,
     ]);

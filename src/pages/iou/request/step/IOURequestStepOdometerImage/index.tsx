@@ -14,14 +14,17 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWebCamera from '@hooks/useWebCamera';
+import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {isMobile} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -29,7 +32,6 @@ import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDrag
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
-import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -52,6 +54,8 @@ function IOURequestStepOdometerImage({
     const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
     const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;
     const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
+
+    useRestartOnOdometerImagesFailure(transaction, reportID, iouTypeValue, backToReport);
     const dropBlobUrlsRef = useRef<string[]>([]);
     const shouldRevokeOnUnmountRef = useRef(true);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
@@ -116,6 +120,15 @@ function IOURequestStepOdometerImage({
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web',
+            },
+        });
+
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
         const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
@@ -131,9 +144,11 @@ function IOURequestStepOdometerImage({
                     URL.revokeObjectURL(imageObject.source);
                 }
                 setMoneyRequestOdometerImage(transaction, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
+                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 navigateBack();
             })
             .catch((error: unknown) => {
+                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
             });
     };
@@ -308,6 +323,7 @@ function IOURequestStepOdometerImage({
 
     useEffect(() => {
         return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
             if (!shouldRevokeOnUnmountRef.current) {
                 return;
             }

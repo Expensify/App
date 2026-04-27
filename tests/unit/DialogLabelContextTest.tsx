@@ -123,14 +123,14 @@ describe('DialogLabelContext', () => {
             expect(result.current.claimInitialFocus()).toBe(false);
         });
 
-        it('pushLabel resets the focus claim so each new screen can claim', () => {
+        it('pushLabel resets focus claim so each screen can claim', () => {
             const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
 
             // First screen claims focus
             expect(result.current.claimInitialFocus()).toBe(true);
             expect(result.current.claimInitialFocus()).toBe(false);
 
-            // Second screen pushes a label — claim resets
+            // Inner navigation pushes a new label — claim resets
             act(() => {
                 result.current.pushLabel('Screen B');
             });

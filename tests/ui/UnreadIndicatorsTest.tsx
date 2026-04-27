@@ -15,6 +15,7 @@ import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} 
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
@@ -38,7 +39,6 @@ jest.setTimeout(120000);
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -692,7 +692,7 @@ describe('Unread Indicators', () => {
     it('Do not display the new line indicator when tracking an expense on self DM while offline', async () => {
         // Given a self DM report and an offline network
         await signInAndGetAppWithUnreadChat();
-        await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
         // Remove unnecessary report
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
 

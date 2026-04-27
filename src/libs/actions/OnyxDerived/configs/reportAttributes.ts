@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getIsOffline} from '@libs/NetworkState';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -89,11 +90,14 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.NETWORK,
     ],
     compute: (
         [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
         {currentValue, sourceValues},
     ) => {
+        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        const isOffline = getIsOffline();
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -185,6 +189,7 @@ export default createOnyxDerivedValueConfig({
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
+                dataToIterate = [];
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -236,94 +241,99 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
-            // source value sends partial data, so we need an entire report object to do computations
-            const report = reports[key];
+        const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
+            (acc, key) => {
+                // source value sends partial data, so we need an entire report object to do computations
+                const report = reports[key];
 
-            if (!report || !isValidReport(report)) {
-                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                if (acc[reportID]) {
-                    delete acc[reportID];
+                if (!report || !isValidReport(report)) {
+                    const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                    if (acc[reportID]) {
+                        delete acc[reportID];
+                    }
+                    return acc;
                 }
+
+                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+                const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+                const isReportArchived = isArchivedReport(reportNameValuePair);
+                const {
+                    hasAnyViolations,
+                    requiresAttention,
+                    reportErrors,
+                    oneTransactionThreadReportID,
+                    actionBadge: actionGreenBadge,
+                    actionTargetReportActionID: actionGreenTargetReportActionID,
+                } = generateReportAttributes({
+                    report,
+                    chatReport,
+                    reportActions,
+                    transactionViolations,
+                    isReportArchived,
+                    allTransactions: transactions,
+                    reports,
+                });
+
+                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID);
+
+                let brickRoadStatus;
+                let actionBadge;
+                let actionTargetReportActionID;
+                const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    report,
+                    chatReport,
+                    reportActionsList,
+                    hasAnyViolations || hasFieldViolations,
+                    reportErrors,
+                    transactions,
+                    isOffline,
+                    transactionViolations,
+                    !!isReportArchived,
+                    reports,
+                );
+                // if report has errors or violations, show red dot
+                if (reasonAndReportAction) {
+                    brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+                    actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
+                }
+                // if report does not have error, check if it should show green dot
+                if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
+                    brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                    actionBadge = actionGreenBadge;
+                    actionTargetReportActionID = actionGreenTargetReportActionID;
+                }
+
+                acc[report.reportID] = {
+                    reportName: report
+                        ? computeReportName({
+                              report,
+                              reports,
+                              policies,
+                              transactions,
+                              allReportNameValuePairs: reportNameValuePairs,
+                              personalDetailsList: personalDetails,
+                              reportActions,
+                              currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                              currentUserLogin: session?.email ?? '',
+                              allPolicyTags: policyTags,
+                          })
+                        : '',
+                    isEmpty: generateIsEmptyReport(report, isReportArchived),
+                    brickRoadStatus,
+                    requiresAttention,
+                    actionBadge,
+                    actionTargetReportActionID,
+                    reportErrors,
+                    oneTransactionThreadReportID,
+                };
+
                 return acc;
-            }
-
-            const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-            const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const isReportArchived = isArchivedReport(reportNameValuePair);
-            const {
-                hasAnyViolations,
-                requiresAttention,
-                reportErrors,
-                oneTransactionThreadReportID,
-                actionBadge: actionGreenBadge,
-                actionTargetReportActionID: actionGreenTargetReportActionID,
-            } = generateReportAttributes({
-                report,
-                chatReport,
-                reportActions,
-                transactionViolations,
-                isReportArchived,
-                reports,
-            });
-
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
-
-            let brickRoadStatus;
-            let actionBadge;
-            let actionTargetReportActionID;
-            const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                report,
-                chatReport,
-                reportActionsList,
-                hasAnyViolations || hasFieldViolations,
-                reportErrors,
-                transactions,
-                transactionViolations,
-                !!isReportArchived,
-                reports,
-            );
-            // if report has errors or violations, show red dot
-            if (reasonAndReportAction) {
-                brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
-                actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
-            }
-            // if report does not have error, check if it should show green dot
-            if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
-                brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-                actionBadge = actionGreenBadge;
-                actionTargetReportActionID = actionGreenTargetReportActionID;
-            }
-
-            acc[report.reportID] = {
-                reportName: report
-                    ? computeReportName({
-                          report,
-                          reports,
-                          policies,
-                          transactions,
-                          allReportNameValuePairs: reportNameValuePairs,
-                          personalDetailsList: personalDetails,
-                          reportActions,
-                          currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                          currentUserLogin: session?.email ?? '',
-                          allPolicyTags: policyTags,
-                      })
-                    : '',
-                isEmpty: generateIsEmptyReport(report, isReportArchived),
-                brickRoadStatus,
-                requiresAttention,
-                actionBadge,
-                actionTargetReportActionID,
-                reportErrors,
-                oneTransactionThreadReportID,
-            };
-
-            return acc;
-        }, currentValue?.reports ?? {});
+            },
+            currentValue?.reports ? {...currentValue.reports} : {},
+        );
 
         // Propagate errors from IOU reports to their parent chat reports.
         const chatReportIDsWithErrors = new Set<string>();
@@ -346,8 +356,13 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            reportAttributes[chatReportID].actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+            // Clone the entry before mutating — it may be a reference carried over from
+            // currentValue.reports that wasn't recomputed in this incremental run.
+            reportAttributes[chatReportID] = {
+                ...reportAttributes[chatReportID],
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+            };
         }
 
         return {

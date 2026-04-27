@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -46,6 +46,7 @@ type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
     const {policyID, cardID, backTo} = route.params;
 
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

@@ -232,7 +232,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     useEffect(() => {
-        if (isPreviousPolicy && !!reimbursementAccount) {
+        if ((isPreviousPolicy && !!reimbursementAccount) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
 
@@ -298,11 +298,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 return;
             }
 
-            if (
-                prevReimbursementAccount &&
-                prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
-            ) {
+            if (prevReimbursementAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction) {
                 setShouldShowContinueSetupButton(hasInProgressUSDVBBA(achData));
             }
 

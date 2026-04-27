@@ -1,9 +1,10 @@
-import emojis, {localeEmojis} from '@assets/emojis';
+import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
 import StringUtils from './StringUtils';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';
 
 type EmojiMetaData = {
@@ -114,10 +115,35 @@ const emojiTrieForLocale: EmojiTrieForLocale = Object.values(FULLY_SUPPORTED_LOC
 
 const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
-        return; // Return early if the locale is not supported or the trie is already built
+        return; // Return early if the trie is already built
     }
+    // Don't build and cache the trie if locale emoji data hasn't been loaded yet,
+    // otherwise we'd permanently cache a trie with only English fallback names.
+    if (!localeEmojis[locale]) {
+        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
+            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+        });
+        importEmojiLocale(locale).then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
+        });
+        return;
+    }
+    startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
+        name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+        op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+    });
     emojiTrieForLocale[locale] = createTrie(locale);
+    endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD);
+};
+
+/**
+ * Returns the trie for the given locale, building it lazily on first access.
+ */
+const getEmojiTrie = (locale: FullySupportedLocale): Trie<EmojiMetaData> | undefined => {
+    buildEmojisTrie(locale);
+    return emojiTrieForLocale[locale];
 };
 
 export default emojiTrieForLocale;
-export {buildEmojisTrie};
+export {buildEmojisTrie, getEmojiTrie};

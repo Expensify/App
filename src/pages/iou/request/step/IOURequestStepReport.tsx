@@ -56,8 +56,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
@@ -173,6 +175,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 );
 
                 if (isEditing) {
+                    const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     changeTransactionsReport({
                         transactionIDs: [transaction.transactionID],
                         isASAPSubmitBetaEnabled,
@@ -183,6 +186,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
+                        policyTagList,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -220,6 +224,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled,
@@ -227,6 +232,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
+                policyTagList,
             });
             removeTransaction(transaction.transactionID);
         });
@@ -254,7 +260,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const createReport = () => {
         const restrictionPolicyID = isPerDiemTransaction ? perDiemOriginalPolicy?.id : policyForMovingExpensesID;
-        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
             return;
         }

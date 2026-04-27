@@ -45,8 +45,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
     const ownerPersonalDetails = useMemo(
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
@@ -69,6 +71,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
+        const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -81,6 +84,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
+                policyTagList,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -93,6 +97,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
+        const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
             transactionIDs,
             isASAPSubmitBetaEnabled,
@@ -100,6 +105,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
+            policyTagList,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -133,7 +139,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const createReport = () => {
         const restrictionPolicyID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
-        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
             return;
         }

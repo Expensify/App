@@ -1,6 +1,6 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -24,6 +24,7 @@ import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -38,8 +39,7 @@ function useReceiptScan({
     currentUserPersonalDetails,
     backTo,
     backToReport,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
+    routeName,
     updateScanAndNavigate,
     getSource,
 }: UseReceiptScanParams) {
@@ -70,11 +70,12 @@ function useReceiptScan({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
+    const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
@@ -90,20 +91,12 @@ function useReceiptScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
-    // Clear receipt files when multi-scan is disabled
-    useEffect(() => {
-        if (isMultiScanEnabled) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setReceiptFiles([]);
-    }, [isMultiScanEnabled]);
-
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, isArchived, reportAttributesDerived],
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
@@ -138,7 +131,7 @@ function useReceiptScan({
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
-            shouldGenerateTransactionThreadReport,
+            shouldGenerateTransactionThreadReport: false,
             isArchivedExpenseReport: isArchived,
             isAutoReporting: !!personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
@@ -232,6 +225,9 @@ function useReceiptScan({
     });
     return {
         transactions,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,

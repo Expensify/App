@@ -7,6 +7,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -17,6 +18,7 @@ import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -35,12 +37,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
@@ -53,6 +54,7 @@ import {
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    isAttendeeTrackingEnabled,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -175,8 +177,9 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
+    const {showConfirmModal} = useConfirmModal();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     const {currentSearchResults} = useSearchStateContext();
@@ -187,9 +190,7 @@ function MoneyRequestView({
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        canEvict: false,
-    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
 
     const isFromMergeTransaction = !!mergeTransactionID;
@@ -294,7 +295,7 @@ function MoneyRequestView({
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isFromCardImport = isCardTransactionTransactionUtils(transaction);
-    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
+    const cardProgramName = getCompanyCardDescription(translate, transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
     const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
@@ -316,7 +317,7 @@ function MoneyRequestView({
     const fallbackTaxRateTitle = transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport);
-    const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
+    const isCancelled = moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
@@ -437,7 +438,6 @@ function MoneyRequestView({
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest) || !!transaction?.taxName;
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -447,6 +447,10 @@ function MoneyRequestView({
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+
+    const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode && !isTimeRequest && !isPerDiemRequest;
+    const shouldShowTax = isFromMergeTransaction ? !!transaction?.taxName : isTaxEnabled || shouldShowTaxDisabledAlert;
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -572,7 +576,7 @@ function MoneyRequestView({
         updatedTransaction?.category ?? categoryForDisplay,
         actualAttendees,
         currentUserPersonalDetails,
-        policy?.isAttendeeTrackingEnabled,
+        isAttendeeTrackingEnabled(policy),
         policy?.type === CONST.POLICY.TYPE.CORPORATE,
     );
 
@@ -632,6 +636,35 @@ function MoneyRequestView({
         }
 
         return '';
+    };
+
+    const showTaxDisabledAlert = () => {
+        showConfirmModal({
+            title: translate('iou.taxDisabledAlert.title'),
+            prompt: translate('iou.taxDisabledAlert.prompt'),
+            confirmText: translate('iou.taxDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEditTaxFields) {
+                return;
+            }
+
+            updateMoneyRequestTaxRate({
+                transactionID: transaction?.transactionID,
+                transactionThreadReport,
+                parentReport,
+                taxCode: '',
+                taxValue: '',
+                taxAmount: 0,
+                policy,
+                policyTagList,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+            });
+        });
     };
 
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
@@ -1078,6 +1111,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowTaxDisabledAlert) {
+                                    showTaxDisabledAlert();
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
                                         CONST.IOU.ACTION.EDIT,
@@ -1104,6 +1142,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowTaxDisabledAlert) {
+                                    showTaxDisabledAlert();
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
                                         CONST.IOU.ACTION.EDIT,
@@ -1147,7 +1190,7 @@ function MoneyRequestView({
                 {shouldShowReimbursable && (
                     <OfflineWithFeedback
                         pendingAction={getPendingFieldAction('reimbursable')}
-                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
                     >
                         <View>
                             <Text
@@ -1168,7 +1211,7 @@ function MoneyRequestView({
                 {shouldShowBillable && (
                     <OfflineWithFeedback
                         pendingAction={getPendingFieldAction('billable')}
-                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
                     >
                         <View>
                             <Text

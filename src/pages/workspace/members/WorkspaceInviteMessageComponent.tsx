@@ -22,7 +22,6 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -183,6 +182,7 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            currentUserPersonalDetails?.accountID,
             shouldShowApproverRow ? validatedApprover : undefined,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
@@ -203,19 +203,13 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        const backToStr = backTo as string;
-        if (backToStr?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+        if ((backTo as string)?.endsWith('members')) {
+            Navigation.dismissModal();
             return;
         }
 
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {forceReplace: true});
-            return;
-        }
-
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
         });
     };
 

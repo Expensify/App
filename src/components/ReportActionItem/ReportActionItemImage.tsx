@@ -122,7 +122,7 @@ function ReportActionItemImage({
 
     if (showMapAsImage) {
         return (
-            <View style={[styles.w100, styles.h100]}>
+            <View style={[styles.w100, shouldUseFullHeight ? {aspectRatio: 1} : styles.h100]}>
                 <ConfirmedRoute
                     transaction={transaction}
                     isSmallerIcon={!isSingleImage}

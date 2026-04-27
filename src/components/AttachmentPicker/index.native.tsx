@@ -18,14 +18,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AttachmentCamera from './AttachmentCamera';
-import type {CapturedPhoto} from './AttachmentCamera';
+import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
 
 type LocalCopy = {
@@ -137,10 +136,6 @@ function AttachmentPicker({
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
-    // In-app camera state — uses VisionCamera to keep the app in the foreground during photo capture
-    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
-    const cameraResolveRef = useRef<((photos?: CapturedPhoto[]) => void) | null>(null);
-
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -153,43 +148,6 @@ function AttachmentPicker({
         },
         [translate],
     );
-
-    /**
-     * Launch the in-app camera using VisionCamera.
-     * Returns a Promise that resolves with the captured photo as an Asset-compatible object,
-     * or resolves with void if the user closes the camera without capturing.
-     */
-    const launchInAppCamera = useCallback((): Promise<Asset[] | void> => {
-        return new Promise((resolve) => {
-            cameraResolveRef.current = (photos?: CapturedPhoto[]) => {
-                if (!photos || photos.length === 0) {
-                    resolve();
-                    return;
-                }
-                const assets: Asset[] = photos.map((photo) => ({
-                    uri: photo.uri,
-                    fileName: photo.fileName,
-                    type: photo.type,
-                    width: photo.width,
-                    height: photo.height,
-                }));
-                resolve(assets);
-            };
-            setShowAttachmentCamera(true);
-        });
-    }, []);
-
-    const handleCameraCapture = (photos: CapturedPhoto[]) => {
-        setShowAttachmentCamera(false);
-        cameraResolveRef.current?.(photos);
-        cameraResolveRef.current = null;
-    };
-
-    const handleCameraClose = () => {
-        setShowAttachmentCamera(false);
-        cameraResolveRef.current?.();
-        cameraResolveRef.current = null;
-    };
 
     /**
      * Common image picker handling
@@ -311,7 +269,7 @@ function AttachmentPicker({
         return pickedFiles.map((file) => {
             const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
 
-            if (!localCopy || localCopy.status !== 'success') {
+            if (localCopy?.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
 
@@ -343,12 +301,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: launchInAppCamera,
+                pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker, launchInAppCamera]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -429,10 +387,9 @@ function AttachmentPicker({
 
                 if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
                     return getDataForUpload(fileDataObject)
-                        .then((file) => resizeImageIfNeeded(file))
-                        .then((resizedFile) =>
-                            ImageSize.getSize(resizedFile.uri ?? '').then(({width, height}) => ({
-                                ...resizedFile,
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => ({
+                                ...file,
                                 width,
                                 height,
                             })),
@@ -442,16 +399,15 @@ function AttachmentPicker({
 
                 if (fileDataName && Str.isImage(fileDataName)) {
                     return getDataForUpload(fileDataObject)
-                        .then((file) => resizeImageIfNeeded(file))
-                        .then((resizedFile) =>
-                            ImageSize.getSize(resizedFile.uri ?? '').then(({width, height}) => {
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
                                 if (width <= 0 || height <= 0) {
                                     showImageCorruptionAlert();
                                     return null;
                                 }
 
                                 return {
-                                    ...resizedFile,
+                                    ...file,
                                     width,
                                     height,
                                 };
@@ -570,13 +526,6 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {showAttachmentCamera && (
-                <AttachmentCamera
-                    isVisible={showAttachmentCamera}
-                    onCapture={handleCameraCapture}
-                    onClose={handleCameraClose}
-                />
-            )}
             {renderChildren()}
         </>
     );

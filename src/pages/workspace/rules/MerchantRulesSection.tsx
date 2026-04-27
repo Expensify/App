@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -168,7 +169,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        descriptionTextStyle={[styles.textNormalThemeText]}
+                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
