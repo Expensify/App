@@ -54,6 +54,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     getAllTaxRates: jest.fn(() => ({})),
     getCleanedTagName: jest.fn((tag: string) => tag),
     shouldShowPolicy: jest.fn(() => true),
+    getExpensifyTeamExclusions: jest.fn(() => ({})),
 }));
 
 jest.mock('@libs/CardFeedUtils', () => ({
@@ -92,6 +93,10 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 
 // eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
+// eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
+const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
+// eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
+const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
 
 const defaultParams = {
     autocompleteQueryValue: '',
@@ -357,5 +362,73 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)?.autocompleteID).toBe('policyC');
         expect(result.current.at(0)?.text).toBe('Test Workspace');
+    });
+
+    describe('Expensify team exclusion on from: autocomplete', () => {
+        const personalDetailsWithStaff = {
+            '1': {accountID: 1, login: 'am@expensify.com'},
+            '2': {accountID: 2, login: 'guide@team.expensify.com'},
+            '3': {accountID: 3, login: 'customer@acme.com'},
+        };
+
+        it('passes Expensify-team exclusions to getSearchOptions for from: when current user is a customer', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
+                ranges: [],
+            });
+            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true, 'guide@team.expensify.com': true});
+
+            renderHook(() =>
+                useAutocompleteSuggestions({
+                    ...defaultParams,
+                    autocompleteQueryValue: 'from:',
+                    currentUserEmail: 'customer@acme.com',
+                    personalDetails: personalDetailsWithStaff,
+                }),
+            );
+
+            const callArgs = getSearchOptions.mock.calls.at(-1)?.[0];
+            expect(callArgs?.excludeFromSuggestionsOnly).toEqual({'am@expensify.com': true, 'guide@team.expensify.com': true});
+        });
+
+        it('does not exclude Expensify team for from: when current user is Expensify staff', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
+                ranges: [],
+            });
+            getExpensifyTeamExclusions.mockReturnValue({});
+
+            renderHook(() =>
+                useAutocompleteSuggestions({
+                    ...defaultParams,
+                    autocompleteQueryValue: 'from:',
+                    currentUserEmail: 'staff@expensify.com',
+                    personalDetails: personalDetailsWithStaff,
+                }),
+            );
+
+            const callArgs = getSearchOptions.mock.calls.at(-1)?.[0];
+            expect(callArgs?.excludeFromSuggestionsOnly).toEqual({});
+        });
+
+        it('does not apply Expensify-team exclusions to to: autocomplete', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, value: ''},
+                ranges: [],
+            });
+            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true});
+
+            renderHook(() =>
+                useAutocompleteSuggestions({
+                    ...defaultParams,
+                    autocompleteQueryValue: 'to:',
+                    currentUserEmail: 'customer@acme.com',
+                    personalDetails: personalDetailsWithStaff,
+                }),
+            );
+
+            const callArgs = getSearchOptions.mock.calls.at(-1)?.[0];
+            expect(callArgs?.excludeFromSuggestionsOnly).toEqual({});
+        });
     });
 });
