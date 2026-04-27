@@ -913,7 +913,9 @@
         "CARDFROZEN",
         "CARDUNFROZEN",
         "backgrounded",
-        "Kolkata"
+        "Kolkata",
+        "subledger",
+        "cctransaction"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
