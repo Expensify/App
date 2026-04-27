@@ -6,6 +6,7 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
+    resolveOpenReportDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
@@ -40,6 +41,34 @@ describe('RequestConflictUtils', () => {
         const reportID = 1;
         const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === 'OpenReport' && request.data?.reportID === reportID);
         expect(result).toEqual({conflictAction: {type: 'replace', index: 2}});
+    });
+
+    it.each([
+        ['push when accountIDList differs', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: ''}, {type: 'push'}],
+        ['replace when accountIDList matches', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: '483'}, {type: 'replace', index: 0}],
+        ['replace when optional participant lists are empty', {}, {emailList: '', accountIDList: ''}, {type: 'replace', index: 0}],
+    ])('resolveOpenReportDuplicationConflictAction should %s', (_description, queuedData, nextData, expectedConflictAction) => {
+        const reportID = '8071514414018373';
+
+        // Given an existing OpenReport request
+        const persistedRequests = [
+            {
+                command: WRITE_COMMANDS.OPEN_REPORT,
+                data: {
+                    reportID,
+                    ...queuedData,
+                },
+            },
+        ];
+
+        // When another OpenReport is queued for the same report
+        const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {
+            reportID,
+            ...nextData,
+        });
+
+        // Then the request should only replace when participant identifiers match
+        expect(result).toEqual({conflictAction: expectedConflictAction});
     });
 
     it('resolveCommentDeletionConflicts should return push when no special comments are found', () => {
