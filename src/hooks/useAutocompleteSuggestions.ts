@@ -9,7 +9,7 @@ import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtil
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -220,6 +220,10 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+            // Only the From filter soft-excludes Expensify-team logins so internal staff don't leak into customer suggestions.
+            const fromExclusions =
+                autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ? getExpensifyTeamExclusions(personalDetails, currentUserEmail) : (CONST.EMPTY_OBJECT as Record<string, boolean>);
+
             const participants = getSearchOptions({
                 options,
                 draftComments,
@@ -242,6 +246,7 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
+                excludeFromSuggestionsOnly: fromExclusions,
             }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
