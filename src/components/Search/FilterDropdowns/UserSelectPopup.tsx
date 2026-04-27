@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,12 +73,15 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
         }, []);
     }, [value, personalDetails]);
 
+    const expensifyTeamExclusions = useMemo(() => getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.login), [personalDetails, currentUserPersonalDetails.login]);
+
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} =
         useSearchSelector({
             selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
             searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
             initialSelected: initialSelectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            excludeFromSuggestionsOnly: expensifyTeamExclusions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             includeUserToInvite: false,
             includeCurrentUser: true,
