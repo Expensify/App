@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import type PolicyData from '@hooks/usePolicyData/types';
 import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -34,16 +33,6 @@ describe('actions/PolicyTax', () => {
             },
         },
     };
-    function createPolicyData(policy: PolicyType): PolicyData {
-        return {
-            policy,
-            tags: {},
-            categories: {},
-            reports: [],
-            transactionsAndViolations: {},
-        };
-    }
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -715,7 +704,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(createPolicyData(fakePolicy), [taxID], TestHelper.localeCompare);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -769,7 +758,7 @@ describe('actions/PolicyTax', () => {
                 },
             };
             mockFetch?.pause?.();
-            deletePolicyTaxes(createPolicyData(fakePolicyWithForeignTaxDefault), [taxID], TestHelper.localeCompare);
+            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -816,7 +805,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(createPolicyData(fakePolicy), [taxID], TestHelper.localeCompare);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>

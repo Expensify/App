@@ -120,20 +120,16 @@ function PolicyDistanceRatesPage({
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
-                        const rateID = transaction.comment.customUnit.customUnitRateID;
                         transactionsData.transactionIDs.add(transaction.transactionID);
-                        if (!transactionsData.rateIDToTransactionsMap[rateID]) {
+                        if (!transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]) {
                             // eslint-disable-next-line no-param-reassign
-                            transactionsData.rateIDToTransactionsMap[rateID] = [];
+                            transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID] = [];
                         }
-                        transactionsData.rateIDToTransactionsMap[rateID]?.push({
-                            transactionID: transaction.transactionID,
-                            customUnitRateID: rateID,
-                        });
+                        transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]?.push(transaction?.transactionID);
                     }
                     return transactionsData;
                 },
-                {transactionIDs: new Set<string>(), rateIDToTransactionsMap: {} as Record<string, Array<{transactionID: string; customUnitRateID: string}>>},
+                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
         [customUnit?.customUnitID, rateIDs, policyReports],
@@ -323,9 +319,9 @@ function PolicyDistanceRatesPage({
             return;
         }
 
-        const transactionsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionsMap?.[rateID] ?? []);
+        const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
 
-        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionsAffected, transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {

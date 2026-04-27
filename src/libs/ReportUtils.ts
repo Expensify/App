@@ -2067,7 +2067,7 @@ function pushTransactionViolationsOnyxData(
     }, []);
 
     if (nonInvoiceReportItems.length === 0) {
-        return [];
+        return;
     }
 
     const updatedTagListsNames = Object.keys(tagListsUpdate);
@@ -2078,7 +2078,7 @@ function pushTransactionViolationsOnyxData(
     const isTagListsUpdateEmpty = updatedTagListsNames.length === 0;
     const isCategoriesUpdateEmpty = updatedCategoriesNames.length === 0;
     if (isPolicyUpdateEmpty && isTagListsUpdateEmpty && isCategoriesUpdateEmpty) {
-        return [];
+        return;
     }
 
     // Merge the existing policy with the optimistic updates
@@ -2171,16 +2171,6 @@ function pushTransactionViolationsOnyxData(
         });
     }
 
-    // Tax auto-selection
-    const optimisticTaxes = optimisticPolicy.taxRates?.taxes ?? {};
-    const enabledTaxKeys = Object.entries(optimisticTaxes)
-        .filter(([, tax]) => !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .map(([key]) => key);
-    const singleRemainingTaxCode = enabledTaxKeys.length === 1 ? enabledTaxKeys.at(0) : undefined;
-
-    // Collect auto-selected transaction updates to return to callers for the API request
-    const autoSelections: Array<{transactionID: string; category?: string; tag?: string; taxCode?: string}> = [];
-
     // Iterate through all policy reports to find transactions that need optimistic violations
     for (const {
         report,
@@ -2237,15 +2227,6 @@ function pushTransactionViolationsOnyxData(
                         transactionRollback.tag = transaction.tag;
                     }
                 }
-
-                // Tax auto-select: if the transaction's tax code is out of policy and only one enabled tax remains
-                if (singleRemainingTaxCode && transaction.taxCode) {
-                    const isTaxInPolicy = !!optimisticTaxes[transaction.taxCode] && !optimisticTaxes[transaction.taxCode].isDisabled;
-                    if (!isTaxInPolicy) {
-                        transactionUpdates.taxCode = singleRemainingTaxCode;
-                        transactionRollback.taxCode = transaction.taxCode;
-                    }
-                }
             }
 
             // If auto-selection modified the transaction, push optimistic transaction updates
@@ -2262,14 +2243,6 @@ function pushTransactionViolationsOnyxData(
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                     value: transactionRollback,
-                });
-
-                // Collect auto-selection data for the API request
-                autoSelections.push({
-                    transactionID: transaction.transactionID,
-                    ...(transactionUpdates.category !== undefined && {category: transactionUpdates.category}),
-                    ...(transactionUpdates.tag !== undefined && {tag: transactionUpdates.tag}),
-                    ...(transactionUpdates.taxCode !== undefined && {taxCode: transactionUpdates.taxCode}),
                 });
             }
 
@@ -2294,8 +2267,6 @@ function pushTransactionViolationsOnyxData(
             }
         }
     }
-
-    return autoSelections;
 }
 
 /**
