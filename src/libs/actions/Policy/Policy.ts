@@ -222,6 +222,7 @@ type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed
 
 type DuplicatePolicyDataOptions = {
     currentUserAccountID: number;
+    currentUserEmail: string | undefined;
     policyName: string;
     policyID?: string;
     targetPolicyID?: string;
@@ -2451,7 +2452,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         expenseReportActionData,
         expenseCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, expenseReportId);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, currentUserAccountIDParam, currentUserEmailParam, expenseReportId);
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
     const optimisticMccGroupData = buildOptimisticMccGroup();
@@ -2940,7 +2941,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     }
 
     if (adminParticipant?.login) {
-        // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
         const employeeWorkspaceChat = createPolicyExpenseChats(
             policyID,
             {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
@@ -3000,6 +3000,8 @@ function createDraftWorkspace(
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
         policyID,
         workspaceName,
+        currentUserAccountID,
+        currentUserEmail,
     );
 
     const shouldEnableWorkflowsByDefault =
@@ -3110,7 +3112,18 @@ function createDraftWorkspace(
 }
 
 function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
-    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID(), policyCategories, localCurrency, currentUserAccountID} = options;
+    const {
+        policyName = '',
+        policyID = generatePolicyID(),
+        file,
+        welcomeNote,
+        parts,
+        targetPolicyID = generatePolicyID(),
+        policyCategories,
+        localCurrency,
+        currentUserAccountID,
+        currentUserEmail,
+    } = options;
 
     const {
         adminsChatReportID,
@@ -3122,7 +3135,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         expenseReportActionData,
         expenseCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName, currentUserAccountID, currentUserEmail);
     const isMemberOptionSelected = parts?.people;
     const isReportsOptionSelected = parts?.reports;
     const isConnectionsOptionSelected = parts?.connections;
@@ -3978,7 +3991,7 @@ function createWorkspaceFromIOUPayment(
         expenseReportActionData: workspaceChatReportActionData,
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, currentUserAccountID, currentUserEmail);
 
     if (!employeeAccountID || !oldPersonalPolicyID) {
         return;

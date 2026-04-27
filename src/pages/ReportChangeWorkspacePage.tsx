@@ -113,6 +113,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
                     reportNextStep,
+                    reportActionsList: filteredReportActions,
                 });
             } else {
                 changeReportPolicy(

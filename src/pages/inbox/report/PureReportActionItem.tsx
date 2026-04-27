@@ -30,7 +30,6 @@ import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequest
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
-import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
 import {SearchStateContext} from '@components/Search/SearchContext';
@@ -40,7 +39,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -98,9 +96,7 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
-    isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTaskAction,
-    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
     isTripPreview,
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
@@ -126,7 +122,7 @@ import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
-import {createTransactionThreadReport, expandURLPreview} from '@userActions/Report';
+import {expandURLPreview} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -137,6 +133,7 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import ApprovalFlowContent, {isApprovalFlowAction} from './actionContents/ApprovalFlowContent';
 import CardBrokenConnectionContent from './actionContents/CardBrokenConnectionContent';
 import ChatMessageContent from './actionContents/ChatMessageContent';
+import ChatTransactionPreview from './actionContents/ChatTransactionPreview';
 import ConfirmWhisperContent from './actionContents/ConfirmWhisperContent';
 import FraudAlertContent from './actionContents/FraudAlertContent';
 import JoinRequestContent from './actionContents/JoinRequestContent';
@@ -164,12 +161,6 @@ import TripSummary from './TripSummary';
 type PureReportActionItemProps = {
     /** The personal policy ID */
     personalPolicyID: string | undefined;
-
-    /** Model of onboarding selected */
-    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
-
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -230,12 +221,6 @@ type PureReportActionItemProps = {
 
     /** The task report associated with this action, if any */
     taskReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The linked report associated with this action, if any */
-    linkedReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The iou report associated with the linked report, if any */
-    iouReportOfLinkedReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
@@ -337,8 +322,6 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 
 function PureReportActionItem({
     personalPolicyID,
-    introSelected,
-    betas,
     action,
     report,
     policy,
@@ -358,8 +341,6 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     taskReport,
-    linkedReport,
-    iouReportOfLinkedReport,
     linkedTransactionRouteError,
     isUserValidated,
     parentReport,
@@ -393,7 +374,6 @@ function PureReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -427,8 +407,6 @@ function PureReportActionItem({
         () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
     );
-
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -724,46 +702,16 @@ function PureReportActionItem({
                 const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                     children = (
-                        <View style={[styles.mt1, styles.w100]}>
-                            <TransactionPreview
-                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                                chatReportID={reportID}
-                                reportID={reportID}
-                                action={action}
-                                shouldDisplayContextMenu={shouldDisplayContextMenuValue}
-                                isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                                containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, styles.mt1]}
-                                transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
-                                onPreviewPressed={() => {
-                                    if (shouldShowSplitPreview) {
-                                        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
-                                        return;
-                                    }
-
-                                    // If no childReportID exists, create transaction thread on-demand
-                                    if (!action.childReportID) {
-                                        const createdTransactionThreadReport = createTransactionThreadReport(
-                                            introSelected,
-                                            personalDetail.email ?? '',
-                                            personalDetail.accountID,
-                                            betas,
-                                            iouReport,
-                                            action,
-                                        );
-                                        if (createdTransactionThreadReport?.reportID) {
-                                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
-                                            return;
-                                        }
-                                        return;
-                                    }
-
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
-                                }}
-                                isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
-                                originalReportID={originalReportID}
-                            />
-                        </View>
+                        <ChatTransactionPreview
+                            action={action}
+                            reportID={reportID}
+                            originalReportID={originalReportID}
+                            chatReportID={chatReportID}
+                            iouReport={iouReport}
+                            shouldShowSplitPreview={shouldShowSplitPreview}
+                            shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                            transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
+                        />
                     );
                 } else {
                     children = emptyHTML;
@@ -773,8 +721,6 @@ function PureReportActionItem({
             children = (
                 <TripRoomPreview
                     action={action}
-                    chatReport={linkedReport}
-                    iouReport={iouReportOfLinkedReport}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -1089,7 +1035,6 @@ function PureReportActionItem({
                     contextMenuStateValue={contextMenuStateValue}
                     contextMenuActionsValue={contextMenuActionsValue}
                     userBillingFundID={userBillingFundID}
-                    introSelected={introSelected}
                 />
             );
         }
@@ -1436,8 +1381,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
-        deepEqual(prevProps.introSelected, nextProps.introSelected) &&
-        deepEqual(prevProps.betas, nextProps.betas) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&

@@ -110,9 +110,6 @@ describe('PureReportActionItem', () => {
                                 index={0}
                                 isFirstVisibleReportAction={false}
                                 taskReport={undefined}
-                                linkedReport={undefined}
-                                iouReportOfLinkedReport={undefined}
-                                betas={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -401,10 +398,7 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -456,9 +450,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -513,10 +504,7 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -564,9 +552,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -638,9 +623,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -699,9 +681,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -787,9 +766,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1102,9 +1078,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1286,9 +1259,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1382,10 +1352,7 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     isClosedExpenseReportWithNoExpenses
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1414,10 +1381,7 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     missingPaymentMethod="bankAccount"
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1448,10 +1412,7 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     missingPaymentMethod="wallet"
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1485,11 +1446,8 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1523,11 +1481,8 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1564,11 +1519,8 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{55555: {accountData: {accountNumber: '000012345'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1606,11 +1558,8 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     bankAccountList={{77777: {accountData: {accountNumber: '000067890'}} as never}}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1699,9 +1648,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1741,9 +1687,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2325,9 +2268,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2345,6 +2285,23 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByLabelText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
+        });
+
+        it('isTripPreview renders TripRoomPreview with live reportName from Onyx', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}tripReportLive`, {
+                    reportID: 'tripReportLive',
+                    reportName: 'Paris Trip 2026',
+                    currency: 'USD',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReportLive'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Paris Trip 2026')).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
@@ -2380,9 +2337,6 @@ describe('PureReportActionItem', () => {
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                     reportNameValuePairsOrigin="harvest"
                                     reportNameValuePairsOriginalID="origReport123"
                                 />
@@ -2434,9 +2388,6 @@ describe('PureReportActionItem', () => {
                                     isFirstVisibleReportAction={false}
                                     isThreadReportParentAction
                                     taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    betas={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

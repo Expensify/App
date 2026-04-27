@@ -678,6 +678,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        bottomTabBarSpacer: {
+            height: variables.bottomTabHeight,
+        },
+
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -712,8 +716,6 @@ const staticStyles = (theme: ThemeColors) =>
         leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
-            position: 'fixed',
-            left: 0,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
@@ -1116,56 +1118,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.bordersBold,
-        },
-
-        /**
-         * Matches the border and padding of editableCell so column headers stay
-         * visually aligned with their editable cells.
-         */
-        editableCellHeader: {
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
-            borderColor: 'transparent',
-            paddingHorizontal: 4,
-        },
-
-        editableCell: {
-            width: '100%',
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
-            borderColor: 'transparent',
-            padding: 4,
-            height: 'auto',
-            minHeight: variables.editableCellHeight,
-            overflow: 'hidden',
-            justifyContent: 'center',
-        },
-
-        editableCellHover: {
-            borderColor: theme.buttonHoveredBG,
-        },
-
-        editableCellFocus: {
-            borderColor: theme.borderFocus,
-            backgroundColor: theme.appBG,
-        },
-
-        /** Suppresses all visual styling on TextInput when rendered inside EditableCell */
-        editableCellInputStyle: {
-            padding: 0,
-            borderWidth: 0,
-            borderColor: 'transparent',
-            borderRadius: 0,
-            backgroundColor: 'transparent',
-            height: '100%',
-            minHeight: 0,
-            fontSize: variables.fontSizeNormal,
-        },
-
-        editableCellSymbolStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
         },
 
         borderColorFocus: {
@@ -1696,7 +1648,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginLeft: variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1706,7 +1658,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -6047,16 +5998,6 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
-            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
-            // On natives we can use absolute positioning.
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
-            pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
-            paddingBottom: bottomSafeAreaOffset,
-        }),
-
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
@@ -6221,8 +6162,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
