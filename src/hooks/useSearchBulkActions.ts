@@ -1052,6 +1052,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return exportOptions;
         };
 
+        const subMenuItems = getExportOptions();
+        if(subMenuItems.length === 1) {
+            return subMenuItems;
+        }
+
         const exportButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.Export,
             rightIcon: expensifyIcons.ArrowRight,
@@ -1059,7 +1064,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
             shouldCloseModalOnSelect: true,
-            subMenuItems: getExportOptions(),
+            subMenuItems: subMenuItems,
         };
 
         if (areAllMatchingItemsSelected) {
