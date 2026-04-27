@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
+import useProactiveAppReview from './useProactiveAppReview';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
@@ -119,6 +120,7 @@ function useTrialPaymentReminder() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
+    const {shouldShowModal: shouldShowProactiveAppReviewModal} = useProactiveAppReview();
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
 
@@ -202,6 +204,10 @@ function useTrialPaymentReminder() {
         if (!currentVariation) {
             return false;
         }
+        // Defer to ProactiveAppReviewModal — opening both at once breaks modal stacking.
+        if (shouldShowProactiveAppReviewModal) {
+            return false;
+        }
         if (dismissedTimestamp) {
             const windowStart = getVariationWindowStart(currentVariation.id, firstDayFreeTrial, lastDayFreeTrial);
             const dismissedMs = new Date(dismissedTimestamp).getTime();
@@ -210,7 +216,7 @@ function useTrialPaymentReminder() {
             }
         }
         return true;
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult]);
+    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult, shouldShowProactiveAppReviewModal]);
 
     const dismiss = useCallback(() => {
         if (!currentVariation) {
