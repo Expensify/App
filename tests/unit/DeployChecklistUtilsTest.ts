@@ -212,7 +212,7 @@ describe('DeployChecklistUtils', () => {
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{number: 5, labels: []}]}) as unknown as ListForRepoMethod;
             const issues = await listOpenStagingDeployChecklistIssuesWithRetry();
             expect(issues).toHaveLength(1);
-            expect(issues[0].number).toBe(5);
+            expect(issues.at(0)?.number).toBe(5);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
         });
 
@@ -241,7 +241,7 @@ describe('DeployChecklistUtils', () => {
             jest.useRealTimers();
 
             expect(issues).toHaveLength(1);
-            expect(issues[0].number).toBe(88);
+            expect(issues.at(0)?.number).toBe(88);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
     });

@@ -7,7 +7,7 @@ import CONST from '../../.github/libs/CONST';
 import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';
 
 jest.mock('../../.github/libs/DeployChecklistUtils', () => {
-    const actual = jest.requireActual<typeof import('../../.github/libs/DeployChecklistUtils')>('../../.github/libs/DeployChecklistUtils');
+    const actual = jest.requireActual('../../.github/libs/DeployChecklistUtils') as unknown as typeof DeployChecklistUtils;
     return {
         ...actual,
         listOpenStagingDeployChecklistIssuesWithRetry: jest.fn(),
