@@ -98,6 +98,11 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         let effectiveDuration = DEFAULT_STREAM_DURATION_MS;
         let lastStage = 0;
         let cancelled = false;
+        // Telemetry: track whether/when acceleration fired so the [complete] log
+        // can attribute the completion reason and the arrival point of the canonical
+        // reportComment. Drives Phase 2 duration tuning + regression detection.
+        let arrivedAtProgress: number | undefined;
+        let arrivedAtElapsedMs: number | undefined;
 
         const dispatch = (status: ConciergeDraftEvent['status'], finalRenderedHTML: string) => {
             if (cancelled) {
@@ -120,6 +125,22 @@ function usePendingConciergeResponse(reportID: string | undefined) {
                 clearInterval(intervalID);
                 intervalID = null;
             }
+            const totalElapsedMs = trickleStart === 0 ? 0 : Date.now() - trickleStart;
+            let reason: 'natural' | 'accelerated' | 'stale_cap' = 'natural';
+            if (arrivedAtProgress !== undefined) {
+                reason = 'accelerated';
+            } else if (totalElapsedMs >= TRICKLE_HARD_CAP_MS) {
+                reason = 'stale_cap';
+            }
+            Log.info('[ConciergeTrickle] complete', false, {
+                reportActionID,
+                reason,
+                tokenCount: tokens.length,
+                durationMs: effectiveDuration,
+                totalElapsedMs,
+                arrivedAtProgress,
+                arrivedAtElapsedMs,
+            });
             dispatch('completed', tokens.at(-1) ?? fullHtml);
             applyPendingConciergeAction(reportID, reportAction);
         };
@@ -132,8 +153,9 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             // Compressing effectiveDuration is what makes progress hit 1 within
             // ACCELERATED_REMAINING_MS — the next tick observes progress >= 1
             // and runs completeAndApply via the normal path.
+            arrivedAtProgress = easeOut(elapsed / effectiveDuration);
+            arrivedAtElapsedMs = elapsed;
             effectiveDuration = elapsed + ACCELERATED_REMAINING_MS;
-            Log.info('[ConciergeTrickle] accelerated due to persisted action arrival', false, {reportActionID, elapsed});
         };
 
         const startTrickle = () => {
@@ -141,6 +163,11 @@ function usePendingConciergeResponse(reportID: string | undefined) {
                 return;
             }
             trickleStart = Date.now();
+            Log.info('[ConciergeTrickle] start', false, {
+                reportActionID,
+                tokenCount: tokens.length,
+                durationMs: effectiveDuration,
+            });
             dispatch('started', tokens.at(1) ?? '');
             lastStage = 1;
             intervalID = setInterval(() => {
