@@ -69,7 +69,7 @@ const NATIVE_BIOMETRICS_HSM_VALUES = {
      * - Authentication failed — biometric match failure (wrong finger/face)
      *
      * Codes not listed here (INVALID_INPUT_ENCODING, INVALID_KEY_TYPE, etc.) are mainly implementation errors
-     * that fallback to REASON.HSM.GENERIC.
+     * that fallback to REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED.
      *
      * signWithOptions resolves with { errorCode?: string }.
      * createKeys/deleteKeys/getAllKeys reject with Error objects having { code: string, message: string }.

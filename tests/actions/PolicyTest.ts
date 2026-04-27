@@ -283,6 +283,7 @@ describe('actions/Policy', () => {
 
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: POLICY_NAME,
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -476,6 +477,7 @@ describe('actions/Policy', () => {
 
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Distance Disabled Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -534,6 +536,7 @@ describe('actions/Policy', () => {
 
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Overview Travel CodingRules Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -606,6 +609,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Workspace With Members',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -658,6 +662,7 @@ describe('actions/Policy', () => {
             const file = {uri: 'file://tmp/avatar.png', name: 'avatar.png', type: 'image/png'} as File;
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Workspace With Avatar',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -695,6 +700,73 @@ describe('actions/Policy', () => {
 
             expect(policy?.avatarURL).toBe(file.uri);
             expect(policy?.originalFileName).toBe(file.name);
+        });
+
+        it('duplicate workspace propagates the caller currentUserEmail to the expense chat CREATED report action message', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(18, CONST.POLICY.TYPE.TEAM);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const callerEmail = 'explicit-caller@expensifail.com';
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: callerEmail,
+                policyName: 'Workspace Propagating Caller Email',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connection);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            const expenseChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            expect(expenseChat).toBeTruthy();
+
+            const reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const expenseChatActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChat?.reportID}`] ?? {});
+            const createdAction = expenseChatActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(createdAction).toBeTruthy();
+            const messages = Array.isArray(createdAction?.message) ? createdAction?.message : [];
+            expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {

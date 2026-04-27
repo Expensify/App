@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -44,15 +45,17 @@ jest.mock('@components/OptionListContextProvider', () => ({
  */
 const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicyID}: {selectedReportID: string; selectedPolicyID?: string}) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <IOURequestEditReportCommon
-                selectedReportID={selectedReportID}
-                selectedPolicyID={selectedPolicyID}
-                selectReport={jest.fn()}
-                backTo=""
-                isPerDiemRequest={false}
-            />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <IOURequestEditReportCommon
+                    selectedReportID={selectedReportID}
+                    selectedPolicyID={selectedPolicyID}
+                    selectReport={jest.fn()}
+                    backTo=""
+                    isPerDiemRequest={false}
+                />
+            </ComposeProviders>
+        </NavigationContainer>,
     );
 
 describe('IOURequestEditReportCommon', () => {
