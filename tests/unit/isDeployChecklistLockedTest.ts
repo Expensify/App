@@ -46,7 +46,7 @@ describe('isDeployChecklistLockedTest', () => {
             mockListOpenStagingDeployChecklistIssuesWithRetry.mockResolvedValue([
                 {number: 1, labels: []},
                 {number: 2, labels: []},
-            ] as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
+            ] as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
             const setOutputMock = jest.spyOn(core, 'setOutput');
             return run().then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', true);
@@ -61,7 +61,7 @@ describe('isDeployChecklistLockedTest', () => {
                     number: 42,
                     labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
                 },
-            ] as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
+            ] as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
             const setOutputMock = jest.spyOn(core, 'setOutput');
             return run().then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', true);
@@ -76,7 +76,7 @@ describe('isDeployChecklistLockedTest', () => {
                     number: 99,
                     labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
                 },
-            ] as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
+            ] as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
             const setOutputMock = jest.spyOn(core, 'setOutput');
             return run().then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', false);
