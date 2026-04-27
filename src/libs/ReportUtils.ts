@@ -2159,17 +2159,14 @@ function pushTransactionViolationsOnyxData(
     }
 
     // Multi-level tag auto-selection (per level)
-    let perLevelSingleTag: Array<string | undefined> = [];
-    if (tagListKeys.length > 1) {
-        const sortedTagKeys = getSortedTagKeys(optimisticTagLists);
-        perLevelSingleTag = sortedTagKeys.map((key) => {
-            const tags = optimisticTagLists[key]?.tags ?? {};
-            const enabledKeys = Object.entries(tags)
-                .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                .map(([k]) => k);
-            return enabledKeys.length === 1 ? enabledKeys.at(0) : undefined;
-        });
-    }
+    const sortedTagKeys = tagListKeys.length > 1 ? getSortedTagKeys(optimisticTagLists) : [];
+    const perLevelSingleTag: Array<string | undefined> = sortedTagKeys.map((key) => {
+        const tags = optimisticTagLists[key]?.tags ?? {};
+        const enabledKeys = Object.entries(tags)
+            .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(([k]) => k);
+        return enabledKeys.length === 1 ? enabledKeys.at(0) : undefined;
+    });
 
     // Iterate through all policy reports to find transactions that need optimistic violations
     for (const {
@@ -2184,14 +2181,15 @@ function pushTransactionViolationsOnyxData(
             const transactionRollback: Partial<Transaction> = {};
 
             if (isEligibleForAutoSelect) {
-                // Category auto-select: if the transaction's category is out of policy and only one enabled category remains
-                if (singleRemainingCategory && transaction.category && !optimisticCategories[transaction.category]?.enabled) {
+                // Category auto-select: gated to calls that actually mutate categories so toggling unrelated
+                // policy settings doesn't rewrite transaction category values.
+                if (!isCategoriesUpdateEmpty && singleRemainingCategory && transaction.category && !optimisticCategories[transaction.category]?.enabled) {
                     transactionUpdates.category = singleRemainingCategory;
                     transactionRollback.category = transaction.category;
                 }
 
-                // Single-level tag auto-select
-                if (tagListKeys.length === 1 && singleRemainingTag && transaction.tag) {
+                // Single-level tag auto-select: gated to tag mutations for the same reason.
+                if (!isTagListsUpdateEmpty && tagListKeys.length === 1 && singleRemainingTag && transaction.tag) {
                     const tagListName = tagListKeys.at(0) ?? '';
                     const isTagInPolicy = !!optimisticTagLists[tagListName]?.tags?.[transaction.tag]?.enabled;
                     if (!isTagInPolicy) {
@@ -2200,9 +2198,9 @@ function pushTransactionViolationsOnyxData(
                     }
                 }
 
-                // Multi-level tag auto-select
-                if (tagListKeys.length > 1 && transaction.tag) {
-                    const sortedTagKeys = getSortedTagKeys(optimisticTagLists);
+                // Multi-level tag auto-select. Skipped for dependent-tag policies because the per-level
+                // sole-remaining check ignores parent-tag filtering and could write an invalid combination.
+                if (!isTagListsUpdateEmpty && !hasDependentTagsValue && tagListKeys.length > 1 && transaction.tag) {
                     const currentTags = getTagArrayFromName(transaction.tag);
                     let anyTagChanged = false;
                     const newTags = [...currentTags];
