@@ -1026,7 +1026,7 @@ function Search({
                     return;
                 }
 
-                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item as TransactionGroupListItemType);
+                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
                 const updatedTransactions = {
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,

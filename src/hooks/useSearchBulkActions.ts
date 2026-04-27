@@ -463,7 +463,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => key.startsWith('group_') && !selectedTransaction?.transaction);
+        const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) && !selectedTransaction?.transaction);
         const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
         let didFail = false;
         await exportSearchItemsToCSV(
@@ -916,7 +916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = isExpenseReportType;
-            const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => key.startsWith('group_') && !selectedTransaction?.transaction);
+            const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) && !selectedTransaction?.transaction);
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
