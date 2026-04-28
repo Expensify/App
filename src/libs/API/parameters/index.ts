@@ -531,3 +531,4 @@ export type {default as CreateDomainSecurityGroupParams} from './CreateDomainSec
 export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
+export type {default as ResendValidateCodeParams} from './ResendValidateCodeParams';
