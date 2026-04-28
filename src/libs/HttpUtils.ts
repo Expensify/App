@@ -1,4 +1,4 @@
-import {prefetchOnAppStart} from 'react-native-nitro-fetch';
+import {prefetchOnAppStart, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -67,15 +67,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
-    const shouldPrefetch = !!headers.prefetchKey;
-    // const shouldPrefetch = false;
-    const fetchFn = shouldPrefetch ? (prefetchOnAppStart as unknown as typeof fetch) : fetch;
-
-    if (shouldPrefetch) {
-        console.warn('[HttpUtils] Prefetching request', {url, method, body, headers});
-    }
-
-    return fetchFn(url, {
+    const init: Parameters<typeof fetch>[1] = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
@@ -86,7 +78,15 @@ function processHTTPRequest<TKey extends OnyxKey>(
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
         // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
         credentials: 'omit',
-    })
+    };
+
+    const shouldPrefetch = !!headers.prefetchKey;
+    if (shouldPrefetch) {
+        removeFromAutoPrefetch(headers.prefetchKey);
+        prefetchOnAppStart(url, init);
+    }
+
+    return fetch(url, init)
         .then((response) => {
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
