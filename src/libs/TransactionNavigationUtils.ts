@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import type {OnyxInputOrEntry, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
 import {isDeletedAction} from './ReportActionsUtils';
 
 type ParentReportActionDeletionStatusParams = {
@@ -8,20 +8,20 @@ type ParentReportActionDeletionStatusParams = {
     parentReportAction: OnyxInputOrEntry<ReportAction>;
     parentReportActionID?: string;
     parentReportID?: string;
-    parentReportMetadata?: OnyxInputOrEntry<ReportMetadata>;
+    parentReportLoadingState?: OnyxInputOrEntry<ReportLoadingState>;
     shouldRequireParentReportActionID?: boolean;
     shouldTreatMissingParentReportAsDeleted?: boolean;
 };
 
-function hasLoadedReportActions(reportMetadata: OnyxInputOrEntry<ReportMetadata>, isOffline = false): boolean {
-    if (!reportMetadata) {
+function hasLoadedReportActions(reportLoadingState: OnyxInputOrEntry<ReportLoadingState>, isOffline = false): boolean {
+    if (!reportLoadingState) {
         return false;
     }
-    return reportMetadata?.hasOnceLoadedReportActions === true || reportMetadata?.isLoadingInitialReportActions === false || isOffline;
+    return reportLoadingState?.hasOnceLoadedReportActions === true || reportLoadingState?.isLoadingInitialReportActions === false || isOffline;
 }
 
-function isThreadReportDeleted(report: OnyxInputOrEntry<Report>, reportMetadata: OnyxInputOrEntry<ReportMetadata>, isOffline = false): boolean {
-    const hasLoadedThreadReportActions = hasLoadedReportActions(reportMetadata, isOffline);
+function isThreadReportDeleted(report: OnyxInputOrEntry<Report>, reportLoadingState: OnyxInputOrEntry<ReportLoadingState>, isOffline = false): boolean {
+    const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     return (!report?.reportID && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || (hasLoadedThreadReportActions && !report?.reportID);
 }
 
@@ -54,11 +54,11 @@ function getParentReportActionDeletionStatus({
     parentReportAction,
     parentReportActionID,
     parentReportID,
-    parentReportMetadata,
+    parentReportLoadingState,
     shouldRequireParentReportActionID = true,
     shouldTreatMissingParentReportAsDeleted = false,
 }: ParentReportActionDeletionStatusParams) {
-    const hasLoadedParentReportActionsValue = hasLoadedParentReportActions ?? hasLoadedReportActions(parentReportMetadata, isOffline);
+    const hasLoadedParentReportActionsValue = hasLoadedParentReportActions ?? hasLoadedReportActions(parentReportLoadingState, isOffline);
     const canUseParentActionIDForMissingCheck = !shouldRequireParentReportActionID || !!parentReportActionID;
     const isParentActionMissingAfterLoad = !!parentReportID && canUseParentActionIDForMissingCheck && hasLoadedParentReportActionsValue && !parentReportAction;
     const isParentActionDeleted = !!parentReportAction && (parentReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isDeletedAction(parentReportAction));

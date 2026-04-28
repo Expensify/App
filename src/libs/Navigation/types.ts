@@ -2368,7 +2368,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
-    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
+    [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -3012,6 +3012,9 @@ type AttachmentModalScreensParamList = {
     [SCREENS.WORKSPACE_AVATAR]: AttachmentModalContainerModalProps & {
         policyID: string;
         letter?: UpperCaseCharacters;
+    };
+    [SCREENS.WORKSPACE_DOCUMENT]: AttachmentModalContainerModalProps & {
+        policyID: string;
     };
     [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;

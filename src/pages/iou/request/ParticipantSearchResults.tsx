@@ -412,7 +412,13 @@ function ParticipantSearchResults({
         );
 
     const onSelectRow = (option: Participant) => {
-        if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        const optionPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        if (
+            option.isPolicyExpenseChat &&
+            option.policyID &&
+            optionPolicy &&
+            shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
             return;
         }

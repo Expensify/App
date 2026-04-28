@@ -25,7 +25,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getTransactionEditContext, isBulkEditTaxTrackingEnabled, withSnapshotReportActions, withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
+import {
+    areAllTransactionsExpenseCompatible,
+    getTransactionEditContext,
+    isBulkEditTaxTrackingEnabled,
+    withSnapshotReportActions,
+    withSnapshotReports,
+    withSnapshotTransactions,
+} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
@@ -102,14 +109,9 @@ function SearchEditMultiplePage() {
     const policyTagLists = getTagLists(policyTags);
 
     const isTaxTrackingEnabled = isBulkEditTaxTrackingEnabled(selectedTransactionContexts, policy, hasPerDiemOrTimeTransaction);
-    const areSelectedTransactionsExpenses = selectedTransactionContexts.every(({transaction, report}) => {
-        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
-        }
-        return !isIOUReport(report);
-    });
+    const areSelectedTransactionsExpenses = areAllTransactionsExpenseCompatible(selectedTransactionContexts);
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
-    const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
+    const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
     useEffect(() => {
         return () => {

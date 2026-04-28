@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,24 +93,48 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             ...report,
             keyForList: String(report.reportID),
         }));
-        const combinedOptions = [...selectedOptionsForDisplay, ...personalDetailsList, ...recentReports];
 
-        // Sort the options so that selected items appear first, and the current user appears right after that, followed by the rest of the options in their original order
+        const isCurrentUserSelected = selectedOptionsForDisplay.some((option) => option.accountID === currentUserAccountID);
+
+        // Extract the current user from available options to guarantee they appear at the top.
+        // Falls back to creating from personal details to handle pagination edge cases.
+        let currentUserOption: OptionData | undefined;
+        if (!isCurrentUserSelected && currentUserAccountID) {
+            const currentUserPersonalDetail = personalDetailsList.find((p) => p.accountID === currentUserAccountID) ?? recentReports.find((r) => r.accountID === currentUserAccountID);
+            if (currentUserPersonalDetail) {
+                currentUserOption = currentUserPersonalDetail;
+            } else if (personalDetails?.[currentUserAccountID]) {
+                const candidateOption = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
+                const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+                if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
+                    currentUserOption = candidateOption;
+                }
+            }
+        }
+
+        // Filter current user from regular lists to avoid duplication
+        const filteredPersonalDetails = currentUserOption ? personalDetailsList.filter((p) => p.accountID !== currentUserAccountID) : personalDetailsList;
+        const filteredRecentReports = currentUserOption ? recentReports.filter((r) => r.accountID !== currentUserAccountID) : recentReports;
+
+        // Place selected options first, then the current user, then the rest
+        const combinedOptions = [...selectedOptionsForDisplay, ...(currentUserOption ? [currentUserOption] : []), ...filteredPersonalDetails, ...filteredRecentReports];
+
+        // Sort so that selected items appear first; current user placement is handled explicitly above
         combinedOptions.sort((a, b) => {
-            // selected items first
             if (a.isSelected && !b.isSelected) {
                 return -1;
             }
             if (!a.isSelected && b.isSelected) {
                 return 1;
             }
-
-            // Put the current user at the top of the list
-            if (a.accountID === currentUserAccountID) {
-                return -1;
-            }
-            if (b.accountID === currentUserAccountID) {
-                return 1;
+            // Among selected items, prioritize the current user
+            if (a.isSelected && b.isSelected) {
+                if (a.accountID === currentUserAccountID) {
+                    return -1;
+                }
+                if (b.accountID === currentUserAccountID) {
+                    return 1;
+                }
             }
             return 0;
         });
@@ -119,7 +144,7 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             keyForList: option.keyForList ?? option.login ?? '',
         }));
         return combinedOptionsWithKeyForList;
-    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID]);
+    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID, personalDetails, debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);

@@ -32,6 +32,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
+        [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
@@ -45,7 +46,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
-                [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
+                [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
             },
         },
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {

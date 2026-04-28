@@ -111,6 +111,17 @@ const DYNAMIC_ROUTES = {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
+    CHANGE_POLICY_EDUCATIONAL: {
+        path: 'change-workspace-educational',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.REPORT_CHANGE_WORKSPACE.ROOT,
+        ],
+    },
     NETSUITE_AUTO_SYNC: {
         path: 'netsuite-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
@@ -334,11 +345,11 @@ const DYNAMIC_ROUTES = {
     },
     EXIT_SURVEY_REASON: {
         path: 'exit-survey/reason',
-        entryScreens: [SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: ['*'],
     },
     EXIT_SURVEY_CONFIRM: {
         path: 'exit-survey/confirm',
-        entryScreens: [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON, SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: ['*'],
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
@@ -2127,6 +2138,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/avatar',
         getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
     },
+    WORKSPACE_DOCUMENT: {
+        route: 'workspaces/:policyID/document',
+        getRoute: (policyID: string) => `workspaces/${policyID}/document` as const,
+    },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
         getRoute: (policyID: string, inviterEmail: string) => `workspaces/${policyID}/join?email=${inviterEmail}` as const,
@@ -3159,12 +3174,6 @@ const ROUTES = {
     SHARE_SUBMIT_DETAILS: {
         route: 'share/submit-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
-    },
-    CHANGE_POLICY_EDUCATIONAL: {
-        route: 'change-workspace-educational',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: {
         route: 'travel',

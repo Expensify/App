@@ -154,6 +154,8 @@ const WRITE_COMMANDS = {
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
     UPDATE_WORKSPACE_AVATAR: 'UpdateWorkspaceAvatar',
     DELETE_WORKSPACE_AVATAR: 'DeleteWorkspaceAvatar',
+    UPDATE_POLICY_RULES_DOCUMENT: 'UpdatePolicyRulesDocument',
+    DELETE_POLICY_RULES_DOCUMENT: 'DeletePolicyRulesDocument',
     UPDATE_WORKSPACE_GENERAL_SETTINGS: 'UpdateWorkspaceGeneralSettings',
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
     UPDATE_WORKSPACE_CLIENT_ID: 'UpdateWorkspaceClientID',
@@ -481,6 +483,7 @@ const WRITE_COMMANDS = {
     REMOVE_DELEGATE: 'RemoveDelegate',
     UPDATE_DELEGATE_ROLE: 'UpdateDelegateRole',
     TOGGLE_CARD_CONTINUOUS_RECONCILIATION: 'ToggleCardContinuousReconciliation',
+    SET_CARD_RECONCILIATION_BANK_ACCOUNT: 'SetCardReconciliationBankAccount',
     SET_POLICY_TAG_APPROVER: 'SetPolicyTagApprover',
     SAVE_SEARCH: 'SaveSearch',
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
@@ -727,6 +730,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE]: Parameters.AddMembersToWorkspaceParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR]: Parameters.UpdateWorkspaceAvatarParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR]: Parameters.DeleteWorkspaceAvatarParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT]: Parameters.UpdatePolicyRulesDocumentParams;
+    [WRITE_COMMANDS.DELETE_POLICY_RULES_DOCUMENT]: Parameters.DeletePolicyRulesDocumentParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS]: Parameters.UpdateWorkspaceGeneralSettingsParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID]: Parameters.UpdateWorkspaceClientIDParams;
@@ -1098,6 +1103,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
     [WRITE_COMMANDS.REMOVE_DELEGATE]: Parameters.RemoveDelegateParams;
     [WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION]: Parameters.ToggleCardContinuousReconciliationParams;
+    [WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetCardReconciliationBankAccountParams;
     [WRITE_COMMANDS.SAVE_SEARCH]: Parameters.SaveSearchParams;
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
