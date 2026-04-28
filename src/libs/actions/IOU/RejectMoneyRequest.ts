@@ -202,6 +202,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         total: (report?.total ?? 0) + transactionAmount,
+                        reimbursableTotal: (report?.reimbursableTotal ?? (report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0)) + transactionAmount,
                         pendingFields: {
                             total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
@@ -232,6 +233,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: report?.total ?? 0,
+                    reimbursableTotal: report?.reimbursableTotal ?? (report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0),
                     pendingFields: {total: null},
                 },
             });
@@ -380,6 +382,7 @@ function prepareRejectMoneyRequestData(
                     value: {
                         ...movedToReport,
                         total: (movedToReport?.total ?? 0) - transactionAmount,
+                        reimbursableTotal: (movedToReport?.reimbursableTotal ?? (movedToReport?.total ?? 0) - (movedToReport?.nonReimbursableTotal ?? 0)) - transactionAmount,
                     },
                 },
                 {
@@ -601,6 +604,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     total: (report?.total ?? 0) + transactionAmount,
+                    reimbursableTotal: (report?.reimbursableTotal ?? (report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0)) + transactionAmount,
                 },
             },
             {
@@ -639,6 +643,7 @@ function prepareRejectMoneyRequestData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 total: report?.total ?? 0,
+                reimbursableTotal: report?.reimbursableTotal ?? (report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0),
             },
         });
 
