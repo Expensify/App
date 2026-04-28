@@ -1995,10 +1995,6 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
     } else if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
-    // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
-    setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
-    }, 0);
 }
 
 /**
