@@ -24,15 +24,14 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import useShouldNavigateToCreateReportUpgradePath from '@hooks/useShouldNavigateToCreateReportUpgradePath';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import navigateToCreateReportUpgradePath from '@libs/navigateToCreateReportUpgradePath';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -159,7 +158,8 @@ function EmptySearchViewContent({
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
-    const shouldNavigateToUpgradePath = useShouldNavigateToCreateReportUpgradePath();
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
@@ -326,44 +326,50 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            ...(hasSeenTour
-                                ? [
-                                      {
-                                          buttonText: translate('quickAction.createReport'),
-                                          buttonAction: () => {
-                                              interceptAnonymousUser(() => {
-                                                  if (shouldNavigateToUpgradePath) {
-                                                      navigateToCreateReportUpgradePath();
-                                                      return;
-                                                  }
+                            {
+                                buttonText: translate('quickAction.createReport'),
+                                buttonAction: () => {
+                                    interceptAnonymousUser(() => {
+                                        if (shouldNavigateToUpgradePath) {
+                                            const freshReportID = generateReportID();
+                                            const freshTransactionID = generateReportID();
+                                            Navigation.navigate(
+                                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                    action: CONST.IOU.ACTION.CREATE,
+                                                    iouType: CONST.IOU.TYPE.CREATE,
+                                                    transactionID: freshTransactionID,
+                                                    reportID: freshReportID,
+                                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                                }),
+                                            );
+                                            return;
+                                        }
 
-                                                  const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+                                        const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
-                                                  if (
-                                                      !workspaceIDForReportCreation ||
-                                                      (defaultChatEnabledPolicy &&
-                                                          shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
-                                                          groupPoliciesWithChatEnabled.length > 1)
-                                                  ) {
-                                                      // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                                      Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                                                      return;
-                                                  }
+                                        if (
+                                            !workspaceIDForReportCreation ||
+                                            (defaultChatEnabledPolicy &&
+                                                shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                                                groupPoliciesWithChatEnabled.length > 1)
+                                        ) {
+                                            // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                            return;
+                                        }
 
-                                                  if (
-                                                      !defaultChatEnabledPolicy ||
-                                                      !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
-                                                  ) {
-                                                      handleCreateReportClick();
-                                                  } else {
-                                                      Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                                                  }
-                                              });
-                                          },
-                                          success: true,
-                                      },
-                                  ]
-                                : []),
+                                        if (
+                                            !defaultChatEnabledPolicy ||
+                                            !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                                        ) {
+                                            handleCreateReportClick();
+                                        } else {
+                                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                        }
+                                    });
+                                },
+                                success: true,
+                            },
                         ],
                     };
                 }

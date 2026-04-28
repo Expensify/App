@@ -15,15 +15,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePopoverPosition from '@hooks/usePopoverPosition';
-import useShouldNavigateToCreateReportUpgradePath from '@hooks/useShouldNavigateToCreateReportUpgradePath';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import navigateToCreateReportUpgradePath from '@libs/navigateToCreateReportUpgradePath';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
@@ -62,7 +61,8 @@ function SearchActionsBarCreateButton() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const shouldNavigateToUpgradePath = useShouldNavigateToCreateReportUpgradePath();
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const {showConfirmModal} = useConfirmModal();
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
@@ -167,7 +167,17 @@ function SearchActionsBarCreateButton() {
 
                         // No valid policy at all → upgrade + create workspace flow
                         if (shouldNavigateToUpgradePath) {
-                            navigateToCreateReportUpgradePath();
+                            const freshReportID = generateReportID();
+                            const freshTransactionID = generateReportID();
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.CREATE,
+                                    transactionID: freshTransactionID,
+                                    reportID: freshReportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                }),
+                            );
                             return;
                         }
 
