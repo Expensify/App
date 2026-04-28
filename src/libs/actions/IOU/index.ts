@@ -40,7 +40,9 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
+    getReimbursableTotal,
     getReportOrDraftReport,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -1415,7 +1417,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
             type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
             // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored total.
-            amount: iou.report?.reimbursableTotal ?? iou.report?.total ?? 0,
+            amount: getReimbursableTotal(iou.report) || (iou.report?.total ?? 0),
             currency: iou.report?.currency ?? '',
             comment: '',
             participants: [managerMcTestParticipant],
@@ -2056,6 +2058,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
+        // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
@@ -2075,7 +2081,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = (iouReport.reimbursableTotal ?? iouReport.total + amount - (iouReport.nonReimbursableTotal ?? 0)) - amount;
+                    iouReport.reimbursableTotal = previousReimbursableTotal - amount;
                 }
 
                 iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
@@ -2088,7 +2094,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal -= amount;
                 }
                 if (reimbursable) {
-                    iouReport.unheldReimbursableTotal = (iouReport.unheldReimbursableTotal ?? iouReport.unheldTotal + amount - (iouReport.unheldNonReimbursableTotal ?? 0)) - amount;
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
                 }
             }
         }
