@@ -2073,6 +2073,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     } else {
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
+                } else {
+                    // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
+                    iouReport.reimbursableTotal = (iouReport.reimbursableTotal ?? (iouReport.total + amount) - (iouReport.nonReimbursableTotal ?? 0)) - amount;
                 }
 
                 iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
@@ -2083,6 +2086,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal = newReportTotal;
                 } else {
                     iouReport.unheldTotal -= amount;
+                }
+                if (reimbursable) {
+                    iouReport.unheldReimbursableTotal = (iouReport.unheldReimbursableTotal ?? (iouReport.unheldTotal + amount) - (iouReport.unheldNonReimbursableTotal ?? 0)) - amount;
                 }
             }
         }
@@ -2376,6 +2382,13 @@ function getUpdatedMoneyRequestReportData(
         if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
         }
+        // Mirror the diff on the freshly tracked reimbursable totals so we don't drift between optimistic and confirmed state.
+        if (transaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
+            updatedMoneyRequestReport.reimbursableTotal -= diff;
+        }
+        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
+            updatedMoneyRequestReport.reimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
+        }
         if (!isTransactionOnHold) {
             if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
                 updatedMoneyRequestReport.unheldTotal -= diff;
@@ -2385,6 +2398,12 @@ function getUpdatedMoneyRequestReportData(
             }
             if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
+            }
+            if (transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldReimbursableTotal -= diff;
+            }
+            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
             }
         }
         if (transactionChanges && 'reimbursable' in transactionChanges) {
