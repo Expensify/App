@@ -79,8 +79,8 @@ function clearOdometerDraftTransactionState(transaction: OnyxEntry<Transaction>)
     if (!transaction) {
         return Promise.resolve();
     }
-    setMoneyRequestReceipt(transaction.transactionID, '', '', true);
     return Promise.all([
+        setMoneyRequestReceipt(transaction.transactionID, '', '', true),
         setMoneyRequestOdometerReading(transaction.transactionID, null, null, true),
         removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, true, true),
         removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, true, true),
