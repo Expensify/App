@@ -465,6 +465,40 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(subItems.at(1)?.shouldCloseModalOnSelect).toBe(true);
         });
 
+        it('forwards `selectionMarker="check"` to PopoverMenu and `isSelected` flows through to the menuItem', () => {
+            render(
+                <ButtonWithDropdownMenuV2>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu selectionMarker="check">
+                        <ButtonWithDropdownMenuV2.Option
+                            text="A"
+                            isSelected
+                        />
+                        <ButtonWithDropdownMenuV2.Option text="B" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            expect(popoverMenuPropsCapture.current?.shouldShowSelectedItemCheck).toBe(true);
+            const items = popoverMenuPropsCapture.current?.menuItems ?? [];
+            expect(items.at(0)?.isSelected).toBe(true);
+            expect(items.at(1)?.isSelected).toBeUndefined();
+        });
+
+        it('defaults `selectionMarker` to "none" so the check is not shown unless opted in', () => {
+            render(
+                <ButtonWithDropdownMenuV2>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option
+                            text="A"
+                            isSelected
+                        />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            expect(popoverMenuPropsCapture.current?.shouldShowSelectedItemCheck).toBe(false);
+        });
+
         it('fires onOpenChange(false) when PopoverMenu signals close', () => {
             const onOpenChange = jest.fn();
             const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();

@@ -2,13 +2,13 @@ import React from 'react';
 import Button from '@components/Button';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {useButtonWithDropdownMenuRootState} from './Context';
 import {useAssertOutsideMenu} from './MenuContext';
 import type {PrimaryButtonProps} from './types';
+import useButtonSizeFlags, {TEXT_COMPACT_THRESHOLD} from './useButtonSizeFlags';
 
 function PrimaryButton({ref, children, onPress, icon, isDisabled: primaryIsDisabled, sentryLabel}: PrimaryButtonProps): React.ReactElement {
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.PrimaryButton');
@@ -30,15 +30,11 @@ function PrimaryButton({ref, children, onPress, icon, isDisabled: primaryIsDisab
     } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.PrimaryButton');
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const {isButtonSizeLarge, isButtonSizeSmall, isButtonSizeExtraSmall, innerStyleDropButton} = useButtonSizeFlags(buttonSize);
 
-    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
-    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
     const hasError = brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
-    const isTextTooLong = typeof children === 'string' && children.length > 6;
+    const isTextTooLong = typeof children === 'string' && children.length > TEXT_COMPACT_THRESHOLD;
     const isPrimaryDisabled = rootIsDisabled || !!primaryIsDisabled;
 
     useKeyboardShortcut(

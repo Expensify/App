@@ -25,6 +25,7 @@ type ItemPresentationProps = WithSentryLabel & {
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     interactive?: boolean;
     disabled?: boolean;
+    isSelected?: boolean;
 };
 
 type DropdownOptionV2Props = ItemPresentationProps & {

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -12,6 +11,7 @@ import CONST from '@src/CONST';
 import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './Context';
 import {useAssertOutsideMenu} from './MenuContext';
 import type {CaretProps} from './types';
+import useButtonSizeFlags from './useButtonSizeFlags';
 
 function Caret({ref, accessibilityLabel, sentryLabel}: CaretProps): React.ReactElement {
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.Caret');
@@ -22,13 +22,8 @@ function Caret({ref, accessibilityLabel, sentryLabel}: CaretProps): React.ReactE
     const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Caret');
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
-
-    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
-    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
-    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
+    const {isButtonSizeLarge, isButtonSizeSmall, isButtonSizeExtraSmall, innerStyleDropButton} = useButtonSizeFlags(buttonSize);
 
     const mergedRef = mergeRefs<View>(ref, dropdownAnchor);
 

@@ -3,7 +3,6 @@ import type {View} from 'react-native';
 import Button from '@components/Button';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -11,6 +10,7 @@ import CONST from '@src/CONST';
 import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './Context';
 import {useAssertOutsideMenu} from './MenuContext';
 import type {TriggerProps} from './types';
+import useButtonSizeFlags, {TEXT_COMPACT_THRESHOLD} from './useButtonSizeFlags';
 
 function Trigger({ref, text, children, icon, style, disabledStyle, sentryLabel}: TriggerProps): React.ReactElement {
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.Trigger');
@@ -35,15 +35,11 @@ function Trigger({ref, text, children, icon, style, disabledStyle, sentryLabel}:
     const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Trigger');
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
+    const {isButtonSizeLarge, isButtonSizeSmall, isButtonSizeExtraSmall, innerStyleDropButton} = useButtonSizeFlags(buttonSize);
 
-    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
-    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
     const hasError = brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
-    const isTextTooLong = typeof text === 'string' && text.length > 6;
+    const isTextTooLong = typeof text === 'string' && text.length > TEXT_COMPACT_THRESHOLD;
 
     const mergedRef = mergeRefs<View>(ref, dropdownAnchor);
 
