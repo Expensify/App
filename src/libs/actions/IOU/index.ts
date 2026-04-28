@@ -2575,17 +2575,23 @@ function shouldOptimisticallyUpdateSearch(
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
         (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
-    return (
-        shouldOptimisticallyUpdateByStatus &&
-        validSearchTypes &&
-        (currentSearchQueryJSON.flatFilters.length === 0 ||
-            (submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport)) ||
-            (approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) ||
-            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash &&
-                isExpenseReport(iouReport) &&
-                (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
-                transaction?.reimbursable))
-    );
+    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.length === 0;
+
+    const matchesSubmitQuery =
+        submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport);
+
+    const matchesApproveQuery =
+        approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport);
+
+    const matchesUnapprovedCashQuery =
+        unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash &&
+        isExpenseReport(iouReport) &&
+        (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
+        transaction?.reimbursable;
+
+    const matchesFilterQuery = hasNoFlatFilters || matchesSubmitQuery || matchesApproveQuery || matchesUnapprovedCashQuery;
+
+    return shouldOptimisticallyUpdateByStatus && validSearchTypes && matchesFilterQuery;
 }
 
 function getSearchOnyxUpdate({
@@ -2602,108 +2608,110 @@ function getSearchOnyxUpdate({
     const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
-    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
-            const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
-            const successData = [];
-            if (isOptimisticToAccountData) {
-                // The optimistic personal detail is removed on the API's success data but we can't change the managerID of the transaction in the snapshot.
-                // So we need to add the optimistic personal detail back to the snapshot in success data to prevent the flickering.
-                // After that, it will be cleared via Search API.
-                // See https://github.com/Expensify/App/issues/61310 for more information.
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                    value: {
-                        data: {
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                                [toAccountID]: {
-                                    accountID: toAccountID,
-                                    displayName: participant?.displayName,
-                                    login: participant?.login,
-                                },
+    if (!currentSearchQueryJSON || toAccountID === undefined || fromAccountID === undefined) {
+        return;
+    }
+
+    if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
+        const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
+        const successData = [];
+        if (isOptimisticToAccountData) {
+            // The optimistic personal detail is removed on the API's success data but we can't change the managerID of the transaction in the snapshot.
+            // So we need to add the optimistic personal detail back to the snapshot in success data to prevent the flickering.
+            // After that, it will be cleared via Search API.
+            // See https://github.com/Expensify/App/issues/61310 for more information.
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
                             },
                         },
                     },
-                });
-            }
-            const snapshotData = {
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [toAccountID]: {
-                        accountID: toAccountID,
-                        displayName: participant?.displayName,
-                        login: participant?.login,
-                    },
-                    [fromAccountID]: {
-                        accountID: fromAccountID,
-                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                        login: deprecatedCurrentUserPersonalDetails?.login,
-                    },
                 },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+            });
+        }
+        const snapshotData = {
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                [toAccountID]: {
+                    accountID: toAccountID,
+                    displayName: participant?.displayName,
+                    login: participant?.login,
+                },
+                [fromAccountID]: {
                     accountID: fromAccountID,
-                    managerID: toAccountID,
-                    ...(transactionThreadReportID && {transactionThreadReportID}),
-                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                    ...transaction,
+                    avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                    displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                    login: deprecatedCurrentUserPersonalDetails?.login,
                 },
-                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
-            };
+            },
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                accountID: fromAccountID,
+                managerID: toAccountID,
+                ...(transactionThreadReportID && {transactionThreadReportID}),
+                ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+                ...transaction,
+            },
+            ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
+            ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
+            ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
+        };
 
-            const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-                {
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                    data: snapshotData,
+                },
+            },
+        ];
+
+        if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+            const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+            newFlatFilters.push({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
+            });
+
+            const groupTransactionsQueryJSON = buildSearchQueryJSON(
+                buildSearchQueryString({
+                    ...currentSearchQueryJSON,
+                    groupBy: undefined,
+                    flatFilters: newFlatFilters,
+                }),
+            );
+
+            if (groupTransactionsQueryJSON?.hash) {
+                optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
                     value: {
+                        search: {
+                            type: groupTransactionsQueryJSON.type,
+                            status: groupTransactionsQueryJSON.status,
+                            offset: 0,
+                            hasMoreResults: false,
+                            hasResults: true,
+                            isLoading: false,
+                        },
                         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         data: snapshotData,
                     },
-                },
-            ];
-
-            if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-                const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
-                newFlatFilters.push({
-                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
                 });
-
-                const groupTransactionsQueryJSON = buildSearchQueryJSON(
-                    buildSearchQueryString({
-                        ...currentSearchQueryJSON,
-                        groupBy: undefined,
-                        flatFilters: newFlatFilters,
-                    }),
-                );
-
-                if (groupTransactionsQueryJSON?.hash) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
-                        value: {
-                            search: {
-                                type: groupTransactionsQueryJSON.type,
-                                status: groupTransactionsQueryJSON.status,
-                                offset: 0,
-                                hasMoreResults: false,
-                                hasResults: true,
-                                isLoading: false,
-                            },
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            data: snapshotData,
-                        },
-                    });
-                }
             }
-
-            return {
-                optimisticData,
-                successData,
-            };
         }
+
+        return {
+            optimisticData,
+            successData,
+        };
     }
 }
 
