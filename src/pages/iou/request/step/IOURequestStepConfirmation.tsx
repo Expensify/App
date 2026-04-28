@@ -240,7 +240,7 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
-    const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
+    useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
 
     // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
     // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
@@ -553,7 +553,9 @@ function IOURequestStepConfirmation({
                 odometerStartImage={odometerStartImage}
                 odometerEndImage={odometerEndImage}
                 transaction={transaction}
-                hasVerifiedBlobs={hasVerifiedBlobs}
+                reportID={reportID}
+                backToReport={backToReport}
+                iouType={iouType}
                 onStitchingChange={setIsStitchingReceipt}
                 onStitchError={setStitchError}
             />
@@ -646,7 +648,7 @@ function IOURequestStepConfirmation({
                                 isPolicyExpenseChat={isPolicyExpenseChat}
                                 policyID={policyID}
                                 isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
+                                isLoadingReceipt={isStitchingReceipt}
                                 isPerDiemRequest={isPerDiemRequest}
                                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                                 action={action}
