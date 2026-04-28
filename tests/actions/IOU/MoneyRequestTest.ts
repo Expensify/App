@@ -543,7 +543,7 @@ describe('MoneyRequest', () => {
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    policy,
+                    policyParams: expect.objectContaining({policy}),
                 }),
             );
         });

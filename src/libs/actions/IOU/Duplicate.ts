@@ -22,7 +22,9 @@ import {
     buildTransactionThread,
     canAddTransaction,
     generateReportID,
+    getReportOrDraftReport,
     getTransactionDetails,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -46,7 +48,16 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {RequestMoneyInformation} from '.';
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail, getMoneyRequestParticipantsFromReport, getUserAccountID} from '.';
+import {
+    getAllReportActionsFromIOU,
+    getAllReports,
+    getAllTransactions,
+    getAllTransactionViolations,
+    getCurrentUserEmail,
+    getMoneyRequestParticipantsFromReport,
+    getMoneyRequestPolicyTags,
+    getUserAccountID,
+} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
@@ -632,8 +643,22 @@ function createExpenseByType({
             };
             return submitPerDiemExpense(perDiemParams);
         }
-        default:
-            return requestMoney(params);
+        default: {
+            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
+            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : undefined;
+            const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const policyTagList = getMoneyRequestPolicyTags({
+                existingIOUReport: params.existingIOUReport,
+                moneyRequestReportID,
+                parentChatReport,
+                participant: params.participantParams.participant,
+            });
+            return requestMoney({
+                ...params,
+                policyParams: {...(params.policyParams ?? {}), policyTagList},
+            });
+        }
     }
 }
 

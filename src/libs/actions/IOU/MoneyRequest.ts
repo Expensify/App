@@ -8,7 +8,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -42,6 +42,7 @@ import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {GpsPoint} from './index';
 import {
     getMoneyRequestParticipantsFromReport,
+    getMoneyRequestPolicyTags,
     setCustomUnitRateID,
     setMoneyRequestDistance,
     setMoneyRequestMerchant,
@@ -205,6 +206,11 @@ function createTransaction({
     recentWaypoints,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : undefined;
+    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policyTagList = getMoneyRequestPolicyTags({moneyRequestReportID, parentChatReport, participant});
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -260,7 +266,7 @@ function createTransaction({
                     payeeAccountID: currentUserAccountID,
                     participant,
                 },
-                ...(policyParams ?? {}),
+                policyParams: {...(policyParams ?? {}), policyTagList},
                 gpsPoint,
                 transactionParams: {
                     amount: 0,
