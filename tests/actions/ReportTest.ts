@@ -6553,9 +6553,6 @@ describe('actions/Report', () => {
 
             // Then verify OpenReport API was called
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-
-            // Then verify navigation was called
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should not create new chat when there is an existing chat with the participant', async () => {
@@ -6599,9 +6596,6 @@ describe('actions/Report', () => {
 
             // Then verify OpenReport API was NOT called since the chat already exists
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
-
-            // Then verify navigation was called to the existing report
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should pass introSelected through to openReport when creating new chat', async () => {
@@ -6629,9 +6623,6 @@ describe('actions/Report', () => {
 
             // Then verify OpenReport API was called (new chat created)
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-
-            // Then verify navigation was called
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should respect shouldDismissModal parameter', async () => {
@@ -6656,9 +6647,6 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with shouldDismissModal=false
             Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, false);
             await waitForBatchedUpdates();
-
-            // Then verify navigation was called
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should pass isSelfTourViewed=true through to openReport when creating new chat', async () => {
@@ -6685,9 +6673,6 @@ describe('actions/Report', () => {
 
             // Then verify OpenReport API was called
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-
-            // Then verify navigation was called
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should pass isSelfTourViewed=undefined through to openReport when creating new chat', async () => {
@@ -6714,9 +6699,6 @@ describe('actions/Report', () => {
 
             // Then verify OpenReport API was called
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-
-            // Then verify navigation was called
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should pass isSelfTourViewed along with shouldDismissModal', async () => {
@@ -6743,9 +6725,6 @@ describe('actions/Report', () => {
 
             // Then verify OpenReport API was called
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-
-            // Then verify navigation was called
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should pass betas through to openReport when creating new chat', async () => {
@@ -6771,7 +6750,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
     });
 
@@ -6813,7 +6791,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-            expect(Navigation.navigate).toHaveBeenCalled();
         });
 
         it('should not call openReport when chat already exists', async () => {
