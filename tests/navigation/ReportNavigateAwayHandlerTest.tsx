@@ -6,8 +6,8 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportNavigateAwayHandler from '@src/pages/inbox/ReportNavigateAwayHandler';
 import useReportWasDeleted from '@src/pages/inbox/hooks/useReportWasDeleted';
+import ReportNavigateAwayHandler from '@src/pages/inbox/ReportNavigateAwayHandler';
 
 jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(() => ({
@@ -91,6 +91,7 @@ const mockUseOnyx = jest.mocked(useOnyx);
 const mockUseReportWasDeleted = jest.mocked(useReportWasDeleted);
 const mockNavigateToConciergeChat = jest.mocked(navigateToConciergeChat);
 const mockNavigation = jest.mocked(Navigation);
+const onyxMeta = {status: 'loaded'} as const;
 
 describe('ReportNavigateAwayHandler', () => {
     beforeEach(() => {
@@ -106,27 +107,27 @@ describe('ReportNavigateAwayHandler', () => {
 
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}123`) {
-                return [{reportID: '123', statusNum: 2} as MinimalReport];
+                return [{reportID: '123', statusNum: 2} as MinimalReport, onyxMeta];
             }
             if (key === `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}123`) {
-                return [false];
+                return [false, onyxMeta];
             }
             if (key === ONYXKEYS.NVP_INTRO_SELECTED) {
-                return [undefined];
+                return [undefined, onyxMeta];
             }
             if (key === ONYXKEYS.BETAS) {
-                return [[]];
+                return [[], onyxMeta];
             }
             if (key === ONYXKEYS.NVP_ONBOARDING) {
-                return [{selfTourViewed: true}];
+                return [{selfTourViewed: true}, onyxMeta];
             }
             if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                return ['conciergeReportID'];
+                return ['conciergeReportID', onyxMeta];
             }
             if (key === `${ONYXKEYS.COLLECTION.REPORT}parentReportID`) {
-                return [deletedParentReport];
+                return [deletedParentReport, onyxMeta];
             }
-            return [undefined];
+            return [undefined, onyxMeta];
         });
     });
 
