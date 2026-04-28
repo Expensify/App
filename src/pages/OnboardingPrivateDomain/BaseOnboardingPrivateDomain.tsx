@@ -52,7 +52,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!email) {
             return;
         }
-        resendValidateCode(email);
+        resendValidateCode(email, {reasonCode: CONST.VALIDATE_CODE_REASON.VALIDATE_ACCOUNT});
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {

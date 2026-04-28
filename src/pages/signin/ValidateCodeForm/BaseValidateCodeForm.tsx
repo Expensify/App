@@ -151,7 +151,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        userActionsResendValidateCode(credentials?.login ?? '');
+        userActionsResendValidateCode(credentials?.login ?? '', {reasonCode: CONST.VALIDATE_CODE_REASON.SIGN_IN});
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         countdownRef.current?.resetCountdown();

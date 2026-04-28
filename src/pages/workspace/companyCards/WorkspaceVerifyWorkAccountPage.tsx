@@ -40,7 +40,7 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
         if (!workEmail) {
             return;
         }
-        resendValidateCode(workEmail);
+        resendValidateCode(workEmail, {reasonCode: CONST.VALIDATE_CODE_REASON.VALIDATE_ACCOUNT});
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
