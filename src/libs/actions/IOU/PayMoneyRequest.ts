@@ -481,9 +481,11 @@ function cancelPayment(
         return;
     }
 
+    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
+    const reimbursableTotal = expenseReport.reimbursableTotal ?? (expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0);
     const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
         expenseReport.reportID,
-        -((expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0)),
+        -reimbursableTotal,
         expenseReport.currency ?? '',
         currentUserAccountIDParam,
     );
