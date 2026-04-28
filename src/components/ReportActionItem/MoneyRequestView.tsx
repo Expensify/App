@@ -177,11 +177,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-<<<<<<< HEAD
-    const {translate, toLocaleDigit} = useLocalize();
-=======
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
->>>>>>> abbaa5ed74bb4425712fb098dd8374bf18e9da57
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();

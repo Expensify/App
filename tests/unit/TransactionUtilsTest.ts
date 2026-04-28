@@ -2972,7 +2972,6 @@ describe('TransactionUtils', () => {
         {fn: 'isScanRequest', match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
         {fn: 'isPerDiemRequest', match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
         {fn: 'isTimeRequest', match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
-        {fn: 'isManualRequest', match: CONST.IOU.REQUEST_TYPE.MANUAL, other: CONST.IOU.REQUEST_TYPE.SCAN},
     ] as const)('$fn', ({fn, match, other}) => {
         describe(`when iouRequestType matches`, () => {
             it('returns true', () => {

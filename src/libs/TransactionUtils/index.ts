@@ -252,13 +252,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-<<<<<<< HEAD
-function isManualRequest(transaction: Transaction): boolean {
-    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-}
-
-=======
->>>>>>> abbaa5ed74bb4425712fb098dd8374bf18e9da57
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const merchant = getMerchant(transaction);
 
