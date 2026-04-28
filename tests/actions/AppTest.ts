@@ -1,12 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
 import DateUtils from '@libs/DateUtils';
 import '@libs/Navigation/AppNavigator/AuthScreens';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import * as App from '../../src/libs/actions/App';
+import * as ActiveClientManager from '../../src/libs/ActiveClientManager';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
