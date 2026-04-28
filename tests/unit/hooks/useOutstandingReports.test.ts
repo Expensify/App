@@ -220,9 +220,9 @@ describe('useOutstandingReports', () => {
     // Regression test for deploy blocker https://github.com/Expensify/App/issues/88425.
     // When "Create report" runs, an optimistic empty report is written to Onyx with
     // pendingFields.createReport === ADD, then the transaction is moved to it on a deferred
-    // microtask. During that gap, hasOnlyNonReimbursableTransactions flips from false (0 txns)
-    // to true (1 non-reimbursable txn) and would otherwise cause the new report to be filtered
-    // out, making it appear briefly and then disappear from the picker.
+    // microtask. During that gap, hasOnlyNonReimbursableTransactions flips from false (zero
+    // transactions) to true (one non-reimbursable transaction) and would otherwise cause the
+    // new report to be filtered out, making it appear briefly and then disappear from the picker.
     it('keeps optimistically created reports (pendingFields.createReport === ADD) in the list', async () => {
         // Given an optimistically created empty report on a workspace with instant submit and no approvers,
         // plus a non-reimbursable transaction that has just been associated with it
