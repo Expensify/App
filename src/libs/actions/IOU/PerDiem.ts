@@ -388,12 +388,12 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
                 // Per diems are reimbursable, so mirror the change on the freshly tracked reimbursable total.
-                iouReport.reimbursableTotal = (iouReport.reimbursableTotal ?? (iouReport.total + amount) - (iouReport.nonReimbursableTotal ?? 0)) - amount;
+                iouReport.reimbursableTotal = (iouReport.reimbursableTotal ?? iouReport.total + amount - (iouReport.nonReimbursableTotal ?? 0)) - amount;
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
                 iouReport.unheldTotal -= amount;
-                iouReport.unheldReimbursableTotal = (iouReport.unheldReimbursableTotal ?? (iouReport.unheldTotal + amount) - (iouReport.unheldNonReimbursableTotal ?? 0)) - amount;
+                iouReport.unheldReimbursableTotal = (iouReport.unheldReimbursableTotal ?? iouReport.unheldTotal + amount - (iouReport.unheldNonReimbursableTotal ?? 0)) - amount;
             }
         }
     } else {

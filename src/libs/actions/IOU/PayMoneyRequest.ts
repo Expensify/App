@@ -483,12 +483,7 @@ function cancelPayment(
 
     // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
     const reimbursableTotal = expenseReport.reimbursableTotal ?? (expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0);
-    const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
-        expenseReport.reportID,
-        -reimbursableTotal,
-        expenseReport.currency ?? '',
-        currentUserAccountIDParam,
-    );
+    const optimisticReportAction = buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -reimbursableTotal, expenseReport.currency ?? '', currentUserAccountIDParam);
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;

@@ -1225,7 +1225,8 @@ function changeTransactionsReport({
                     (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
                 const oldReimbursableTotalSeed = oldReport?.reimbursableTotal ?? (oldReport?.total ?? 0) - (oldReport?.nonReimbursableTotal ?? 0);
                 updatedReportReimbursableTotals[oldReportID] =
-                    (updatedReportReimbursableTotals[oldReportID] ? updatedReportReimbursableTotals[oldReportID] : oldReimbursableTotalSeed) + (transaction?.reimbursable ? transactionAmount : 0);
+                    (updatedReportReimbursableTotals[oldReportID] ? updatedReportReimbursableTotals[oldReportID] : oldReimbursableTotalSeed) +
+                    (transaction?.reimbursable ? transactionAmount : 0);
                 const oldUnheldReimbursableTotalSeed = oldReport?.unheldReimbursableTotal ?? (oldReport?.unheldTotal ?? 0) - (oldReport?.unheldNonReimbursableTotal ?? 0);
                 updatedReportUnheldReimbursableTotals[oldReportID] =
                     (updatedReportUnheldReimbursableTotals[oldReportID] ? updatedReportUnheldReimbursableTotals[oldReportID] : oldUnheldReimbursableTotalSeed) +

@@ -2075,7 +2075,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = (iouReport.reimbursableTotal ?? (iouReport.total + amount) - (iouReport.nonReimbursableTotal ?? 0)) - amount;
+                    iouReport.reimbursableTotal = (iouReport.reimbursableTotal ?? iouReport.total + amount - (iouReport.nonReimbursableTotal ?? 0)) - amount;
                 }
 
                 iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
@@ -2088,7 +2088,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     iouReport.unheldTotal -= amount;
                 }
                 if (reimbursable) {
-                    iouReport.unheldReimbursableTotal = (iouReport.unheldReimbursableTotal ?? (iouReport.unheldTotal + amount) - (iouReport.unheldNonReimbursableTotal ?? 0)) - amount;
+                    iouReport.unheldReimbursableTotal = (iouReport.unheldReimbursableTotal ?? iouReport.unheldTotal + amount - (iouReport.unheldNonReimbursableTotal ?? 0)) - amount;
                 }
             }
         }
