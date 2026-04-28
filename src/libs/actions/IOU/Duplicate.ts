@@ -663,6 +663,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUserLogin: string;
     currentUserAccountID: number;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 function duplicateExpenseTransaction({
@@ -691,6 +692,7 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUserAccountID,
     currentUserLogin,
+    bankAccountList,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -730,7 +732,7 @@ function duplicateExpenseTransaction({
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
-        bankAccountList: undefined,
+        bankAccountList,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -815,6 +817,7 @@ type DuplicateReportParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 function duplicateReport({
@@ -839,6 +842,7 @@ function duplicateReport({
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
+    bankAccountList,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -851,7 +855,7 @@ function duplicateReport({
         isASAPSubmitBetaEnabled,
         targetPolicy,
         betas,
-        undefined,
+        bankAccountList,
         false,
         undefined,
         newReportName,
@@ -932,7 +936,7 @@ function duplicateReport({
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
-            bankAccountList: undefined,
+            bankAccountList,
         };
 
         const result = createExpenseByType({
@@ -978,6 +982,7 @@ type BulkDuplicateExpensesParams = {
     draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 function bulkDuplicateExpenses({
@@ -999,6 +1004,7 @@ function bulkDuplicateExpenses({
     draftTransactionIDs,
     betas,
     recentWaypoints,
+    bankAccountList,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1096,6 +1102,7 @@ function bulkDuplicateExpenses({
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUserAccountID: getUserAccountID(),
             currentUserLogin: getCurrentUserEmail(),
+            bankAccountList,
         });
 
         if (result?.iouReport) {
@@ -1131,6 +1138,7 @@ type BulkDuplicateReportsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 function bulkDuplicateReports({
@@ -1154,6 +1162,7 @@ function bulkDuplicateReports({
     transactionViolations,
     translate,
     recentWaypoints,
+    bankAccountList,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1229,6 +1238,7 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID: getUserAccountID(),
             currentUserLogin: getCurrentUserEmail(),
+            bankAccountList,
         });
     }
 

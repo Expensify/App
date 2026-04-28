@@ -53,6 +53,7 @@ function useSpendOverTimeData() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const isSearchLoading = !!searchResults?.search?.isLoading;
 
     const {isOffline} = useNetwork();
@@ -90,7 +91,7 @@ function useSpendOverTimeData() {
                       currentUserEmail: login,
                       translate,
                       formatPhoneNumber,
-                      bankAccountList: undefined,
+                      bankAccountList,
                       allReportMetadata: undefined,
                       conciergeReportID: undefined,
                   })[0],

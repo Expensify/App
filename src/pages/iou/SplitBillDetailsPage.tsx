@@ -55,6 +55,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
 
@@ -84,19 +85,20 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(
-            reportID,
+        completeSplitBill({
+            chatReportID: reportID,
             reportAction,
-            draftTransaction,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            updatedTransaction: draftTransaction,
+            sessionAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
             betas,
             personalDetails,
-            session?.email,
-        );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
+            sessionEmail: session?.email,
+            bankAccountList,
+        });
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails, bankAccountList]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">

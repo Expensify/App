@@ -109,6 +109,7 @@ describe('MoneyRequest', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
+            bankAccountList: undefined,
         };
 
         beforeEach(async () => {
@@ -577,6 +578,7 @@ describe('MoneyRequest', () => {
             participantsPolicyTags: {} as Record<string, PolicyTagLists>,
             amountOwed: 0,
             userBillingGracePeriodEnds: undefined,
+            bankAccountList: undefined,
         };
 
         beforeEach(async () => {
@@ -1089,6 +1091,7 @@ describe('MoneyRequest', () => {
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
+            bankAccountList: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

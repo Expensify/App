@@ -441,6 +441,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 shouldHandleNavigation: shouldHandleNav,
+                bankAccountList,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
@@ -694,6 +695,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    bankAccountList,
                 });
             }
             markSubmitExpenseEnd();
@@ -729,6 +731,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    bankAccountList,
                 });
             }
             markSubmitExpenseEnd();

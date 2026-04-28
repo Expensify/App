@@ -91,6 +91,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
@@ -277,6 +278,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                         contentContainerStyle={contentContainerStyle}
                         onLayout={onSearchLayout}
                         onDestinationVisible={endSubmitNavigationSpans}
+                        bankAccountList={bankAccountList}
                     />
                 </View>
             )}

@@ -22,6 +22,7 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
+    BankAccountList,
     Beta,
     BillingGraceEndPeriod,
     IntroSelected,
@@ -78,6 +79,7 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 type InitialTransactionParams = {
@@ -128,6 +130,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -176,6 +179,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function createTransaction({
@@ -203,6 +207,7 @@ function createTransaction({
     betas,
     personalDetails,
     recentWaypoints,
+    bankAccountList,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -287,7 +292,7 @@ function createTransaction({
                 draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
-                bankAccountList: undefined,
+                bankAccountList,
             });
         }
     }
@@ -348,6 +353,7 @@ function handleMoneyRequestStepScanParticipants({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    bankAccountList,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -460,6 +466,7 @@ function handleMoneyRequestStepScanParticipants({
                             betas,
                             personalDetails,
                             recentWaypoints,
+                            bankAccountList,
                         });
                     },
                     (errorData) => {
@@ -488,6 +495,7 @@ function handleMoneyRequestStepScanParticipants({
                             betas,
                             personalDetails,
                             recentWaypoints,
+                            bankAccountList,
                         });
                     },
                 );
@@ -516,6 +524,7 @@ function handleMoneyRequestStepScanParticipants({
                 betas,
                 personalDetails,
                 recentWaypoints,
+                bankAccountList,
             });
             return;
         }
@@ -609,6 +618,7 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
+    bankAccountList,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -760,7 +770,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 personalDetails,
                 recentWaypoints,
                 betas,
-                bankAccountList: undefined,
+                bankAccountList,
             });
             return;
         }

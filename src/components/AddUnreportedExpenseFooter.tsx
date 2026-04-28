@@ -83,6 +83,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     quickAction,
                     personalDetails,
                     betas,
+                    bankAccountList,
                 });
             } else {
                 changeTransactionsReport({

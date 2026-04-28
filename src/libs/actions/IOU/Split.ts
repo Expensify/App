@@ -215,6 +215,7 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type UpdateSplitTransactionsParams = {
@@ -278,6 +279,21 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+};
+
+type CompleteSplitBillActionParams = {
+    chatReportID: string;
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    sessionAccountID: number;
+    isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    sessionEmail?: string;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 /**
@@ -311,6 +327,7 @@ function splitBill({
     policyRecentlyUsedTags,
     betas,
     personalDetails,
+    bankAccountList,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -342,6 +359,7 @@ function splitBill({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        bankAccountList,
     });
 
     const parameters: SplitBillParams = {
@@ -406,6 +424,7 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCurrencies,
     betas,
     personalDetails,
+    bankAccountList,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -437,6 +456,7 @@ function splitBillAndOpenReport({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        bankAccountList,
     });
 
     const parameters: SplitBillParams = {
@@ -858,18 +878,19 @@ function startSplitBill({
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(
-    chatReportID: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    sessionAccountID: number,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-    sessionEmail?: string,
-) {
+function completeSplitBill({
+    chatReportID,
+    reportAction,
+    updatedTransaction,
+    sessionAccountID,
+    isASAPSubmitBetaEnabled,
+    quickAction,
+    transactionViolations,
+    betas,
+    personalDetails,
+    sessionEmail,
+    bankAccountList,
+}: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
     }
@@ -1102,7 +1123,7 @@ function completeSplitBill(
             },
             quickAction,
             personalDetails,
-            bankAccountList: undefined,
+            bankAccountList,
         });
 
         splits.push({
@@ -1470,7 +1491,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
-            bankAccountList: undefined,
+            bankAccountList,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -3224,6 +3245,7 @@ function createSplitsAndOnyxData({
     policyRecentlyUsedCurrencies,
     betas,
     personalDetails,
+    bankAccountList,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -3667,7 +3689,7 @@ function createSplitsAndOnyxData({
             hasViolations,
             quickAction,
             personalDetails,
-            bankAccountList: undefined,
+            bankAccountList,
         });
 
         const individualSplit = {
@@ -3829,6 +3851,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            bankAccountList,
         });
         onyxData = splitOnyxData;
 

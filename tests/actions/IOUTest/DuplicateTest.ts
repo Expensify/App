@@ -1165,6 +1165,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1230,6 +1231,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1288,6 +1290,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1342,6 +1345,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1405,6 +1409,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1454,6 +1459,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1496,6 +1502,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1540,6 +1547,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1593,6 +1601,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1659,6 +1668,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1710,6 +1720,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1772,6 +1783,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                bankAccountList: undefined,
                 currentUserLogin: RORY_EMAIL,
             });
 
@@ -1941,6 +1953,7 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
+            bankAccountList: undefined,
             ...overrides,
         });
 
@@ -2486,6 +2499,7 @@ describe('actions/Duplicate', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2598,6 +2612,7 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
+            bankAccountList: undefined,
             ...overrides,
         });
 

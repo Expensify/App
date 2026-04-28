@@ -256,6 +256,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                bankAccountList,
             });
         }
     };
@@ -403,6 +404,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         recentWaypoints: recentWaypoints ?? [],
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        bankAccountList,
                     });
                 });
             },

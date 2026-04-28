@@ -237,6 +237,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyTags,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
+                bankAccountList,
             });
         }
     };

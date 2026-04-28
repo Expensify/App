@@ -1545,6 +1545,7 @@ function Search({
                 columns={currentColumns}
                 contentContainerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
                 onLayout={onLayout}
+                bankAccountList={bankAccountList}
             />
         );
     }

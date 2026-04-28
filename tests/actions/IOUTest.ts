@@ -3235,6 +3235,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedTags: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: splitMockPersonalDetails,
+                            bankAccountList: undefined,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -3574,6 +3575,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3623,6 +3625,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3646,6 +3649,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3676,6 +3680,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3711,6 +3716,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3732,6 +3738,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3794,6 +3801,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3844,6 +3852,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3905,6 +3914,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             waitForBatchedUpdates();
@@ -3977,7 +3987,19 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], splitMockPersonalDetails, RORY_EMAIL);
+            completeSplitBill({
+                chatReportID: reportID,
+                reportAction: iouAction,
+                updatedTransaction: updatedSplitTransaction,
+                sessionAccountID: RORY_ACCOUNT_ID,
+                isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
+                transactionViolations: {},
+                betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
+                sessionEmail: RORY_EMAIL,
+                bankAccountList: undefined,
+            });
 
             await waitForBatchedUpdates();
 
