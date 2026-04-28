@@ -517,6 +517,72 @@ describe('MoneyRequest', () => {
                 }),
             );
         });
+
+        it('should pass gpsPoint to requestMoney when provided', () => {
+            const gpsPoint = {lat: TEST_LATITUDE, long: TEST_LONGITUDE};
+
+            createTransaction({
+                ...baseParams,
+                gpsPoint,
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    gpsPoint,
+                }),
+            );
+        });
+
+        it('should pass policy from policyParams to requestMoney', () => {
+            const policy = createRandomPolicy(5, CONST.POLICY.TYPE.CORPORATE);
+
+            createTransaction({
+                ...baseParams,
+                policyParams: {policy},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    policy,
+                }),
+            );
+        });
+
+        it('should use transaction taxCode when it exists instead of default (requestMoney)', () => {
+            const policyWithTax = {
+                ...createRandomPolicy(13, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.USD,
+                taxRates: {
+                    defaultExternalID: 'TAX_DEFAULT_SHOULD_NOT_USE',
+                    foreignTaxDefault: 'TAX_FOREIGN_SHOULD_NOT_USE',
+                    defaultValue: '',
+                    name: 'Tax',
+                    taxes: {},
+                },
+            };
+            const transactionWithTax = {
+                ...fakeTransaction,
+                taxCode: 'TAX_CUSTOM_777',
+                taxAmount: 750,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                transactions: [transactionWithTax],
+                policyParams: {policy: policyWithTax},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        taxCode: 'TAX_CUSTOM_777',
+                        taxAmount: 750,
+                    }),
+                }),
+            );
+        });
     });
 
     describe('handleMoneyRequestStepScanParticipants', () => {
