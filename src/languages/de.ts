@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Lass uns anfangen`,
         showMore: 'Mehr anzeigen',
         showLess: 'Weniger anzeigen',
+        plusMore: ({count}: {count: number}) => `+${count} weitere`,
         merchant: 'Händler',
         change: 'Ändern',
         category: 'Kategorie',
@@ -6840,6 +6841,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
+                policyDocument: 'Richtliniendokument',
+                policyText: 'Richtlinientext',
             },
             spendRules: {
                 title: 'Ausgaben',
@@ -6892,6 +6895,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 merchants: 'Händler',
                 noAvailableCards: 'Alle Karten haben bereits eine Regel',
                 noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
+                noCardsIssuedTitle: 'Keine Expensify Karten ausgestellt',
+                noCardsIssuedSubtitle: 'Geben Sie Expensify Karten aus, um Ausgabelimits festzulegen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',
@@ -7698,6 +7703,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Zentrale Rechnungsstellung',
             },
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
@@ -7807,8 +7813,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         spendOverTime: 'Ausgaben im Zeitverlauf',
         tabs: {
             expenseReports: 'Spesenabrechnungen',
-            reports: 'Alle Berichte',
-            expenses: 'Alle Ausgaben',
+            reports: 'Berichte',
+            expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
             pay: 'Zahlungsbereit',

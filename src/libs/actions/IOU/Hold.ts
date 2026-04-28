@@ -41,12 +41,18 @@ import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurre
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, isOffline: boolean, ancestors: Ancestor[] = []) {
+function putOnHold(
+    transactionID: string,
+    comment: string,
+    initialReportID: string | undefined,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    ancestors: Ancestor[] = [],
+) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
-    const userAccountID = getUserAccountID();
-    const currentUserEmail = getCurrentUserEmail();
 
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
@@ -69,7 +75,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         transactionThreadReport = buildTransactionThread(iouAction, moneyRequestReport, undefined, reportID);
     }
 
-    const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserLogin);
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -259,15 +265,15 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
-            currentUserAccountIDParam: userAccountID,
-            currentUserEmailParam: currentUserEmail,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
-            currentUserAccountIDParam: userAccountID,
-            currentUserEmailParam: currentUserEmail,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
         });
 
         optimisticData.push({
@@ -331,10 +337,18 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, isOffline: boolean, ancestors: Ancestor[] = []) {
+function putTransactionsOnHold(
+    transactionsID: string[],
+    comment: string,
+    reportID: string,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    ancestors: Ancestor[] = [],
+) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, isOffline, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, ancestors);
     }
 }
 

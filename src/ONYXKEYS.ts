@@ -318,7 +318,7 @@ const ONYXKEYS = {
     IS_PLAID_DISABLED: 'isPlaidDisabled',
 
     /** Token needed to initialize Plaid link */
-    PLAID_LINK_TOKEN: 'plaidLinkToken',
+    RAM_ONLY_PLAID_LINK_TOKEN: 'plaidLinkToken',
 
     /** Capture Plaid event  */
     PLAID_CURRENT_EVENT: 'plaidCurrentEvent',
@@ -424,7 +424,7 @@ const ONYXKEYS = {
     IS_BETA: 'isBeta',
 
     /** Whether we're checking if the room is public or not */
-    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+    RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 
     /** A map of the user's security group IDs they belong to in specific domains */
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
@@ -483,6 +483,10 @@ const ONYXKEYS = {
 
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
+
+    /** Map of reportID → DB-formatted timestamp for when the user last visited each report.
+     *  Only consumed by `findLastAccessedReport` / `getMostRecentlyVisitedReport` for navigation fallbacks. */
+    REPORT_LAST_VISIT_TIMES: 'reportLastVisitTimes',
 
     // Stores the recently used report fields
     RECENTLY_USED_REPORT_FIELDS: 'recentlyUsedReportFields',
@@ -732,10 +736,17 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
-        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
-        // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
-        // directly on the report caused a lot of unnecessary re-renders
+        // REPORT_METADATA holds report-level business state that is NOT the report itself
+        // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).
+        // Loading flags / pagination cursors / last-visit timestamp live in dedicated
+        // keys below (REPORT_LOADING_STATE, REPORT_PAGINATION_STATE, REPORT_LAST_VISIT_TIMES)
+        // so they don't ripple to every subscriber of the report's business state.
         REPORT_METADATA: 'reportMetadata_',
+        /** Session-scoped loading/error flags for a report's action list.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
+        /** Pagination cursors for a report's action list. */
+        REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_PAGES: 'reportActionsPages_',
@@ -796,6 +807,9 @@ const ONYXKEYS = {
         /** The value that indicates whether Continuous Reconciliation should be used on the domain */
         EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'expensifyCard_useContinuousReconciliation_',
 
+        /** The selected accounting integration bank account ID for card reconciliation */
+        EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID: 'expensifyCard_bankAccount_',
+
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
 
@@ -808,7 +822,7 @@ const ONYXKEYS = {
         NVP_EXPENSIFY_REPORT_PDF_FILENAME: 'nvp_expensify_report_PDFFilename_',
 
         /** Stores the information about the state of issuing a new card */
-        ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
+        RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
 
         /** Stored the user information with whom bank account is being shared */
         BANK_ACCOUNT_SHARE_DETAILS: 'expensify_bankAccountShare_',
@@ -1259,6 +1273,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
+    [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES]: OnyxTypes.Pages;
@@ -1294,10 +1310,11 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: OnyxTypes.CardContinuousReconciliation;
+    [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID]: string;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
-    [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
@@ -1383,7 +1400,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
-    [ONYXKEYS.PLAID_LINK_TOKEN]: string;
+    [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
@@ -1433,7 +1450,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
-    [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
@@ -1453,6 +1470,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
+    [ONYXKEYS.REPORT_LAST_VISIT_TIMES]: OnyxTypes.ReportLastVisitTimes;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;

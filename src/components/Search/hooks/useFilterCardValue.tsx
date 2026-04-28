@@ -1,7 +1,7 @@
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
+import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getFeedCountryForDisplay, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +15,8 @@ function useFilterCardValue(): string {
     const cardIdsFilter = searchAdvancedFiltersForm?.[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = searchAdvancedFiltersForm?.[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
     const workspaceCardFeeds = Object.entries(searchCards ?? {}).reduce<Record<string, WorkspaceCardsList>>((acc, [cardID, card]) => {
-        const feedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
+        const feedCountry = getFeedCountryForDisplay(card);
+        const feedKey = `${createCardFeedKey(card.fundID, card.bank, feedCountry)}`;
         const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
         if (!acc[workspaceFeedKey]) {
             acc[workspaceFeedKey] = {};
@@ -32,7 +33,10 @@ function useFilterCardValue(): string {
     });
 
     const cardNames = Object.values(searchCards ?? {})
-        .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
+        .filter((card) => {
+            const feedCountry = getFeedCountryForDisplay(card);
+            return cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank, feedCountry));
+        })
         .map((card) => getCardDescription(card, translate));
 
     const feedNames = Object.keys(cardFeedNamesWithType)

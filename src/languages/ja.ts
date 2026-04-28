@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `はじめましょう`,
         showMore: 'さらに表示',
         showLess: '表示を減らす',
+        plusMore: ({count}: {count: number}) => `+${count}件`,
         merchant: '加盟店',
         change: '変更',
         category: 'カテゴリ',
@@ -6748,6 +6749,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',
@@ -6800,6 +6803,8 @@ ${reportName}
                 merchants: '加盟店',
                 noAvailableCards: 'すべてのカードにはすでにルールがあります',
                 noAvailableCardsSubtitle: '既存のカードルールを編集して変更します',
+                noCardsIssuedTitle: 'Expensify カードは発行されていません',
+                noCardsIssuedSubtitle: 'Expensify カードを発行して支出ルールを作成しましょう',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',
@@ -7596,6 +7601,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: '集中請求',
             },
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
@@ -7699,8 +7705,8 @@ ${reportName}
         spendOverTime: '時間経過による支出',
         tabs: {
             expenseReports: '経費精算書',
-            reports: 'すべてのレポート',
-            expenses: 'すべての経費',
+            reports: 'レポート',
+            expenses: '経費',
             submit: '下書き',
             approve: '承認が必要',
             pay: '支払いの準備完了',

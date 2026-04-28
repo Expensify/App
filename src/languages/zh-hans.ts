@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `开始吧`,
         showMore: '显示更多',
         showLess: '收起',
+        plusMore: ({count}: {count: number}) => `+${count}个`,
         merchant: '商户',
         change: '更改',
         category: '类别',
@@ -6630,6 +6631,8 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+                policyDocument: '政策文件',
+                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',
@@ -6682,6 +6685,8 @@ ${reportName}
                 merchants: '商家',
                 noAvailableCards: '所有卡片已具有规则',
                 noAvailableCardsSubtitle: '编辑现有的卡片规则以进行更改',
+                noCardsIssuedTitle: '尚未发放 Expensify 卡',
+                noCardsIssuedSubtitle: '发放 Expensify 卡以创建支出规则',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空公司',
@@ -7460,6 +7465,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `所有 ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `所有导入的 CSV 卡片${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: '集中开票',
             },
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
@@ -7563,8 +7569,8 @@ ${reportName}
         spendOverTime: '随时间支出',
         tabs: {
             expenseReports: '报销报告',
-            reports: '所有报表',
-            expenses: '所有报销',
+            reports: '报表',
+            expenses: '报销费用',
             submit: '草稿',
             approve: '待审批',
             pay: '准备付款',

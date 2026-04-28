@@ -2030,7 +2030,7 @@ function getTransactionsSections({
 
         let shouldShow = true;
 
-        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
+        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
         if (currentQueryJSON && !isActionLoading) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = currentQueryJSON.status;
@@ -2633,7 +2633,7 @@ function getReportSections({
 
             let shouldShow = true;
 
-            const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`);
+            const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
             if (currentQueryJSON && !isActionLoading) {
                 if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                     const status = currentQueryJSON.status;
@@ -3023,7 +3023,7 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
+                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds, undefined, true, cardGroup?.feedCountry),
                 keyForList: key,
             };
         }
@@ -4801,6 +4801,7 @@ function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, tr
             .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
             .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
             .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
+            .replace(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX, '')
             .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
             .split('-')
             .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
@@ -4822,6 +4823,13 @@ function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, tr
         if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
             const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
             values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+        }
+
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX)) {
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldValue as string, undefined, undefined, true);
+            if (rangeDisplay) {
+                values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
+            }
         }
 
         if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {

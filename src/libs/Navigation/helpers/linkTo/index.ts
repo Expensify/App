@@ -204,18 +204,39 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             // Full-screen routes only exist inside TAB_NAVIGATOR, so look at the active tab directly.
             const tabRoute = currentState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
             const tabState = tabRoute ? getTabState(tabRoute as NavigationPartialRoute) : undefined;
+            const tabNavigatorStateKey = tabRoute?.state?.key;
             const lastFullScreenRoute = tabState?.routes?.at(tabState.index ?? 0) as NavigationPartialRoute | undefined;
             if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute)) {
-                // Navigate within the existing TAB_NAVIGATOR (tab switch) rather than pushing a new one.
-                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                const additionalAction = CommonActions.navigate({
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    params: {
-                        screen: matchingFullScreenRoute.name,
-                        params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
-                    },
-                });
-                navigation.dispatch(additionalAction);
+                const matchingFullScreenRouteInTabRootState = tabState?.routes?.find((route) => route.name === matchingFullScreenRoute.name);
+                if (matchingFullScreenRouteInTabRootState && matchingFullScreenRouteInTabRootState.state === undefined) {
+                    // If matchingFullScreenRoute state is uninitialized (has never been visited)
+                    // Dispatch matchingFullScreenRoute as well so that its sidebarScreen route is added to the stack
+                    const additionalAction: StackNavigationAction = {
+                        type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                        payload: {
+                            name: matchingFullScreenRoute.name,
+                            params: {
+                                ...(matchingFullScreenRoute.params ?? {}),
+                                ...(matchingFullScreenRoute.state ? {state: matchingFullScreenRoute.state} : {}),
+                            },
+                        },
+                        target: tabNavigatorStateKey,
+                    };
+                    navigation.dispatch(additionalAction);
+                } else {
+                    // Navigate within the existing TAB_NAVIGATOR (tab switch) rather than pushing a new one.
+                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                    const additionalAction = CommonActions.navigate({
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {
+                            screen: matchingFullScreenRoute.name,
+                            params: lastRouteInMatchingFullScreen
+                                ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params}
+                                : matchingFullScreenRoute.params,
+                        },
+                    });
+                    navigation.dispatch(additionalAction);
+                }
             }
         }
     }

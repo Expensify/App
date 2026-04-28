@@ -46,7 +46,7 @@ function DatePicker({
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
 
-    const {inputCallbackRef: autoFocusCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
     autoFocusCallbackRefRef.current = autoFocusCallbackRef;
 
@@ -77,11 +77,12 @@ function DatePicker({
     }, [windowHeight]);
 
     const showDatePickerModal = useCallback(() => {
+        cancelAutoFocus();
         // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
         textInputRef.current?.blur();
         calculatePopoverPosition();
         setIsModalVisible(true);
-    }, [calculatePopoverPosition]);
+    }, [calculatePopoverPosition, cancelAutoFocus]);
 
     const closeDatePicker = useCallback(() => {
         setIsModalVisible(false);
