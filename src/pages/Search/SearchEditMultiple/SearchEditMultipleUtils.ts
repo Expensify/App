@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isIOUReport} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,6 +60,19 @@ function getTransactionEditContext(
     const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
     const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     return {transaction, report, reportAction, transactionPolicy};
+}
+
+/**
+ * Category/Tag/Tax only apply to expense/invoice reports and unreported (track) expenses.
+ * Returns true only when every selected transaction is eligible.
+ */
+function areAllTransactionsExpenseCompatible(selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>}>): boolean {
+    return selectedTransactionContexts.every(({transaction, report}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return !isIOUReport(report);
+    });
 }
 
 /**
@@ -134,4 +148,12 @@ function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, sn
     return merged;
 }
 
-export {getCommonDependentTag, getTransactionEditContext, isBulkEditTaxTrackingEnabled, withSnapshotTransactions, withSnapshotReportActions, withSnapshotReports};
+export {
+    areAllTransactionsExpenseCompatible,
+    getCommonDependentTag,
+    getTransactionEditContext,
+    isBulkEditTaxTrackingEnabled,
+    withSnapshotTransactions,
+    withSnapshotReportActions,
+    withSnapshotReports,
+};

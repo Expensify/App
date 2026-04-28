@@ -2,7 +2,12 @@ import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
-import {isBulkEditTaxTrackingEnabled, withSnapshotReports, withSnapshotTransactions} from '../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
+import {
+    areAllTransactionsExpenseCompatible,
+    isBulkEditTaxTrackingEnabled,
+    withSnapshotReports,
+    withSnapshotTransactions,
+} from '../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
 
 const POLICY_A = 'policyA';
 const POLICY_B = 'policyB';
@@ -130,6 +135,50 @@ describe('SearchEditMultipleUtils', () => {
         it('returns activePolicyID when no transactions selected', () => {
             const result = getSearchBulkEditPolicyID([], POLICY_A, undefined, undefined);
             expect(result).toBe(POLICY_A);
+        });
+    });
+
+    describe('areAllTransactionsExpenseCompatible', () => {
+        const expenseReport = {reportID: 'expenseReport1', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+        const iouReport = {reportID: 'iouReport1', type: CONST.REPORT.TYPE.IOU} as Report;
+        const invoiceReport = {reportID: 'invoiceReport1', type: CONST.REPORT.TYPE.INVOICE} as Report;
+
+        it('returns true when every reported transaction is on an expense report', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, 'expenseReport1'), report: expenseReport},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'expenseReport1'), report: expenseReport},
+            ];
+            expect(areAllTransactionsExpenseCompatible(contexts)).toBe(true);
+        });
+
+        it('returns true for unreported (track) transactions', () => {
+            const contexts = [{transaction: makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID), report: undefined}];
+            expect(areAllTransactionsExpenseCompatible(contexts)).toBe(true);
+        });
+
+        it('returns false when any reported transaction is on an IOU report', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, 'expenseReport1'), report: expenseReport},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'iouReport1'), report: iouReport},
+            ];
+            expect(areAllTransactionsExpenseCompatible(contexts)).toBe(false);
+        });
+
+        it('returns false when a mix of unreported and IOU transactions is selected', () => {
+            const contexts = [
+                {transaction: makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID), report: undefined},
+                {transaction: makeTransaction(TRANSACTION_ID_2, 'iouReport1'), report: iouReport},
+            ];
+            expect(areAllTransactionsExpenseCompatible(contexts)).toBe(false);
+        });
+
+        it('returns true for invoice reports (not IOU)', () => {
+            const contexts = [{transaction: makeTransaction(TRANSACTION_ID_1, 'invoiceReport1'), report: invoiceReport}];
+            expect(areAllTransactionsExpenseCompatible(contexts)).toBe(true);
+        });
+
+        it('returns true for an empty selection', () => {
+            expect(areAllTransactionsExpenseCompatible([])).toBe(true);
         });
     });
 

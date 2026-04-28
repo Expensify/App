@@ -1,22 +1,22 @@
 /**
- * ESLint plugin that conditionally suppresses lint rules which are unnecessary
+ * ESLint processor that conditionally suppresses lint rules which are unnecessary
  * for files that React Compiler successfully compiles.
  *
  * React Compiler automatically memoizes components and hooks, making rules like
  * `react/jsx-no-constructed-context-values` redundant for compiled files.
  *
- * This plugin uses an ESLint processor to:
- * 1. Run React Compiler on each file during the `preprocess` phase
- * 2. If all functions/components compile successfully, filter out messages
+ * This processor:
+ * 1. Runs React Compiler on each file during the `preprocess` phase
+ * 2. If all functions/components compile successfully, filters out messages
  *    from rules that React Compiler makes unnecessary in `postprocess`
- * 3. If any function fails to compile, preserve all lint messages as-is
+ * 3. If any function fails to compile, preserves all lint messages as-is
  */
 import {transformSync} from '@babel/core';
 import _ from 'lodash';
 import {createRequire} from 'module';
 
 const require = createRequire(import.meta.url);
-const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
+const ReactCompilerConfig = require('../../babel/reactCompilerConfig');
 
 // Rules that are entirely unnecessary when React Compiler successfully compiles
 // all functions in a file. Add more rules here as needed.
@@ -83,48 +83,43 @@ function checkReactCompilerCompilation(text, filename) {
     return hasSuccess && !hasError;
 }
 
-const plugin = {
-    meta: {name: 'eslint-plugin-react-compiler-compat'},
-    processors: {
-        'react-compiler-compat': {
-            meta: {
-                name: 'react-compiler-compat',
-                version: '1.0.0',
-            },
-            supportsAutofix: true,
+const processor = {
+    meta: {
+        name: 'react-compiler-compat',
+        version: '1.0.0',
+    },
+    supportsAutofix: true,
 
-            preprocess(text, filename) {
-                // Skip files that React Compiler wouldn't compile anyway
-                if (filename.includes('/tests/') || filename.includes('node_modules/')) {
-                    compilationResults.set(filename, false);
-                } else {
-                    compilationResults.set(filename, checkReactCompilerCompilation(text, filename));
+    preprocess(text, filename) {
+        // Skip files that React Compiler wouldn't compile anyway
+        if (filename.includes('/tests/') || filename.includes('node_modules/')) {
+            compilationResults.set(filename, false);
+        } else {
+            compilationResults.set(filename, checkReactCompilerCompilation(text, filename));
+        }
+
+        // Pass the source through unchanged as a single code block
+        return [text];
+    },
+
+    postprocess(messages, filename) {
+        const allCompiled = compilationResults.get(filename);
+        compilationResults.delete(filename);
+
+        if (allCompiled) {
+            return _.filter(messages[0], (msg) => {
+                if (RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId)) {
+                    return false;
                 }
-
-                // Pass the source through unchanged as a single code block
-                return [text];
-            },
-
-            postprocess(messages, filename) {
-                const allCompiled = compilationResults.get(filename);
-                compilationResults.delete(filename);
-
-                if (allCompiled) {
-                    return _.filter(messages[0], (msg) => {
-                        if (RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId)) {
-                            return false;
-                        }
-                        if (msg.ruleId === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(msg.message)) {
-                            return false;
-                        }
-                        return true;
-                    });
+                if (msg.ruleId === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(msg.message)) {
+                    return false;
                 }
+                return true;
+            });
+        }
 
-                return messages[0];
-            },
-        },
+        return messages[0];
     },
 };
 
-export default plugin;
+export default processor;

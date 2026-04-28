@@ -283,6 +283,7 @@ describe('actions/Policy', () => {
 
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: POLICY_NAME,
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -476,6 +477,7 @@ describe('actions/Policy', () => {
 
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Distance Disabled Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -534,6 +536,7 @@ describe('actions/Policy', () => {
 
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Overview Travel CodingRules Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -606,6 +609,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Workspace With Members',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -658,6 +662,7 @@ describe('actions/Policy', () => {
             const file = {uri: 'file://tmp/avatar.png', name: 'avatar.png', type: 'image/png'} as File;
             const options = {
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
                 policyName: 'Workspace With Avatar',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -695,6 +700,73 @@ describe('actions/Policy', () => {
 
             expect(policy?.avatarURL).toBe(file.uri);
             expect(policy?.originalFileName).toBe(file.name);
+        });
+
+        it('duplicate workspace propagates the caller currentUserEmail to the expense chat CREATED report action message', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(18, CONST.POLICY.TYPE.TEAM);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const callerEmail = 'explicit-caller@expensifail.com';
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: callerEmail,
+                policyName: 'Workspace Propagating Caller Email',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connection);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            const expenseChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            expect(expenseChat).toBeTruthy();
+
+            const reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            const expenseChatActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChat?.reportID}`] ?? {});
+            const createdAction = expenseChatActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(createdAction).toBeTruthy();
+            const messages = Array.isArray(createdAction?.message) ? createdAction?.message : [];
+            expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
@@ -1336,6 +1408,124 @@ describe('actions/Policy', () => {
             });
 
             expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
+        });
+
+        it('should not include memberData when adminParticipant is not provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {memberData?: string};
+            expect(params.memberData).toBeUndefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should generate optimistic expense chat report when adminParticipant is provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+            const adminEmail = 'admin@example.com';
+            const adminAccountID = 555;
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Verify memberData contains the workspaceChatReportID (created by createPolicyExpenseChats)
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            const params = apiCallArgs?.[1] as {memberData?: string};
+            const memberData = JSON.parse(params.memberData ?? '{}') as {workspaceChatReportID: string; workspaceChatCreatedReportActionID: string};
+            expect(memberData.workspaceChatReportID).toBeTruthy();
+            expect(memberData.workspaceChatCreatedReportActionID).toBeTruthy();
+
+            // Verify that optimistic data includes the expense chat report
+            const onyxData = apiCallArgs?.[2] as {optimisticData?: Array<{key: string; value: unknown}>};
+            const expenseChatOptimisticData = onyxData.optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${memberData.workspaceChatReportID}`);
+            expect(expenseChatOptimisticData).toBeTruthy();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should always create a new expense chat for adminParticipant since policyID is freshly generated', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const adminEmail = 'admin@example.com';
+            const adminAccountID = 555;
+
+            // Create two workspaces with the same adminParticipant — each should get a unique expense chat
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Workspace 1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Workspace 2',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Both calls should produce different workspaceChatReportIDs
+            const calls = apiWriteSpy.mock.calls.filter((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(calls).toHaveLength(2);
+
+            const memberData1 = JSON.parse((calls.at(0)?.at(1) as {memberData: string}).memberData) as {workspaceChatReportID: string};
+            const memberData2 = JSON.parse((calls.at(1)?.at(1) as {memberData: string}).memberData) as {workspaceChatReportID: string};
+            expect(memberData1.workspaceChatReportID).toBeTruthy();
+            expect(memberData2.workspaceChatReportID).toBeTruthy();
+            expect(memberData1.workspaceChatReportID).not.toBe(memberData2.workspaceChatReportID);
+
+            apiWriteSpy.mockRestore();
         });
     });
 
@@ -3165,6 +3355,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: {},
@@ -3259,6 +3451,8 @@ describe('actions/Policy', () => {
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [expenseChatReport],
                 transactionViolations: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -3323,6 +3517,8 @@ describe('actions/Policy', () => {
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3362,6 +3558,8 @@ describe('actions/Policy', () => {
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3403,6 +3601,8 @@ describe('actions/Policy', () => {
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3449,6 +3649,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3489,6 +3691,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3530,6 +3734,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,

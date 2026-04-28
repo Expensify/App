@@ -16,11 +16,11 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
-import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,15 +28,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCorrectSearchUserName} from '@libs/SearchUIUtils';
+import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
-import actionTranslationsMap from './SearchList/ListItem/ActionCell/actionTranslationsMap';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
 import SearchTableHeader from './SearchTableHeader';
@@ -57,26 +54,6 @@ type SearchStaticListProps = {
     canSelectMultiple?: boolean;
     columns?: SearchColumnType[];
 };
-
-function StaticActionButton({action}: {action: SearchTransactionAction | undefined}) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const actionType = action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
-    const isViewAction = actionType === CONST.SEARCH.ACTION_TYPES.VIEW || actionType === CONST.SEARCH.ACTION_TYPES.PAID || actionType === CONST.SEARCH.ACTION_TYPES.DONE;
-    const text = translate(actionTranslationsMap[actionType] ?? actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
-
-    return (
-        <Button
-            text={text}
-            extraSmall
-            style={[styles.w100, styles.pointerEventsNone]}
-            isDisabled
-            shouldStayNormalOnDisable
-            isNested
-            success={!isViewAction}
-        />
-    );
-}
 
 function SearchStaticList({
     searchResults,
@@ -172,17 +149,20 @@ function SearchStaticList({
         requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
     };
 
-    const renderItem = ({item}: ListRenderItemInfo<TransactionListItemType>) => {
+    const renderItem = ({item, index}: ListRenderItemInfo<TransactionListItemType>) => {
         if (!('transactionID' in item)) {
             return null;
         }
 
-        const hasFromSender = !!item.from?.accountID && !!item.from?.displayName;
-        const hasToRecipient = !!item.to?.accountID && !!item.to?.displayName;
         const participantFromDisplayName = item.formattedFrom ?? item.from?.displayName ?? '';
-        const participantToDisplayName = item.formattedTo ?? item.to?.displayName ?? '';
-        const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
         const shouldShowUserInfo = !!item.from;
+        const isFirstItem = index === 0;
+        const isLastItem = index === sortedData.length - 1;
+
+        const stateNum = item.report?.stateNum;
+        const statusNum = item.report?.statusNum;
+        const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
+        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
 
         return (
             <PressableWithoutFeedback
@@ -191,27 +171,41 @@ function SearchStaticList({
                 accessibilityLabel=""
                 onPress={() => onPressItem(item)}
             >
-                <View style={[styles.mb2, styles.mh5, styles.flex1, styles.userSelectNone, {backgroundColor: theme.highlightBG, borderRadius: variables.componentBorderRadius}]}>
-                    <View style={[styles.transactionListItemStyle, styles.pt3, styles.flexColumn, styles.alignItemsStretch]}>
-                        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2, styles.ph3]}>
+                <View
+                    style={[
+                        styles.mh5,
+                        styles.flex1,
+                        styles.userSelectNone,
+                        {backgroundColor: theme.highlightBG},
+                        isFirstItem && styles.searchTableTopRadius,
+                        isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                        !isLastItem && styles.borderBottom,
+                    ]}
+                >
+                    <View style={[styles.p4, styles.flexColumn, styles.alignItemsStretch]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                             {shouldShowUserInfo && (
                                 <UserInfoCellsWithArrow
-                                    shouldShowToRecipient={shouldShowToRecipient}
+                                    shouldShowToRecipient={false}
                                     participantFrom={item.from}
                                     participantFromDisplayName={participantFromDisplayName}
-                                    participantToDisplayName={participantToDisplayName}
+                                    participantToDisplayName=""
                                     participantTo={item.to}
-                                    avatarSize={CONST.AVATAR_SIZE.SMALL_SUBSCRIPT}
+                                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                                    infoCellsTextStyle={{lineHeight: 14}}
-                                    infoCellsAvatarStyle={styles.pr1}
-                                    fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : undefined}
+                                    infoCellsTextStyle={styles.mutedNormalTextLabel}
+                                    infoCellsAvatarStyle={styles.pr1half}
+                                    fromRecipientStyle={styles.mw100}
                                     shouldUseArrowIcon={false}
                                 />
                             )}
-                            <View style={[{width: variables.w72}, styles.alignItemsEnd]}>
-                                <StaticActionButton action={item.action} />
-                            </View>
+                            {!!statusText && !!reportStatusColorStyle && (
+                                <StatusBadge
+                                    text={statusText}
+                                    backgroundColor={reportStatusColorStyle.backgroundColor}
+                                    textColor={reportStatusColorStyle.textColor}
+                                />
+                            )}
                         </View>
                         <TransactionItemRow
                             transactionItem={item}
@@ -224,7 +218,7 @@ function SearchStaticList({
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                            style={[styles.p3, styles.pv2, styles.pt2]}
+                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3]}
                         />
                     </View>
                 </View>
