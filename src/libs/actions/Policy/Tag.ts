@@ -29,30 +29,20 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import {completeTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-type CreatePolicyTagParams = {
-    policyData: PolicyData;
-    tagName: string;
-    setupTagsTaskReport: OnyxEntry<Report>;
-    setupTagsTaskParentReport: OnyxEntry<Report>;
-    isSetupTagsTaskParentReportArchived: boolean;
-    setupTagsHasOutstandingChildTask: boolean;
-    setupTagsParentReportAction: OnyxEntry<ReportAction>;
-    setupCategoriesAndTagsTaskReport: OnyxEntry<Report>;
-    setupCategoriesAndTagsTaskParentReport: OnyxEntry<Report>;
-    isSetupCategoriesAndTagsTaskParentReportArchived: boolean;
-    setupCategoriesAndTagsHasOutstandingChildTask: boolean;
-    setupCategoriesAndTagsParentReportAction: OnyxEntry<ReportAction>;
-    currentUserAccountID: number;
-    policyHasCustomCategories: boolean;
-};
+/**
+ * Checks if a task report is incomplete (not approved)
+ */
+function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
+    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
+}
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -130,22 +120,13 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKE
     return onyxData;
 }
 
-function createPolicyTag({
-    policyData,
-    tagName,
-    setupTagsTaskReport,
-    setupTagsTaskParentReport,
-    isSetupTagsTaskParentReportArchived,
-    setupTagsHasOutstandingChildTask,
-    setupTagsParentReportAction,
-    setupCategoriesAndTagsTaskReport,
-    setupCategoriesAndTagsTaskParentReport,
-    isSetupCategoriesAndTagsTaskParentReportArchived,
-    setupCategoriesAndTagsHasOutstandingChildTask,
-    setupCategoriesAndTagsParentReportAction,
-    currentUserAccountID,
-    policyHasCustomCategories,
-}: CreatePolicyTagParams) {
+function createPolicyTag(
+    policyData: PolicyData,
+    tagName: string,
+    setupTagsTaskReport?: OnyxEntry<Report>,
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
+    policyHasCustomCategories?: boolean,
+) {
     const {policy, tags: policyTags} = policyData;
     const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
@@ -213,34 +194,12 @@ function createPolicyTag({
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
-    const isTaskForCurrentWorkspace = (taskReport: OnyxEntry<Report>) => !taskReport?.policyID || taskReport.policyID === policyID;
-
-    // Complete the "Set up tags" onboarding task
-    if (setupTagsTaskReport && currentUserAccountID && isTaskForCurrentWorkspace(setupTagsTaskReport)) {
-        getFinishOnboardingTaskOnyxData(
-            setupTagsTaskReport,
-            setupTagsTaskParentReport,
-            isSetupTagsTaskParentReportArchived ?? false,
-            currentUserAccountID,
-            setupTagsHasOutstandingChildTask ?? false,
-            setupTagsParentReportAction,
-            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            undefined,
-        );
+    if (isTaskIncomplete(setupTagsTaskReport)) {
+        completeTask(setupTagsTaskReport, false, false, undefined);
     }
 
-    // Complete the combined "Set up categories and tags" task only if categories already exist
-    if (setupCategoriesAndTagsTaskReport && policyHasCustomCategories && currentUserAccountID && isTaskForCurrentWorkspace(setupCategoriesAndTagsTaskReport)) {
-        getFinishOnboardingTaskOnyxData(
-            setupCategoriesAndTagsTaskReport,
-            setupCategoriesAndTagsTaskParentReport,
-            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
-            currentUserAccountID,
-            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
-            setupCategoriesAndTagsParentReportAction,
-            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            undefined,
-        );
+    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
+        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
     }
 }
 
