@@ -23,7 +23,6 @@ import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import CompactMenuContext from './CompactMenuContext';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import MenuItem from './MenuItem';
@@ -631,18 +630,16 @@ function BasePopoverMenu({
                 active={isVisible}
                 shouldReturnFocus={!shouldEnableNewFocusManagement}
             >
-                <CompactMenuContext.Provider value>
-                    <View
-                        onLayout={onLayout}
-                        style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
-                    >
-                        {renderWithConditionalWrapper(
-                            shouldUseScrollView,
-                            [scrollViewPaddingStyles, restScrollContainerStyle],
-                            [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
-                        )}
-                    </View>
-                </CompactMenuContext.Provider>
+                <View
+                    onLayout={onLayout}
+                    style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
+                >
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [scrollViewPaddingStyles, restScrollContainerStyle],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
+                </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
