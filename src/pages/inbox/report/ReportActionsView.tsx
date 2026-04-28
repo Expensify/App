@@ -84,9 +84,9 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const parentReportAction = useParentReportAction(report);
 
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
-    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
-    const hasOnceLoadedReportActions = reportMetadata?.hasOnceLoadedReportActions;
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

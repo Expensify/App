@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +18,7 @@ import FailedKYC from './FailedKYC';
 // Steps
 import OnfidoStep from './OnfidoStep';
 import TermsStep from './TermsStep';
+import useHasFreshWalletData from './useHasFreshWalletData';
 
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
@@ -25,8 +26,7 @@ function EnablePaymentsPage() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
-    const wasLoadingRef = useRef(false);
-    const [hasFreshData, setHasFreshData] = useState(false);
+    const hasFreshData = useHasFreshWalletData(isOffline, userWallet?.isLoading);
 
     // Always fetch fresh wallet data on mount
     useEffect(() => {
@@ -40,27 +40,15 @@ function EnablePaymentsPage() {
     // Only redirect after the fresh data loading cycle (isLoading: true → false) completes,
     // to avoid acting on stale cached values from a previous session.
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || !hasFreshData) {
             return;
         }
-
-        if (userWallet?.isLoading) {
-            wasLoadingRef.current = true;
-            return;
-        }
-
-        if (!wasLoadingRef.current) {
-            return;
-        }
-
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- we need to trigger a re-render when fresh data arrives to stop showing the loading indicator
-        setHasFreshData(true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
         }
-    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, userWallet?.isLoading]);
+    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, hasFreshData]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {

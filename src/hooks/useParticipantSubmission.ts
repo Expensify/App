@@ -297,10 +297,13 @@ function useParticipantSubmission({
 
         const newReportID = selectedReportID.current;
         const currentSelfDMReportID = dataRef.current.selfDMReportID;
-        const shouldUpdateTransactionReportID = effectiveParticipants?.at(0)?.reportID !== newReportID;
         const transactionReportID = newReportID === currentSelfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
         const firstParticipant = effectiveParticipants?.at(0);
+
         for (const transaction of drafts) {
+            // Check if the transaction's current reportID differs from what it should be
+            const shouldUpdateTransactionReportID = transaction?.reportID !== transactionReportID;
+
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const policy = isPolicyExpenseChat && firstParticipant?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
@@ -308,10 +311,12 @@ function useParticipantSubmission({
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
             setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
+
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
         }
+
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
             const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
