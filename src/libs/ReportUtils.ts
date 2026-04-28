@@ -6651,7 +6651,11 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
     const totalAmount = report.total !== undefined && !Number.isNaN(report.total) ? Math.abs(report.total) : 0;
     const nonReimbursableTotal =
         'nonReimbursableTotal' in report && report.nonReimbursableTotal !== undefined && !Number.isNaN(report.nonReimbursableTotal) ? Math.abs(report.nonReimbursableTotal) : 0;
-    const reimbursableAmount = totalAmount - nonReimbursableTotal;
+    // Prefer the freshly computed reimbursableTotal from the backend over deriving it from the stored
+    // total column (which can be stale).
+    const freshReimbursableTotal =
+        'reimbursableTotal' in report && report.reimbursableTotal !== undefined && !Number.isNaN(report.reimbursableTotal) ? Math.abs(report.reimbursableTotal) : undefined;
+    const reimbursableAmount = freshReimbursableTotal ?? totalAmount - nonReimbursableTotal;
 
     const result = formula
         // We don't translate because the server response is always in English
