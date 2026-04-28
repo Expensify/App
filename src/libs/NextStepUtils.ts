@@ -516,6 +516,32 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         ],
     };
 
+    let bankAccountSetupActorMessage: Message;
+    if (policy?.ownerAccountID === currentUserAccountIDParam) {
+        bankAccountSetupActorMessage = {text: 'you', type: 'strong', clickToCopyText: currentUserEmailParam ?? ''};
+    } else if (reimburserAccountID === -1 || !policy?.ownerAccountID) {
+        bankAccountSetupActorMessage = {text: 'an admin'};
+    } else {
+        bankAccountSetupActorMessage = {text: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
+    }
+
+    const nextStepFinishBankAccountSetup = {
+        type,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for ',
+            },
+            bankAccountSetupActorMessage,
+            {
+                text: ' to ',
+            },
+            {
+                text: 'finish setting up a business bank account.',
+            },
+        ],
+    };
+
     const noActionRequired = {
         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
         type,
@@ -706,7 +732,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
+                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : hasValidAccount ? nextStepPayExpense : nextStepFinishBankAccountSetup;
                 break;
             }
             // Another owner
@@ -737,28 +763,30 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     },
                 ];
             } else {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)
-                        ? {
-                              text: `you`,
-                              type: 'strong',
-                          }
-                        : {
-                              text: `an admin`,
+                optimisticNextStep.message = hasValidAccount
+                    ? [
+                          {
+                              text: 'Waiting for ',
                           },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
+                          isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)
+                              ? {
+                                    text: `you`,
+                                    type: 'strong',
+                                }
+                              : {
+                                    text: `an admin`,
+                                },
+                          {
+                              text: ' to ',
+                          },
+                          {
+                              text: 'pay',
+                          },
+                          {
+                              text: ' %expenses.',
+                          },
+                      ]
+                    : nextStepFinishBankAccountSetup.message;
             }
 
             break;
@@ -793,15 +821,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
             }
 
-            let bankAccountSetupActorMessage: Message;
-            if (policy?.ownerAccountID === currentUserAccountIDParam) {
-                bankAccountSetupActorMessage = {text: 'you', type: 'strong', clickToCopyText: currentUserEmailParam ?? ''};
-            } else if (reimburserAccountID === -1 || !policy?.ownerAccountID) {
-                bankAccountSetupActorMessage = {text: 'an admin'};
-            } else {
-                bankAccountSetupActorMessage = {text: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
-            }
-
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -821,18 +840,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                               text: ' %expenses.',
                           },
                       ]
-                    : [
-                          {
-                              text: 'Waiting for ',
-                          },
-                          bankAccountSetupActorMessage,
-                          {
-                              text: ' to ',
-                          },
-                          {
-                              text: 'finish setting up a business bank account.',
-                          },
-                      ],
+                    : nextStepFinishBankAccountSetup.message,
             };
             break;
         }
