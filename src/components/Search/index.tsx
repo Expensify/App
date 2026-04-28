@@ -1712,7 +1712,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
-                                isLoadMore
+                                isLoadMore={shouldShowLoadingMoreItems}
                             />
                         ) : undefined
                     }

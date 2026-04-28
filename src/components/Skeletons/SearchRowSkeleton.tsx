@@ -68,7 +68,7 @@ function SearchRowSkeleton({
                     itemViewHeight={100}
                     itemViewStyle={[styles.highlightBG, styles.mr0]}
                     itemContainerStyle={styles.borderBottom}
-                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, isLoadMore && styles.borderTop, !isLoadMore && styles.searchTableTopRadius]}
+                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, !isLoadMore && styles.searchTableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
                     onLayout={onLayout}
