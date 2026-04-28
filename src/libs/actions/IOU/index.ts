@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import {format} from 'date-fns';
+import {addYears, format} from 'date-fns';
 import {fastMerge} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -643,7 +643,10 @@ function initMoneyRequest({
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
+    // Scanning receipts get a date 1 year in the future so they sort to the top of the date-descending expenses list.
+    // SmartScan replaces this with the real date once scanning completes.
+    const created =
+        currentDate ?? (newIouRequestType === CONST.IOU.REQUEST_TYPE.SCAN ? format(addYears(new Date(), 1), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
 
     // We remove draft transactions created during multi scanning if there are some
     removeDraftTransactionsByIDs(draftTransactionIDs, true);
