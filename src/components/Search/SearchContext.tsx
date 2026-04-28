@@ -180,6 +180,8 @@ function SearchContextProvider({children}: SearchContextProps) {
                         reportID,
                         action = CONST.SEARCH.ACTION_TYPES.VIEW,
                         total = CONST.DEFAULT_NUMBER_ID,
+                        reimbursableTotal,
+                        nonReimbursableTotal,
                         policyID,
                         allActions = [action],
                         currency,
@@ -192,7 +194,10 @@ function SearchContextProvider({children}: SearchContextProps) {
                     }) => ({
                         reportID,
                         action,
-                        total,
+                        // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored
+                        // total column so bulk-pay and bulk-action summaries reflect the current sum of
+                        // reimbursable transactions.
+                        total: reimbursableTotal ?? total - (nonReimbursableTotal ?? 0),
                         policyID,
                         allActions,
                         currency,
