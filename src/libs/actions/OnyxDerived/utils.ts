@@ -16,12 +16,11 @@ const hasKeyTriggeredCompute = <TKey extends OnyxKey, Deps extends NonEmptyTuple
 
 /**
  * Set a derived value in Onyx
- * As a performance optimization, it skips the cache check and null removal
- * For derived values, we fully control their lifecycle and recompute them when any dependency changes - so we don’t need a deep comparison
- * Also, null may be a legitimate result of the computation, so pruning it is unnecessary
  */
 const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) =>
     Onyx.set(key, value, {
+        // Don't skip cache check to prevent race conditions where default values might overwrite actual data.
+        // See https://github.com/Expensify/App/pull/88719 for more context.
         skipCacheCheck: false,
     });
 
