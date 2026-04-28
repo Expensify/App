@@ -160,6 +160,7 @@ function IOURequestStepDistanceOdometer({
 
     useRestartOnOdometerImagesFailure(transaction, reportID, iouType, backToReport, () => {
         backupHandledManually.current = true;
+        shouldBypassDiscardConfirmationRef.current = true;
     });
 
     // Get odometer images from transaction (only for display, not for initialization)
