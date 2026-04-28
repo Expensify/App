@@ -55,7 +55,17 @@ You can import the following file types:
 Your file must include at least the following columns:
 - Date  
 - Amount  
-- Merchant  
+- Merchant
+
+The complete list of columns is:
+XXX....y'all fill this in
+
+Here is the link to download a template file
+- .CSV  
+- .TXT  
+- .XLS  
+- .XLSX
+- XXX/y'all add links and create them
 
 ## What happens if I use the same column twice when mapping fields?
 
