@@ -137,12 +137,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
     const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: effectivePolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
-    const currentAmount = useMemo(() => {
-        if (isDistance && distance && rate) {
-            return DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign;
-        }
-        return Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
-    }, [isDistance, distance, rate, unit, originalSign, splitExpenseDraftTransaction?.amount]);
+    const currentAmount =
+        isDistance && distance && rate
+            ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
+            : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
@@ -152,12 +150,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     // Compute the header merchant from current distance and rate when available,
     // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
     // does not appear in the title. Falls back to the stored merchant otherwise.
-    const merchantToDisplay = useMemo(() => {
-        if (isDistance && distance && rate && unit) {
-            return DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true);
-        }
-        return splitExpenseDraftTransactionDetails?.merchant ?? '';
-    }, [isDistance, distance, rate, unit, currency, translate, toLocaleDigit, getCurrencySymbol, splitExpenseDraftTransactionDetails?.merchant]);
+    const merchantToDisplay =
+        isDistance && distance && rate && unit
+            ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
+            : (splitExpenseDraftTransactionDetails?.merchant ?? '');
 
     const isCustomUnitOutOfPolicy = !isSelfDMSplit && (!rates[currentRateID] || (isDistance && !rate));
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
