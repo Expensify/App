@@ -1,14 +1,14 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -37,8 +37,6 @@ function SplitListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
@@ -55,7 +53,7 @@ function SplitListItem<TItem extends ListItem>({
         [splitItem],
     );
 
-    const inputRef = useRef<BaseTextInputRef | null>(null);
+    const {inputCallbackRef: autoFocusCallbackRef} = useAutoFocusInput();
 
     // Animated highlight style for selected item
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -75,23 +73,14 @@ function SplitListItem<TItem extends ListItem>({
         onInputFocus?.(item);
     }, [onInputFocus, item]);
 
-    // Auto-focus input when item is selected and screen transition ends
-    useEffect(() => {
-        if (!didScreenTransitionEnd || !splitItem.isSelected || !splitItem.isEditable || !inputRef.current) {
+    // Only connect the auto-focus ref to the selected item so useAutoFocusInput's useFocusEffect
+    // cleanup can cancel any pending focus task when the screen starts closing, preventing
+    // the focused input from interfering with the close animation.
+    const inputCallbackRef: (ref: BaseTextInputRef | null) => void = (ref) => {
+        if (!splitItem.isSelected || !splitItem.isEditable) {
             return;
         }
-
-        // Use InteractionManager to ensure input focus happens after all animations/interactions complete.
-        // This prevents focus from interrupting modal close/open animations which would cause UI glitches
-        // and "jumping" behavior when quickly navigating between screens.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            inputRef.current?.focus();
-        });
-    }, [didScreenTransitionEnd, splitItem.isSelected, splitItem.isEditable]);
-
-    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
-        inputRef.current = ref;
+        (autoFocusCallbackRef as unknown as (ref: BaseTextInputRef | null) => void)(ref);
     };
 
     const isPercentageMode = splitItem.mode === CONST.TAB.SPLIT.PERCENTAGE;

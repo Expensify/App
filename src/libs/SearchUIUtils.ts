@@ -4719,7 +4719,6 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.EXPORTED_TO]: 'search.exportedTo',
     [FILTER_KEYS.FEED]: 'search.filters.feed',
     [FILTER_KEYS.FROM]: 'common.from',
-    [FILTER_KEYS.GROUP_CURRENCY]: 'common.groupCurrency',
     [FILTER_KEYS.HAS]: 'search.has',
     [FILTER_KEYS.IN]: 'common.in',
     [FILTER_KEYS.IS]: 'search.filters.is',
@@ -4802,6 +4801,7 @@ function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, tr
             .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
             .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
             .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
+            .replace(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX, '')
             .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
             .split('-')
             .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
@@ -4823,6 +4823,13 @@ function getReportFieldDisplayValue(form: Partial<SearchAdvancedFiltersForm>, tr
         if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
             const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
             values.push(translate('search.filters.reportField', fieldName, dateString.toLowerCase()));
+        }
+
+        if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX)) {
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldValue as string, undefined, undefined, true);
+            if (rangeDisplay) {
+                values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
+            }
         }
 
         if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {

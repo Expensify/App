@@ -85,5 +85,5 @@ function useCurrencyListActions(): CurrencyListActionsContextType {
     return useContext(CurrencyListActionsContext);
 }
 
-export {CurrencyListContextProvider, CurrencyListStateContext, CurrencyListActionsContext, useCurrencyListState, useCurrencyListActions};
+export {CurrencyListContextProvider, useCurrencyListState, useCurrencyListActions};
 export type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';

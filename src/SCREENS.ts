@@ -260,7 +260,7 @@ const SCREENS = {
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
-            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+            CANCEL_SUBSCRIPTION: 'Settings_Subscription_CancelSubscription',
             SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
         },
     },
@@ -344,6 +344,7 @@ const SCREENS = {
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
+        CREATE_VERIFY_ACCOUNT: 'Money_Request_Create_Verify_Account',
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         REPORT_REJECT: 'Money_Request_Report_Reject',
@@ -926,7 +927,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
-    CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
+    DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     CHRONOS_SCHEDULE_OOO_ROOT: 'Chronos_Schedule_OOO_Root',
     REPORT_PARTICIPANTS: {
@@ -1008,6 +1009,8 @@ const SCREENS = {
         MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
         MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
         MEMBERS_MOVE_TO_GROUP: 'Members_Move_To_Group',
+        GROUP_DETAILS: 'Domain_Group_Details',
+        GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

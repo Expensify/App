@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -54,6 +55,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
@@ -126,9 +128,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 text: message,
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
+                delegateAccountID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             return;
         }
 
@@ -161,11 +164,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         currentUserAccountID: personalDetail.accountID,
                         text: message,
                         timezone: personalDetail.timezone,
+                        delegateAccountID,
                     });
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, {forceReplace: true});
+                Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
             () => {},
             fileType,

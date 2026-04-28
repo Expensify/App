@@ -254,6 +254,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: currentUserPersonalDetails?.accountID,
+                currentUserLogin: currentUserPersonalDetails?.email ?? '',
             });
         }
     };
@@ -399,6 +401,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
+                        currentUserAccountID: currentUserPersonalDetails?.accountID,
+                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                 });
             },
