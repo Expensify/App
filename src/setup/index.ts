@@ -34,8 +34,6 @@ export default function () {
     Onyx.init({
         keys: ONYXKEYS,
         enableDevTools,
-        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 50000,
         evictableKeys: [
             ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             ONYXKEYS.COLLECTION.SNAPSHOT,
@@ -64,10 +62,13 @@ export default function () {
             ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
             ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
             ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
             ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+            ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
         ],
     });
 

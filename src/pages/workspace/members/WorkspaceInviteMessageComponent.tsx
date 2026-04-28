@@ -14,6 +14,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +23,6 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -68,6 +68,7 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -156,7 +157,9 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
+            currentUserPersonalDetails?.accountID,
             shouldShowApproverRow ? validatedApprover : undefined,
+            filteredReportActions,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
@@ -168,11 +171,6 @@ function WorkspaceInviteMessageComponent({
 
         if ((backTo as string)?.endsWith('members')) {
             Navigation.dismissModal();
-            return;
-        }
-
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {forceReplace: true});
             return;
         }
 

@@ -20,16 +20,15 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardDescription} from '@libs/CardUtils';
-import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
@@ -46,7 +45,6 @@ import {
     hasMissingSmartscanFields,
     isAmountMissing,
     isDeletedTransaction as isDeletedTransactionUtil,
-    isExpenseUnreported,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
@@ -55,7 +53,6 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
@@ -150,21 +147,6 @@ type TransactionItemRowProps = {
     policyForMovingExpenses?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
-    /** Callbacks for inline cell editing */
-    onEditDate?: (newDate: string) => void;
-    onEditMerchant?: (newMerchant: string) => void;
-    onEditDescription?: (newDescription: string) => void;
-    onEditCategory?: (newCategory: string) => void;
-    onEditAmount?: (newAmount: number) => void;
-    onEditTag?: (newTag: string) => void;
-
-    /** Per-field edit permissions — controls whether the cell shows editable affordance */
-    canEditDate?: boolean;
-    canEditMerchant?: boolean;
-    canEditDescription?: boolean;
-    canEditCategory?: boolean;
-    canEditAmount?: boolean;
-    canEditTag?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -220,30 +202,12 @@ function TransactionItemRow({
     isLargeScreenWidth: isLargeScreenWidthProp,
     policyForMovingExpenses,
     isActionColumnWide: isActionColumnWideProp,
-    onEditDate,
-    onEditMerchant,
-    onEditDescription,
-    onEditCategory,
-    onEditAmount,
-    onEditTag,
-    canEditDate,
-    canEditMerchant,
-    canEditDescription,
-    canEditCategory,
-    canEditAmount,
-    canEditTag,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const isLargeScreenWidth = isLargeScreenWidthProp ?? !shouldUseNarrowLayout;
-    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
-
-    // For unreported expenses (SelfDM), use active policy to show policy-specific fields like categories and tags
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
-    const effectivePolicyID = isExpenseUnreported(transactionItem) ? activePolicyID : reportPolicyID;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -350,9 +314,6 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            canEdit={canEditTag}
-                            onSave={onEditTag}
-                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -363,9 +324,7 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide})]}
                     >
                         <DateCell
-                            canEdit={canEditDate}
                             date={createdAt}
-                            onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth={!shouldUseNarrowLayout}
                         />
@@ -433,9 +392,6 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            canEdit={canEditCategory}
-                            onSave={onEditCategory}
-                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -485,13 +441,13 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
                     >
-                        <MerchantOrDescriptionCell
-                            merchantOrDescription={merchant ?? ''}
-                            shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={false}
-                            canEdit={canEditMerchant}
-                            onSave={onEditMerchant}
-                        />
+                        {!!merchant && (
+                            <MerchantOrDescriptionCell
+                                merchantOrDescription={merchant}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={false}
+                            />
+                        )}
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -500,14 +456,14 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
                     >
-                        <MerchantOrDescriptionCell
-                            merchantOrDescription={description}
-                            shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={false}
-                            isDescription
-                            canEdit={canEditDescription}
-                            onSave={onEditDescription}
-                        />
+                        {!!description && (
+                            <MerchantOrDescriptionCell
+                                merchantOrDescription={description}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={false}
+                                isDescription
+                            />
+                        )}
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -597,8 +553,6 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            canEdit={canEditAmount}
-                            onSave={onEditAmount}
                         />
                     </View>
                 );
@@ -724,11 +678,13 @@ function TransactionItemRow({
         return columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+
     if (shouldUseNarrowLayout) {
         return (
             <>
                 <View
-                    style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
+                    style={[bgActiveStyles, styles.justifyContentEvenly, style]}
                     testID="transaction-item-row"
                 >
                     <View style={[styles.flexRow]}>
@@ -752,47 +708,46 @@ function TransactionItemRow({
                             style={styles.mr3}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
-                        <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                                <DateCell
-                                    date={createdAt}
-                                    showTooltip={shouldShowTooltip}
-                                    isLargeScreenWidth={!shouldUseNarrowLayout}
-                                />
-                                <Text style={[styles.textMicroSupporting]}> • </Text>
-                                <TypeCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                {!merchantOrDescription && (
-                                    <View style={[styles.mlAuto]}>
-                                        <TotalCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            {!!merchantOrDescription && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                        <View style={[styles.flex2, styles.flexColumn, styles.gap1]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                {merchantOrDescription ? (
                                     <MerchantOrDescriptionCell
                                         merchantOrDescription={merchantOrDescription}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         isDescription={!merchant}
                                     />
+                                ) : null}
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {shouldRenderChatBubbleCell && (
+                                        <ChatBubbleCell
+                                            transaction={transactionItem}
+                                            isInSingleTransactionReport={isInSingleTransactionReport}
+                                        />
+                                    )}
                                     <TotalCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                            )}
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <DateCell
+                                    date={createdAt}
+                                    showTooltip={shouldShowTooltip}
+                                    isLargeScreenWidth={false}
+                                    suffixText={categoryForDisplay}
+                                />
+                                <TypeCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
                         </View>
                         {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
-                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
+                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml3]}>
                                 <Icon
                                     src={expensicons.ArrowRight}
                                     fill={theme.icon}
@@ -814,43 +769,17 @@ function TransactionItemRow({
                             </View>
                         )}
                     </View>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && !isIOUReport(report) && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                    <CategoryCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        policyID={effectivePolicyID}
-                                    />
-                                    <TagCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        policyID={effectivePolicyID}
-                                    />
-                                </View>
-                            )}
-                            {shouldShowErrors && (
-                                <TransactionItemRowRBR
-                                    transaction={transactionItem}
-                                    violations={violations}
-                                    report={report}
-                                    containerStyles={[styles.mt2, styles.minHeight4]}
-                                    missingFieldError={missingFieldError}
-                                    transactionThreadReportID={transactionThreadReportID}
-                                />
-                            )}
-                        </View>
-                        {shouldRenderChatBubbleCell && (
-                            <ChatBubbleCell
-                                transaction={transactionItem}
-                                containerStyles={[styles.mt2]}
-                                isInSingleTransactionReport={isInSingleTransactionReport}
-                            />
-                        )}
-                    </View>
+                    {shouldShowErrors && (
+                        <TransactionItemRowRBR
+                            transaction={transactionItem}
+                            violations={violations}
+                            report={report}
+                            containerStyles={[styles.mt3, styles.minHeight4]}
+                            missingFieldError={missingFieldError}
+                            transactionThreadReportID={transactionThreadReportID}
+                            shouldUseNarrowLayout
+                        />
+                    )}
                 </View>
                 {!!shouldShowBottomBorder && (
                     <View style={bgActiveStyles}>
@@ -865,7 +794,10 @@ function TransactionItemRow({
 
     return (
         <>
-            <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
+            <View
+                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}
+                testID="transaction-item-row"
+            >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (
                         <Checkbox

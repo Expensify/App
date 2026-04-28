@@ -91,7 +91,7 @@ import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import {createDraftWorkspace} from './actions/Policy/Policy';
-import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
+import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
@@ -357,6 +357,7 @@ type BuildOptimisticAddCommentReportActionParams = {
     reportActionID?: string;
     attachmentID?: string;
     isHTML?: boolean;
+    delegateAccountIDParam: number | undefined;
 };
 
 type OptimisticReportAction = {
@@ -1286,14 +1287,6 @@ function getReportOrDraftReport(
     return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
 }
 
-function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, reportID: string | undefined): Transaction[] {
-    if (!transactions || !reportID) {
-        return [];
-    }
-
-    return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
-}
-
 /**
  * This function is being migrated to remove `deprecatedReportsTransactions`.
  * If you need to use this function, you must explicitly pass the `allReportsTransactions` parameter
@@ -1733,13 +1726,6 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a Control policy and is an expense chat
- */
-function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
-}
-
-/**
  * Whether the provided policyType is a Free, Collect or Control policy type
  */
 function isGroupPolicy(policyType: string): boolean {
@@ -1760,20 +1746,6 @@ function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxIn
 function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
     return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
-}
-
-/**
- * Whether the provided report belongs to a Control or Collect policy and is an expense chat
- */
-function isPaidGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return isPolicyExpenseChat(report) && isPaidGroupPolicy(report);
-}
-
-/**
- * Whether the provided report belongs to a Control policy and is an expense report
- */
-function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -2398,16 +2370,6 @@ function getHarvestOriginalReportID(origin?: string, originalID?: string): strin
 }
 
 /**
- * Whether the report with the provided reportID is an archived non-expense report
- */
-function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isReportArchived = false) {
-    if (!report) {
-        return false;
-    }
-    return !(isExpenseReport(report) || isExpenseRequest(report)) && isReportArchived;
-}
-
-/**
  * Whether the provided report is a closed report
  */
 function isClosedReport(report: OnyxInputOrEntry<Report>): boolean {
@@ -2491,19 +2453,6 @@ function isAllowedToComment(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if the current user is the admin of the policy given the policy expense chat.
- */
-function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
-    if (!isPolicyExpenseChat(report)) {
-        return false;
-    }
-
-    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.role;
-
-    return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
  * Checks if the current user is the admin of the policy.
  */
 function isPolicyAdmin(policy: OnyxEntry<Policy>): boolean {
@@ -2536,13 +2485,6 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
     const chatType = getChatType(report);
     return isThread(report) && isChatReport(report) && CONST.WORKSPACE_ROOM_TYPES.some((type) => chatType === type);
-}
-
-/**
- * Checks if a report is a child report.
- */
-function isChildReport(report: OnyxEntry<Report>): boolean {
-    return isThread(report) || isTaskReport(report);
 }
 
 /**
@@ -3562,15 +3504,6 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
         participants[accountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
         return participants;
     }, finalParticipants);
-}
-
-function getParticipants(reportID: string) {
-    const report = getReportOrDraftReport(reportID);
-    if (!report) {
-        return {};
-    }
-
-    return report.participants;
 }
 
 function getParticipantIcon(accountID: number | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, shouldUseShortForm = false): Icon {
@@ -4776,7 +4709,7 @@ function canEditMoneyRequest(
         return !isForwarded;
     }
 
-    return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport) && !isClosedReport(moneyRequestReport) && isRequestor;
+    return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport?.reportID) && !isClosedReport(moneyRequestReport) && isRequestor;
 }
 
 function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = false) {
@@ -4970,7 +4903,7 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    if (isSettled(moneyRequestReport) || isReportApproved({report: moneyRequestReport})) {
+    if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
     }
 
@@ -6427,6 +6360,7 @@ function buildOptimisticAddCommentReportAction({
     currentUserEmail,
     currentUserAccountID,
     isHTML = false,
+    delegateAccountIDParam,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
@@ -6437,7 +6371,8 @@ function buildOptimisticAddCommentReportAction({
     const isAttachmentOnly = file && !text;
     const isAttachmentWithText = !!text && file !== undefined;
     const accountID = actorAccountID ?? currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
+    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
 
     // Remove HTML from text when applying optimistic offline comment
     return {
@@ -6475,7 +6410,7 @@ function buildOptimisticAddCommentReportAction({
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
             isOptimisticAction: true,
-            delegateAccountID: delegateAccountDetails?.accountID,
+            delegateAccountID: effectiveDelegateAccountID,
         },
     };
 }
@@ -6568,7 +6503,8 @@ function buildOptimisticTaskCommentReportAction(
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset, currentUserEmail, currentUserAccountID});
+    // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset, currentUserEmail, currentUserAccountID, delegateAccountIDParam: undefined});
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -7839,7 +7775,7 @@ function buildOptimisticTaskReportAction(
         html: message,
         whisperedTo: [],
     };
-    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66417
+    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
     const effectiveDelegateEmail = delegateEmailParam ?? delegateEmail;
     const delegateAccountDetails = effectiveDelegateEmail ? getPersonalDetailByEmail(effectiveDelegateEmail) : undefined;
 
@@ -8522,7 +8458,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
     };
 }
 
-function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
+function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[], currentUserAccountID: number | undefined): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -8551,6 +8487,7 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
         oldPolicyName: policy?.name,
         writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        currentUserAccountID,
     });
 
     const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -8645,17 +8582,24 @@ function shouldPinAdminRoomByDefault() {
     return !isExpensifyTeam(deprecatedCurrentUserEmail);
 }
 
-function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
-    const pendingChatMembers = getPendingChatMembers(deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+function buildOptimisticWorkspaceChats(
+    policyID: string,
+    policyName: string,
+    currentUserAccountID: number | undefined,
+    currentUserEmail: string | undefined,
+    expenseReportId?: string,
+): OptimisticWorkspaceChats {
+    const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
         ...buildOptimisticChatReport({
-            participantList: deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : [],
+            participantList: currentUserAccountID ? [currentUserAccountID] : [],
             reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
             isPinned: shouldPinAdminRoomByDefault(),
+            currentUserAccountID,
         }),
     };
     const adminsChatReportID = adminsChatData.reportID;
@@ -8665,18 +8609,19 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
     };
 
     const expenseChatData = buildOptimisticChatReport({
-        participantList: deprecatedCurrentUserAccountID ? [deprecatedCurrentUserAccountID] : [],
+        participantList: currentUserAccountID ? [currentUserAccountID] : [],
         reportName: '',
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         policyID,
-        ownerAccountID: deprecatedCurrentUserAccountID,
+        ownerAccountID: currentUserAccountID,
         isOwnPolicyExpenseChat: true,
         oldPolicyName: policyName,
         optimisticReportID: expenseReportId,
+        currentUserAccountID,
     });
 
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(deprecatedCurrentUserEmail ?? '');
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '');
     const expenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
@@ -9199,6 +9144,8 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                 return false;
             }
 
+            const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
+
             return (
                 !isInvoiceReport(potentialReport) &&
                 ViolationsUtils.hasVisibleViolationsForUser(
@@ -9229,19 +9176,37 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                         potentialReport,
                         policy,
                     ) ||
-                    hasNoticeTypeViolations(
-                        potentialReport.reportID,
+                    hasNoticeTypeViolationsForRBRInLHN(
                         transactionViolations,
                         deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                         deprecatedCurrentUserEmail ?? '',
-                        true,
                         transactions,
                         potentialReport,
                         policy,
+                        excludedNoticeNamesForLHN,
                     ))
             );
         });
     return violatingReport ? violatingReport.reportID : null;
+}
+
+function hasNoticeTypeViolationsForRBRInLHN(
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    reportTransactions: Transaction[],
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    excludedViolationNames: string[],
+): boolean {
+    return reportTransactions.some((transaction) => {
+        const rawViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
+        if (!rawViolations?.length) {
+            return false;
+        }
+        const filteredViolations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, policy, true);
+    });
 }
 
 /**
@@ -9326,14 +9291,6 @@ function hasReceiptError(transaction: OnyxInputOrEntry<Transaction>): boolean {
     const errorEntries = Object.entries(errors ?? {});
     const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
     return Object.values(errorMessages).some((error) => isReceiptError(error));
-}
-
-/**
- * Checks to see if a report contains receipt error
- */
-function hasReceiptErrors(reportID: string | undefined): boolean {
-    const transactions = getReportTransactions(reportID);
-    return transactions.some(hasReceiptError);
 }
 
 /**
@@ -9473,9 +9430,16 @@ function getAllReportErrors(
     return allReportErrors;
 }
 
-function getReceiptUploadErrorReason(report: Report, chatReport: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction>) {
+function getReceiptUploadErrorReason(
+    report: Report,
+    chatReport: OnyxEntry<Report>,
+    reportActions: OnyxEntry<ReportActions>,
+    transactions: OnyxCollection<Transaction>,
+    // We'll make it required eventually. Refactor issue: https://github.com/Expensify/App/issues/66407
+    isOffline?: boolean,
+) {
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? [], isOffline);
     if (transactionThreadReportAction) {
         const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -10248,13 +10212,6 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
     }
 
     return false;
-}
-
-/**
- * Return true if reports data exists
- */
-function isReportDataReady(): boolean {
-    return !isEmptyObject(deprecatedAllReports) && Object.keys(deprecatedAllReports ?? {}).some((key) => deprecatedAllReports?.[key]?.reportID);
 }
 
 /**
@@ -11197,15 +11154,6 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
     return !(policy?.preventSelfApproval && isOwner);
 }
 
-function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(report?.policyID);
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-
-    return isAllowedToApproveExpenseReport(report, submitToAccountID);
-}
-
 /**
  * What missing payment method does this report action indicate, if any?
  */
@@ -11859,7 +11807,8 @@ function prepareOnboardingOnyxData({
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1});
+    // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1, delegateAccountIDParam: undefined});
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
@@ -11876,12 +11825,14 @@ function prepareOnboardingOnyxData({
     if (shouldUseFollowupsInsteadOfTasks) {
         const bespokeMarkdown = getBespokeWelcomeMessage(companySize, userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
+        // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         bespokeAction = buildOptimisticAddCommentReportAction({
             text: bespokeMarkdown,
             actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
             createdOffset: 2,
             reportID: targetChatReportID,
             reportActionID: optimisticConciergeReportActionID,
+            delegateAccountIDParam: undefined,
         });
         // Reuse the HTML that buildOptimisticAddCommentReportAction already parsed via getParsedComment,
         // so we avoid calling getParsedComment a second time with the same input.
@@ -11969,7 +11920,7 @@ function prepareOnboardingOnyxData({
             }
 
             const completedTaskReportAction = isTaskAutoCompleted
-                ? // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+                ? // delegateEmailParam: will be threaded in PR 14; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
                   buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, undefined, 'marked as complete', actorAccountID, 2)
                 : null;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
@@ -11999,7 +11950,8 @@ function prepareOnboardingOnyxData({
     const welcomeSignOffText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3});
+    // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3, delegateAccountIDParam: undefined});
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,
@@ -13341,53 +13293,6 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
 
-/**
- * Checks if all selected items have the necessary Onyx data hydrated for bulk rejection.
- */
-function checkBulkRejectHydration(
-    selectedTransactions: Record<string, {reportID: string; policyID?: string}>,
-    policies: Record<string, unknown> | null | undefined,
-): {areHydrated: boolean; missingReportIDs: string[]; missingPolicyIDs: string[]} {
-    const transactionIDs = Object.keys(selectedTransactions);
-    const missingReportIDs: string[] = [];
-    const missingPolicyIDs: string[] = [];
-
-    for (const transactionID of transactionIDs) {
-        const transaction = selectedTransactions[transactionID];
-        const reportID = transaction?.reportID;
-
-        // Check if we have the report data
-        const report = getReportOrDraftReport(reportID);
-        if (!report) {
-            missingReportIDs.push(reportID);
-            continue;
-        }
-
-        const effectivePolicyID = transaction?.policyID ?? report.policyID;
-
-        // Check if we have the policy data (required for canRejectReportAction check)
-        if (effectivePolicyID) {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicyID}`];
-            if (!policy) {
-                missingPolicyIDs.push(effectivePolicyID);
-                continue;
-            }
-        }
-
-        // Check if essential report fields are present
-        if (report.managerID == null || report.stateNum == null || report.statusNum == null) {
-            missingReportIDs.push(reportID);
-            continue;
-        }
-    }
-
-    return {
-        areHydrated: missingReportIDs.length === 0 && missingPolicyIDs.length === 0,
-        missingReportIDs: [...new Set(missingReportIDs)],
-        missingPolicyIDs: [...new Set(missingPolicyIDs)],
-    };
-}
-
 function shouldHideSingleReportField(reportField: PolicyReportField) {
     const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
 
@@ -13485,7 +13390,6 @@ export {
     buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
-    checkBulkRejectHydration,
     buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -13551,11 +13455,9 @@ export {
     canEditRoomVisibility,
     canEditWriteCapability,
     canFlagReportAction,
-    isNonAdminOrOwnerOfPolicyExpenseChat,
     canJoinChat,
     canLeaveChat,
     canReportBeMentionedWithinPolicy,
-    canRequestMoney,
     canSeeDefaultRoom,
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
@@ -13595,7 +13497,6 @@ export {
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getLastVisibleMessage,
-    getMoneyRequestOptions,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getOptimisticDataForAncestors,
@@ -13606,13 +13507,11 @@ export {
     getParsedComment,
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
-    getParticipants,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
     getPolicyName,
-    getPolicyType,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportDescription,
@@ -13623,7 +13522,6 @@ export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getSearchReportName,
     getReportTransactions,
-    reportTransactionsSelector,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
@@ -13652,28 +13550,22 @@ export {
     goBackFromPrivateNotes,
     getHarvestOriginalReportID,
     getPayeeName,
-    getReportSummariesForEmptyCheck,
     getPolicyIDsWithEmptyReportsForAccount,
     hasActionWithErrorsForTransaction,
     hasAutomatedExpensifyAccountIDs,
     hasEmptyReportsForPolicy,
-    hasExpensifyGuidesEmails,
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
     hasReceiptError,
-    hasReceiptErrors,
     hasReportNameError,
     getReportActionWithSmartscanError,
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
     hasVisibleReportFieldViolations,
-    hasWarningTypeViolations,
-    hasNoticeTypeViolations,
-    hasAnyViolations,
     isActionCreator,
     isAdminRoom,
     isAdminsOnlyPostingRoom,
@@ -13682,25 +13574,20 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isArchivedNonExpenseReportWithID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,
     isChatRoom,
     isTripRoom,
     isChatThread,
-    isChildReport,
     isClosedExpenseReportWithNoExpenses,
     isCompletedTaskReport,
     isConciergeChatReport,
-    isControlPolicyExpenseChat,
-    isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
-    isEmptyReport,
     generateIsEmptyReport,
     isRootGroupChat,
     isExpenseReport,
@@ -13728,22 +13615,18 @@ export {
     isOpenTaskReport,
     isOptimisticPersonalDetail,
     isPaidGroupPolicy,
-    isPaidGroupPolicyExpenseChat,
     isPaidGroupPolicyExpenseReport,
     isPayer,
     isPolicyAdmin,
     isPolicyExpenseChat,
-    isPolicyExpenseChatAdmin,
     isProcessingReport,
     isOpenReport,
     requiresManualSubmission,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
-    isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
     isReportManuallyReimbursed,
-    isReportDataReady,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
@@ -13824,7 +13707,6 @@ export {
     getApprovalChain,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,
-    isAuditor,
     hasMissingInvoiceBankAccount,
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
@@ -13845,7 +13727,6 @@ export {
     getPolicyChangeMessage,
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
-    getExpenseReportStateAndStatus,
     navigateToLinkedReportAction,
     buildOptimisticUnreportedTransactionAction,
     isBusinessInvoiceRoom,
@@ -13861,7 +13742,6 @@ export {
     generateReportAttributes,
     getHumanReadableStatus,
     getReportPersonalDetailsParticipants,
-    isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
@@ -13882,8 +13762,6 @@ export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     doesReportContainRequestsFromMultipleUsers,
-    hasUnresolvedCardFraudAlert,
-    getUnresolvedCardFraudAlertAction,
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
     isOneTransactionReport,

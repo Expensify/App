@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getIsOffline} from '@libs/NetworkState';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -89,11 +90,14 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.NETWORK,
     ],
     compute: (
         [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
         {currentValue, sourceValues},
     ) => {
+        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        const isOffline = getIsOffline();
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -284,6 +288,7 @@ export default createOnyxDerivedValueConfig({
                     hasAnyViolations || hasFieldViolations,
                     reportErrors,
                     transactions,
+                    isOffline,
                     transactionViolations,
                     !!isReportArchived,
                     reports,

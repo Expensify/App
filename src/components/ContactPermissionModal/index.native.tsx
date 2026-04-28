@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ContactPermissionModalProps} from './types';
+import type ContactPermissionModalProps from './types';
 
 function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
     const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);

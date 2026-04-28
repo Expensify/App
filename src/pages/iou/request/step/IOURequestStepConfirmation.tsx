@@ -24,6 +24,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -239,6 +240,7 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
+    const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
 
     // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
     // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
@@ -548,11 +550,10 @@ function IOURequestStepConfirmation({
             />
             <OdometerReceiptStitcher
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
-                currentTransactionID={currentTransactionID}
                 odometerStartImage={odometerStartImage}
                 odometerEndImage={odometerEndImage}
-                action={action}
-                iouType={iouType}
+                transaction={transaction}
+                hasVerifiedBlobs={hasVerifiedBlobs}
                 onStitchingChange={setIsStitchingReceipt}
                 onStitchError={setStitchError}
             />
@@ -563,6 +564,7 @@ function IOURequestStepConfirmation({
                 initialTransactionID={initialTransactionID}
                 reportID={reportID}
                 action={action}
+                backToReport={backToReport}
                 report={report}
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
@@ -644,7 +646,7 @@ function IOURequestStepConfirmation({
                                 isPolicyExpenseChat={isPolicyExpenseChat}
                                 policyID={policyID}
                                 isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                isLoadingReceipt={isStitchingReceipt}
+                                isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
                                 isPerDiemRequest={isPerDiemRequest}
                                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                                 action={action}

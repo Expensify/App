@@ -40,9 +40,7 @@ import {
     isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
-    isReportApproved,
     isReportIDApproved,
-    isReportManuallyReimbursed,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -376,15 +374,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return 'iou.time';
     }
-}
-
-function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    }
-
-    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -1408,16 +1397,6 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Check if the transaction status is set to Posted.
- */
-function isPosted(transaction: Transaction): boolean {
-    if (!transaction.status) {
-        return false;
-    }
-    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
-}
-
-/**
  * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
@@ -1738,13 +1717,6 @@ function allHavePendingRTERViolation(
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
 
-function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    if (hasRTERPendingViolation) {
-        return true;
-    }
-    return shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report);
-}
-
 /**
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
@@ -1876,6 +1848,7 @@ function isDuplicate(
     if (!transaction) {
         return false;
     }
+
     const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
     const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
@@ -2352,7 +2325,7 @@ function removeTransactionFromDuplicateTransactionViolation(
             continue;
         }
 
-        const optimisticViolations = duplicateTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        const optimisticViolations = duplicateViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
         if (duplicateTransactionIDs.length > 0) {
             optimisticViolations.push({
@@ -2364,10 +2337,21 @@ function removeTransactionFromDuplicateTransactionViolation(
             });
         }
 
+        const cleanedValue = optimisticViolations.length > 0 ? optimisticViolations : null;
+
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: optimisticViolations.length > 0 ? optimisticViolations : null,
+            value: cleanedValue,
+        });
+
+        // Re-apply the cleaned violations on success so that stale data from a
+        // queued command (e.g. OpenReport resolving between optimistic apply and
+        // the server response) doesn't re-introduce one-sided duplicate violations.
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+            value: cleanedValue,
         });
 
         onyxData.failureData?.push({
@@ -2838,7 +2822,6 @@ export {
     getDescription,
     getRequestType,
     getTransactionType,
-    isManualRequest,
     isScanRequest,
     getAmount,
     getAttendees,
@@ -2869,7 +2852,6 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
-    getValidDuplicateTransactionIDs,
     isDistanceRequest,
     isMapDistanceRequest,
     isGPSDistanceRequest,
@@ -2881,12 +2863,10 @@ export {
     isManagedCardTransaction,
     isDuplicate,
     isPending,
-    isPosted,
     isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
-    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
@@ -2902,7 +2882,6 @@ export {
     hasReservationList,
     hasViolation,
     hasDuplicateTransactions,
-    hasBrokenConnectionViolation,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
@@ -2928,12 +2907,10 @@ export {
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
     isViolationDismissed,
-    isBrokenConnectionViolation,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
     isScanning,
     isCategoryBeingAnalyzed,
-    checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,

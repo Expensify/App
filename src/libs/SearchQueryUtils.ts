@@ -34,7 +34,6 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1604,6 +1603,21 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
+type BuildUserReadableQueryStringParams = {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+};
+
 function buildUserReadableQueryString({
     queryJSON,
     PersonalDetails,
@@ -1617,20 +1631,7 @@ function buildUserReadableQueryString({
     translate,
     feedKeysWithCards,
     reportAttributes,
-}: {
-    queryJSON: SearchQueryJSON;
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
-    reports: OnyxCollection<OnyxTypes.Report>;
-    taxRates: Record<string, string[]>;
-    cardList: OnyxTypes.CardList | undefined;
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
-    policies: OnyxCollection<OnyxTypes.Policy>;
-    currentUserAccountID: number;
-    autoCompleteWithSpace: boolean;
-    translate: LocalizedTranslate;
-    feedKeysWithCards?: FeedKeysWithAssignedCards;
-    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
-}) {
+}: BuildUserReadableQueryStringParams) {
     const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
@@ -1782,20 +1783,6 @@ function buildCannedSearchQuery({
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
     return buildSearchQueryString(normalizedQueryJSON);
-}
-
-/**
- * Returns whether a given search query is a Canned query.
- *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip" is a canned query.
- */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = [queryJSON.columns ?? []].flat();
-    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
-    const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
@@ -2125,7 +2112,6 @@ export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
-    parseRangeQueryValue,
     isSearchDatePreset,
     getDateRangeForPreset,
     isFilterSupported,
@@ -2138,7 +2124,6 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
-    isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,
@@ -2161,5 +2146,7 @@ export {
     serializeQueryJSONForBackend,
     isAmountFilterKey,
 };
+
+export type {BuildUserReadableQueryStringParams};
 
 export type {SearchDateValues};
