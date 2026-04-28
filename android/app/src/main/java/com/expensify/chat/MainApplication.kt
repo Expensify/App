@@ -14,6 +14,7 @@ import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
 import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
+import com.margelo.nitro.nitrofetch.AutoPrefetcher
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -72,6 +73,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         if (isOnfidoProcess()) {
             return
         }
+
+        try { AutoPrefetcher.prefetchOnStart(this) } catch (_: Throwable) {}
 
         loadReactNative(this)
 
