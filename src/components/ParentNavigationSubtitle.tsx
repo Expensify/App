@@ -10,7 +10,6 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
@@ -103,15 +102,20 @@ function ParentNavigationSubtitle({
     const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
-        const fullScreenRoute = state?.routes?.findLast((route) => isFullScreenName(route.name));
+        // Find the tab navigator, which wraps all full-screen navigators
+        const tabNavigatorRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const tabState = tabNavigatorRoute?.state;
 
-        // We need to track which navigator is focused to handle parent report navigation correctly:
-        // if we are in RHP, and parent report is opened in RHP, we want to go back to the parent report
-        const focusedNavigator = state?.routes
-            ? state.routes.findLast((route) => {
-                  return route.state?.routes && route.state.routes.length > 0;
-              })
-            : undefined;
+        // Get the active (focused) tab from the tab navigator as the current full-screen route
+        const fullScreenRoute = tabState ? tabState.routes?.[tabState.index ?? 0] : undefined;
+
+        // Find the outermost navigator that currently has an active screen stack
+        const lastNavigatorWithRoutes = state?.routes ? state.routes.findLast((route) => route.state?.routes && route.state.routes.length > 0) : undefined;
+
+        // If the tab navigator is focused, resolve to the active tab's navigator so that
+        // focusedNavigatorState reflects the split navigator's screen stack (not the tab list).
+        // If RHP is focused, use the RHP route directly so RHP-specific checks work correctly.
+        const focusedNavigator = lastNavigatorWithRoutes?.name === NAVIGATORS.TAB_NAVIGATOR ? fullScreenRoute : lastNavigatorWithRoutes;
 
         return {
             currentFullScreenRoute: fullScreenRoute,
@@ -185,6 +189,24 @@ function ParentNavigationSubtitle({
                         return;
                     }
                 }
+            }
+        }
+
+        // If the parent report is already the previous screen in the main stack, go back to it
+        // and update its params instead of pushing a new instance. Without this check, repeatedly
+        // tapping the subtitle link builds up a [DM, Expense, DM, Expense, …] stack that traps
+        // the user after an expense is deleted.
+        if ((currentReportIndex ?? 0) > 0 && focusedNavigatorState?.key) {
+            const prevRoute = focusedNavigatorState.routes[(currentReportIndex ?? 0) - 1];
+            const prevRouteReportID = prevRoute?.params && 'reportID' in prevRoute.params ? String(prevRoute.params.reportID) : undefined;
+
+            if (prevRouteReportID === parentReportID && prevRoute?.key) {
+                if (isVisibleAction && parentReportActionID) {
+                    // Set params on the background screen first so it is already correct when revealed.
+                    Navigation.setParams({reportActionID: parentReportActionID}, prevRoute.key, focusedNavigatorState.key);
+                }
+                Navigation.goBack();
+                return;
             }
         }
 

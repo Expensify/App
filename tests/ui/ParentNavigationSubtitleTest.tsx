@@ -38,11 +38,21 @@ describe('ParentNavigationSubtitle', () => {
         Navigation.getTopmostReportId = jest.fn(() => parentReportID);
         mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
-            const mockRoute = {name: 'ReportsSplitNavigator'};
+            const mockState = {
+                routes: [
+                    {
+                        name: 'TabNavigator',
+                        state: {
+                            index: 0,
+                            routes: [{name: 'ReportsSplitNavigator'}],
+                        },
+                    },
+                ],
+            };
             if (selector) {
-                return selector({routes: [mockRoute]});
+                return selector(mockState);
             }
-            return mockRoute;
+            return mockState;
         });
 
         render(
@@ -73,11 +83,21 @@ describe('ParentNavigationSubtitle', () => {
         Navigation.getTopmostReportId = jest.fn(() => parentReportID);
         mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
-            const mockRoute = {name: 'SettingsSplitNavigator'};
+            const mockState = {
+                routes: [
+                    {
+                        name: 'TabNavigator',
+                        state: {
+                            index: 0,
+                            routes: [{name: 'SettingsSplitNavigator'}],
+                        },
+                    },
+                ],
+            };
             if (selector) {
-                return selector({routes: [mockRoute]});
+                return selector(mockState);
             }
-            return mockRoute;
+            return mockState;
         });
         render(
             <ParentNavigationSubtitle
@@ -104,11 +124,21 @@ describe('ParentNavigationSubtitle', () => {
         Navigation.getTopmostReportId = jest.fn(() => '999');
         mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
-            const mockRoute = {name: 'ReportsSplitNavigator'};
+            const mockState = {
+                routes: [
+                    {
+                        name: 'TabNavigator',
+                        state: {
+                            index: 0,
+                            routes: [{name: 'ReportsSplitNavigator'}],
+                        },
+                    },
+                ],
+            };
             if (selector) {
-                return selector({routes: [mockRoute]});
+                return selector(mockState);
             }
-            return mockRoute;
+            return mockState;
         });
 
         render(
