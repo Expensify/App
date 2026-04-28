@@ -604,12 +604,7 @@ function AdvancedSearchFilters() {
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: queryString,
-            }),
-            {forceReplace: true},
-        );
+        Navigation.dismissModal({afterTransition: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}))});
     };
 
     const filters = typeFiltersKeys.map((section) => {
