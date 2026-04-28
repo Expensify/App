@@ -32,6 +32,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import {useIsCompactMenu} from './CompactMenuContext';
 import CopyTextToClipboard from './CopyTextToClipboard';
 import DisplayNames from './DisplayNames';
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
@@ -113,6 +114,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Styles to apply on the title wrapper */
         titleWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles to apply on the inner row containing the icon and text content */
+        innerContainerStyle?: StyleProp<ViewStyle>;
 
         /** Any additional styles to apply on the outer element */
         containerStyle?: StyleProp<ViewStyle>;
@@ -247,6 +251,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
+
+        /** Any additional styles to apply to the subtitle */
+        subtitleStyle?: StyleProp<TextStyle>;
 
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
@@ -479,6 +486,7 @@ function MenuItem({
     style,
     wrapperStyle,
     titleWrapperStyle,
+    innerContainerStyle,
     outerWrapperStyle,
     containerStyle,
     titleStyle,
@@ -526,6 +534,7 @@ function MenuItem({
     titleComponent,
     titleContainerStyle,
     subtitle,
+    subtitleStyle,
     shouldShowBasicTitle,
     rightLabelIcon,
     label,
@@ -604,11 +613,15 @@ function MenuItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
+    const isCompactMenu = useIsCompactMenu();
+    const isCompactPopoverItem = isCompactMenu && !isSmallScreenWidth;
+    const compactIconStyle = isCompactPopoverItem && iconType === CONST.ICON_TYPE_ICON && {width: variables.iconSizeNormal};
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -833,6 +846,7 @@ function MenuItem({
                                         !interactive && styles.cursorDefault,
                                         isCompact && styles.alignItemsCenter,
                                         isCompact && styles.optionRowCompact,
+                                        isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
@@ -864,7 +878,15 @@ function MenuItem({
                                                         </Text>
                                                     </View>
                                                 )}
-                                                <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
+                                                <View
+                                                    style={[
+                                                        styles.flexRow,
+                                                        styles.pointerEventsAuto,
+                                                        disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                        isCompactPopoverItem && styles.alignItemsCenter,
+                                                        innerContainerStyle,
+                                                    ]}
+                                                >
                                                     {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (
@@ -887,6 +909,7 @@ function MenuItem({
                                                                 styles.popoverMenuIcon,
                                                                 iconStyles,
                                                                 shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                                compactIconStyle,
                                                             ]}
                                                         />
                                                     )}
@@ -896,6 +919,7 @@ function MenuItem({
                                                                 styles.popoverMenuIcon,
                                                                 iconStyles,
                                                                 shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                                compactIconStyle,
                                                             ]}
                                                         >
                                                             {typeof icon !== 'string' &&
@@ -1068,7 +1092,7 @@ function MenuItem({
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                                 {(subtitle === 0 || !!subtitle) && (
                                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
+                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[]), subtitleStyle]}>{subtitle}</Text>
                                                     </View>
                                                 )}
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
@@ -1090,7 +1114,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
@@ -1114,7 +1138,7 @@ function MenuItem({
                                                     <View
                                                         style={[
                                                             styles.pointerEventsAuto,
-                                                            StyleUtils.getMenuItemIconStyle(isCompact),
+                                                            StyleUtils.getMenuItemIconStyle(true),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
                                                             !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,

@@ -74,6 +74,9 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
+    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
+    reserveDeferredWriteChannel: jest.fn(),
+    resetForTesting: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
@@ -761,7 +764,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

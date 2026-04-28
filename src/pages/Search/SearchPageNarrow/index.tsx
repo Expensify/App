@@ -7,8 +7,8 @@ import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import PulsingView from '@components/PulsingView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,6 +22,7 @@ import {SKIPPED_FILTERS} from '@components/Search/SearchPageHeader/useSearchFilt
 import SearchStaticList from '@components/Search/SearchStaticList';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -36,7 +37,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, shouldShowFilter} from '@libs/SearchUIUtils';
-import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
@@ -72,6 +73,8 @@ function hasFilterBarsSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvanc
     return !!Object.entries(searchAdvancedFiltersForm ?? {}).filter(([key, value]) => shouldShowFilter(SKIPPED_FILTERS, key as SearchAdvancedFiltersKey, value, type)).length;
 }
 
+const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SEARCH} />;
+
 function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter, onSortPressedCallback}: SearchPageNarrowProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const {translate} = useLocalize();
@@ -83,6 +86,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const {shouldUseLiveData} = useSearchStateContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
+
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -204,35 +208,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         setIsSearchReady(true);
     }, []);
 
-    const hadFocusRef = useRef(false);
-    const hadLayoutRef = useRef(false);
-
-    // Single callback for ending submit-expense navigation spans. Passed down
-    // to SearchStaticList and Search so the logic lives in one place.
-    // Requires both focus and layout signals before ending — prevents 0ms spans
-    // on subsequent flows where useFocusEffect fires before the content re-renders.
-    const endSubmitNavigationSpans = useCallback((wasListEmpty: boolean, source: 'focus' | 'layout') => {
-        if (source === 'focus') {
-            hadFocusRef.current = true;
-        } else {
-            hadLayoutRef.current = true;
-        }
-
-        if (!hadFocusRef.current || !hadLayoutRef.current) {
-            return;
-        }
-
-        hadFocusRef.current = false;
-        hadLayoutRef.current = false;
-
-        const pending = getPendingSubmitFollowUpAction();
-        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
-                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
-                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: wasListEmpty,
-            });
-        }
-    }, []);
+    const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: true});
 
     // Wait for focus before transitioning to the full interactive Search component.
     // When pre-inserted behind the RHP, this keeps the page at the lightweight static
@@ -337,6 +313,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                 onDestinationVisible={endSubmitNavigationSpans}
+                hasFilterBars={hasFilterBars}
             />
         );
     };
@@ -350,8 +327,9 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 testID="SearchPageNarrow"
                 shouldEnableMaxHeight
                 offlineIndicatorStyle={styles.mtAuto}
-                bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
                 shouldShowOfflineIndicator={!!searchResults}
+                bottomContent={!searchRouterListVisible && tabBarContent}
+                bottomContentStyle={styles.overflowVisible}
             >
                 <View style={[styles.flex1, styles.overflowHidden]}>
                     {!isMobileSelectionModeEnabled ? (

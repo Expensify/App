@@ -27,7 +27,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
-import {createDraftInitialWorkspace, createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from './Policy/Policy';
+import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -121,9 +121,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
+    ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.IS_LOADING_APP,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
-    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -572,6 +572,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    isAnnualSubscription?: boolean;
 };
 
 /**
@@ -598,6 +599,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        isAnnualSubscription = false,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -626,8 +628,18 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            isAnnualSubscription,
         });
-        Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
+
+        if (transitionFromOldDot) {
+            Navigation.navigate(routeToNavigate);
+        } else if (Navigation.isTopmostRouteModalScreen()) {
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(routeToNavigate),
+            });
+        } else {
+            Navigation.navigate(routeToNavigate, {forceReplace: true});
+        }
     });
 }
 
@@ -674,7 +686,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
 type SavePolicyDraftByNewWorkspaceParams = {
     isSelfTourViewed: boolean | undefined;
     policyID?: string;
-    policyName?: string;
+    policyName: string;
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
     currency?: string;
@@ -689,6 +701,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    isAnnualSubscription?: boolean;
 };
 
 /**
@@ -712,6 +725,7 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    isAnnualSubscription = false,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -732,6 +746,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        isAnnualSubscription,
     });
 }
 
@@ -785,7 +800,7 @@ function setUpPoliciesAndNavigate(
             introSelected,
             currency,
             policyOwnerEmail,
-            policyName: policyName || newGenerateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
+            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicyID,

@@ -20,7 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -114,22 +114,26 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     };
 
-    const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => ({
-        value: entry.fundID,
-        text: getExpensifyCardFeedDescription(entry.settings, policies),
-        keyForList: entry.fundID.toString(),
-        isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
-        isDisabled: isOtherWorkspaceSection && isOffline,
-        errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
-        leftElement: (
-            <Icon
-                src={illustrations.ExpensifyCardImage}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    });
+    const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => {
+        const isFeedPendingDelete = entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        return {
+            value: entry.fundID,
+            text: getExpensifyCardFeedDescription(entry.settings, policies),
+            keyForList: entry.fundID.toString(),
+            isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
+            isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),
+            pendingAction: entry.settings.pendingAction,
+            errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
+            leftElement: (
+                <Icon
+                    src={illustrations.ExpensifyCardImage}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={[styles.mr3, styles.cardIcon]}
+                />
+            ),
+        };
+    };
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
 
@@ -137,7 +141,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         setFeedWithError(undefined);
     };
 
+    const resetCardFlowState = () => {
+        clearIssueNewCardFlow(policyID);
+        clearIssueNewCardFormData();
+    };
+
     const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
+        resetCardFlowState();
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
@@ -165,6 +175,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
+        resetCardFlowState();
         updateSelectedExpensifyCardFeed(feed.value, policyID);
         goBack();
     };

@@ -271,7 +271,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         setShouldShowConnectedVerifiedBankAccount(isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency, USDBankAccountStep]);
+        // USDBankAccountStep is intentionally omitted from deps. This effect must only react to server-side
+        // achData changes — not to local USDBankAccountStep updates — otherwise it races with prepareNextStep
+        // and briefly pulls USDBankAccountStep back to the server value before the Onyx merge lands.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(() => {
         if (!prevPolicyCurrency || policyCurrency === prevPolicyCurrency) {
@@ -298,11 +302,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 return;
             }
 
-            if (
-                prevReimbursementAccount &&
-                prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
-            ) {
+            if (prevReimbursementAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction) {
                 setShouldShowContinueSetupButton(hasInProgressUSDVBBA(achData));
             }
 

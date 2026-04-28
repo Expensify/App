@@ -12,9 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/IOU';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
@@ -58,7 +59,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
-    const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+    const [reportLoadingState = CONST.DEFAULT_REPORT_LOADING_STATE] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -91,6 +92,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
+
+    useRestartOnOdometerImagesFailure(isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined, reportID, iouTypeParam ?? CONST.IOU.TYPE.SUBMIT, backToReport);
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
@@ -629,7 +632,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             threeDotsMenuItems,
             isAuthTokenRequired,
             isTrackExpenseAction: isTrackExpenseActionValue,
-            isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
+            isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
             shouldShowRotateButton: false,
@@ -650,7 +653,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isAuthTokenRequired,
             isTrackExpenseActionValue,
             transaction,
-            reportMetadata?.isLoadingInitialReportActions,
+            reportLoadingState?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             allowDownload,
             onDownloadAttachment,

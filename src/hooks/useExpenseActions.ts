@@ -15,6 +15,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -43,7 +44,7 @@ import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoney
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import useConfirmModal from './useConfirmModal';
@@ -253,6 +254,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: currentUserPersonalDetails?.accountID,
+                currentUserLogin: currentUserPersonalDetails?.email ?? '',
             });
         }
     };
@@ -398,6 +401,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
+                        currentUserAccountID: currentUserPersonalDetails?.accountID,
+                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                 });
             },
@@ -451,7 +456,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
@@ -544,7 +549,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }

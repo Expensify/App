@@ -221,6 +221,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         }
 
         duplicateWorkspaceAction(policy, {
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email,
             policyName: duplicateWorkspace.name,
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
@@ -255,6 +257,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         selectedItems,
         translate,
         duplicatedWorkspaceAvatar,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         currentUserPersonalDetails?.localCurrencyCode,
     ]);
 
@@ -350,7 +354,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             <>
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.textHeadline]}>{translate('workspace.duplicateWorkspace.selectFeatures')}</Text>
-                    <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
+                    <Text style={[styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
                     <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>

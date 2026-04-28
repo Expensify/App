@@ -47,8 +47,8 @@ type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Metadata for report */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+    /** Loading state for report */
+    reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
@@ -104,7 +104,7 @@ function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: T
     );
 }
 
-function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -141,7 +141,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -154,11 +154,11 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata, isOffline);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isOffline);
 
     const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
-    const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
+    const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -273,10 +273,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                     )}
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList
-                                reportID={reportID}
-                                onLayout={onLayout}
-                            />
+                            <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
                             <ReportActionsView
                                 reportID={reportID}
