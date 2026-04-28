@@ -19,6 +19,8 @@ Workspaces help manage company expenses, enforce policies, and integrate with ac
 3. Click **Name** to give your workspace a name.
 4. Click **Default Currency** to set your preferred currency.
 
+**Note:** If you have an Annual Subscription, your new workspace will default to the Control plan. Otherwise, it will default to the Collect plan.
+
 ---
 
 # Connect to Accounting Software

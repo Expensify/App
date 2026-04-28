@@ -33,5 +33,7 @@ Expensify offers two main subscription plans:
 
 The Collect Plan is always $5/member, regardless of subscription type or card use.
 
+**Note:** If you have an Annual Subscription, any new workspace you create will default to the Control plan. Otherwise, new workspaces default to the Collect plan. You can learn more about creating a workspace in [Configure a Company Workspace](/articles/new-expensify/getting-started/Create-a-company-workspace).
+
 **Note:** Expensify Cards generate 1% cash back on all U.S. purchases, or 2% if you spend $250K+/month across cards.
 
