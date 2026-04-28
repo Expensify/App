@@ -12,9 +12,9 @@ Understand what each report status means, what actions are available, and how to
 
 Each report status reflects a different stage in the reporting workflow:
 
-- **Draft**: The report is a draft. You can still add or remove expenses.
+- **Draft**: The report is a draft. You can still add or remove expenses. Reports that are rejected back to the submitter also return to Draft.
 - **Submitted**: The report is awaiting approval from another person.
-- **Outstanding**: The report is in progress—under review, held, or partially completed.
+- **Outstanding**: The report is in progress—under review, held, or partially completed. Reports that are rejected to a previous approver remain Outstanding.
 - **Approved**: The report is approved and ready for payment or export.
 - **Paid**: The report has been paid. All actions are complete.
 - **Done**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
