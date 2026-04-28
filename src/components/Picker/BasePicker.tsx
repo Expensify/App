@@ -57,7 +57,7 @@ function BasePicker<TPickerValue>({
     const picker = useRef<RNPickerSelect>(null);
 
     useEffect(() => {
-        if (!!value || !items || items.length !== 1 || !onInputChange) {
+        if (!!value || items?.length !== 1 || !onInputChange) {
             return;
         }
 
@@ -227,6 +227,18 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
+                        importantForAccessibility: 'no-hide-descendants',
+                    }}
+                    touchableDoneProps={{
+                        accessibilityRole: CONST.ROLE.BUTTON,
+                        accessibilityLabel: translate('common.dismiss'),
+                    }}
+                    touchableWrapperProps={{
+                        accessible: true,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
                     }}
                     doneText={translate('common.done')}
                     pickerProps={{

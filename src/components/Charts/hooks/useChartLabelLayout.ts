@@ -1,7 +1,8 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MIN_TRUNCATED_CHARS, SIN_45} from '@components/Charts/constants';
+import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation} from '@components/Charts/types';
-import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, getFontLineMetrics, maxVisibleCount, measureTextWidth, truncateLabel} from '@components/Charts/utils';
+import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount} from '@components/Charts/utils';
+import type useChartLabelMeasurements from './useChartLabelMeasurements';
 
 type LabelLayoutConfig = {
     /** Chart data points whose labels will be laid out. */
@@ -27,47 +28,48 @@ type LabelLayoutConfig = {
 
     /** When true, allows tighter label packing at 45° by accounting for vertical offset between right-aligned labels. */
     allowTightDiagonalPacking?: boolean;
+
+    /** Measurements of the label text. */
+    measurements: ReturnType<typeof useChartLabelMeasurements>;
+};
+
+const EMPTY_LAYOUT = {
+    labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+    labelSkipInterval: 1,
+    labelMaxWidths: [] as number[],
+    truncatedLabelWidths: [] as number[],
+    xAxisLabelHeight: 0,
+    regularLabelMaxWidth: Infinity,
+    firstLabelMaxWidth: Infinity,
+    lastLabelMaxWidth: Infinity,
+    ellipsisWidth: 0,
 };
 
 function useChartLabelLayout({
     data,
     fontMgr,
-    fontSize,
     tickSpacing,
     labelAreaWidth,
     firstTickLeftSpace = Infinity,
     lastTickRightSpace = Infinity,
     allowTightDiagonalPacking = false,
+    measurements,
 }: LabelLayoutConfig) {
-    if (!fontMgr || data.length === 0 || tickSpacing <= 0 || labelAreaWidth <= 0) {
-        return {labelRotation: LABEL_ROTATIONS.HORIZONTAL, labelSkipInterval: 1, truncatedLabels: [] as string[]};
+    // Phase 1: font/data measurements — stable across geometry-only changes (resize).
+
+    // Phase 2: layout decisions + label truncation.
+    // Memoized on all geometry inputs so labelMaxWidths and truncatedLabelWidths have stable
+    // references between re-renders where only unrelated state changes.
+    if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
+        return EMPTY_LAYOUT;
     }
+
+    const {lineHeight, labelWidths, maxLabelWidth, firstLabelWidth, lastLabelWidth, minTruncatedWidth, firstMinTrunc, lastMinTrunc, ellipsisWidth} = measurements;
 
     // With a single data point there are no adjacent labels to overlap, so edge constraints
     // based on canvas boundaries are irrelevant for the rotation decision.
     const effectiveFirstTickLeftSpace = data.length === 1 ? Infinity : firstTickLeftSpace;
     const effectiveLastTickRightSpace = data.length === 1 ? Infinity : lastTickRightSpace;
-
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
-    const lineHeight = Math.abs(ascent) + Math.abs(descent);
-    const ellipsisWidth = measureTextWidth(ELLIPSIS, fontMgr, fontSize);
-    const labelWidths = data.map((point) => measureTextWidth(point.label, fontMgr, fontSize));
-    const maxLabelWidth = Math.max(...labelWidths);
-    const firstLabelWidth = labelWidths.at(0) ?? 0;
-    const lastLabelWidth = labelWidths.at(-1) ?? 0;
-    const minTruncatedWidth = Math.max(
-        ...data.map((point, index) => {
-            if (point.label.length <= MIN_TRUNCATED_CHARS) {
-                return labelWidths.at(index) ?? 0;
-            }
-            return measureTextWidth(point.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
-        }),
-    );
-
-    const firstLabel = data.at(0)?.label ?? '';
-    const lastLabel = data.at(-1)?.label ?? '';
-    const firstMinTrunc = firstLabel.length <= MIN_TRUNCATED_CHARS ? firstLabelWidth : measureTextWidth(firstLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
-    const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
 
     // Pick rotation (prefer 0° → 45° → 90°)
     let rotation: LabelRotation = LABEL_ROTATIONS.VERTICAL;
@@ -100,13 +102,12 @@ function useChartLabelLayout({
         }
     }
 
-    // Truncate labels
+    // Compute per-label max-width constraints (used by ChartXAxisLabels for truncation).
     const truncDiagonalOverlap = allowTightDiagonalPacking ? lineHeight : 0;
     const tickMaxWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + truncDiagonalOverlap : Infinity;
 
-    const finalLabels = data.map((point, index) => {
+    const labelMaxWidths = data.map((_, index) => {
         let maxWidth = tickMaxWidth;
-
         if (index === 0) {
             const edgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, rotation, allowTightDiagonalPacking, 'first');
             maxWidth = Math.min(maxWidth, edgeMax);
@@ -115,13 +116,14 @@ function useChartLabelLayout({
             const edgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, rotation, allowTightDiagonalPacking, 'last');
             maxWidth = Math.min(maxWidth, edgeMax);
         }
-
-        return truncateLabel(point.label, labelWidths.at(index) ?? 0, maxWidth, ellipsisWidth);
+        return maxWidth;
     });
 
-    // Compute skip interval (only at 90°)
-    const finalWidths = finalLabels.map((label) => measureTextWidth(label, fontMgr, fontSize));
-    const finalMaxWidth = Math.max(...finalWidths);
+    // Approximate truncated widths for hit-testing: exact for non-truncated labels,
+    // at most ellipsisWidth px over for truncated ones — acceptable for bounding boxes.
+    const truncatedLabelWidths = labelMaxWidths.map((maxW, i) => Math.min(labelWidths.at(i) ?? 0, maxW));
+    const finalMaxWidth = Math.max(...truncatedLabelWidths);
+
     let skipInterval = 1;
     if (rotation === LABEL_ROTATIONS.VERTICAL) {
         const verticalWidth = effectiveWidth(finalMaxWidth, lineHeight, rotation);
@@ -129,14 +131,18 @@ function useChartLabelLayout({
         skipInterval = visibleCount >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visibleCount));
     }
 
-    // Compute vertical space needed for x-axis labels
-    const xAxisLabelHeight = effectiveHeight(finalMaxWidth, lineHeight, rotation);
+    const lastIndex = data.length - 1;
 
     return {
         labelRotation: rotation,
         labelSkipInterval: skipInterval,
-        truncatedLabels: finalLabels,
-        xAxisLabelHeight,
+        labelMaxWidths,
+        truncatedLabelWidths,
+        xAxisLabelHeight: effectiveHeight(finalMaxWidth, lineHeight, rotation),
+        regularLabelMaxWidth: tickMaxWidth,
+        firstLabelMaxWidth: labelMaxWidths.at(0) ?? tickMaxWidth,
+        lastLabelMaxWidth: labelMaxWidths.at(lastIndex) ?? tickMaxWidth,
+        ellipsisWidth,
     };
 }
 

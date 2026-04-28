@@ -1,11 +1,23 @@
 import {AppState} from 'react-native';
-import {cancelDeferredWrite, flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite, registerDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import {
+    cancelDeferredWrite,
+    deferOrExecuteWrite,
+    flushDeferredWrite,
+    getOptimisticWatchKey,
+    hasDeferredWrite,
+    registerDeferredWrite,
+    reserveDeferredWriteChannel,
+    resetForTesting,
+} from '@libs/deferredLayoutWrite';
+import CONST from '@src/CONST';
 
 beforeEach(() => {
     jest.useFakeTimers();
+    resetForTesting();
 });
 
 afterEach(() => {
+    resetForTesting();
     jest.useRealTimers();
 });
 
@@ -164,5 +176,119 @@ describe('deferredLayoutWrite', () => {
 
         flushDeferredWrite('test');
         expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    describe('deferOrExecuteWrite', () => {
+        it('defers to Search channel when shouldDeferForSearch is true', () => {
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: true, optimisticWatchKey: 'transactions_123'});
+
+            expect(apiWrite).not.toHaveBeenCalled();
+            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
+            expect(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe('transactions_123');
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('defers to DISMISS_MODAL channel when a reservation exists', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false, optimisticWatchKey: 'transactions_456'});
+
+            expect(apiWrite).not.toHaveBeenCalled();
+            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('executes immediately when no defer conditions are met', () => {
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('Search takes priority over DISMISS_MODAL when both conditions are true', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: true});
+
+            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
+            expect(apiWrite).not.toHaveBeenCalled();
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('skips DISMISS_MODAL deferral when isRetry is true', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false, isRetry: true});
+
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('defaults isRetry to false (defers to DISMISS_MODAL)', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            expect(apiWrite).not.toHaveBeenCalled();
+            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
+        });
+    });
+
+    describe('DISMISS_MODAL channel lifecycle', () => {
+        it('reserve -> flush-while-reserved -> register executes immediately', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
+        });
+
+        it('reserve -> register -> flush executes on flush', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+            expect(apiWrite).not.toHaveBeenCalled();
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('safety timeout fires if channel is never flushed', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            jest.advanceTimersByTime(5000);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
+        });
+
+        it('second flush is a no-op after the channel was already consumed', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
     });
 });

@@ -142,16 +142,17 @@ describe('ReportListItemHeader', () => {
 
     describe('UserInfoCellsWithArrow', () => {
         describe('when report type is IOU', () => {
-            it('should display both submitter and recipient if both are present', async () => {
+            it('should display only submitter without recipient on narrow layout', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'jane');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.getByText('Jane Smith')).toBeOnTheScreen();
+                expect(screen.queryByText('Jane Smith')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should not display submitter and recipient if only submitter is present', async () => {
+            it('should not display submitter if recipient is missing', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', undefined);
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
@@ -160,13 +161,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
+            it('should display only submitter even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getAllByText('John Doe')).toHaveLength(2);
-                expect(screen.getByTestId('UserInfoToIndicator')).toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(1);
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should not render anything if neither submitter nor recipient is present', async () => {
@@ -177,7 +178,7 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should only display submitter if recipient is invalid', async () => {
+            it('should display only submitter if recipient is invalid', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.IOU, 'john', 'fake');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
@@ -188,13 +189,14 @@ describe('ReportListItemHeader', () => {
         });
 
         describe('when report type is EXPENSE', () => {
-            it('should display both submitter and recipient if they are different', async () => {
+            it('should display only submitter without recipient on narrow layout', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
 
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
-                expect(screen.getByText('Jane Smith')).toBeOnTheScreen();
+                expect(screen.queryByText('Jane Smith')).not.toBeOnTheScreen();
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should display submitter if only submitter is present', async () => {
@@ -206,13 +208,13 @@ describe('ReportListItemHeader', () => {
                 expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
-            it('should display submitter and receiver, even if submitter and recipient are the same', async () => {
+            it('should display only submitter even if submitter and recipient are the same', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'john');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getAllByText('John Doe')).toHaveLength(2);
-                expect(screen.getByTestId('UserInfoToIndicator')).toBeOnTheScreen();
+                expect(screen.getAllByText('John Doe')).toHaveLength(1);
+                expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
 
             it('should not render anything if no participants are present', async () => {
@@ -222,7 +224,7 @@ describe('ReportListItemHeader', () => {
 
                 expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
-            it('should only display submitter if recipient is invalid', async () => {
+            it('should display only submitter if recipient is invalid', async () => {
                 const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'fake');
                 renderReportListItemHeader(reportItem);
                 await waitForBatchedUpdatesWithAct();

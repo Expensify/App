@@ -67,9 +67,9 @@ describe('usePendingConciergeResponse', () => {
         const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
         expect(pendingResponse).toBeUndefined();
 
-        // And the typing indicator should be cleared
+        // And the typing state should be left untouched
         const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
-        expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(false);
+        expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
     });
 
     it('should not move the action before the delay elapses', async () => {
@@ -175,9 +175,9 @@ describe('usePendingConciergeResponse', () => {
         const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
         expect(pendingResponse).toBeUndefined();
 
-        // And the typing indicator should be cleared
+        // And the typing state should be left untouched
         const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
-        expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(false);
+        expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
     });
 
     it('should do nothing when there is no pending response', async () => {

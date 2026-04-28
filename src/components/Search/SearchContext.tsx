@@ -188,6 +188,7 @@ function SearchContextProvider({children}: SearchContextProps) {
                         ownerAccountID,
                         parentReportActionID,
                         parentReportID,
+                        type,
                     }) => ({
                         reportID,
                         action,
@@ -200,6 +201,7 @@ function SearchContextProvider({children}: SearchContextProps) {
                         ownerAccountID,
                         parentReportActionID,
                         parentReportID,
+                        type,
                     }),
                 );
         } else if (data.length && data.every(isTransactionListItemType)) {

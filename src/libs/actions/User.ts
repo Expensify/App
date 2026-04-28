@@ -44,7 +44,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import Visibility from '@libs/Visibility';
-import * as Device from '@userActions/Device';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +61,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
+import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
@@ -189,7 +189,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
+    getDeviceInfoWithID().then((deviceInfo) => {
         const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod, deviceInfo};
         API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
     });
@@ -1537,6 +1537,7 @@ function respondToProactiveAppReview(
     currentProactiveAppReview: AppReview | null | undefined,
     userEmail: string | undefined,
     userAccountID: number,
+    delegateAccountID: number | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
@@ -1558,6 +1559,7 @@ function respondToProactiveAppReview(
             reportID: conciergeChatReportID,
             currentUserEmail: userEmail,
             currentUserAccountID: userAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();

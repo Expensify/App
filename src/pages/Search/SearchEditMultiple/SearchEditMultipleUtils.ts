@@ -1,6 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isIOUReport} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
@@ -61,6 +63,39 @@ function getTransactionEditContext(
 }
 
 /**
+ * Category/Tag/Tax only apply to expense/invoice reports and unreported (track) expenses.
+ * Returns true only when every selected transaction is eligible.
+ */
+function areAllTransactionsExpenseCompatible(selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>}>): boolean {
+    return selectedTransactionContexts.every(({transaction, report}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return !isIOUReport(report);
+    });
+}
+
+/**
+ * Reported expenses check their own workspace policy; unreported (track) expenses fall back to
+ * the bulk-edit workspace policy because they have no report to resolve a per-transaction policy from.
+ */
+function isBulkEditTaxTrackingEnabled(
+    selectedTransactionContexts: Array<{transaction: Transaction; transactionPolicy: OnyxEntry<Policy>}>,
+    bulkEditPolicy: OnyxEntry<Policy>,
+    hasPerDiemOrTimeTransaction: boolean,
+): boolean {
+    if (hasPerDiemOrTimeTransaction) {
+        return false;
+    }
+    return selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return !!bulkEditPolicy?.tax?.trackingEnabled;
+        }
+        return !!transactionPolicy?.tax?.trackingEnabled;
+    });
+}
+
+/**
  * After a hard refresh, transaction/report/reportAction data may only exist in the search snapshot,
  * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
  */
@@ -113,4 +148,12 @@ function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, sn
     return merged;
 }
 
-export {getCommonDependentTag, getTransactionEditContext, withSnapshotTransactions, withSnapshotReportActions, withSnapshotReports};
+export {
+    areAllTransactionsExpenseCompatible,
+    getCommonDependentTag,
+    getTransactionEditContext,
+    isBulkEditTaxTrackingEnabled,
+    withSnapshotTransactions,
+    withSnapshotReportActions,
+    withSnapshotReports,
+};
