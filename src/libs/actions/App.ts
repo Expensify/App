@@ -422,9 +422,11 @@ function getOnyxDataForOpenOrReconnect(
  * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
  */
 function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false) {
+    // Don't make API calls when client is not the leader to avoid UI flickering
     if (!isClientTheLeader()) {
         return Promise.resolve();
     }
+
     // Don't make API calls when using imported state to avoid infinite loading
     // The imported state already contains all the data, so we just need to mark the app as loaded
     // Exception: When forceRun is true (exiting imported state), always make the API call
