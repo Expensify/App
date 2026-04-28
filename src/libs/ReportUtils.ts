@@ -4333,17 +4333,20 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
     }
     if (moneyRequestReport) {
         let nonReimbursableSpend = moneyRequestReport.nonReimbursableTotal ?? 0;
-        let totalSpend = moneyRequestReport.total ?? 0;
+        // Prefer the freshly computed reimbursableTotal from the backend over deriving it from the stored
+        // (and sometimes stale) total column. Fall back to total - nonReimbursableTotal when the fresh
+        // field is not yet present on the local copy of the report.
+        let reimbursableSpendStored = moneyRequestReport.reimbursableTotal ?? (moneyRequestReport.total ?? 0) - nonReimbursableSpend;
 
-        if (nonReimbursableSpend + totalSpend !== 0) {
+        if (reimbursableSpendStored + nonReimbursableSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to "offset" future expenses
             nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
+            reimbursableSpendStored = isExpenseReport(moneyRequestReport) ? reimbursableSpendStored * -1 : Math.abs(reimbursableSpendStored);
 
-            const totalDisplaySpend = totalSpend;
-            const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
+            const reimbursableSpend = reimbursableSpendStored;
+            const totalDisplaySpend = reimbursableSpend + nonReimbursableSpend;
 
             return {
                 nonReimbursableSpend,
