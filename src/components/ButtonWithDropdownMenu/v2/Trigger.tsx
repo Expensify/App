@@ -1,0 +1,100 @@
+import React from 'react';
+import type {View} from 'react-native';
+import Button from '@components/Button';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import mergeRefs from '@libs/mergeRefs';
+import CONST from '@src/CONST';
+import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './Context';
+import {useAssertOutsideMenu} from './MenuContext';
+import type {TriggerProps} from './types';
+
+function Trigger({ref, text, children, icon, style, disabledStyle, sentryLabel}: TriggerProps): React.ReactElement {
+    useAssertOutsideMenu('ButtonWithDropdownMenuV2.Trigger');
+    const {
+        state: {isMenuVisible},
+        meta: {
+            dropdownAnchor,
+            success,
+            isDisabled,
+            isLoading,
+            shouldStayNormalOnDisable,
+            pressOnEnter,
+            useKeyboardShortcuts,
+            enterKeyEventListenerPriority,
+            buttonSize,
+            isCompactTrigger,
+            brickRoadIndicator,
+            sentryLabel: rootSentryLabel,
+            testID,
+        },
+    } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.Trigger');
+    const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Trigger');
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
+
+    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
+    const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
+    const hasError = brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
+    const isTextTooLong = typeof text === 'string' && text.length > 6;
+
+    const mergedRef = mergeRefs<View>(ref, dropdownAnchor);
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        () => {
+            setIsMenuVisible((current) => !current);
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: false,
+            isActive: useKeyboardShortcuts && !isDisabled && !isLoading,
+        },
+    );
+
+    return (
+        <Button
+            success={success}
+            pressOnEnter={pressOnEnter}
+            ref={mergedRef}
+            onPress={() => setIsMenuVisible((current) => !current)}
+            text={text ?? ''}
+            accessibilityState={{expanded: isMenuVisible}}
+            isDisabled={isDisabled}
+            shouldStayNormalOnDisable={shouldStayNormalOnDisable}
+            isLoading={isLoading}
+            style={[styles.w100, style]}
+            disabledStyle={disabledStyle}
+            extraSmall={isButtonSizeExtraSmall}
+            large={isButtonSizeLarge}
+            medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            small={isButtonSizeSmall}
+            innerStyles={[innerStyleDropButton, styles.dropDownButtonCartIconView, isTextTooLong && isCompactTrigger && {...styles.pl2, ...styles.pr1}]}
+            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+            iconRight={icons.DownArrow}
+            iconRightStyles={isMenuVisible ? styles.flipUpsideDown : undefined}
+            shouldShowRightIcon={!isLoading}
+            testID={testID}
+            textStyles={[isTextTooLong && isCompactTrigger ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
+            icon={hasError ? icons.DotIndicator : icon}
+            iconFill={hasError ? theme.danger : undefined}
+            iconHoverFill={hasError ? theme.danger : undefined}
+            iconRightFill={hasError ? theme.buttonIcon : undefined}
+            iconRightHoverFill={hasError ? theme.buttonIcon : undefined}
+            sentryLabel={sentryLabel ?? rootSentryLabel}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- conditional spread keeps `children` absent when caller supplied no JSX; Button presence-checks the prop and would short-circuit otherwise.
+            {...(children !== undefined ? {children} : {})}
+        />
+    );
+}
+
+Trigger.displayName = 'ButtonWithDropdownMenuV2.Trigger';
+
+export default Trigger;
