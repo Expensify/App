@@ -36,8 +36,10 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getIOUReportActionMessage,
+    getReimbursableTotal,
     getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
@@ -1223,11 +1225,11 @@ function changeTransactionsReport({
                 updatedReportUnheldNonReimbursableTotals[oldReportID] =
                     (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
                     (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-                const oldReimbursableTotalSeed = oldReport?.reimbursableTotal ?? (oldReport?.total ?? 0) - (oldReport?.nonReimbursableTotal ?? 0);
+                const oldReimbursableTotalSeed = getReimbursableTotal(oldReport);
                 updatedReportReimbursableTotals[oldReportID] =
                     (updatedReportReimbursableTotals[oldReportID] ? updatedReportReimbursableTotals[oldReportID] : oldReimbursableTotalSeed) +
                     (transaction?.reimbursable ? transactionAmount : 0);
-                const oldUnheldReimbursableTotalSeed = oldReport?.unheldReimbursableTotal ?? (oldReport?.unheldTotal ?? 0) - (oldReport?.unheldNonReimbursableTotal ?? 0);
+                const oldUnheldReimbursableTotalSeed = getUnheldReimbursableTotal(oldReport);
                 updatedReportUnheldReimbursableTotals[oldReportID] =
                     (updatedReportUnheldReimbursableTotals[oldReportID] ? updatedReportUnheldReimbursableTotals[oldReportID] : oldUnheldReimbursableTotalSeed) +
                     (transaction?.reimbursable && !isOnHold(transaction) ? transactionAmount : 0);
@@ -1256,14 +1258,10 @@ function changeTransactionsReport({
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
 
-                const currentReimbursableTotal =
-                    updatedReportReimbursableTotals[targetReportID] ?? targetReport?.reimbursableTotal ?? (targetReport?.total ?? 0) - (targetReport?.nonReimbursableTotal ?? 0);
+                const currentReimbursableTotal = updatedReportReimbursableTotals[targetReportID] ?? getReimbursableTotal(targetReport);
                 updatedReportReimbursableTotals[targetReportID] = currentReimbursableTotal - (transactionReimbursable ? transactionAmount : 0);
 
-                const currentUnheldReimbursableTotal =
-                    updatedReportUnheldReimbursableTotals[targetReportID] ??
-                    targetReport?.unheldReimbursableTotal ??
-                    (targetReport?.unheldTotal ?? 0) - (targetReport?.unheldNonReimbursableTotal ?? 0);
+                const currentUnheldReimbursableTotal = updatedReportUnheldReimbursableTotals[targetReportID] ?? getUnheldReimbursableTotal(targetReport);
                 updatedReportUnheldReimbursableTotals[targetReportID] = currentUnheldReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? transactionAmount : 0);
             } else if (transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
                 // Use convertedAmount when transaction currency differs but workspace currency is the same
@@ -1277,14 +1275,10 @@ function changeTransactionsReport({
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
 
-                const currentReimbursableTotal =
-                    updatedReportReimbursableTotals[targetReportID] ?? targetReport?.reimbursableTotal ?? (targetReport?.total ?? 0) - (targetReport?.nonReimbursableTotal ?? 0);
+                const currentReimbursableTotal = updatedReportReimbursableTotals[targetReportID] ?? getReimbursableTotal(targetReport);
                 updatedReportReimbursableTotals[targetReportID] = currentReimbursableTotal + (transactionReimbursable ? convertedAmount : 0);
 
-                const currentUnheldReimbursableTotal =
-                    updatedReportUnheldReimbursableTotals[targetReportID] ??
-                    targetReport?.unheldReimbursableTotal ??
-                    (targetReport?.unheldTotal ?? 0) - (targetReport?.unheldNonReimbursableTotal ?? 0);
+                const currentUnheldReimbursableTotal = updatedReportUnheldReimbursableTotals[targetReportID] ?? getUnheldReimbursableTotal(targetReport);
                 updatedReportUnheldReimbursableTotals[targetReportID] = currentUnheldReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? convertedAmount : 0);
             } else {
                 markReportTotalAsStale(targetReportID);
