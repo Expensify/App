@@ -41,6 +41,7 @@ import DateUtils from './DateUtils';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {getTabState} from './Navigation/helpers/tabNavigatorUtils';
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -1856,11 +1857,21 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+
+    // SEARCH_FULLSCREEN_NAVIGATOR can appear at the root level (deep-link cold start) or
+    // nested inside TAB_NAVIGATOR (regular tab navigation). A plain top-level findLast
+    // misses the nested case and returns undefined during transitions like
+    // dismissModal -> afterTransition, breaking optimistic data builders that depend on
+    // the active search query (e.g. getSearchOnyxUpdate -> createDistanceRequest).
+    const tabRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const tabState = getTabState(tabRoute);
+    const lastSearchNavigator =
+        rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) ??
+        tabState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined;
     }
     if (!lastSearchNavigatorState) {
         return;
