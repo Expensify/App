@@ -72,7 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
     // Use active policy (user's current workspace) as fallback for self DM tracking expenses
     // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()

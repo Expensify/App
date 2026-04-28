@@ -1856,14 +1856,18 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-
+    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const lastSearchNavigator = lastTabNavigator?.state?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
         lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     }
+
+    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
+    // neither .state nor the preserved state map will have an entry. Fall back to the default
+    // query that the navigator would use as its initialParams.
     if (!lastSearchNavigatorState) {
-        return;
+        return buildSearchQueryJSON(buildSearchQueryString());
     }
 
     const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);

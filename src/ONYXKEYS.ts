@@ -484,6 +484,10 @@ const ONYXKEYS = {
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
 
+    /** Map of reportID → DB-formatted timestamp for when the user last visited each report.
+     *  Only consumed by `findLastAccessedReport` / `getMostRecentlyVisitedReport` for navigation fallbacks. */
+    REPORT_LAST_VISIT_TIMES: 'reportLastVisitTimes',
+
     // Stores the recently used report fields
     RECENTLY_USED_REPORT_FIELDS: 'recentlyUsedReportFields',
 
@@ -732,10 +736,17 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
-        // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
-        // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
-        // directly on the report caused a lot of unnecessary re-renders
+        // REPORT_METADATA holds report-level business state that is NOT the report itself
+        // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).
+        // Loading flags / pagination cursors / last-visit timestamp live in dedicated
+        // keys below (REPORT_LOADING_STATE, REPORT_PAGINATION_STATE, REPORT_LAST_VISIT_TIMES)
+        // so they don't ripple to every subscriber of the report's business state.
         REPORT_METADATA: 'reportMetadata_',
+        /** Session-scoped loading/error flags for a report's action list.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
+        /** Pagination cursors for a report's action list. */
+        REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_PAGES: 'reportActionsPages_',
@@ -1262,6 +1273,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
+    [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES]: OnyxTypes.Pages;
@@ -1457,6 +1470,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
+    [ONYXKEYS.REPORT_LAST_VISIT_TIMES]: OnyxTypes.ReportLastVisitTimes;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;

@@ -1204,6 +1204,15 @@ Onyx.connect({
     },
 });
 
+// See findLastAccessedReport — non-UI, module-scoped intentionally.
+let allReportLastVisitTimes: Record<string, string> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.REPORT_LAST_VISIT_TIMES,
+    callback: (value) => {
+        allReportLastVisitTimes = value ?? {};
+    },
+});
+
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -2231,14 +2240,14 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
-function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
+function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
         if (!report?.isPinned && isHiddenForCurrentUser(report)) {
             return false;
         }
-        return !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
+        return !!report?.reportID && !!(lastVisitTimes?.[report.reportID] ?? report?.lastReadTime);
     });
-    return lodashMaxBy(filteredReports, (a) => [reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? '', a?.lastReadTime ?? '']);
+    return lodashMaxBy(filteredReports, (a) => [(a?.reportID && lastVisitTimes?.[a.reportID]) ?? '', a?.lastReadTime ?? '']);
 }
 
 /**
@@ -2287,9 +2296,9 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         }) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
-    // Return the most recently visited report. Get the last read report from the report metadata.
-    // If allReportMetadata is empty we'll return most recent report owned by user
-    if (isEmptyObject(allReportMetadata)) {
+    // Return the most recently visited report. Get the last read report from the last-visit-times map.
+    // If we have no visit data we'll return most recent report owned by user.
+    if (isEmptyObject(allReportLastVisitTimes)) {
         const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
@@ -2297,7 +2306,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
         }
         return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
     }
-    return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+    return getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes);
 }
 
 /**

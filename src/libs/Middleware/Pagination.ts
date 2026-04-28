@@ -154,7 +154,7 @@ const Pagination: Middleware = (requestResponse, request) => {
             }
             if (Object.keys(value).length > 0) {
                 (response.onyxData as AnyOnyxUpdate[]).push({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${resourceID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${resourceID}`,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value,
                 });

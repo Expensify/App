@@ -6631,6 +6631,8 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+                policyDocument: '政策文件',
+                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',

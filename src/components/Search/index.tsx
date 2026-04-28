@@ -1481,7 +1481,7 @@ function Search({
     didBailToFallbackState.current = false;
 
     const isAnyVisibleActionLoading = useMemo(
-        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`)),
+        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${item.reportID}`)),
         [filteredData, isActionLoadingSet],
     );
 

@@ -11,6 +11,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -76,18 +77,19 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        includeUserToInvite: true,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        shouldInitialize: didScreenTransitionEnd,
-        includeCurrentUser: true,
-        recentAttendees: recentAttendeeLists,
-        shouldAllowNameOnlyOptions,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            includeUserToInvite: true,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            shouldInitialize: didScreenTransitionEnd,
+            includeCurrentUser: true,
+            recentAttendees: recentAttendeeLists,
+            shouldAllowNameOnlyOptions,
+        });
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections = [];
@@ -104,7 +106,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         const formattedResults = formatSectionsFromSearchTerm(
-            searchTerm.trim().toLowerCase(),
+            debouncedSearchTerm.trim().toLowerCase(),
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
@@ -116,7 +118,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             undefined,
             reportAttributesDerived,
         );
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === currentUserAccountID);
 
         // If the current user is already selected, remove them from the recent reports and personal details
         if (selectedCurrentUser) {
@@ -125,20 +127,33 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-                formatPhoneNumber,
-            });
-            chatOptions.currentUserOption.text = formattedName;
+        // Falls back to creating from personal details to handle pagination edge cases
+        if (!selectedCurrentUser) {
+            let currentUserOptionToShow = chatOptions.currentUserOption;
+            const currentUserDetails = currentUserAccountID ? personalDetails?.[currentUserAccountID] : undefined;
+            if (!currentUserOptionToShow && currentUserAccountID && currentUserDetails) {
+                const candidateOption = getParticipantsOption(currentUserDetails, personalDetails) as OptionData;
+                const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+                if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
+                    currentUserOptionToShow = candidateOption;
+                }
+            }
 
-            newSections.push({
-                title: '',
-                data: [chatOptions.currentUserOption],
-                sectionIndex: 0,
-            });
+            if (currentUserOptionToShow) {
+                const formattedName = getDisplayNameForParticipant({
+                    accountID: currentUserOptionToShow.accountID,
+                    shouldAddCurrentUserPostfix: true,
+                    personalDetailsData: personalDetails,
+                    formatPhoneNumber,
+                });
+                currentUserOptionToShow.text = formattedName;
+
+                newSections.push({
+                    title: '',
+                    data: [currentUserOptionToShow],
+                    sectionIndex: 0,
+                });
+            }
         }
 
         newSections.push({
@@ -175,7 +190,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     }, [
         areOptionsInitialized,
         availableOptions,
-        searchTerm,
+        debouncedSearchTerm,
         selectedOptions,
         privateIsArchivedMap,
         currentUserAccountID,

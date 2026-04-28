@@ -710,11 +710,16 @@ describe('actions/IOU', () => {
                                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`,
                                 callback: (iouReportMetadata) => {
                                     Onyx.disconnect(connection);
-
                                     expect(iouReportMetadata?.isOptimisticReport).toBe(true);
-                                    expect(iouReportMetadata?.hasOnceLoadedReportActions).toBe(true);
 
-                                    resolve();
+                                    const loadingStateConnection = Onyx.connect({
+                                        key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iouReportID}`,
+                                        callback: (iouReportLoadingState) => {
+                                            Onyx.disconnect(loadingStateConnection);
+                                            expect(iouReportLoadingState?.hasOnceLoadedReportActions).toBe(true);
+                                            resolve();
+                                        },
+                                    });
                                 },
                             });
                         }),

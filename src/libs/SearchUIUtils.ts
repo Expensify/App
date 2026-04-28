@@ -2030,7 +2030,7 @@ function getTransactionsSections({
 
         let shouldShow = true;
 
-        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
+        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
         if (currentQueryJSON && !isActionLoading) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = currentQueryJSON.status;
@@ -2633,7 +2633,7 @@ function getReportSections({
 
             let shouldShow = true;
 
-            const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`);
+            const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
             if (currentQueryJSON && !isActionLoading) {
                 if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                     const status = currentQueryJSON.status;
