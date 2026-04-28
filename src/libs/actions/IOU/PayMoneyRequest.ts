@@ -16,7 +16,9 @@ import {getAllReportActions, getReportActionHtml, getReportActionText, isCreated
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
     isExpenseReport,
@@ -202,9 +204,9 @@ function getPayMoneyRequestParams({
     }
 
     // Prefer freshly computed totals over deriving from the stored total column which can be stale.
-    let total = iouReport?.reimbursableTotal ?? (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
+    let total = getReimbursableTotal(iouReport);
     if (hasHeldExpensesReportUtils(iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
-        total = iouReport?.unheldReimbursableTotal ?? iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
+        total = getUnheldReimbursableTotal(iouReport);
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -482,8 +484,12 @@ function cancelPayment(
     }
 
     // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
-    const reimbursableTotal = expenseReport.reimbursableTotal ?? (expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0);
-    const optimisticReportAction = buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -reimbursableTotal, expenseReport.currency ?? '', currentUserAccountIDParam);
+    const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
+        expenseReport.reportID,
+        -getReimbursableTotal(expenseReport),
+        expenseReport.currency ?? '',
+        currentUserAccountIDParam,
+    );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;

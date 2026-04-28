@@ -36,6 +36,7 @@ import {
     buildOptimisticIOUReportAction,
     generateReportID,
     getParsedComment,
+    getReimbursableTotal,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -277,7 +278,7 @@ function getPayActionCallback(
     }
 
     // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
-    const amount = Math.abs(snapshotReport?.reimbursableTotal ?? (snapshotReport?.total ?? 0) - (snapshotReport?.nonReimbursableTotal ?? 0));
+    const amount = Math.abs(getReimbursableTotal(snapshotReport));
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], currentSearchKey);
