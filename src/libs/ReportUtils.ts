@@ -2731,6 +2731,13 @@ function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>
     if (isDraftReport(moneyRequestReport?.reportID)) {
         return false;
     }
+    // Optimistically created reports go through a transient window where the report exists in
+    // Onyx but the transaction hasn't been associated yet. During that window
+    // hasOnlyNonReimbursableTransactions flips from false to true, which would otherwise cause
+    // the new report to flicker into and out of the picker (deploy blocker #88425).
+    if (moneyRequestReport?.pendingFields?.createReport === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return false;
+    }
     return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
 }
 

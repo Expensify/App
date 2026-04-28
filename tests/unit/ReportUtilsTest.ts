@@ -8835,6 +8835,38 @@ describe('ReportUtils', () => {
 
             expect(result).toBe(false);
         });
+
+        // Regression test for deploy blocker https://github.com/Expensify/App/issues/88425.
+        // Optimistically created reports must not be flagged as ineligible during the brief
+        // window between report creation and the deferred transaction-move microtask, otherwise
+        // the new report flickers into and out of the picker.
+        it('should return false for a report that is still optimistically being created (pendingFields.createReport === ADD)', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3007),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30008, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            };
+            const transaction = {
+                transactionID: '30008',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
     });
 
     describe('canDeleteTransaction', () => {
