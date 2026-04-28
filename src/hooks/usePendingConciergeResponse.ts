@@ -13,8 +13,8 @@ import useOnyx from './useOnyx';
 
 /** If displayAfter is more than this far in the past, the response is stale (e.g. app was killed and restarted). */
 const STALE_THRESHOLD_MS = 10_000;
-/** Default trickle duration. Targets ~14 chars/sec average reveal across a typical multi-paragraph response, so the trickle visibly streams without dragging the user past the moment they want to read. */
-const DEFAULT_STREAM_DURATION_MS = 20_000;
+/** Default trickle duration. Targets ~19 chars/sec start (~7/sec end after ease-out) across a typical multi-paragraph response — visibly streaming without dragging the user past the moment they want to read. */
+const DEFAULT_STREAM_DURATION_MS = 15_000;
 /** Trickle tick cadence. 80ms targets ~1 char per tick at char-level granularity — fast enough that the reveal feels continuous, slow enough that the synthetic-bubble re-render budget stays comfortable on RNW (~12 dispatches/sec). */
 const TICK_INTERVAL_MS = 80;
 /** Hard cap on running trickle. If the loop is still alive past this, force completion to avoid pinning a synthetic bubble forever. */
