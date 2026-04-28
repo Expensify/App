@@ -345,11 +345,11 @@ const DYNAMIC_ROUTES = {
     },
     EXIT_SURVEY_REASON: {
         path: 'exit-survey/reason',
-        entryScreens: [SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: ['*'],
     },
     EXIT_SURVEY_CONFIRM: {
         path: 'exit-survey/confirm',
-        entryScreens: [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON, SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: ['*'],
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
