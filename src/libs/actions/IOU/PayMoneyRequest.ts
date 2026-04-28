@@ -201,9 +201,10 @@ function getPayMoneyRequestParams({
         chatReport = existingB2BInvoiceReport;
     }
 
-    let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
+    // Prefer freshly computed totals over deriving from the stored total column which can be stale.
+    let total = iouReport?.reimbursableTotal ?? (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
     if (hasHeldExpensesReportUtils(iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
-        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
+        total = iouReport?.unheldReimbursableTotal ?? iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
