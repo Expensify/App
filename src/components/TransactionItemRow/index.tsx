@@ -28,7 +28,7 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isSettled} from '@libs/ReportUtils';
+import {getReimbursableTotal, isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
@@ -429,7 +429,7 @@ function TransactionItemRow({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.reimbursableTotal ?? (report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0)}
+                                amount={getReimbursableTotal(report)}
                                 shouldDisablePointerEvents={isDisabled}
                             />
                         )}

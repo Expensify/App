@@ -10,7 +10,7 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useTodos from '@hooks/useTodos';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
@@ -175,40 +175,27 @@ function SearchContextProvider({children}: SearchContextProps) {
                     }
                     return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
                 })
-                .map(
-                    ({
-                        reportID,
-                        action = CONST.SEARCH.ACTION_TYPES.VIEW,
-                        total = CONST.DEFAULT_NUMBER_ID,
-                        reimbursableTotal,
-                        nonReimbursableTotal,
-                        policyID,
-                        allActions = [action],
-                        currency,
-                        chatReportID,
-                        managerID,
-                        ownerAccountID,
-                        parentReportActionID,
-                        parentReportID,
-                        type,
-                    }) => ({
-                        reportID,
-                        action,
-                        // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored
-                        // total column so bulk-pay and bulk-action summaries reflect the current sum of
-                        // reimbursable transactions.
-                        total: reimbursableTotal ?? total - (nonReimbursableTotal ?? 0),
-                        policyID,
-                        allActions,
-                        currency,
-                        chatReportID,
-                        managerID,
-                        ownerAccountID,
-                        parentReportActionID,
-                        parentReportID,
-                        type,
+                .map((item) => ({
+                    reportID: item.reportID,
+                    action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                    // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored
+                    // total column so bulk-pay and bulk-action summaries reflect the current sum of
+                    // reimbursable transactions.
+                    total: getReimbursableTotal({
+                        total: item.total ?? CONST.DEFAULT_NUMBER_ID,
+                        nonReimbursableTotal: item.nonReimbursableTotal,
+                        reimbursableTotal: item.reimbursableTotal,
                     }),
-                );
+                    policyID: item.policyID,
+                    allActions: item.allActions ?? [item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW],
+                    currency: item.currency,
+                    chatReportID: item.chatReportID,
+                    managerID: item.managerID,
+                    ownerAccountID: item.ownerAccountID,
+                    parentReportActionID: item.parentReportActionID,
+                    parentReportID: item.parentReportID,
+                    type: item.type,
+                }));
         } else if (data.length && data.every(isTransactionListItemType)) {
             matchingReports = data
                 .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
