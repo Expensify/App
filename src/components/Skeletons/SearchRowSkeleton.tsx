@@ -9,7 +9,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type SearchRowSkeletonProps = {
@@ -20,11 +19,12 @@ type SearchRowSkeletonProps = {
     reasonAttributes: SkeletonSpanReasonAttributes;
     isLoadMore?: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
+    shouldUseNarrowLayout?: boolean;
 };
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
+const leftPaneWidth = variables.sideBarWithLHBWidth;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
@@ -41,18 +41,34 @@ const rightArrowWidth = 28;
 // 68 is the width of the action button
 const rightButtonWidth = 68;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, isLoadMore = false, onLayout}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({
+    shouldAnimate = true,
+    fixedNumItems,
+    gradientOpacityEnabled = false,
+    containerStyle,
+    reasonAttributes,
+    isLoadMore = false,
+    onLayout,
+    shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
+}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
+    // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
+    // global responsive breakpoint - useful when the skeleton is rendered in a context
+    // whose container width doesn't match the window (e.g. inside a split pane).
+    const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
     useSkeletonSpan('SearchRowSkeleton', reasonAttributes);
 
     if (shouldUseNarrowLayout) {
+        const containerWidth = windowWidth - 40;
         return (
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
-                    itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL}
-                    itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
+                    itemViewHeight={100}
+                    itemViewStyle={[styles.highlightBG, styles.mr0]}
+                    itemContainerStyle={styles.borderBottom}
+                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, isLoadMore && styles.borderTop, !isLoadMore && styles.searchTableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
                     onLayout={onLayout}
@@ -61,57 +77,45 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                         <>
                             <Circle
                                 cx={24}
-                                cy={22}
-                                r={6}
+                                cy={24}
+                                r={8}
                             />
-
                             <SkeletonRect
                                 width={40}
                                 height={4}
-                                transform={[{translateX: 40}, {translateY: 20}]}
+                                transform={[{translateX: 38}, {translateY: 22}]}
                             />
-                            <Circle
-                                cx={96}
-                                cy={22}
-                                r={6}
-                            />
-
                             <SkeletonRect
+                                transform={[{translateX: containerWidth - 56}, {translateY: 16}]}
                                 width={40}
-                                height={4}
-                                transform={[{translateX: 112}, {translateY: 20}]}
+                                height={16}
+                                borderRadius={4}
                             />
-                            <SkeletonRect
-                                transform={[{translateX: windowWidth - 122}, {translateY: 8}]}
-                                width={72}
-                                height={20}
-                                borderRadius={10}
-                            />
-
                             <SkeletonRect
                                 transform={[{translateX: 16}, {translateY: 44}]}
                                 width={36}
                                 height={40}
+                                borderRadius={4}
                             />
                             <SkeletonRect
-                                transform={[{translateX: 64}, {translateY: 53}]}
+                                transform={[{translateX: 64}, {translateY: 50}]}
                                 width={124}
-                                height={8}
+                                height={barHeight}
                             />
                             <SkeletonRect
-                                transform={[{translateX: 64}, {translateY: 67}]}
+                                transform={[{translateX: containerWidth - 76}, {translateY: 50}]}
                                 width={60}
-                                height={8}
+                                height={barHeight}
                             />
                             <SkeletonRect
-                                transform={[{translateX: windowWidth - 130}, {translateY: 53}]}
-                                width={80}
-                                height={8}
-                            />
-                            <SkeletonRect
-                                transform={[{translateX: windowWidth - 110}, {translateY: 67}]}
+                                transform={[{translateX: 64}, {translateY: 72}]}
                                 width={60}
-                                height={8}
+                                height={barHeight}
+                            />
+                            <SkeletonRect
+                                transform={[{translateX: containerWidth - 48}, {translateY: 72}]}
+                                width={32}
+                                height={barHeight}
                             />
                         </>
                     )}

@@ -1141,7 +1141,7 @@ In Expensify, we use an extended implementation of this function because:
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
 -   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-remove-backto-from-url))
--   For dynamic routes, state is built from the current path and [entryScreens](#entry-screens-access-control) access control.
+-   For dynamic routes, when the page is refreshed the navigation state only contains the deepest screen. To make back navigation work, all intermediate dynamic screens must be inserted into the state in the correct order so the app knows which screen to return to.
 
 Here are examples how the state is generated based on route:
 
@@ -1254,6 +1254,77 @@ As you can see after opening the workspace settings of the specific workspace, w
 ```
 
 In the above example, we can see that when building a state from a link leading to a screen in RHP, screens that appear below the overlay are also built.
+
+-   `settings/profile/address/country?country=US`
+
+```json
+{
+    "stale": false,
+    "type": "stack",
+    "key": "stack-key-7",
+    "index": 1,
+    "routes": [
+        {
+            "name": "SettingsSplitNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-8",
+                "index": 1,
+                "routes": [
+                    {
+                        "name": "Settings_Root",
+                        "key": "Settings_Root-key"
+                    },
+                    {
+                        "name": "Settings_Profile",
+                        "key": "Settings_Profile-key"
+                    }
+                ]
+            },
+            "key": "SettingsSplitNavigator-key"
+        },
+        {
+            "name": "RightModalNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-9",
+                "index": 0,
+                "routes": [
+                    {
+                        "name": "Settings",
+                        "state": {
+                            "stale": false,
+                            "type": "stack",
+                            "key": "stack-key-10",
+                            "index": 1,
+                            "routes": [
+                                {
+                                    "name": "Settings_Address",
+                                    "path": "/settings/profile/address",
+                                    "key": "Settings_Address-key"
+                                },
+                                {
+                                    "name": "Dynamic_Address_Country",
+                                    "path": "/settings/profile/address/country?country=US",
+                                    "params": {
+                                        "country": "US"
+                                    },
+                                    "key": "Dynamic_Address_Country-key"
+                                }
+                            ]
+                        },
+                        "key": "Settings-key"
+                    }
+                ]
+            },
+            "key": "RightModalNavigator-key"
+        }
+    ]
+}
+```
+Since `country` is a dynamic suffix, the `Dynamic_Address_Country` screen is layered on top of the static `Settings_Address` screen in the initial state, ensuring correct back navigation after a refresh.
 
 ## Setting the correct screen underneath RHP
 

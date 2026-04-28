@@ -75,7 +75,7 @@ Other ways to SmartScan receipts include:
 
 Learn more about [creating expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
 
-View expenses in your Expense chat or the **Reports** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses) for tax or accountant use.
+View expenses in your Expense chat or the **Spend** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) for tax or accountant use.
 
 ---
 

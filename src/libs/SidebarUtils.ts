@@ -696,6 +696,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     hasViolations: boolean,
     reportErrors: Errors,
     transactions: OnyxCollection<Transaction>,
+    isOffline: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
@@ -730,7 +731,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    return getReceiptUploadErrorReason(report, chatReport, reportActions, transactions);
+    return getReceiptUploadErrorReason(report, chatReport, reportActions, transactions, isOffline);
 }
 
 /**

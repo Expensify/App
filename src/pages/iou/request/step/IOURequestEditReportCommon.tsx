@@ -6,6 +6,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -67,6 +69,7 @@ function IOURequestEditReportCommon({
     isTimeRequest = false,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -302,6 +305,8 @@ function IOURequestEditReportCommon({
                     label: translate('common.search'),
                     headerMessage,
                     onChangeText: setSearchValue,
+                    disableAutoFocus: true,
+                    ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
                 }}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={selectedReportID}

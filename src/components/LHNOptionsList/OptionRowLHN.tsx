@@ -8,10 +8,8 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -39,6 +37,7 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LHNAvatar from './LHNAvatar';
 import {useLHNTooltipContext} from './LHNTooltipContext';
+import OptionRowTooltipLayer from './OptionRowTooltipLayer';
 import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({
@@ -62,7 +61,7 @@ function OptionRowLHN({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
 
-    const {onboardingPurpose, onboarding, isFullscreenVisible, firstReportIDWithGBRorRBR, isScreenFocused, isReportsSplitNavigatorLast} = useLHNTooltipContext();
+    const {onboardingPurpose, onboarding, firstReportIDWithGBRorRBR, isScreenFocused} = useLHNTooltipContext();
     const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
     const personalDetails = usePersonalDetails();
@@ -71,20 +70,9 @@ function OptionRowLHN({
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
 
-    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
-        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
-        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        const tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
-        const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;
-        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
-
-        return {
-            tooltipToRender: tooltip,
-            shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
-        };
-    }, [shouldShowRBRorGBRTooltip, shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
-
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
+    // When neither tooltip qualifies, skip mounting the tooltip layer so the row avoids
+    // useProductTrainingContext, the tooltip-config useMemo, and the EducationalTooltip wrapper.
+    const shouldEvaluateTooltip = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -234,7 +222,6 @@ function OptionRowLHN({
         event?.preventDefault();
         // Enable Composer to focus on clicking the same chat after opening the context menu.
         ReportActionComposeFocusManager.focus();
-        hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
     const accessibilityLabel = [
@@ -252,6 +239,205 @@ function OptionRowLHN({
         contextMenuHint,
     });
 
+    const renderRow = (onPress: typeof onOptionPress) => (
+        <View>
+            <Hoverable>
+                {(hovered) => {
+                    let secondaryAvatarBgColor = theme.sidebar;
+                    if (isOptionFocused) {
+                        secondaryAvatarBgColor = focusedBackgroundColor;
+                    } else if (hovered) {
+                        secondaryAvatarBgColor = hoveredBackgroundColor;
+                    }
+                    return (
+                        <PressableWithSecondaryInteraction
+                            ref={popoverAnchor}
+                            onPress={onPress}
+                            onMouseDown={(event) => {
+                                // Allow composer blur on right click
+                                if (!event) {
+                                    return;
+                                }
+                                // Prevent composer blur on left click
+                                event.preventDefault();
+                            }}
+                            // reportID may be a number contrary to the type definition
+                            testID={typeof optionItem.reportID === 'number' ? String(optionItem.reportID) : optionItem.reportID}
+                            onSecondaryInteraction={(event) => {
+                                showPopover(event);
+                                // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
+                                if (DomUtils.getActiveElement()) {
+                                    (DomUtils.getActiveElement() as HTMLElement | null)?.blur();
+                                }
+                            }}
+                            withoutFocusOnSecondaryInteraction
+                            activeOpacity={variables.pressDimValue}
+                            opacityAnimationDuration={0}
+                            style={[
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                styles.justifyContentBetween,
+                                styles.sidebarLink,
+                                styles.sidebarLinkInnerLHN,
+                                StyleUtils.getBackgroundColorStyle(theme.sidebar),
+                                isOptionFocused ? styles.sidebarLinkActive : null,
+                                (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
+                            ]}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                            accessibilityHint={accessibilityHint}
+                            onLayout={onLayout}
+                            needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
+                            sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
+                        >
+                            <View style={sidebarInnerRowStyle}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    {!!optionItem.icons?.length && !!firstIcon && (
+                                        <LHNAvatar
+                                            icons={icons}
+                                            shouldShowSubscript={!!optionItem.shouldShowSubscript}
+                                            size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                            useMidSubscriptSize={isInFocusMode}
+                                            secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
+                                            singleAvatarContainerStyle={singleAvatarContainerStyle}
+                                            shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+                                            delegateAccountID={skipDelegate ? undefined : delegateAccountID}
+                                            delegateTooltipAccountID={delegateTooltipAccountID}
+                                        />
+                                    )}
+                                    <View style={contentContainerStyles}>
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                            <DisplayNames
+                                                accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                                fullTitle={optionItem.text ?? ''}
+                                                shouldParseFullTitle={shouldParseFullTitle}
+                                                displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={displayNameStyle}
+                                                shouldUseFullTitle={
+                                                    !!optionItem.isChatRoom ||
+                                                    !!optionItem.isPolicyExpenseChat ||
+                                                    !!optionItem.isTaskReport ||
+                                                    !!optionItem.isThread ||
+                                                    !!optionItem.isMoneyRequestReport ||
+                                                    !!optionItem.isInvoiceReport ||
+                                                    !!optionItem.private_isArchived ||
+                                                    isGroupChat(report) ||
+                                                    isSystemChat(report)
+                                                }
+                                                testID={testID}
+                                            />
+                                            {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
+                                            {isStatusVisible && (
+                                                <Tooltip
+                                                    text={statusContent}
+                                                    shiftVertical={-4}
+                                                >
+                                                    <Text style={styles.ml1}>{emojiCode}</Text>
+                                                </Tooltip>
+                                            )}
+                                        </View>
+                                        {!!optionItem.alternateText && (
+                                            <Text
+                                                style={alternateTextStyle}
+                                                numberOfLines={1}
+                                                accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                                fsClass={alternateTextFSClass}
+                                            >
+                                                {alternateTextContainsCustomEmojiWithText ? (
+                                                    <TextWithEmojiFragment
+                                                        message={optionItem.alternateText}
+                                                        style={[alternateTextStyle, styles.mh0]}
+                                                        alignCustomEmoji
+                                                    />
+                                                ) : (
+                                                    optionItem.alternateText
+                                                )}
+                                            </Text>
+                                        )}
+                                    </View>
+                                    {optionItem?.descriptiveText ? (
+                                        <View
+                                            style={[styles.flexWrap]}
+                                            fsClass={alternateTextFSClass}
+                                        >
+                                            <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
+                                        </View>
+                                    ) : null}
+                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                            {actionBadgeText ? (
+                                                <Badge
+                                                    text={actionBadgeText}
+                                                    error
+                                                    isStrong
+                                                />
+                                            ) : (
+                                                <Icon
+                                                    testID="RBR Icon"
+                                                    src={expensifyIcons.DotIndicator}
+                                                    fill={theme.danger}
+                                                />
+                                            )}
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO &&
+                                    (actionBadgeText ? (
+                                        <Badge
+                                            text={actionBadgeText}
+                                            success
+                                            isStrong
+                                        />
+                                    ) : (
+                                        <View style={styles.ml2}>
+                                            <Icon
+                                                testID="GBR Icon"
+                                                src={expensifyIcons.DotIndicator}
+                                                fill={theme.success}
+                                            />
+                                        </View>
+                                    ))}
+                                {hasDraftComment && !!optionItem.isAllowedToComment && (
+                                    <View
+                                        style={styles.ml2}
+                                        accessibilityLabel={translate('sidebarScreen.draftedMessage')}
+                                    >
+                                        <Icon
+                                            testID="Pencil Icon"
+                                            fill={theme.icon}
+                                            src={expensifyIcons.Pencil}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                        />
+                                    </View>
+                                )}
+                                {!brickRoadIndicator && !!optionItem.isPinned && (
+                                    <View
+                                        style={styles.ml2}
+                                        accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                    >
+                                        <Icon
+                                            testID="Pin Icon"
+                                            fill={theme.icon}
+                                            src={expensifyIcons.Pin}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                        </PressableWithSecondaryInteraction>
+                    );
+                }}
+            </Hoverable>
+        </View>
+    );
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -259,217 +445,16 @@ function OptionRowLHN({
             shouldShowErrorMessages={false}
             needsOffscreenAlphaCompositing
         >
-            <EducationalTooltip
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                shouldRender={shouldShowProductTrainingTooltip}
-                renderTooltipContent={renderProductTrainingTooltip}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-                shiftHorizontal={variables.gbrTooltipShiftHorizontal}
-                shiftVertical={variables.gbrTooltipShiftVertical}
-                wrapperStyle={styles.productTrainingTooltipWrapper}
-                onTooltipPress={onOptionPress}
-                shouldHideOnScroll
-            >
-                <View>
-                    <Hoverable>
-                        {(hovered) => {
-                            let secondaryAvatarBgColor = theme.sidebar;
-                            if (isOptionFocused) {
-                                secondaryAvatarBgColor = focusedBackgroundColor;
-                            } else if (hovered) {
-                                secondaryAvatarBgColor = hoveredBackgroundColor;
-                            }
-                            return (
-                                <PressableWithSecondaryInteraction
-                                    ref={popoverAnchor}
-                                    onPress={onOptionPress}
-                                    onMouseDown={(event) => {
-                                        // Allow composer blur on right click
-                                        if (!event) {
-                                            return;
-                                        }
-                                        // Prevent composer blur on left click
-                                        event.preventDefault();
-                                    }}
-                                    // reportID may be a number contrary to the type definition
-                                    testID={typeof optionItem.reportID === 'number' ? String(optionItem.reportID) : optionItem.reportID}
-                                    onSecondaryInteraction={(event) => {
-                                        showPopover(event);
-                                        // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
-                                        if (DomUtils.getActiveElement()) {
-                                            (DomUtils.getActiveElement() as HTMLElement | null)?.blur();
-                                        }
-                                    }}
-                                    withoutFocusOnSecondaryInteraction
-                                    activeOpacity={variables.pressDimValue}
-                                    opacityAnimationDuration={0}
-                                    style={[
-                                        styles.flexRow,
-                                        styles.alignItemsCenter,
-                                        styles.justifyContentBetween,
-                                        styles.sidebarLink,
-                                        styles.sidebarLinkInnerLHN,
-                                        StyleUtils.getBackgroundColorStyle(theme.sidebar),
-                                        isOptionFocused ? styles.sidebarLinkActive : null,
-                                        (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
-                                    ]}
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={accessibilityLabelWithContextMenuHint}
-                                    accessibilityHint={accessibilityHint}
-                                    onLayout={onLayout}
-                                    needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
-                                    sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
-                                >
-                                    <View style={sidebarInnerRowStyle}>
-                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {!!optionItem.icons?.length && !!firstIcon && (
-                                                <LHNAvatar
-                                                    icons={icons}
-                                                    shouldShowSubscript={!!optionItem.shouldShowSubscript}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                    subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    useMidSubscriptSize={isInFocusMode}
-                                                    secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
-                                                    singleAvatarContainerStyle={singleAvatarContainerStyle}
-                                                    shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-                                                    delegateAccountID={skipDelegate ? undefined : delegateAccountID}
-                                                    delegateTooltipAccountID={delegateTooltipAccountID}
-                                                />
-                                            )}
-                                            <View style={contentContainerStyles}>
-                                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                                    <DisplayNames
-                                                        accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                                        fullTitle={optionItem.text ?? ''}
-                                                        shouldParseFullTitle={shouldParseFullTitle}
-                                                        displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
-                                                        tooltipEnabled
-                                                        numberOfLines={1}
-                                                        textStyles={displayNameStyle}
-                                                        shouldUseFullTitle={
-                                                            !!optionItem.isChatRoom ||
-                                                            !!optionItem.isPolicyExpenseChat ||
-                                                            !!optionItem.isTaskReport ||
-                                                            !!optionItem.isThread ||
-                                                            !!optionItem.isMoneyRequestReport ||
-                                                            !!optionItem.isInvoiceReport ||
-                                                            !!optionItem.private_isArchived ||
-                                                            isGroupChat(report) ||
-                                                            isSystemChat(report)
-                                                        }
-                                                        testID={testID}
-                                                    />
-                                                    {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
-                                                    {isStatusVisible && (
-                                                        <Tooltip
-                                                            text={statusContent}
-                                                            shiftVertical={-4}
-                                                        >
-                                                            <Text style={styles.ml1}>{emojiCode}</Text>
-                                                        </Tooltip>
-                                                    )}
-                                                </View>
-                                                {!!optionItem.alternateText && (
-                                                    <Text
-                                                        style={alternateTextStyle}
-                                                        numberOfLines={1}
-                                                        accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                                        fsClass={alternateTextFSClass}
-                                                    >
-                                                        {alternateTextContainsCustomEmojiWithText ? (
-                                                            <TextWithEmojiFragment
-                                                                message={optionItem.alternateText}
-                                                                style={[alternateTextStyle, styles.mh0]}
-                                                                alignCustomEmoji
-                                                            />
-                                                        ) : (
-                                                            optionItem.alternateText
-                                                        )}
-                                                    </Text>
-                                                )}
-                                            </View>
-                                            {optionItem?.descriptiveText ? (
-                                                <View
-                                                    style={[styles.flexWrap]}
-                                                    fsClass={alternateTextFSClass}
-                                                >
-                                                    <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
-                                                </View>
-                                            ) : null}
-                                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                                    {actionBadgeText ? (
-                                                        <Badge
-                                                            text={actionBadgeText}
-                                                            error
-                                                            isStrong
-                                                        />
-                                                    ) : (
-                                                        <Icon
-                                                            testID="RBR Icon"
-                                                            src={expensifyIcons.DotIndicator}
-                                                            fill={theme.danger}
-                                                        />
-                                                    )}
-                                                </View>
-                                            )}
-                                        </View>
-                                    </View>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO &&
-                                            (actionBadgeText ? (
-                                                <Badge
-                                                    text={actionBadgeText}
-                                                    success
-                                                    isStrong
-                                                />
-                                            ) : (
-                                                <View style={styles.ml2}>
-                                                    <Icon
-                                                        testID="GBR Icon"
-                                                        src={expensifyIcons.DotIndicator}
-                                                        fill={theme.success}
-                                                    />
-                                                </View>
-                                            ))}
-                                        {hasDraftComment && !!optionItem.isAllowedToComment && (
-                                            <View
-                                                style={styles.ml2}
-                                                accessibilityLabel={translate('sidebarScreen.draftedMessage')}
-                                            >
-                                                <Icon
-                                                    testID="Pencil Icon"
-                                                    fill={theme.icon}
-                                                    src={expensifyIcons.Pencil}
-                                                    width={variables.iconSizeSmall}
-                                                    height={variables.iconSizeSmall}
-                                                />
-                                            </View>
-                                        )}
-                                        {!brickRoadIndicator && !!optionItem.isPinned && (
-                                            <View
-                                                style={styles.ml2}
-                                                accessibilityLabel={translate('sidebarScreen.chatPinned')}
-                                            >
-                                                <Icon
-                                                    testID="Pin Icon"
-                                                    fill={theme.icon}
-                                                    src={expensifyIcons.Pin}
-                                                    width={variables.iconSizeSmall}
-                                                    height={variables.iconSizeSmall}
-                                                />
-                                            </View>
-                                        )}
-                                    </View>
-                                </PressableWithSecondaryInteraction>
-                            );
-                        }}
-                    </Hoverable>
-                </View>
-            </EducationalTooltip>
+            {shouldEvaluateTooltip ? (
+                <OptionRowTooltipLayer
+                    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+                    shouldShowGetStartedTooltip={shouldShowGetStartedTooltip}
+                    onOptionPress={onOptionPress}
+                    renderChildren={renderRow}
+                />
+            ) : (
+                renderRow(onOptionPress)
+            )}
         </OfflineWithFeedback>
     );
 }
