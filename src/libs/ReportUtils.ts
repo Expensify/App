@@ -10890,11 +10890,20 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     // if the report is an expense report, the total amount should be negated
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
 
-    let total = iouReport?.total ?? 0;
-    let unheldTotal = iouReport?.unheldTotal ?? 0;
+    // Prefer the freshly computed totals from the backend. The stored total column can lag behind the
+    // sum of the underlying transactions, so deriving from reimbursableTotal/nonReimbursableTotal keeps
+    // displayed amounts in sync with what the user actually entered.
+    const reimbursableTotal = iouReport?.reimbursableTotal ?? (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
+    const unheldReimbursableTotal = iouReport?.unheldReimbursableTotal ?? (iouReport?.unheldTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
+
+    let total: number;
+    let unheldTotal: number;
     if (shouldExcludeNonReimbursables) {
-        total -= iouReport?.nonReimbursableTotal ?? 0;
-        unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
+        total = reimbursableTotal;
+        unheldTotal = unheldReimbursableTotal;
+    } else {
+        total = reimbursableTotal + (iouReport?.nonReimbursableTotal ?? 0);
+        unheldTotal = iouReport?.unheldTotal ?? unheldReimbursableTotal + (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
     const adjustedUnheldTotal = unheldTotal * coefficient;
