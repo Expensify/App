@@ -27,7 +27,7 @@ function ComposerBox({reportID, children}: ComposerBoxProps) {
         <OfflineWithFeedback
             shouldDisableOpacity
             pendingAction={pendingAction}
-            style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
+            style={isComposerFullSize ? styles.flex1 : {}}
             contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
         >
             <View
