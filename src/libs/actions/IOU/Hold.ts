@@ -47,13 +47,13 @@ function putOnHold(
     initialReportID: string | undefined,
     isOffline: boolean,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     ancestors: Ancestor[] = [],
 ) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
-    const userAccountID = getUserAccountID();
-    const currentUserEmail = getCurrentUserEmail();
 
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
@@ -76,7 +76,7 @@ function putOnHold(
         transactionThreadReport = buildTransactionThread(iouAction, moneyRequestReport, undefined, reportID);
     }
 
-    const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserLogin);
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -266,16 +266,16 @@ function putOnHold(
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
-            currentUserAccountIDParam: userAccountID,
-            currentUserEmailParam: currentUserEmail,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
             bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
-            currentUserAccountIDParam: userAccountID,
-            currentUserEmailParam: currentUserEmail,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
         });
 
         optimisticData.push({
@@ -345,11 +345,13 @@ function putTransactionsOnHold(
     reportID: string,
     isOffline: boolean,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, isOffline, bankAccountList, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, bankAccountList, currentUserLogin, currentUserAccountID, ancestors);
     }
 }
 

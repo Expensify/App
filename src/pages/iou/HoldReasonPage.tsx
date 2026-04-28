@@ -27,7 +27,7 @@ type HoldReasonPageProps =
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const {transactionID, reportID, backTo} = route.params;
 
@@ -60,7 +60,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, bankAccountList, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID, ancestors);
         Navigation.goBack(backTo);
     };
 

@@ -85,7 +85,7 @@ type OpenPersonalBankAccountSetupViewProps = {
 };
 
 function clearPlaid(): Promise<void | void[]> {
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+    Onyx.set(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
     return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }

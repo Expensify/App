@@ -6749,6 +6749,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',

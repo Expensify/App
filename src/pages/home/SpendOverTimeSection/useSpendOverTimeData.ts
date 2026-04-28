@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -57,6 +58,7 @@ function useSpendOverTimeData() {
     const isSearchLoading = !!searchResults?.search?.isLoading;
 
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
 
     const onConfigChanged = useEffectEvent(() => {
         if (!queryJSON || isSearchLoading || isOffline) {
@@ -74,8 +76,11 @@ function useSpendOverTimeData() {
     });
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         onConfigChanged();
-    }, [config.hash, isOffline]);
+    }, [config.hash, isOffline, isFocused]);
 
     const sortedData =
         searchResults?.data && queryJSON && groupBy && login

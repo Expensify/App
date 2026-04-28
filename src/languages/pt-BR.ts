@@ -6804,6 +6804,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             customRules: {
                 title: 'Política de despesas',
                 cardSubtitle: 'Aqui é onde fica a política de despesas da sua equipe, para que todo mundo esteja alinhado sobre o que é coberto.',
+                policyDocument: 'Documento de política',
+                policyText: 'Texto da política',
             },
             spendRules: {
                 title: 'Gasto',

@@ -767,7 +767,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, undefined);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

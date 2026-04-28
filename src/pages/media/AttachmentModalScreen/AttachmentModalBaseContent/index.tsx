@@ -188,7 +188,7 @@ function AttachmentModalBaseContent({
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || !!onDownloadAttachment;
         if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }

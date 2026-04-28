@@ -230,8 +230,7 @@ function IOURequestStepConfirmation({
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
-
+    const isFromGlobalCreate = !!transaction?.isFromGlobalCreate || !!transaction?.isFromFloatingActionButton;
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
@@ -240,7 +239,7 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
-    useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
+    const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
 
     // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
     // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
@@ -553,9 +552,7 @@ function IOURequestStepConfirmation({
                 odometerStartImage={odometerStartImage}
                 odometerEndImage={odometerEndImage}
                 transaction={transaction}
-                reportID={reportID}
-                backToReport={backToReport}
-                iouType={iouType}
+                hasVerifiedBlobs={hasVerifiedBlobs}
                 onStitchingChange={setIsStitchingReceipt}
                 onStitchError={setStitchError}
             />
@@ -648,7 +645,7 @@ function IOURequestStepConfirmation({
                                 isPolicyExpenseChat={isPolicyExpenseChat}
                                 policyID={policyID}
                                 isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                isLoadingReceipt={isStitchingReceipt}
+                                isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
                                 isPerDiemRequest={isPerDiemRequest}
                                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                                 action={action}

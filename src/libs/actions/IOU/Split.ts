@@ -1428,6 +1428,9 @@ function updateSplitTransactions({
         });
     };
 
+    // Collect optimistic child transactions to add to the search snapshot (forward split only)
+    const optimisticChildSnapshotEntries: Record<string, OnyxTypes.Transaction> = {};
+
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
@@ -1939,6 +1942,20 @@ function updateSplitTransactions({
             }
         }
 
+        // Collect the optimistic child transaction for snapshot update (forward split only)
+        if (!isReverseSplitOperation && optimisticTransactionFromGetMoneyRequest) {
+            const childTransactionID = optimisticTransactionFromGetMoneyRequest.transactionID;
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`;
+            // Use the transaction value from optimisticData if available (it may have merchant fixes applied),
+            // otherwise fall back to the raw optimistic transaction
+            const transactionUpdate = moneyRequestInformationOnyxData.optimisticData?.find((update) => update.key === transactionKey);
+            const snapshotTransaction =
+                transactionUpdate && 'value' in transactionUpdate && typeof transactionUpdate.value === 'object' && transactionUpdate.value !== null
+                    ? (transactionUpdate.value as OnyxTypes.Transaction)
+                    : optimisticTransactionFromGetMoneyRequest;
+            optimisticChildSnapshotEntries[transactionKey] = snapshotTransaction;
+        }
+
         onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
         onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
         onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
@@ -2148,13 +2165,26 @@ function updateSplitTransactions({
             pushUpdatedReportPreviewActionToOnyxData();
         }
 
+        // Build the snapshot data update: remove original transaction and add child transactions
+        const optimisticSnapshotData: Record<string, OnyxTypes.Transaction | null> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
+            ...optimisticChildSnapshotEntries,
+        };
+
+        // On failure, restore the original transaction and remove the child transactions
+        const failureSnapshotData: Record<string, OnyxTypes.Transaction | null> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction ?? null,
+        };
+        for (const childKey of Object.keys(optimisticChildSnapshotEntries)) {
+            failureSnapshotData[childKey] = null;
+        }
+
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-                },
+                data: optimisticSnapshotData,
             },
         });
 
@@ -2163,9 +2193,7 @@ function updateSplitTransactions({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
-                },
+                data: failureSnapshotData,
             },
         });
     } else {

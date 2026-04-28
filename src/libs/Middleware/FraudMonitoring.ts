@@ -16,10 +16,11 @@ type FraudSignalFactory = (requestData?: Record<string, unknown>, responseData?:
 
 // Flag commands that create new accounts so the fraud protection backend can detect invite spam.
 const createNewAccountCountSignal: FraudSignalFactory = (_, responseData) => {
-    if (!responseData?.newAccountCount) {
+    const newAccountCount = responseData?.newAccountCount;
+    if (typeof newAccountCount !== 'number' || newAccountCount <= 0) {
         return undefined;
     }
-    return {event: FRAUD_PROTECTION_EVENT.NEW_EMAILS_INVITED, attribute: {key: 'new_account_count', value: responseData.newAccountCount as string}};
+    return {event: FRAUD_PROTECTION_EVENT.NEW_EMAILS_INVITED, attribute: {key: 'new_account_count', value: newAccountCount.toString()}};
 };
 
 const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {

@@ -3357,6 +3357,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: {},
@@ -3451,6 +3453,8 @@ describe('actions/Policy', () => {
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [expenseChatReport],
                 transactionViolations: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -3515,6 +3519,8 @@ describe('actions/Policy', () => {
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3554,6 +3560,8 @@ describe('actions/Policy', () => {
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3595,6 +3603,8 @@ describe('actions/Policy', () => {
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3641,6 +3651,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3681,6 +3693,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3722,6 +3736,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -5185,7 +5201,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for a new member
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID});
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, ESH_ACCOUNT_ID);
 
             // Then optimistic data should be generated
             expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
@@ -5243,13 +5259,37 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for the existing member
-            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID});
+            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, ESH_ACCOUNT_ID);
 
             // Then the existing report should be reused (no new reportActionID)
             const reportCreationEntry = result.reportCreationData[existingMemberEmail];
             expect(reportCreationEntry).toBeTruthy();
             expect(reportCreationEntry.reportID).toBe(existingReportID);
             expect(reportCreationEntry.reportActionID).toBeUndefined();
+        });
+
+        it('should use explicit currentUserAccountID for optimistic report participants instead of Onyx session', async () => {
+            // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const newMemberEmail = 'newmember@test.com';
+            const newMemberAccountID = 200;
+            const customAccountID = 999;
+
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, customAccountID);
+
+            // Find the optimistic report data
+            const reportCreationEntry = result.reportCreationData[newMemberEmail];
+            expect(reportCreationEntry).toBeTruthy();
+
+            const reportOnyxData = result.onyxOptimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportCreationEntry.reportID}`);
+            const reportValue = reportOnyxData?.value as {participants?: Record<string, unknown>};
+
+            // Verify the explicit customAccountID is used in participants, not the Onyx session accountID
+            expect(reportValue?.participants?.[customAccountID]).toBeTruthy();
+            expect(reportValue?.participants?.[ESH_ACCOUNT_ID]).toBeUndefined();
         });
     });
     describe('setPolicyCustomTaxName', () => {
