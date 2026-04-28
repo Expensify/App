@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,6 +51,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
 
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
+    const delegateAccountID = useDelegateAccountID();
 
     function sendCommentToChronos() {
         addComment({
@@ -61,6 +63,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateAccountID,
         });
     }
 

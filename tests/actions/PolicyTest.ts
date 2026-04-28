@@ -1409,6 +1409,124 @@ describe('actions/Policy', () => {
 
             expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
         });
+
+        it('should not include memberData when adminParticipant is not provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {memberData?: string};
+            expect(params.memberData).toBeUndefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should generate optimistic expense chat report when adminParticipant is provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+            const adminEmail = 'admin@example.com';
+            const adminAccountID = 555;
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Verify memberData contains the workspaceChatReportID (created by createPolicyExpenseChats)
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            const params = apiCallArgs?.[1] as {memberData?: string};
+            const memberData = JSON.parse(params.memberData ?? '{}') as {workspaceChatReportID: string; workspaceChatCreatedReportActionID: string};
+            expect(memberData.workspaceChatReportID).toBeTruthy();
+            expect(memberData.workspaceChatCreatedReportActionID).toBeTruthy();
+
+            // Verify that optimistic data includes the expense chat report
+            const onyxData = apiCallArgs?.[2] as {optimisticData?: Array<{key: string; value: unknown}>};
+            const expenseChatOptimisticData = onyxData.optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${memberData.workspaceChatReportID}`);
+            expect(expenseChatOptimisticData).toBeTruthy();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should always create a new expense chat for adminParticipant since policyID is freshly generated', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const adminEmail = 'admin@example.com';
+            const adminAccountID = 555;
+
+            // Create two workspaces with the same adminParticipant — each should get a unique expense chat
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Workspace 1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Workspace 2',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Both calls should produce different workspaceChatReportIDs
+            const calls = apiWriteSpy.mock.calls.filter((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(calls).toHaveLength(2);
+
+            const memberData1 = JSON.parse((calls.at(0)?.at(1) as {memberData: string}).memberData) as {workspaceChatReportID: string};
+            const memberData2 = JSON.parse((calls.at(1)?.at(1) as {memberData: string}).memberData) as {workspaceChatReportID: string};
+            expect(memberData1.workspaceChatReportID).toBeTruthy();
+            expect(memberData2.workspaceChatReportID).toBeTruthy();
+            expect(memberData1.workspaceChatReportID).not.toBe(memberData2.workspaceChatReportID);
+
+            apiWriteSpy.mockRestore();
+        });
     });
 
     describe('updateWorkspaceAvatar', () => {
@@ -3237,6 +3355,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: {},
@@ -3331,6 +3451,8 @@ describe('actions/Policy', () => {
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [expenseChatReport],
                 transactionViolations: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -3395,6 +3517,8 @@ describe('actions/Policy', () => {
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3434,6 +3558,8 @@ describe('actions/Policy', () => {
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3475,6 +3601,8 @@ describe('actions/Policy', () => {
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3521,6 +3649,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3561,6 +3691,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -3602,6 +3734,8 @@ describe('actions/Policy', () => {
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
@@ -5065,7 +5199,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for a new member
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID});
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, ESH_ACCOUNT_ID);
 
             // Then optimistic data should be generated
             expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
@@ -5123,13 +5257,37 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for the existing member
-            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID});
+            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, ESH_ACCOUNT_ID);
 
             // Then the existing report should be reused (no new reportActionID)
             const reportCreationEntry = result.reportCreationData[existingMemberEmail];
             expect(reportCreationEntry).toBeTruthy();
             expect(reportCreationEntry.reportID).toBe(existingReportID);
             expect(reportCreationEntry.reportActionID).toBeUndefined();
+        });
+
+        it('should use explicit currentUserAccountID for optimistic report participants instead of Onyx session', async () => {
+            // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const newMemberEmail = 'newmember@test.com';
+            const newMemberAccountID = 200;
+            const customAccountID = 999;
+
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, customAccountID);
+
+            // Find the optimistic report data
+            const reportCreationEntry = result.reportCreationData[newMemberEmail];
+            expect(reportCreationEntry).toBeTruthy();
+
+            const reportOnyxData = result.onyxOptimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportCreationEntry.reportID}`);
+            const reportValue = reportOnyxData?.value as {participants?: Record<string, unknown>};
+
+            // Verify the explicit customAccountID is used in participants, not the Onyx session accountID
+            expect(reportValue?.participants?.[customAccountID]).toBeTruthy();
+            expect(reportValue?.participants?.[ESH_ACCOUNT_ID]).toBeUndefined();
         });
     });
     describe('setPolicyCustomTaxName', () => {

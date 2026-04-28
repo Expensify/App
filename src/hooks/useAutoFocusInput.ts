@@ -19,6 +19,7 @@ import useSidePanelState from './useSidePanelState';
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
     inputRef: RefObject<TextInput | null>;
+    cancelAutoFocus: () => void;
 };
 
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
@@ -34,6 +35,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     const inputRef = useRef<TextInput | null>(null);
     const transitionEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isAutoFocusCancelledRef = useRef(false);
 
     const clearTransitionEndTimeout = useCallback(() => {
         if (!transitionEndTimeoutRef.current) {
@@ -42,6 +44,12 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         clearTimeout(transitionEndTimeoutRef.current);
         transitionEndTimeoutRef.current = null;
     }, []);
+
+    const cancelAutoFocus = () => {
+        isAutoFocusCancelledRef.current = true;
+        clearTransitionEndTimeout();
+        setIsScreenTransitionEnded(false);
+    };
 
     useEffect(() => {
         if (
@@ -71,13 +79,17 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     useFocusEffect(
         useCallback(() => {
+            isAutoFocusCancelledRef.current = false;
             setIsScreenTransitionEnded(false);
             transitionEndTimeoutRef.current = setTimeout(() => {
+                if (isAutoFocusCancelledRef.current) {
+                    return;
+                }
                 setIsScreenTransitionEnded(true);
             }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
             const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
-                if (event?.data?.closing) {
+                if (event?.data?.closing || isAutoFocusCancelledRef.current) {
                     return;
                 }
                 clearTransitionEndTimeout();
@@ -124,5 +136,5 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         setIsInputInitialized(true);
     };
 
-    return {inputCallbackRef, inputRef};
+    return {inputCallbackRef, inputRef, cancelAutoFocus};
 }

@@ -2,6 +2,7 @@ import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import usePrevious from '@hooks/usePrevious';
@@ -48,6 +49,7 @@ const getPushTargetLeaf = (params: unknown): string | undefined => {
  */
 function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -61,7 +63,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     // Guard with shouldUseNarrowLayout so prevShouldHide stays false in wide layout,
     // preventing false shouldApplyDelay triggers on layout transitions (e.g. web resize).
-    const shouldHide = shouldUseNarrowLayout && !isAtRoot;
+    const shouldHide = shouldUseNarrowLayout && (!isAtRoot || isBlockingViewVisible);
     const prevTabIndex = usePrevious(state.index);
     const prevShouldHide = usePrevious(shouldHide);
     const stateKey = `${state.index}-${isAtRoot}`;

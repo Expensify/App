@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Laten we beginnen`,
         showMore: 'Meer weergeven',
         showLess: 'Toon minder',
+        plusMore: ({count}: {count: number}) => `+${count} meer`,
         merchant: 'Handelaar',
         change: 'Wijzigen',
         category: 'Categorie',
@@ -6805,6 +6806,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             customRules: {
                 title: 'Declaratiebeleid',
                 cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                policyDocument: 'Beleidsdocument',
+                policyText: 'Beleidstekst',
             },
             spendRules: {
                 title: 'Uitgaven',
@@ -6820,8 +6823,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
   • Geldautomaten (ATM's)  
   • Gokken  
   • Geldoverschrijvingen  
-
-Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
+er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 addSpendRule: 'Uitgaveregel toevoegen',
                 cardPageTitle: 'Kaart',
@@ -6857,6 +6859,8 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 merchants: 'Handelaars',
                 noAvailableCards: 'Alle kaarten hebben al een regel',
                 noAvailableCardsSubtitle: 'Bewerk een bestaande kaartregel om wijzigingen aan te brengen',
+                noCardsIssuedTitle: 'Geen Expensify Kaarten uitgegeven',
+                noCardsIssuedSubtitle: 'Geef Expensify Kaarten uit om bestedingsregels te maken',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Luchtvaartmaatschappijen',
@@ -7662,6 +7666,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle geïmporteerde CSV-kaarten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Gecentraliseerde facturatie',
             },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Huidig',
@@ -7771,8 +7776,8 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         spendOverTime: 'Uitgaven in de tijd',
         tabs: {
             expenseReports: 'Declaraties',
-            reports: 'Alle rapporten',
-            expenses: 'Alle uitgaven',
+            reports: 'Rapporten',
+            expenses: 'Declaraties',
             submit: 'Concepten',
             approve: 'Moet worden goedgekeurd',
             pay: 'Klaar om te betalen',

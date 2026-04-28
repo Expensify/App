@@ -321,7 +321,7 @@ function OptionRow({
                                             onPress={() => onSelectedStatePressed(option)}
                                             disabled={isDisabled}
                                             role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={option.text ?? selectedStateButtonText ?? translate('common.select')}
                                             sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.USER_SELECTION_CHECKBOX}
                                             style={[styles.ml2, styles.optionSelectCircle]}
                                         >

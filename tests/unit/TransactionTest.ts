@@ -15,6 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {PersonalDetails, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
@@ -1873,5 +1875,139 @@ describe('Transaction', () => {
                 await mockFetch.resume();
             });
         });
+    });
+});
+
+describe('removeTransactionFromDuplicateTransactionViolation', () => {
+    const TXN_A = 'txn_a';
+    const TXN_B = 'txn_b';
+
+    function makeDuplicateViolation(duplicates: string[]): TransactionViolation {
+        return {
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {duplicates},
+        };
+    }
+
+    function makeCategoryViolation(): TransactionViolation {
+        return {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+    }
+
+    function makeTransactionCollection(...ids: string[]) {
+        const collection: Record<string, Transaction> = {};
+        for (const id of ids) {
+            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = {transactionID: id} as Transaction;
+        }
+        return collection;
+    }
+
+    it('should push successData that re-applies cleaned partner violations', () => {
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+
+        const TXN_C = 'txn_c';
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A, TXN_C])],
+        };
+
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B, TXN_C), transactionViolations);
+
+        expect(onyxData.successData?.length).toBe(1);
+        const successEntry = onyxData.successData?.at(0);
+        expect(successEntry?.key).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`);
+        expect(successEntry?.value).toEqual([
+            {
+                ...makeDuplicateViolation([TXN_A, TXN_C]),
+                data: {duplicates: [TXN_C]},
+            },
+        ]);
+    });
+
+    it('should have matching optimistic and success data values', () => {
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+
+        expect(onyxData.optimisticData?.length).toBe(1);
+        expect(onyxData.successData?.length).toBe(1);
+
+        const optimisticEntry = onyxData.optimisticData?.at(0);
+        const successEntry = onyxData.successData?.at(0);
+        expect(optimisticEntry?.key).toBe(successEntry?.key);
+        expect(optimisticEntry?.value).toEqual(successEntry?.value);
+    });
+
+    it('should set successData value to null when removing the last duplicate reference', () => {
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+
+        const successEntry = onyxData.successData?.at(0);
+        expect(successEntry?.value).toBeNull();
+    });
+
+    it('should preserve failureData for rollback with original violations', () => {
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+
+        const originalBViolations = [makeDuplicateViolation([TXN_A]), makeCategoryViolation()];
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: originalBViolations,
+        };
+
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+
+        expect(onyxData.failureData?.length).toBe(1);
+        const failureEntry = onyxData.failureData?.at(0);
+        expect(failureEntry?.key).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`);
+        expect(failureEntry?.value).toEqual(originalBViolations);
+    });
+
+    it('should preserve non-duplicate violations on partner when cleaning duplicate reference', () => {
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A]), makeCategoryViolation()],
+        };
+
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+
+        const successEntry = onyxData.successData?.at(0);
+        expect(successEntry?.value).toEqual([makeCategoryViolation()]);
+
+        const optimisticEntry = onyxData.optimisticData?.at(0);
+        expect(optimisticEntry?.value).toEqual([makeCategoryViolation()]);
+    });
+
+    it('should not push any data when successData array is undefined', () => {
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {
+            optimisticData: [],
+            failureData: [],
+        };
+
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, makeTransactionCollection(TXN_A, TXN_B), transactionViolations);
+
+        expect(onyxData.optimisticData?.length).toBe(1);
+        expect(onyxData.successData).toBeUndefined();
     });
 });
