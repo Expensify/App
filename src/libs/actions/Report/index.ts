@@ -1296,6 +1296,13 @@ function openReport(params: OpenReportActionParams) {
     // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
 
+    // Capture current report state before the API call so we can restore it in successData.
+    // OpenReport's server response may return updated stateNum/statusNum (e.g., if the report
+    // was auto-submitted or approved by another user between syncs). Without this, merely viewing
+    // a report causes it to vanish from the To Do queue. Real state transitions propagate through
+    // Pusher events and explicit action API responses (submit/approve/pay).
+    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
     const optimisticReport = reportActionsExist(reportID)
         ? {}
         : {
@@ -1354,6 +1361,10 @@ function openReport(params: OpenReportActionParams) {
                 errorFields: {
                     notFound: null,
                 },
+                // Restore pre-request stateNum/statusNum so that the server response from
+                // OpenReport does not silently change the report's To Do eligibility.
+                ...(currentReport?.stateNum !== undefined && {stateNum: currentReport.stateNum}),
+                ...(currentReport?.statusNum !== undefined && {statusNum: currentReport.statusNum}),
             },
         },
         {
