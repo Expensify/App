@@ -389,6 +389,8 @@ type OptimisticExpenseReport = Pick<
     | 'unheldTotal'
     | 'nonReimbursableTotal'
     | 'unheldNonReimbursableTotal'
+    | 'reimbursableTotal'
+    | 'unheldReimbursableTotal'
     | 'parentReportID'
     | 'created'
     | 'lastVisibleActionCreated'
@@ -409,6 +411,8 @@ type OptimisticNewReport = Pick<
     | 'currency'
     | 'total'
     | 'nonReimbursableTotal'
+    | 'reimbursableTotal'
+    | 'unheldReimbursableTotal'
     | 'parentReportID'
     | 'created'
     | 'lastVisibleActionCreated'
@@ -812,6 +816,8 @@ type OptimisticIOUReport = Pick<
     | 'unheldTotal'
     | 'nonReimbursableTotal'
     | 'unheldNonReimbursableTotal'
+    | 'reimbursableTotal'
+    | 'unheldReimbursableTotal'
     | 'reportName'
     | 'parentReportID'
     | 'created'
@@ -4315,6 +4321,30 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
 }
 
 /**
+ * Returns the freshly computed reimbursableTotal from the backend, falling back to the legacy
+ * derivation (`total - nonReimbursableTotal`) when the local copy of the report does not yet have
+ * the fresh field set.
+ */
+function getReimbursableTotal(report: OnyxInputOrEntry<Report> | Pick<Report, 'total' | 'nonReimbursableTotal' | 'reimbursableTotal'> | undefined): number {
+    if (!report) {
+        return 0;
+    }
+    return report.reimbursableTotal ?? (report.total ?? 0) - (report.nonReimbursableTotal ?? 0);
+}
+
+/**
+ * Returns the freshly computed unheldReimbursableTotal from the backend, falling back to the legacy
+ * derivation (`unheldTotal - unheldNonReimbursableTotal`) when the local copy of the report does
+ * not yet have the fresh field set.
+ */
+function getUnheldReimbursableTotal(report: OnyxInputOrEntry<Report> | Pick<Report, 'unheldTotal' | 'unheldNonReimbursableTotal' | 'unheldReimbursableTotal'> | undefined): number {
+    if (!report) {
+        return 0;
+    }
+    return report.unheldReimbursableTotal ?? (report.unheldTotal ?? 0) - (report.unheldNonReimbursableTotal ?? 0);
+}
+
+/**
  * Checks if the report contains at least one Non-Reimbursable transaction
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions): boolean {
@@ -4333,20 +4363,21 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
     }
     if (moneyRequestReport) {
         let nonReimbursableSpend = moneyRequestReport.nonReimbursableTotal ?? 0;
-        // Prefer the freshly computed reimbursableTotal from the backend over deriving it from the stored
-        // (and sometimes stale) total column. Fall back to total - nonReimbursableTotal when the fresh
+        // Prefer the freshly computed reimbursableTotal from the backend over deriving from the stored
+        // total column (which can be stale). Fall back to total - nonReimbursableTotal when the fresh
         // field is not yet present on the local copy of the report.
-        let reimbursableSpendStored = moneyRequestReport.reimbursableTotal ?? (moneyRequestReport.total ?? 0) - nonReimbursableSpend;
+        const reimbursableSpendStored = getReimbursableTotal(moneyRequestReport);
+        let totalSpend = reimbursableSpendStored + nonReimbursableSpend;
 
-        if (reimbursableSpendStored + nonReimbursableSpend !== 0) {
+        if (totalSpend !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to "offset" future expenses
             nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            reimbursableSpendStored = isExpenseReport(moneyRequestReport) ? reimbursableSpendStored * -1 : Math.abs(reimbursableSpendStored);
+            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
 
-            const reimbursableSpend = reimbursableSpendStored;
-            const totalDisplaySpend = reimbursableSpend + nonReimbursableSpend;
+            const totalDisplaySpend = totalSpend;
+            const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
 
             return {
                 nonReimbursableSpend,
@@ -6650,13 +6681,14 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
 
-    const totalAmount = report.total !== undefined && !Number.isNaN(report.total) ? Math.abs(report.total) : 0;
-    const nonReimbursableTotal =
-        'nonReimbursableTotal' in report && report.nonReimbursableTotal !== undefined && !Number.isNaN(report.nonReimbursableTotal) ? Math.abs(report.nonReimbursableTotal) : 0;
+    const reportTotal = report.total ?? undefined;
+    const totalAmount = reportTotal !== undefined && !Number.isNaN(reportTotal) ? Math.abs(reportTotal) : 0;
+    const reportNonReimbursableTotal = 'nonReimbursableTotal' in report ? (report.nonReimbursableTotal ?? undefined) : undefined;
+    const nonReimbursableTotal = reportNonReimbursableTotal !== undefined && !Number.isNaN(reportNonReimbursableTotal) ? Math.abs(reportNonReimbursableTotal) : 0;
     // Prefer the freshly computed reimbursableTotal from the backend over deriving it from the stored
     // total column (which can be stale).
-    const freshReimbursableTotal =
-        'reimbursableTotal' in report && report.reimbursableTotal !== undefined && !Number.isNaN(report.reimbursableTotal) ? Math.abs(report.reimbursableTotal) : undefined;
+    const reportReimbursableTotal = 'reimbursableTotal' in report ? (report.reimbursableTotal ?? undefined) : undefined;
+    const freshReimbursableTotal = reportReimbursableTotal !== undefined && !Number.isNaN(reportReimbursableTotal) ? Math.abs(reportReimbursableTotal) : undefined;
     const reimbursableAmount = freshReimbursableTotal ?? totalAmount - nonReimbursableTotal;
 
     const result = formula
@@ -10903,8 +10935,8 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     // Prefer the freshly computed totals from the backend. The stored total column can lag behind the
     // sum of the underlying transactions, so deriving from reimbursableTotal/nonReimbursableTotal keeps
     // displayed amounts in sync with what the user actually entered.
-    const reimbursableTotal = iouReport?.reimbursableTotal ?? (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
-    const unheldReimbursableTotal = iouReport?.unheldReimbursableTotal ?? (iouReport?.unheldTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    const reimbursableTotal = getReimbursableTotal(iouReport);
+    const unheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
 
     let total: number;
     let unheldTotal: number;
@@ -13521,6 +13553,8 @@ export {
     getLastVisibleMessage,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
+    getReimbursableTotal,
+    getUnheldReimbursableTotal,
     getOptimisticDataForAncestors,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
