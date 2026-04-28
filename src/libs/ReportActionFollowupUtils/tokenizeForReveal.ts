@@ -32,14 +32,12 @@ function collectAnchors(doc: Document): Anchor[] {
             if (text.length === 0) {
                 return;
             }
-            // Splitting on \s alone would coalesce adjacent words around a
-            // single space; matching word-or-whitespace runs keeps each word
-            // a separate reveal step.
-            const re = /\S+|\s+/g;
-            let match = re.exec(text);
-            while (match !== null) {
-                anchors.push({path: path.slice(), textEndIdx: match.index + match[0].length});
-                match = re.exec(text);
+            // One anchor per character for ChatGPT-style streaming feel.
+            // Atomic tags below still emit a single anchor for the whole tag,
+            // so mentions/emoji/anchors/code never render half-rendered even
+            // at this granularity.
+            for (let i = 1; i <= text.length; i += 1) {
+                anchors.push({path: path.slice(), textEndIdx: i});
             }
             return;
         }

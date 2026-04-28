@@ -5,14 +5,15 @@ describe('tokenizeForReveal', () => {
         expect(tokenizeForReveal('')).toEqual(['']);
     });
 
-    it('reveals plain text word-by-word inside a single block', () => {
+    it('reveals plain text character-by-character inside a single block', () => {
         const html = '<p>The quick brown fox.</p>';
         const stages = tokenizeForReveal(html);
 
         expect(stages.at(0)).toBe('');
         expect(stages.at(-1)).toBe('<p>The quick brown fox.</p>');
-        // Word-level reveal yields one stage per word + whitespace run.
-        expect(stages.length).toBeGreaterThanOrEqual(5);
+        // Char-level reveal yields one stage per character of the text content
+        // ("The quick brown fox." = 20 chars), plus stage 0 (empty).
+        expect(stages.length).toBe(21);
     });
 
     it('preserves the <strong> wrapper while revealing words inside it (formatting applies as text grows)', () => {
@@ -93,11 +94,13 @@ describe('tokenizeForReveal', () => {
         }
     });
 
-    it('produces enough anchors that a typical multi-paragraph response trickles smoothly (>=20 stages)', () => {
+    it('produces enough anchors that a typical multi-paragraph response trickles smoothly', () => {
         // Realistic shape — Xero-style 5-step instructions.
         const html =
             '<p>Here is how to connect Xero as your accounting integration:</p><ol><li>In the left-hand menu, go to Settings.</li><li>Click More features, then click Accounting.</li><li>Click Set up next to Xero.</li><li>Log in to Xero as an administrator.</li><li>Confirm the connection.</li></ol><p>This imports your charts of accounts and tracking categories.</p>';
         const stages = tokenizeForReveal(html);
-        expect(stages.length).toBeGreaterThanOrEqual(20);
+        // Char-level: total visible-text chars ~280, so we expect comfortably
+        // more than the shouldTrickle threshold of 100 anchors.
+        expect(stages.length).toBeGreaterThanOrEqual(200);
     });
 });

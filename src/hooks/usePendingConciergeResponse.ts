@@ -72,10 +72,10 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             return;
         }
 
-        // Short replies (~10–18 anchors) feel stretched if trickled over 30s,
-        // so they keep the binary reveal; multi-paragraph replies clear the
-        // threshold and get the smooth trickle.
-        const shouldTrickle = tokens.length >= 20 && !!fullHtml;
+        // Anchors are character-level. Short replies (~50–100 chars) keep the
+        // binary reveal; longer ones (paragraphs / lists) cross the threshold
+        // and get the smooth trickle.
+        const shouldTrickle = tokens.length >= 100 && !!fullHtml;
         if (!shouldTrickle) {
             const timer = setTimeout(() => applyPendingConciergeAction(reportID, reportAction), Math.max(0, remainingDelay));
             return () => clearTimeout(timer);
