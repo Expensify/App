@@ -16,6 +16,7 @@ import type {
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
     RevokeDeviceParams,
+    ResendValidateCodeParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     TogglePlatformMuteParams,
@@ -186,8 +187,8 @@ function closeAccount(reason: string) {
 /**
  * Resend a validation link to a given login
  */
-function resendValidateCode(login: string) {
-    sessionResendValidateCode(login);
+function resendValidateCode(login: string, reasonParams: ResendValidateCodeParams) {
+    sessionResendValidateCode(reasonParams, login);
 }
 
 /**
@@ -507,7 +508,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 /**
  * Requests a magic code to verify current user
  */
-function requestValidateCodeAction() {
+function requestValidateCodeAction(params?: ResendValidateCodeParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -559,7 +560,7 @@ function requestValidateCodeAction() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, params ?? null, {optimisticData, successData, failureData});
 }
 
 /**
