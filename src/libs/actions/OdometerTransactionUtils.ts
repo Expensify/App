@@ -13,7 +13,7 @@ import {removeBackupTransaction} from './TransactionEdit';
  * Set the odometer readings for a transaction
  */
 function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             odometerStart: startReading,
             odometerEnd: endReading,
@@ -61,29 +61,31 @@ function setMoneyRequestOdometerImage(transaction: OnyxEntry<Transaction>, image
  */
 function removeMoneyRequestOdometerImage(transaction: OnyxEntry<Transaction>, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
     if (!transaction?.transactionID) {
-        return;
+        return Promise.resolve();
     }
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const existingImage = transaction?.comment?.[imageKey];
     if (shouldRevokeOldImage) {
         revokeOdometerImageUri(existingImage);
     }
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
+    return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
         comment: {
             [imageKey]: null,
         },
     });
 }
 
-function clearOdometerDraftTransactionState(transaction: OnyxEntry<Transaction>): void {
+function clearOdometerDraftTransactionState(transaction: OnyxEntry<Transaction>): Promise<void> {
     if (!transaction) {
-        return;
+        return Promise.resolve();
     }
     setMoneyRequestReceipt(transaction.transactionID, '', '', true);
-    setMoneyRequestOdometerReading(transaction.transactionID, null, null, true);
-    removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, true, true);
-    removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, true, true);
-    removeBackupTransaction(transaction.transactionID);
+    return Promise.all([
+        setMoneyRequestOdometerReading(transaction.transactionID, null, null, true),
+        removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, true, true),
+        removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, true, true),
+        removeBackupTransaction(transaction.transactionID),
+    ]).then(() => {});
 }
 
 export {setMoneyRequestOdometerReading, setMoneyRequestOdometerImage, removeMoneyRequestOdometerImage};

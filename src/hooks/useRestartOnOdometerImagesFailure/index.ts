@@ -99,8 +99,9 @@ const useRestartOnOdometerImagesFailure = (
             }
 
             onBackupHandled?.();
-            clearOdometerDraftTransactionState(transaction);
-            navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
+            clearOdometerDraftTransactionState(transaction).then(() => {
+                navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
+            });
         });
     }, [draftTransactionsMetadata, transaction, iouType, reportID, backToReport, onBackupHandled]);
 
