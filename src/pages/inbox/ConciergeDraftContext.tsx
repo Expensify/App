@@ -19,10 +19,9 @@ type ConciergeDraftState = {
 type ConciergeDraftActions = {
     clearDraft: () => void;
     /**
-     * Apply a draft event from a non-Pusher source (e.g. the local pacer in
-     * usePendingConciergeResponse for pregenerated replies whose body is
-     * already on the client). Uses the same reducer as the Pusher path so the
-     * reportActionID-based reconciliation continues to work unchanged.
+     * Apply a draft event from a non-Pusher source (e.g. a local pacer for
+     * pregenerated replies). Uses the same reducer as the Pusher path so
+     * `reportActionID`-based reconciliation works unchanged.
      */
     dispatchLocalDraftEvent: (event: ConciergeDraftEvent) => void;
 };

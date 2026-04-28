@@ -30,24 +30,11 @@ function easeOut(t: number): number {
 }
 
 /**
- * Manages the lifecycle of a pending pregenerated Concierge response.
- *
- * For payloads with multiple top-level chunks the hook trickles the body in
- * progressively over `DEFAULT_STREAM_DURATION_MS` (decelerating ease-out),
- * dispatching `conciergeDraftStarted/updated/completed` events into Issa's
- * existing `ConciergeDraftContext` reducer (PR #87110) so the synthetic
- * report action splice and reconciliation behave identically to server-driven
- * streaming. Canonical Onyx state (`REPORT_ACTIONS`) is only written at the
- * end via `applyPendingConciergeAction`, preserving LHN previews / push
- * notifications / search snapshots until the trickle finishes.
- *
- * Single-chunk payloads fall back to the original binary reveal at
- * `displayAfter` so short replies (1–2 sentence answers) don't get stretched
- * artificially.
- *
- * Reconciliation: if the real `reportComment` arrives mid-trickle, the loop
- * accelerates the remaining reveal so the synthetic bubble lands within
- * `ACCELERATED_REMAINING_MS` instead of snapping closed.
+ * Multi-chunk payloads trickle into the `ConciergeDraftContext` reducer over
+ * `DEFAULT_STREAM_DURATION_MS` so the synthetic report action behaves
+ * identically to server-driven streaming. `REPORT_ACTIONS` is written only
+ * at completion, preserving LHN previews / push / search snapshots.
+ * Single-chunk payloads keep the binary reveal at `displayAfter`.
  */
 function usePendingConciergeResponse(reportID: string | undefined) {
     const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
@@ -85,11 +72,9 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             return;
         }
 
-        // Threshold matches word-level tokenization — a typical 1–2 sentence
-        // reply produces ~10–18 anchors and feels stretched if trickled over
-        // 30s, so binary reveal is preserved for those. Multi-paragraph
-        // replies (intro + list + closing) clear 20 anchors easily and get
-        // the smooth ChatGPT-style stream.
+        // Short replies (~10–18 anchors) feel stretched if trickled over 30s,
+        // so they keep the binary reveal; multi-paragraph replies clear the
+        // threshold and get the smooth trickle.
         const shouldTrickle = tokens.length >= 20 && !!fullHtml;
         if (!shouldTrickle) {
             const timer = setTimeout(() => applyPendingConciergeAction(reportID, reportAction), Math.max(0, remainingDelay));
@@ -103,9 +88,8 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         let effectiveDuration = DEFAULT_STREAM_DURATION_MS;
         let lastStage = 0;
         let cancelled = false;
-        // Telemetry: track whether/when acceleration fired so the [complete] log
-        // can attribute the completion reason and the arrival point of the canonical
-        // reportComment. Drives Phase 2 duration tuning + regression detection.
+        // Track whether/when acceleration fired so the [complete] log can
+        // attribute the completion reason and arrival point of `reportComment`.
         let arrivedAtProgress: number | undefined;
         let arrivedAtElapsedMs: number | undefined;
 
