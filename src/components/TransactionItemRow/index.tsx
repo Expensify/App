@@ -429,7 +429,7 @@ function TransactionItemRow({
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
-                                amount={report?.total}
+                                amount={report?.reimbursableTotal ?? (report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0)}
                                 shouldDisablePointerEvents={isDisabled}
                             />
                         )}
