@@ -91,3 +91,7 @@ Yes. Employees can submit reports manually at any time—even if a scheduled fre
 
 Only compliant expenses will be submitted. Expenses with violations, missing data, or issues will stay in an open report until fixed.
 
+## What happens to rejected reports during scheduled submit?
+
+Rejected reports are skipped during scheduled submit. When an approver rejects a report back to the submitter, the report returns to Draft but will not be automatically resubmitted. The submitter must fix the issues and manually resubmit the report.
+

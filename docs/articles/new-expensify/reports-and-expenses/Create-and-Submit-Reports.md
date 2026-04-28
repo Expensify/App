@@ -183,4 +183,8 @@ The Submit button only appears once your report includes at least one valid expe
 
 ## Can I remove an expense after submitting?
 
-Yes. You’ll need to retract the report using More > Retract, depending on the report's state. Then you can remove or edit expenses before resubmitting.
+Yes. You’ll need to retract the report using More > Retract, depending on the report’s state. Then you can remove or edit expenses before resubmitting.
+
+## What happens if my report is rejected?
+
+When an approver rejects your report back to you, it returns to **Draft**. You’ll see a violation message on the report: "This report was rejected." Rejected reports are not picked up by scheduled submit — you must fix the flagged issues and manually resubmit the report.

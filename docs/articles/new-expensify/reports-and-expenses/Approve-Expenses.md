@@ -26,7 +26,7 @@ On any expense submitted on a report, the approver can:
 - **Hold**: Temporarily delay approval of the individual expense if more information is needed.
 - **Reject**: Remove the expense from the report and send it back to the submitter with a reason. The rejected expense can be marked as resolved and resubmitted.
 
-**Note:** On reports with only one expense, you cannot reject a single expense. Instead, the entire report must be rejected.
+**Note:** On reports with only one expense, only report-level Reject is available — the expense-level Reject option is not shown. This is because rejecting the entire report covers all expense-level reject considerations while keeping the report intact.
 
 ---
 

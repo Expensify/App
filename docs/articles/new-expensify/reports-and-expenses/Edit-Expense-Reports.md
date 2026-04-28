@@ -80,6 +80,10 @@ You’ll see a warning modal before retracting. Any edits won’t sync to the ex
 
 No. You can only retract outstanding reports you submitted from your own account. If you need to take these actions for another member, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). Workspace Admins can retract Done reports for members. 
 
+## What happens when a report is rejected?
+
+When an approver rejects a report back to the submitter, it returns to **Draft** — similar to retracting a report. The difference is that rejection is initiated by the approver and includes a required reason, while retract is initiated by the submitter. Once the report is back in Draft, you can edit expenses, add or remove items, and resubmit. Rejected reports are not automatically resubmitted by scheduled submit — you must resubmit manually.
+
 ## Can a Workspace Admin create an expense report for a member?
 
 Yes. Workspace Admins can create an expense report for a member by **moving expenses to a new report**. This creates a new report on the member’s default workspace and moves the selected expenses into it. For step-by-step instructions, see [Create and submit expense reports in New Expensify](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
