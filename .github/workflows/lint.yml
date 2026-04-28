@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
+    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', 'config/eslint/**', 'scripts/lint.sh', 'scripts/lintChanged.sh', '.watchmanconfig', '.imgbotconfig']
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-lint
@@ -20,6 +20,12 @@ jobs:
       - name: Checkout
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          # Only use the elevated OSBotify token on the post-merge `workflow_call` run
+          # (so the auto-commit step below can push to the protected `main` branch).
+          # PR runs use the default GITHUB_TOKEN so PR code can't borrow push-to-main
+          # access via the persisted checkout credentials.
+          token: ${{ github.event_name == 'workflow_call' && secrets.OS_BOTIFY_COMMIT_TOKEN || github.token }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -33,9 +39,9 @@ jobs:
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-
+            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-
             ${{ runner.os }}-eslint-
 
       # ESLint's cache doesn't track cross-file TypeScript dependencies, which can cause stale errors.
@@ -48,8 +54,6 @@ jobs:
             rm -rf node_modules/.cache/eslint
             npm run lint
           fi
-        env:
-          CI: true
 
       - name: Save ESLint cache
         # v5.0.1
@@ -57,4 +61,37 @@ jobs:
         if: always()
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+
+      # If lint tightened the seatbelt baseline (i.e. fewer baselined errors than last time),
+      # commit the updated TSV back to `main` as OSBotify. Only runs under `workflow_call`
+      # (i.e. invoked from preDeploy.yml, which only triggers on push to main).
+      - name: Check for tightened eslint-seatbelt baseline
+        id: seatbelt_diff
+        if: github.event_name == 'workflow_call'
+        run: |
+          if git diff --quiet config/eslint/eslint.seatbelt.tsv; then
+            echo "tightened=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::eslint.seatbelt.tsv unchanged; skipping auto-commit."
+          else
+            echo "tightened=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup git for OSBotify
+        if: steps.seatbelt_diff.outputs.tightened == 'true'
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
+
+      # If the push races with another commit to `main`, let this step fail.
+      # The next `push: main` lint run will re-tighten the baseline and try
+      # again; no need to retry here.
+      - name: Auto-commit tightened eslint-seatbelt baseline
+        if: steps.seatbelt_diff.outputs.tightened == 'true'
+        continue-on-error: true
+        run: |
+          git add config/eslint/eslint.seatbelt.tsv
+          git commit -m "Auto-tighten eslint-seatbelt baseline"
+          git push origin main

@@ -374,6 +374,7 @@ export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTax
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as SetCardReconciliationBankAccountParams} from './SetCardReconciliationBankAccountParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as RemoveDelegateParams} from './RemoveDelegateParams';

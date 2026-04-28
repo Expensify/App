@@ -927,7 +927,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
-    CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
+    DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     CHRONOS_SCHEDULE_OOO_ROOT: 'Chronos_Schedule_OOO_Root',
     REPORT_PARTICIPANTS: {

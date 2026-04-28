@@ -235,6 +235,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: accountID,
+                currentUserLogin: currentUserLogin ?? '',
             });
         }
     };

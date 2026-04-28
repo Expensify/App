@@ -210,7 +210,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const snapshotReport = useMemo(() => {
@@ -247,10 +247,10 @@ function ReportListItemHeader<TItem extends ListItem>({
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow
                 item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
                 containerStyles={[styles.pr3, styles.mb2]}
-                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                stateNum={reportItem.stateNum}
+                statusNum={reportItem.statusNum}
             />
             <HeaderFirstRow
                 report={reportItem}
