@@ -6617,6 +6617,8 @@ function buildOptimisticIOUReport(
         unheldTotal: total,
         nonReimbursableTotal: 0,
         unheldNonReimbursableTotal: 0,
+        reimbursableTotal: total,
+        unheldReimbursableTotal: total,
 
         // We don't translate reportName because the server response is always in English
         reportName: `${payerEmail} owes ${formattedTotal}`,
@@ -6835,6 +6837,8 @@ function buildOptimisticExpenseReport({
         unheldTotal: storedTotal,
         nonReimbursableTotal: storedNonReimbursableTotal,
         unheldNonReimbursableTotal: storedNonReimbursableTotal,
+        reimbursableTotal: storedTotal - storedNonReimbursableTotal,
+        unheldReimbursableTotal: storedTotal - storedNonReimbursableTotal,
         participants: {
             [payeeAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -6885,6 +6889,8 @@ function buildOptimisticEmptyReport(
         statusNum,
         total: 0,
         nonReimbursableTotal: 0,
+        reimbursableTotal: 0,
+        unheldReimbursableTotal: 0,
         participants: {},
         created: timeOfCreation,
         lastVisibleActionCreated: timeOfCreation,
