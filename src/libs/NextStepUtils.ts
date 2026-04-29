@@ -732,7 +732,11 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : hasValidAccount ? nextStepPayExpense : nextStepFinishBankAccountSetup;
+                if (reimbursableSpend === 0) {
+                    optimisticNextStep = noActionRequired;
+                } else {
+                    optimisticNextStep = hasValidAccount ? nextStepPayExpense : nextStepFinishBankAccountSetup;
+                }
                 break;
             }
             // Another owner
