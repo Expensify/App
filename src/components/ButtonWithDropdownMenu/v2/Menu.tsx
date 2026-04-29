@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import PopoverMenu from '@components/PopoverMenu';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -42,6 +43,7 @@ function Menu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings(true);
     const {calculatePopoverPosition} = usePopoverPosition();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {actions, topLevelEntries, submenuChildren} = useRegisteredOptions();
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(jsdomFallbackAnchor);
@@ -80,6 +82,8 @@ function Menu({
         const {children: submenuDescriptors, ...presentation} = entry.props;
         return {
             ...presentation,
+            // PopoverMenu only renders the right chevron when `rightIcon` is set; default to ArrowRight so submenu rows look like submenus.
+            rightIcon: icons.ArrowRight,
             shouldCallAfterModalHide: true,
             subMenuItems: subOptions.map((subEntry) => buildOptionMenuItem(subEntry.props)),
         };

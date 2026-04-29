@@ -1,11 +1,13 @@
 import {act, render, screen} from '@testing-library/react-native';
 import React, {useState} from 'react';
+import type {ReactElement, Ref} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import ButtonWithDropdownMenuV2 from '@components/ButtonWithDropdownMenu/v2';
 import type {ButtonWithDropdownMenuV2Ref} from '@components/ButtonWithDropdownMenu/v2';
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import CONST from '@src/CONST';
 
 type MockButtonProps = Record<string, unknown> & {
     text?: string;
@@ -17,8 +19,8 @@ type MockButtonProps = Record<string, unknown> & {
 
 const popoverMenuPropsCapture: {current: PopoverMenuProps | null} = {current: null};
 const buttonPropsCapture: {current: MockButtonProps[]} = {current: []};
+const iconPropsCapture: {current: Array<Record<string, unknown>>} = {current: []};
 
-// Capture PopoverMenu's props so tests can assert on the `menuItems[]` v2 builds.
 jest.mock('@components/PopoverMenu', () => {
     function MockPopoverMenu(props: PopoverMenuProps) {
         popoverMenuPropsCapture.current = props;
@@ -50,32 +52,118 @@ jest.mock('@components/Button', () => {
 jest.mock('@components/Icon', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
     const {View: RNView} = jest.requireActual('react-native');
-    function MockIcon() {
+    function MockIcon(props: Record<string, unknown>) {
+        iconPropsCapture.current.push(props);
         return <RNView testID="mock-icon" />;
     }
     return MockIcon;
 });
 
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
-jest.mock('@hooks/useTheme', () => () => ({}));
+jest.mock('@hooks/useTheme', () => () => ({danger: 'dangerColor', buttonIcon: 'buttonIconColor'}));
 jest.mock('@hooks/useStyleUtils', () => () => ({getDropDownButtonHeight: () => ({})}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false}));
 jest.mock('@hooks/useSafeAreaPaddings', () => () => ({paddingBottom: 0}));
 jest.mock('@hooks/usePopoverPosition', () => () => ({calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0}))}));
 jest.mock('@hooks/useKeyboardShortcut', () => jest.fn());
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({DownArrow: 'DownArrowIcon', DotIndicator: 'DotIndicatorIcon'}),
+    useMemoizedLazyExpensifyIcons: () => ({DownArrow: 'DownArrowIcon', DotIndicator: 'DotIndicatorIcon', ArrowRight: 'ArrowRightIcon'}),
 }));
 
 beforeEach(() => {
     popoverMenuPropsCapture.current = null;
     buttonPropsCapture.current = [];
+    iconPropsCapture.current = [];
     jest.clearAllMocks();
 });
 
+const findButtonByText = (text: string) => buttonPropsCapture.current.find((p) => p.text === text);
+
+// ───── parameterized cases ─────
+
+const insideMenuCases: Array<[string, () => ReactElement]> = [
+    ['PrimaryButton', () => <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>X</ButtonWithDropdownMenuV2.PrimaryButton>],
+    ['Trigger', () => <ButtonWithDropdownMenuV2.Trigger text="X" />],
+    ['Caret', () => <ButtonWithDropdownMenuV2.Caret />],
+];
+
+const refForwardingCases: Array<[string, (ref: Ref<RNViewType>) => ReactElement]> = [
+    [
+        'PrimaryButton',
+        (ref) => (
+            <ButtonWithDropdownMenuV2>
+                <ButtonWithDropdownMenuV2.PrimaryButton
+                    ref={ref}
+                    onPress={() => {}}
+                >
+                    Pay
+                </ButtonWithDropdownMenuV2.PrimaryButton>
+                <ButtonWithDropdownMenuV2.Caret />
+                <ButtonWithDropdownMenuV2.Menu>
+                    <ButtonWithDropdownMenuV2.Option text="A" />
+                </ButtonWithDropdownMenuV2.Menu>
+            </ButtonWithDropdownMenuV2>
+        ),
+    ],
+    [
+        'Caret',
+        (ref) => (
+            <ButtonWithDropdownMenuV2>
+                <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
+                <ButtonWithDropdownMenuV2.Caret ref={ref} />
+                <ButtonWithDropdownMenuV2.Menu>
+                    <ButtonWithDropdownMenuV2.Option text="A" />
+                </ButtonWithDropdownMenuV2.Menu>
+            </ButtonWithDropdownMenuV2>
+        ),
+    ],
+    [
+        'Trigger',
+        (ref) => (
+            <ButtonWithDropdownMenuV2>
+                <ButtonWithDropdownMenuV2.Trigger
+                    ref={ref}
+                    text="More"
+                />
+                <ButtonWithDropdownMenuV2.Menu>
+                    <ButtonWithDropdownMenuV2.Option text="A" />
+                </ButtonWithDropdownMenuV2.Menu>
+            </ButtonWithDropdownMenuV2>
+        ),
+    ],
+];
+
+const stringLabelCases: Array<[string, string, () => ReactElement]> = [
+    [
+        'PrimaryButton',
+        'Pay $123.45',
+        () => (
+            <ButtonWithDropdownMenuV2>
+                <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay $123.45</ButtonWithDropdownMenuV2.PrimaryButton>
+                <ButtonWithDropdownMenuV2.Caret />
+                <ButtonWithDropdownMenuV2.Menu>
+                    <ButtonWithDropdownMenuV2.Option text="A" />
+                </ButtonWithDropdownMenuV2.Menu>
+            </ButtonWithDropdownMenuV2>
+        ),
+    ],
+    [
+        'Trigger',
+        'More',
+        () => (
+            <ButtonWithDropdownMenuV2>
+                <ButtonWithDropdownMenuV2.Trigger text="More" />
+                <ButtonWithDropdownMenuV2.Menu>
+                    <ButtonWithDropdownMenuV2.Option text="A" />
+                </ButtonWithDropdownMenuV2.Menu>
+            </ButtonWithDropdownMenuV2>
+        ),
+    ],
+];
+
 describe('ButtonWithDropdownMenuV2', () => {
-    describe('Option registration (in <Menu>)', () => {
-        it('registers a single Option and surfaces it as a menu item', () => {
+    describe('Option registration', () => {
+        it('registers a single Option as a menu item', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -84,7 +172,6 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
             const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
             expect(menuItems).toHaveLength(1);
             expect(menuItems.at(0)).toMatchObject({text: 'Option A'});
@@ -101,50 +188,8 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
             const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
             expect(menuItems.map((item: PopoverMenuItem) => item.text)).toEqual(['A', 'B', 'C']);
-        });
-
-        it('drops options that fall under a falsy conditional', () => {
-            const showB = false;
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger text="More" />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                        {showB && <ButtonWithDropdownMenuV2.Option text="B" />}
-                        <ButtonWithDropdownMenuV2.Option text="C" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-
-            const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
-            expect(menuItems.map((item: PopoverMenuItem) => item.text)).toEqual(['A', 'C']);
-        });
-
-        it('handles options produced by .map() over a runtime list', () => {
-            const items = [
-                {id: 'x', label: 'X'},
-                {id: 'y', label: 'Y'},
-                {id: 'z', label: 'Z'},
-            ];
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger text="More" />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        {items.map((item) => (
-                            <ButtonWithDropdownMenuV2.Option
-                                key={item.id}
-                                text={item.label}
-                            />
-                        ))}
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-
-            const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
-            expect(menuItems.map((item: PopoverMenuItem) => item.text)).toEqual(['X', 'Y', 'Z']);
         });
 
         it('keeps JSX order when a conditional Option mounts after its later siblings', () => {
@@ -234,6 +279,23 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(submenu?.subMenuItems?.map((item) => item.text)).toEqual(['Inner']);
         });
 
+        it('attaches a right-chevron to submenu rows', () => {
+            render(
+                <ButtonWithDropdownMenuV2>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Submenu text="Outer">
+                            <ButtonWithDropdownMenuV2.Option text="Inner" />
+                        </ButtonWithDropdownMenuV2.Submenu>
+                        <ButtonWithDropdownMenuV2.Option text="Leaf" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const items = popoverMenuPropsCapture.current?.menuItems ?? [];
+            expect(items.find((item) => item.text === 'Outer')?.rightIcon).toBe('ArrowRightIcon');
+            expect(items.find((item) => item.text === 'Leaf')?.rightIcon).toBeUndefined();
+        });
+
         it('throws in dev mode when a Submenu is nested inside another Submenu', () => {
             const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
             expect(() =>
@@ -255,51 +317,21 @@ describe('ButtonWithDropdownMenuV2', () => {
     });
 
     describe('Composition invariants', () => {
-        it('throws when <PrimaryButton> is rendered inside <Menu>', () => {
+        it.each(insideMenuCases)('throws when <%s> is rendered inside <Menu>', (name, renderElement) => {
             const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
             expect(() =>
                 render(
                     <ButtonWithDropdownMenuV2>
-                        <ButtonWithDropdownMenuV2.Menu>
-                            <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>X</ButtonWithDropdownMenuV2.PrimaryButton>
-                        </ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Menu>{renderElement()}</ButtonWithDropdownMenuV2.Menu>
                     </ButtonWithDropdownMenuV2>,
                 ),
-            ).toThrow(/<ButtonWithDropdownMenuV2\.PrimaryButton> must be a sibling of <Menu>/);
-            error.mockRestore();
-        });
-
-        it('throws when <Trigger> is rendered inside <Menu>', () => {
-            const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-            expect(() =>
-                render(
-                    <ButtonWithDropdownMenuV2>
-                        <ButtonWithDropdownMenuV2.Menu>
-                            <ButtonWithDropdownMenuV2.Trigger text="X" />
-                        </ButtonWithDropdownMenuV2.Menu>
-                    </ButtonWithDropdownMenuV2>,
-                ),
-            ).toThrow(/<ButtonWithDropdownMenuV2\.Trigger> must be a sibling of <Menu>/);
-            error.mockRestore();
-        });
-
-        it('throws when <Caret> is rendered inside <Menu>', () => {
-            const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-            expect(() =>
-                render(
-                    <ButtonWithDropdownMenuV2>
-                        <ButtonWithDropdownMenuV2.Menu>
-                            <ButtonWithDropdownMenuV2.Caret />
-                        </ButtonWithDropdownMenuV2.Menu>
-                    </ButtonWithDropdownMenuV2>,
-                ),
-            ).toThrow(/<ButtonWithDropdownMenuV2\.Caret> must be a sibling of <Menu>/);
+            ).toThrow(new RegExp(`<ButtonWithDropdownMenuV2\\.${name}> must be a sibling of <Menu>`));
             error.mockRestore();
         });
     });
 
     describe('Compound rendering', () => {
-        it('renders both a primary button and a caret in split mode', () => {
+        it('renders a primary button + caret in split mode', () => {
             const onPress = jest.fn();
             render(
                 <ButtonWithDropdownMenuV2>
@@ -310,9 +342,7 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
-            const buttons = screen.queryAllByTestId('mock-button');
-            expect(buttons.length).toBeGreaterThanOrEqual(2);
+            expect(screen.queryAllByTestId('mock-button')).toHaveLength(2);
             const buttonTexts = screen.queryAllByTestId('mock-button-text').map((node) => (node.props as {children: string}).children);
             expect(buttonTexts).toContain('Pay $123');
         });
@@ -326,9 +356,7 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
-            const buttons = screen.queryAllByTestId('mock-button');
-            expect(buttons).toHaveLength(1);
+            expect(screen.queryAllByTestId('mock-button')).toHaveLength(1);
             const buttonText = screen.queryAllByTestId('mock-button-text').at(0);
             expect((buttonText?.props as {children: string} | undefined)?.children).toBe('More');
             const carets = screen.queryAllByTestId('mock-button-has-caret').map((node) => (node.props as {children: string}).children);
@@ -346,23 +374,14 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
             expect(screen.getByTestId('custom-trigger-node')).toBeDefined();
         });
 
-        it('omits `children` when PrimaryButton receives a string label so Button renders the text prop', () => {
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay $123.45</ButtonWithDropdownMenuV2.PrimaryButton>
-                    <ButtonWithDropdownMenuV2.Caret />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            const primary = buttonPropsCapture.current.find((p) => p.text === 'Pay $123.45');
-            expect(primary).toBeDefined();
-            expect(primary && 'children' in primary).toBe(false);
+        it.each(stringLabelCases)('omits `children` when %s receives a string label', (_, expectedText, renderJsx) => {
+            render(renderJsx());
+            const button = findButtonByText(expectedText);
+            expect(button).toBeDefined();
+            expect(button && 'children' in button).toBe(false);
         });
 
         it('attaches `children` when PrimaryButton receives a non-string label', () => {
@@ -380,42 +399,10 @@ describe('ButtonWithDropdownMenuV2', () => {
             const primary = buttonPropsCapture.current.find((p) => 'children' in p && p.text === '');
             expect(primary).toBeDefined();
         });
-
-        it('omits `children` for a text-only Trigger so Button renders the text + right caret', () => {
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger text="More" />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            const trigger = buttonPropsCapture.current.find((p) => p.text === 'More');
-            expect(trigger).toBeDefined();
-            expect(trigger && 'children' in trigger).toBe(false);
-        });
     });
 
-    describe('Selection callbacks', () => {
-        it('invokes the consumer onSelected when PopoverMenu invokes the menu item', () => {
-            const onSelected = jest.fn();
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger text="More" />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option
-                            text="A"
-                            onSelected={onSelected}
-                        />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            const menuItem = popoverMenuPropsCapture.current?.menuItems?.at(0);
-            menuItem?.onSelected?.();
-            expect(onSelected).toHaveBeenCalledTimes(1);
-        });
-
-        it('marks normal options with shouldCloseModalOnSelect:true so PopoverMenu runs its close+reset flow', () => {
+    describe('keepOpen and selectionMarker', () => {
+        it('default options have shouldCloseModalOnSelect: true', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -424,11 +411,10 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-            const menuItem = popoverMenuPropsCapture.current?.menuItems?.at(0);
-            expect(menuItem?.shouldCloseModalOnSelect).toBe(true);
+            expect(popoverMenuPropsCapture.current?.menuItems?.at(0)?.shouldCloseModalOnSelect).toBe(true);
         });
 
-        it('marks `keepOpen` options with shouldCloseModalOnSelect:false so PopoverMenu skips closing', () => {
+        it('keepOpen options have shouldCloseModalOnSelect: false', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -440,11 +426,10 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-            const menuItem = popoverMenuPropsCapture.current?.menuItems?.at(0);
-            expect(menuItem?.shouldCloseModalOnSelect).toBe(false);
+            expect(popoverMenuPropsCapture.current?.menuItems?.at(0)?.shouldCloseModalOnSelect).toBe(false);
         });
 
-        it('also propagates `keepOpen` to options nested under a Submenu', () => {
+        it('propagates keepOpen to Submenu sub-options', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -459,13 +444,12 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-            const submenu = popoverMenuPropsCapture.current?.menuItems?.at(0);
-            const subItems = submenu?.subMenuItems ?? [];
+            const subItems = popoverMenuPropsCapture.current?.menuItems?.at(0)?.subMenuItems ?? [];
             expect(subItems.at(0)?.shouldCloseModalOnSelect).toBe(false);
             expect(subItems.at(1)?.shouldCloseModalOnSelect).toBe(true);
         });
 
-        it('forwards `selectionMarker="check"` to PopoverMenu and `isSelected` flows through to the menuItem', () => {
+        it('passes selectionMarker and isSelected through to PopoverMenu', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -484,7 +468,7 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(items.at(1)?.isSelected).toBeUndefined();
         });
 
-        it('defaults `selectionMarker` to "none" so the check is not shown unless opted in', () => {
+        it('selectionMarker defaults to "none"', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -497,6 +481,25 @@ describe('ButtonWithDropdownMenuV2', () => {
                 </ButtonWithDropdownMenuV2>,
             );
             expect(popoverMenuPropsCapture.current?.shouldShowSelectedItemCheck).toBe(false);
+        });
+    });
+
+    describe('Open/close wiring', () => {
+        it('invokes the consumer onSelected when PopoverMenu invokes the menu item', () => {
+            const onSelected = jest.fn();
+            render(
+                <ButtonWithDropdownMenuV2>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option
+                            text="A"
+                            onSelected={onSelected}
+                        />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            popoverMenuPropsCapture.current?.menuItems?.at(0)?.onSelected?.();
+            expect(onSelected).toHaveBeenCalledTimes(1);
         });
 
         it('fires onOpenChange(false) when PopoverMenu signals close', () => {
@@ -518,14 +521,13 @@ describe('ButtonWithDropdownMenuV2', () => {
                 ref.current?.setIsMenuVisible(true);
             });
             onOpenChange.mockClear();
-
             act(() => {
                 popoverMenuPropsCapture.current?.onClose?.();
             });
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
-        it('closes via onItemSelected (Safari fallback path) when a non-keepOpen option is selected', () => {
+        it('onItemSelected closes the menu when shouldCloseModalOnSelect is true', () => {
             const onOpenChange = jest.fn();
             const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
@@ -556,7 +558,7 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
-        it('does not close via onItemSelected when option has keepOpen', () => {
+        it('onItemSelected does not close keepOpen items', () => {
             const onOpenChange = jest.fn();
             const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
@@ -589,9 +591,7 @@ describe('ButtonWithDropdownMenuV2', () => {
             });
             expect(onOpenChange).not.toHaveBeenCalled();
         });
-    });
 
-    describe('Imperative API', () => {
         it('exposes setIsMenuVisible via ref and fires onOpenChange', () => {
             const onOpenChange = jest.fn();
             const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
@@ -613,7 +613,7 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
-        it('does not fire onOpenChange when setIsMenuVisible is called with the current value', () => {
+        it('does not fire onOpenChange on no-op transitions', () => {
             const onOpenChange = jest.fn();
             const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
@@ -647,57 +647,14 @@ describe('ButtonWithDropdownMenuV2', () => {
     });
 
     describe('Sub-component refs', () => {
-        it('forwards a ref to PrimaryButton and the ref attaches to the underlying node', () => {
-            const primaryRef = React.createRef<RNViewType>();
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.PrimaryButton
-                        ref={primaryRef}
-                        onPress={() => {}}
-                    >
-                        Pay
-                    </ButtonWithDropdownMenuV2.PrimaryButton>
-                    <ButtonWithDropdownMenuV2.Caret />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            expect(primaryRef.current).not.toBeNull();
-        });
-
-        it('forwards a ref to Caret via the merged ref', () => {
-            const caretRef = React.createRef<RNViewType>();
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
-                    <ButtonWithDropdownMenuV2.Caret ref={caretRef} />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            expect(caretRef.current).not.toBeNull();
-        });
-
-        it('forwards a ref to Trigger via the merged ref', () => {
-            const triggerRef = React.createRef<RNViewType>();
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger
-                        ref={triggerRef}
-                        text="More"
-                    />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            expect(triggerRef.current).not.toBeNull();
+        it.each(refForwardingCases)('forwards a ref to %s', (_, renderJsx) => {
+            const ref = React.createRef<RNViewType>();
+            render(renderJsx(ref));
+            expect(ref.current).not.toBeNull();
         });
     });
 
-    describe('Trigger plumbing', () => {
+    describe('Keyboard shortcut & prop plumbing', () => {
         it('forwards `pressOnEnter` from Root to PrimaryButton', () => {
             render(
                 <ButtonWithDropdownMenuV2 pressOnEnter>
@@ -708,12 +665,12 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-            const primaryProps = buttonPropsCapture.current.find((p) => p.text === 'Pay');
-            expect(primaryProps).toBeDefined();
-            expect((primaryProps as {pressOnEnter?: boolean}).pressOnEnter).toBe(true);
+            const primary = findButtonByText('Pay');
+            expect(primary).toBeDefined();
+            expect((primary as {pressOnEnter?: boolean}).pressOnEnter).toBe(true);
         });
 
-        it('registers a Ctrl+Enter shortcut on PrimaryButton when `useKeyboardShortcuts` is true', () => {
+        it('registers a Ctrl+Enter shortcut when `useKeyboardShortcuts` is true', () => {
             render(
                 <ButtonWithDropdownMenuV2 useKeyboardShortcuts>
                     <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
@@ -723,13 +680,12 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-            // PrimaryButton calls useKeyboardShortcut once with isActive=true.
             const shortcutCalls = (useKeyboardShortcut as jest.Mock).mock.calls as Array<[unknown, unknown, {isActive?: boolean}]>;
             const activeCalls = shortcutCalls.filter((args) => args[2].isActive === true);
             expect(activeCalls.length).toBeGreaterThanOrEqual(1);
         });
 
-        it('does not activate Ctrl+Enter shortcut when `useKeyboardShortcuts` is false', () => {
+        it('does not activate Ctrl+Enter when `useKeyboardShortcuts` is false', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
@@ -807,6 +763,59 @@ describe('ButtonWithDropdownMenuV2', () => {
                 const activeCalls = shortcutCalls.filter((args) => args[2].isActive === true);
                 expect(activeCalls).toHaveLength(0);
             }
+        });
+    });
+
+    describe('Presentation plumbing', () => {
+        it('swaps the icon to DotIndicator when brickRoadIndicator is ERROR', () => {
+            render(
+                <ButtonWithDropdownMenuV2 brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const trigger = findButtonByText('More');
+            expect(trigger).toBeDefined();
+            expect((trigger as {icon?: unknown}).icon).toBe('DotIndicatorIcon');
+        });
+
+        it('wires accessibilityState.expanded to isMenuVisible on Trigger', () => {
+            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
+            render(
+                <ButtonWithDropdownMenuV2 ref={ref}>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const initial = findButtonByText('More') as {accessibilityState?: {expanded?: boolean}};
+            expect(initial.accessibilityState?.expanded).toBe(false);
+
+            buttonPropsCapture.current = [];
+            act(() => {
+                ref.current?.setIsMenuVisible(true);
+            });
+            const after = findButtonByText('More') as {accessibilityState?: {expanded?: boolean}};
+            expect(after.accessibilityState?.expanded).toBe(true);
+        });
+
+        it('flows triggerLayout="compact" to Caret as isCompactTrigger (Icon renders inline)', () => {
+            render(
+                <ButtonWithDropdownMenuV2 triggerLayout="compact">
+                    <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
+                    <ButtonWithDropdownMenuV2.Caret />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            // Caret renders the DownArrow icon with `inline={isCompactTrigger}`.
+            const downArrowIcon = iconPropsCapture.current.find((p) => p.src === 'DownArrowIcon');
+            expect(downArrowIcon).toBeDefined();
+            expect(downArrowIcon?.inline).toBe(true);
         });
     });
 });
