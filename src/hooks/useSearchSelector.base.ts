@@ -311,8 +311,6 @@ function useSearchSelectorBase({
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    ...getValidOptionsConfig,
-                    reportsCollection: reports,
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -333,6 +331,7 @@ function useSearchSelectorBase({
                     allPolicyTags,
                     sortedActions,
                     ...getValidOptionsConfig,
+                    reportsCollection: reports,
                 });
             default:
                 return getEmptyOptions();
