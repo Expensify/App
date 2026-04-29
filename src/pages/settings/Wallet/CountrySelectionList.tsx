@@ -81,6 +81,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
             </View>
             <SelectionList
+                // Remount the list when the focus-refreshed initial selection changes so FlashList resets its preserved viewport.
                 key={initialSelectedValue ?? ''}
                 data={searchResults}
                 ListItem={RadioListItem}
