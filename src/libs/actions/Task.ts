@@ -1144,6 +1144,69 @@ function getShareDestination(
     };
 }
 
+function getNestedBackToRoute(route: Route): Route | undefined {
+    const queryStringIndex = route.indexOf('?');
+    const queryString = queryStringIndex === -1 ? '' : route.slice(queryStringIndex + 1);
+
+    if (!queryString) {
+        return undefined;
+    }
+
+    const params = new URLSearchParams(queryString);
+    const encodedBackTo = params.get('backTo');
+
+    if (!encodedBackTo) {
+        return undefined;
+    }
+
+    return encodedBackTo as Route;
+}
+
+function getSearchRouteWithoutReportActionID(route: Route): Route {
+    const queryStringIndex = route.indexOf('?');
+    const path = queryStringIndex === -1 ? route : route.slice(0, queryStringIndex);
+    const queryString = queryStringIndex === -1 ? '' : route.slice(queryStringIndex + 1);
+    const match = path.match(/^\/?search\/view\/([^/?]+)\/[^/?]+\/?$/);
+
+    if (!match) {
+        return route;
+    }
+
+    const reportID = match.at(1);
+    if (!reportID) {
+        return route;
+    }
+
+    const cleanedRoute = ROUTES.SEARCH_REPORT.getRoute({reportID});
+    if (!queryString) {
+        return cleanedRoute;
+    }
+
+    return `${cleanedRoute}?${queryString}` as Route;
+}
+
+function getFlattenedTaskDeleteBackTo(backTo: Route): Route {
+    const flattenedBackTo = getSearchRouteWithoutReportActionID(backTo);
+    const nestedBackTo = getNestedBackToRoute(flattenedBackTo);
+
+    if (!nestedBackTo) {
+        return flattenedBackTo;
+    }
+
+    const flattenedNestedBackTo = getSearchRouteWithoutReportActionID(nestedBackTo);
+    if (flattenedNestedBackTo === nestedBackTo) {
+        return flattenedBackTo;
+    }
+
+    const queryStringIndex = flattenedBackTo.indexOf('?');
+    const path = queryStringIndex === -1 ? flattenedBackTo : flattenedBackTo.slice(0, queryStringIndex);
+    const queryString = queryStringIndex === -1 ? '' : flattenedBackTo.slice(queryStringIndex + 1);
+    const params = new URLSearchParams(queryString);
+    params.set('backTo', flattenedNestedBackTo);
+
+    return `${path}?${params.toString()}` as Route;
+}
+
 /**
  * Calculate the URL to navigate to after a task deletion
  * @param report - The task report being deleted
@@ -1160,7 +1223,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
     }
 
     if (backTo) {
-        return backTo;
+        return getFlattenedTaskDeleteBackTo(backTo);
     }
 
     if (report?.parentReportID) {
