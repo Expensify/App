@@ -1,5 +1,5 @@
 /** Font families used by all chart label components (Paragraph API multi-font fallback). */
-const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols'];
+const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols', 'NotoSansSC'];
 
 /** Number of Y-axis ticks (including zero) */
 const Y_AXIS_TICK_COUNT = 5;
