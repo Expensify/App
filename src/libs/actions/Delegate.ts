@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -87,7 +88,11 @@ type WithActivePolicyID = {
     activePolicyID: OnyxEntry<string>;
 };
 
-type DisconnectParams = WithStashedCredentials & WithStashedSession;
+type WithSlowSwitchMessage = {
+    slowSwitchMessage?: string;
+};
+
+type DisconnectParams = WithStashedCredentials & WithStashedSession & WithSlowSwitchMessage;
 
 // Clear delegator-level errors
 type ClearDelegatorErrorsParams = WithDelegatedAccess;
@@ -108,16 +113,22 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID & WithSlowSwitchMessage;
 
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false, slowSwitchMessage}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
+
+    const slowSwitchTimer = slowSwitchMessage
+        ? setTimeout(() => {
+              Growl.show(slowSwitchMessage, CONST.GROWL.SUCCESS, Infinity);
+          }, CONST.DELEGATE.SLOW_ACCOUNT_SWITCH_GROWL_DELAY_MS)
+        : undefined;
 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
@@ -200,6 +211,9 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 .then(() => {
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
+                        clearTimeout(slowSwitchTimer);
+                        Growl.hide();
+
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return true;
                         }
@@ -214,13 +228,21 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 });
         })
         .catch((error) => {
+            clearTimeout(slowSwitchTimer);
+            Growl.hide();
             Log.alert('[Delegate] Error connecting as delegate', {error});
             Onyx.update(failureData);
             return false;
         });
 }
 
-function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
+function disconnect({stashedCredentials, stashedSession, slowSwitchMessage}: DisconnectParams) {
+    const slowSwitchTimer = slowSwitchMessage
+        ? setTimeout(() => {
+              Growl.show(slowSwitchMessage, CONST.GROWL.SUCCESS, Infinity);
+          }, CONST.DELEGATE.SLOW_ACCOUNT_SWITCH_GROWL_DELAY_MS)
+        : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -304,7 +326,10 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
-                    openApp().then(() => {
+
+                    return openApp().then(() => {
+                        clearTimeout(slowSwitchTimer);
+                        Growl.hide();
                         if (!CONFIG.IS_HYBRID_APP) {
                             return;
                         }
@@ -318,6 +343,8 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                 });
         })
         .catch((error) => {
+            clearTimeout(slowSwitchTimer);
+            Growl.hide();
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
         });
 }

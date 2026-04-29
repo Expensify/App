@@ -6271,6 +6271,7 @@ const CONST = {
             DELEGATE: 'delegate',
             SUBMITTER: 'submitter',
         },
+        SLOW_ACCOUNT_SWITCH_GROWL_DELAY_MS: 5000,
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_SCA_AUTH_STATUSES: {

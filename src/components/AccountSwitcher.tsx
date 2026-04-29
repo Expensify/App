@@ -184,7 +184,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             return;
                         }
 
-                        disconnect({stashedCredentials, stashedSession});
+                        disconnect({stashedCredentials, stashedSession, slowSwitchMessage: translate('delegate.switchingAccount')});
                     },
                 }),
                 currentUserMenuItem,
@@ -209,7 +209,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                 close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
                                 return;
                             }
-                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, slowSwitchMessage: translate('delegate.switchingAccount')});
                         },
                     });
                 }),

@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 
 type GrowlRef = {
     show?: (bodyText: string, type: string, duration: number) => void;
+    hide?: () => void;
 };
 
 const growlRef = React.createRef<GrowlRef>();
@@ -31,6 +32,19 @@ function show(bodyText: string, type: string, duration: number = CONST.GROWL.DUR
 }
 
 /**
+ * Hide the growl notification
+ */
+function hide() {
+    isReadyPromise.then(() => {
+        if (!growlRef?.current?.hide) {
+            return;
+        }
+
+        growlRef.current.hide();
+    });
+}
+
+/**
  * Show error growl
  */
 function error(bodyText: string, duration: number = CONST.GROWL.DURATION) {
@@ -46,6 +60,7 @@ function success(bodyText: string, duration: number = CONST.GROWL.DURATION) {
 
 export default {
     show,
+    hide,
     error,
     success,
 };

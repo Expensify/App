@@ -8803,6 +8803,7 @@ const translations = {
         notAllowedMessage: (accountOwnerEmail: string) =>
             `As a <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilot</a> for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
         copilotAccess: 'Copilot access',
+        switchingAccount: 'Switching accounts, this may take a moment.',
     },
     debug: {
         debug: 'Debug',

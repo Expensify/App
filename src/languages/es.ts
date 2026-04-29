@@ -9024,6 +9024,7 @@ ${amount} para ${merchant} - ${date}`,
         notAllowedMessage: (accountOwnerEmail) =>
             `Como <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copiloto</a> de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
         copilotAccess: 'Acceso a Copilot',
+        switchingAccount: 'Cambiando de cuenta, esto puede tardar un momento.',
     },
     debug: {
         debug: 'Depuración',

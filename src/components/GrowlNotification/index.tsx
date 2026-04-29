@@ -94,12 +94,18 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         [translateY],
     );
 
+    const hide = useCallback(() => {
+        fling();
+        setDuration(undefined);
+    }, [fling]);
+
     useImperativeHandle(
         ref,
         () => ({
             show,
+            hide,
         }),
-        [show],
+        [show, hide],
     );
 
     useEffect(() => {
@@ -112,10 +118,16 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         }
 
         fling(0);
-        setTimeout(() => {
+
+        if (!Number.isFinite(duration)) {
+            return;
+        }
+
+        const timer = setTimeout(() => {
             fling();
             setDuration(undefined);
         }, duration);
+        return () => clearTimeout(timer);
     }, [duration, fling]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
