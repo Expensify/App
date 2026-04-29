@@ -21,13 +21,17 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {saveResponse} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
+import {openOldDotLink} from '@userActions/Link';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -38,6 +42,7 @@ const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => valu
 function DynamicExitSurveyReasonPage() {
     const {isOffline} = useNetwork();
     const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -55,6 +60,15 @@ function DynamicExitSurveyReasonPage() {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path), {forceReplace: true});
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
+
+    const goBackJustOnce = useCallback(() => {
+        if (CONFIG.IS_HYBRID_APP) {
+            closeReactNativeApp({shouldSetNVP: false, isTrackingGPS});
+            return;
+        }
+        Navigation.dismissModal();
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+    }, [isTrackingGPS]);
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -128,7 +142,7 @@ function DynamicExitSurveyReasonPage() {
                     large
                     pressOnEnter
                     text={translate('exitSurvey.goBackJustOnce')}
-                    onPress={() => {}}
+                    onPress={goBackJustOnce}
                     style={styles.mt3}
                 />
             </FixedFooter>
