@@ -2931,6 +2931,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amount: 100,
                 status: CONST.TRANSACTION.STATUS.POSTED,
                 bank: '',
+                reimbursable: true,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
