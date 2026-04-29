@@ -66,10 +66,10 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+        if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
             Navigation.goBack();
         }
-    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.

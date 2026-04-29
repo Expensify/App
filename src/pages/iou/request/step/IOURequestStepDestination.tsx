@@ -1,5 +1,6 @@
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';

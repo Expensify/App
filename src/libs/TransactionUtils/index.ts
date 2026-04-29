@@ -1848,6 +1848,7 @@ function isDuplicate(
     if (!transaction) {
         return false;
     }
+
     const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
     const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
@@ -2324,7 +2325,7 @@ function removeTransactionFromDuplicateTransactionViolation(
             continue;
         }
 
-        const optimisticViolations = duplicateTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+        const optimisticViolations = duplicateViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
         if (duplicateTransactionIDs.length > 0) {
             optimisticViolations.push({
@@ -2336,10 +2337,21 @@ function removeTransactionFromDuplicateTransactionViolation(
             });
         }
 
+        const cleanedValue = optimisticViolations.length > 0 ? optimisticViolations : null;
+
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: optimisticViolations.length > 0 ? optimisticViolations : null,
+            value: cleanedValue,
+        });
+
+        // Re-apply the cleaned violations on success so that stale data from a
+        // queued command (e.g. OpenReport resolving between optimistic apply and
+        // the server response) doesn't re-introduce one-sided duplicate violations.
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+            value: cleanedValue,
         });
 
         onyxData.failureData?.push({

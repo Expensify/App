@@ -164,6 +164,8 @@ export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
+export type {default as UpdatePolicyRulesDocumentParams} from './UpdatePolicyRulesDocumentParams';
+export type {default as DeletePolicyRulesDocumentParams} from './DeletePolicyRulesDocumentParams';
 export type {default as AddMembersToWorkspaceParams} from './AddMembersToWorkspaceParams';
 export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersFromWorkspaceParams';
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
@@ -374,6 +376,7 @@ export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTax
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as SetCardReconciliationBankAccountParams} from './SetCardReconciliationBankAccountParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as RemoveDelegateParams} from './RemoveDelegateParams';

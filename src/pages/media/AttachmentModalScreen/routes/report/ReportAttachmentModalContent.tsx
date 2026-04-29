@@ -46,7 +46,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const reportActionReportID = originalReportID ?? reportID;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportID}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportActionReportID}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportActionReportID}`);
 
     useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
@@ -64,8 +64,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
+        return !!isLoadingApp || isEmptyReport || (reportLoadingState?.isLoadingInitialReportActions !== false && shouldFetchReport);
+    }, [isOffline, reportActionReportID, isLoadingApp, report, reportLoadingState?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
         openReport({reportID: reportActionReportID, introSelected, reportActionID, betas});
