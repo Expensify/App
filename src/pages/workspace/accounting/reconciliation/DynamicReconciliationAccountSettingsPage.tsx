@@ -54,7 +54,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const connectionBankAccounts = getConnectionBankAccountsForReconciliation(connections, connectionName);
 
     const handleSettlementAccountLinkPress = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute()), {forceReplace: true});
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute()));
     }, [policyID]);
 
     const goBack = useCallback(() => {

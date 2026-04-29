@@ -128,7 +128,6 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
             }
             Navigation.navigate(
                 `${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}` as Route,
-                {forceReplace: true},
             );
         };
 
