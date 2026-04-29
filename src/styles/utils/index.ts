@@ -9,8 +9,6 @@ import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
-// eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
@@ -18,7 +16,6 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
-import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
@@ -27,6 +24,7 @@ import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getHiddenChatContentStyle from './getHiddenChatContentStyle';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
@@ -491,7 +489,10 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-function getCameraViewfinderStyle(aspectRatio: number | undefined): ViewStyle {
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+    if (isInLandscapeMode && aspectRatio) {
+        return {aspectRatio, height: '100%', maxWidth: '100%'};
+    }
     if (aspectRatio) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
@@ -543,6 +544,15 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
         };
     }
     return {};
+}
+
+function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height' | 'width' | 'maxWidth' | 'maxHeight'> {
+    return {
+        width: '100%',
+        height: '100%',
+        maxWidth: width,
+        maxHeight: height,
+    };
 }
 
 function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
@@ -1399,6 +1409,7 @@ const staticStyleUtils = {
     getTextColorStyle,
     getTransparentColor,
     getWidthAndHeightStyle,
+    getPDFViewStyle,
     getWidthStyle,
     getWrappingStyle,
     getZoomSizingStyle,
@@ -1435,6 +1446,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
     getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
     getContainerComposeStyles: () => containerComposeStyles(styles),
+    getHiddenChatContentStyle: () => getHiddenChatContentStyle(styles),
 
     /**
      * Gets styles for AutoCompleteSuggestion row
@@ -2285,12 +2297,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 return {};
         }
     },
+
+    getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        overflow: 'visible',
+        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
+        paddingBottom: safeAreaPaddingBottom,
+        backgroundColor: theme.appBG,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
-const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
-
 export default createStyleUtils;
-export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};

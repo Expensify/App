@@ -104,15 +104,6 @@ jest.mock('@hooks/usePaymentOptions', () => ({
     default: jest.fn(() => []),
 }));
 
-jest.mock('@hooks/useNonReimbursablePaymentModal', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-        showNonReimbursablePaymentErrorModal: jest.fn(),
-        shouldBlockDirectPayment: jest.fn(() => false),
-        nonReimbursablePaymentErrorDecisionModal: null,
-    })),
-}));
-
 jest.mock('@hooks/useLazyAsset', () => ({
     __esModule: true,
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({

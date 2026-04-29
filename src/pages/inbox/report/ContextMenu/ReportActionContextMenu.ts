@@ -71,6 +71,20 @@ type ReportActionContextMenu = {
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
 
+// Retry budget for waiting on the lazy-mounted popover ref.
+// 10 attempts × ~16ms ≈ 160ms total, enough to cover React.lazy chunk load + commit
+// on a cold start without blocking user interaction for long.
+const MAX_CONTEXT_MENU_MOUNT_RETRIES = 10;
+const CONTEXT_MENU_MOUNT_RETRY_INTERVAL_MS = 16;
+
+// Bridge used when PopoverReportActionContextMenu is lazy-mounted: lets showContextMenu
+// trigger eager mount if the user interacts before the idle-deferred mount runs.
+let ensureContextMenuMounted: (() => void) | null = null;
+
+function registerEnsureContextMenuMounted(handler: (() => void) | null) {
+    ensureContextMenuMounted = handler;
+}
+
 /**
  * Hide the ReportActionContextMenu modal popover.
  * Hides the popover menu with an optional delay
@@ -128,6 +142,20 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  */
 function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {
+        // Popover is lazy-mounted; trigger eager mount and retry until the ref is populated
+        // so a fast cold-start interaction isn't silently dropped.
+        ensureContextMenuMounted?.();
+        let retries = MAX_CONTEXT_MENU_MOUNT_RETRIES;
+        const attempt = () => {
+            if (contextMenuRef.current) {
+                showContextMenu(showContextMenuParams);
+                return;
+            }
+            if (retries-- > 0) {
+                setTimeout(attempt, CONTEXT_MENU_MOUNT_RETRY_INTERVAL_MS);
+            }
+        };
+        attempt();
         return;
     }
     const show = () => {
@@ -182,5 +210,5 @@ function clearActiveReportAction() {
     return contextMenuRef.current.clearActiveReportAction();
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal, registerEnsureContextMenuMounted};
 export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};

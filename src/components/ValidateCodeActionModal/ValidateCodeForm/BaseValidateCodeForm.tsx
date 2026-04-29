@@ -336,7 +336,10 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            <View accessibilityLiveRegion="polite">
+            <View
+                role={CONST.ROLE.STATUS}
+                accessibilityLiveRegion="polite"
+            >
                 {!!validateCodeSent && (
                     <DotIndicatorMessage
                         type="success"

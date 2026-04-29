@@ -1,3 +1,6 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -14,18 +17,14 @@ type SearchPageInputNarrowProps = {
     hideSearchRouterList: () => void;
     onSearchRouterFocus: () => void;
     handleSearch: (value: string) => void;
+    skipSkeleton: boolean;
 };
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
-function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageInputNarrowProps) {
+function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch, skipSkeleton}: SearchPageInputNarrowProps) {
     const styles = useThemeStyles();
 
     const {
-        allFeeds,
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        personalAndWorkspaceCards,
-        personalDetails,
-        reports,
         searchQueryItem,
         selection,
         textInputRef,
@@ -43,7 +42,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
-        if (!!searchRouterListVisible || !textInputRef.current || !textInputRef.current.isFocused()) {
+        if (!!searchRouterListVisible || !textInputRef.current?.isFocused()) {
             return;
         }
         textInputRef.current.blur();
@@ -53,9 +52,9 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
     return (
         <View
             dataSet={{dragArea: false}}
-            style={[styles.flex1, styles.appBG, searchRouterListVisible && styles.pt2]}
+            style={[styles.flex1, styles.appBG]}
         >
-            <View style={[styles.flexRow, styles.mh5, searchRouterListVisible ? styles.mb3 : styles.mb4, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[styles.flexRow, styles.ml5, searchRouterListVisible ? [styles.mb3, styles.mr5] : [styles.mb4, styles.mr3]]}>
                 <Animated.View style={[styles.flex1, styles.zIndex10]}>
                     <SearchInputSelectionWrapper
                         value={textInputValue}
@@ -68,10 +67,12 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                         }}
                         autoFocus={false}
                         onFocus={onSearchRouterFocus}
-                        wrapperStyle={{...styles.newSearchAutocompleteInputResults, ...styles.br2}}
+                        touchableInputWrapperStyle={styles.searchPageInputNarrowTouchableWrapper}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                         ref={textInputRef}
                         onKeyPress={handleKeyPress}
+                        skipSkeleton={skipSkeleton}
                     />
                 </Animated.View>
             </View>
@@ -81,11 +82,8 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                     handleSearch={handleSearchAction}
                     searchQueryItem={searchQueryItem}
                     onListItemPress={onListItemPress}
-                    personalDetails={personalDetails}
-                    reports={reports}
-                    allCards={personalAndWorkspaceCards}
-                    allFeeds={allFeeds}
                     textInputRef={textInputRef}
+                    autocompleteSubstitutions={autocompleteSubstitutions}
                 />
             )}
         </View>
@@ -93,3 +91,4 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
 }
 
 export default SearchPageInputNarrow;
+export type {SearchPageInputNarrowProps};

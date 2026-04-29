@@ -43,7 +43,7 @@ type DateSelectPopupProps = {
 
 function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -137,8 +137,8 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
 
     if (!isSmallScreenWidth) {
         return (
-            <View style={[styles.pv4, styles.gap2, style]}>
-                <View>
+            <View style={[styles.pv4, styles.gap2, {maxHeight: maxPopupHeight}, style]}>
+                <ScrollView>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader
                             isCompact={false}
@@ -162,7 +162,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                             style={[styles.mh5, styles.mt2]}
                         />
                     )}
-                </View>
+                </ScrollView>
                 <View style={[styles.flexRow, styles.gap2, useRangeLayout ? styles.mh5 : styles.ph5, useRangeLayout && styles.alignItemsCenter, useRangeLayout && styles.pt1]}>
                     {useRangeLayout && (
                         <View style={[styles.flex1, styles.mr2]}>
@@ -186,14 +186,13 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
         );
     }
 
-    const topPaddingStyle = selectedDateModifier ? styles.pt3 : undefined;
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
-    const mobileContainerStyle = useRangeLayout ? [topPaddingStyle, styles.flexGrow1, {maxHeight: maxPopupHeight}] : styles.gap2;
+    const mobileContainerStyle = useRangeLayout ? [styles.flexGrow1] : styles.gap2;
     const mobileLabelStyle = useRangeLayout ? [styles.textLabel, styles.ph5, styles.pb3] : [styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1];
     const mobileButtonRowStyle = useRangeLayout ? [styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2] : [styles.flexRow, styles.gap2, styles.ph5];
 
     return (
-        <View style={[mobileContainerStyle, style]}>
+        <View style={[styles.pv4, {maxHeight: maxPopupHeight}, mobileContainerStyle, style, isInLandscapeMode ? styles.h100 : undefined]}>
             {!selectedDateModifier && !!label && <Text style={mobileLabelStyle}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}

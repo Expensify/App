@@ -38,7 +38,7 @@ describe('OnyxDerived', () => {
         beforeEach(async () => {
             // The reportAttributes locale connection uses initWithStoredValues: false,
             // so it doesn't fire after Onyx.clear(). Setting this triggers recomputation.
-            await Onyx.set(ONYXKEYS.ARE_TRANSLATIONS_LOADING, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
         });
 
@@ -126,9 +126,9 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
             const reportAttributesComputedValue = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
                 {
                     sourceValues: {
                         [ONYXKEYS.COLLECTION.REPORT]: {
