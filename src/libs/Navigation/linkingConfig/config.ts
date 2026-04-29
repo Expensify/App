@@ -32,6 +32,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
+        [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
@@ -1523,18 +1524,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER]: {
-                            path: ROUTES.SETTINGS_TAG_APPROVER.route,
-                            parse: {
-                                orderWeight: Number,
-                            },
-                        },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW]: {
-                            path: ROUTES.SETTINGS_TAG_LIST_VIEW.route,
-                            parse: {
-                                orderWeight: Number,
-                            },
-                        },
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER]: DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW]: DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE]: {
                             path: ROUTES.SETTINGS_TAG_GL_CODE.route,
                             parse: {

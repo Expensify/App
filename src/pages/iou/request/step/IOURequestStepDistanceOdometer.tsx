@@ -158,7 +158,19 @@ function IOURequestStepDistanceOdometer({
 
     const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
 
+    const resetOdometerLocalState = () => {
+        setStartReading('');
+        setEndReading('');
+        startReadingRef.current = '';
+        endReadingRef.current = '';
+        initialStartReadingRef.current = '';
+        initialEndReadingRef.current = '';
+        initialStartImageRef.current = undefined;
+        initialEndImageRef.current = undefined;
+    };
+
     useRestartOnOdometerImagesFailure(transaction, reportID, iouType, backToReport, () => {
+        resetOdometerLocalState();
         backupHandledManually.current = true;
     });
 
@@ -174,14 +186,7 @@ function IOURequestStepDistanceOdometer({
 
         const prevSelectedTab = prevSelectedTabRef.current;
         if (prevSelectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER && selectedTab !== CONST.TAB_REQUEST.DISTANCE_ODOMETER) {
-            setStartReading('');
-            setEndReading('');
-            startReadingRef.current = '';
-            endReadingRef.current = '';
-            initialStartReadingRef.current = '';
-            initialEndReadingRef.current = '';
-            initialStartImageRef.current = undefined;
-            initialEndImageRef.current = undefined;
+            resetOdometerLocalState();
             setFormError('');
             // Force TextInput remount to reset label position
             setInputKey((prev) => prev + 1);
@@ -569,7 +574,7 @@ function IOURequestStepDistanceOdometer({
             });
         },
         getHasUnsavedChanges: () => {
-            if (!isFocused || isEditing || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current) {
+            if (!isFocused || isEditing || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current || backupHandledManually.current) {
                 return false;
             }
             const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;

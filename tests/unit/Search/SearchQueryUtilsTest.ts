@@ -2363,6 +2363,103 @@ describe('SearchQueryUtils', () => {
             expect(result).toHaveLength(1);
             expect(typeof result.at(0)?.value).toBe('string');
         });
+
+        it('should resolve a regular Expensify Card feed filter to its label', () => {
+            const cardList: OnyxTypes.CardList = {
+                '111': {
+                    cardID: 111,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    fundID: '12345',
+                } as OnyxTypes.Card,
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}`}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                cardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.EXPENSIFY_CARD.BANK);
+        });
+
+        it('should resolve a Travel Invoicing feed filter (3-segment key) to the translated label', () => {
+            const cardList: OnyxTypes.CardList = {
+                '222': {
+                    cardID: 222,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    fundID: '12345',
+                    nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US},
+                } as OnyxTypes.Card,
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                cardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.centralInvoicing'));
+        });
+
+        it('should fall back to the raw feed key when a non-Plaid feed is not in the display table', () => {
+            const feedKey = '99999_Unknown Bank';
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: feedKey}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(feedKey);
+        });
+
+        it('should drop a Plaid feed filter when the display table has no matching entry', () => {
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `99999_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}_unknown`}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(0);
+        });
     });
 
     describe('buildUserReadableQueryString', () => {

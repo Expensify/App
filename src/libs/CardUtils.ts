@@ -779,10 +779,11 @@ function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undef
  */
 function getFeedNameForDisplay(
     translate: LocaleContextProps['translate'],
-    feed: CompanyCardFeed | undefined,
+    feed: CardFeed | undefined,
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     customFeedName?: string,
     shouldAddCardsSuffix = true,
+    feedCountry?: string,
 ): string {
     // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
     if (!feed || !cardFeeds) {
@@ -795,7 +796,12 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+        return translate('search.filters.card.centralInvoicing');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);
 
     return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }

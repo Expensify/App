@@ -84,12 +84,6 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<Transaction>;
-
-        /**
-         * Callback function that is triggered on the `onLayout` event.
-         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
-         */
-        onLayout?: (setTestReceiptAndNavigate: () => void) => void;
     };
 
 type ReceiptFile = {
