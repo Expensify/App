@@ -8,6 +8,7 @@ import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
 import {accountIDSelector, emailSelector} from './selectors/Session';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
+import useLocalize from '@hooks/useLocalize';
 
 /**
  * Component that does not render anything but isolates delegate-access–related Onyx subscriptions
@@ -27,6 +28,7 @@ function DelegateAccessHandler() {
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     // Disconnect delegate when the delegate is no longer in the delegates list
     useEffect(() => {
@@ -36,7 +38,7 @@ function DelegateAccessHandler() {
         if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
             return;
         }
-        disconnect({stashedCredentials, stashedSession});
+        disconnect({stashedCredentials, stashedSession, slowSwitchMessage: translate('delegate.switchingAccount')});
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
     // Log delegate mismatch after the app has loaded

@@ -180,7 +180,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         }
 
                         if (isTrackingGPS) {
-                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
+                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession, slowSwitchMessage: translate('delegate.switchingAccount')})));
                             return;
                         }
 
@@ -206,7 +206,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                 return;
                             }
                             if (isTrackingGPS) {
-                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, slowSwitchMessage: translate('delegate.switchingAccount') })));
                                 return;
                             }
                             connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, slowSwitchMessage: translate('delegate.switchingAccount')});
