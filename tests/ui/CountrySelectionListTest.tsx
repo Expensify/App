@@ -3,7 +3,6 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
@@ -11,29 +10,9 @@ import CONST from '@src/CONST';
 
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;
-const mockScrollToIndex = jest.fn();
 let mockFocusEffectCallbacks: Array<() => void> = [];
-const mockSelectionListHandle: SelectionListHandle<{keyForList: string}> = {
-    scrollAndHighlightItem: jest.fn(),
-    scrollToIndex: mockScrollToIndex,
-    updateFocusedIndex: jest.fn(),
-    scrollToFocusedInput: jest.fn(),
-    focusTextInput: jest.fn(),
-};
-
-function attachSelectionListHandle(ref: React.Ref<SelectionListHandle<{keyForList: string}>> | undefined) {
-    if (typeof ref === 'function') {
-        ref(mockSelectionListHandle as never);
-        return;
-    }
-
-    if (!ref) {
-        return;
-    }
-
-    const refObject = ref;
-    refObject.current = mockSelectionListHandle as never;
-}
+let mockMountCount = 0;
+let mockUnmountCount = 0;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -86,10 +65,17 @@ describe('CountrySelectionList', () => {
 
     beforeEach(() => {
         mockFocusEffectCallbacks = [];
+        mockMountCount = 0;
+        mockUnmountCount = 0;
         mockedSelectionList.mockClear();
-        mockScrollToIndex.mockClear();
-        mockedSelectionList.mockImplementation(({ref}) => {
-            attachSelectionListHandle(ref);
+        mockedSelectionList.mockImplementation(() => {
+            React.useEffect(() => {
+                mockMountCount += 1;
+
+                return () => {
+                    mockUnmountCount += 1;
+                };
+            }, []);
 
             return <View />;
         });
@@ -118,10 +104,11 @@ describe('CountrySelectionList', () => {
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
         expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
-        expect(mockScrollToIndex).not.toHaveBeenCalled();
+        expect(mockMountCount).toBe(1);
+        expect(mockUnmountCount).toBe(0);
     });
 
-    it('scrolls back to the top when the pinned initial selection changes', () => {
+    it('remounts the inner selection list when the pinned initial selection changes on focus return', () => {
         const {rerender} = render(
             <CountrySelectionList
                 selectedCountry={initialCountry}
@@ -131,7 +118,8 @@ describe('CountrySelectionList', () => {
             />,
         );
 
-        expect(mockScrollToIndex).not.toHaveBeenCalled();
+        expect(mockMountCount).toBe(1);
+        expect(mockUnmountCount).toBe(0);
 
         rerender(
             <CountrySelectionList
@@ -141,6 +129,9 @@ describe('CountrySelectionList', () => {
                 onConfirm={jest.fn()}
             />,
         );
+
+        expect(mockMountCount).toBe(1);
+        expect(mockUnmountCount).toBe(0);
 
         act(() => {
             for (const callback of mockFocusEffectCallbacks.slice(-1)) {
@@ -157,8 +148,8 @@ describe('CountrySelectionList', () => {
             }),
         );
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(updatedCountry);
-        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
-        expect(mockScrollToIndex).toHaveBeenCalledWith(0);
+        expect(mockMountCount).toBe(2);
+        expect(mockUnmountCount).toBe(1);
     });
 
     it('keeps the initially pinned country at the top while the live selection changes during the same mount', () => {

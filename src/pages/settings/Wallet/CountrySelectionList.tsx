@@ -1,14 +1,12 @@
-import React, {useLayoutEffect, useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
@@ -42,9 +40,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const selectionListRef = useRef<SelectionListHandle<Option> | null>(null);
     const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
-    const previousInitialSelectedValue = usePrevious(initialSelectedValue);
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const onSelectionChange = (country: Option) => {
@@ -64,14 +60,6 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
 
     const orderedCountries = moveInitialSelectionToTopByValue(countriesList, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
-
-    useLayoutEffect(() => {
-        if (!initialSelectedValue || previousInitialSelectedValue === initialSelectedValue) {
-            return;
-        }
-
-        selectionListRef.current?.scrollToIndex(0);
-    }, [initialSelectedValue, previousInitialSelectedValue]);
 
     const textInputOptions = {
         label: translate('common.search'),
@@ -93,7 +81,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
             </View>
             <SelectionList
-                ref={selectionListRef}
+                key={initialSelectedValue ?? ''}
                 data={searchResults}
                 ListItem={RadioListItem}
                 onSelectRow={onSelectionChange}
