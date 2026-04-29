@@ -6857,6 +6857,8 @@ const translations = {
             customRules: {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
+                policyDocument: 'Policy document',
+                policyText: 'Policy text',
             },
             spendRules: {
                 title: 'Spend',
@@ -7705,6 +7707,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
+                centralInvoicing: 'Central invoicing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',

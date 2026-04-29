@@ -27,7 +27,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {backTo = '', reportID} = route.params ?? {};
     const {selectedTransactionIDs, selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
 
@@ -44,20 +44,32 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors);
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
                 }
                 clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [
+            isDelegateAccessRestricted,
+            route.name,
+            showDelegateNoAccessModal,
+            selectedTransactionIDs,
+            reportID,
+            isOffline,
+            ancestors,
+            clearSelectedTransactions,
+            selectedTransactions,
+            currentUserLogin,
+            currentUserAccountID,
+        ],
     );
 
     const validate = useCallback(

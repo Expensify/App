@@ -28,6 +28,7 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
+    hasCustomUnitMerchantInSelection,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReportActions,
     withSnapshotReports,
@@ -77,8 +78,7 @@ function SearchEditMultiplePage() {
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
-    const hasPartiallyEditableMerchantTransaction =
-        isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
+    const hasPartiallyEditableMerchantTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT) || hasCustomUnitMerchantInSelection(selectedTransactionContexts);
 
     const hasPartiallyEditableTaxRateTransaction =
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));

@@ -6744,6 +6744,8 @@ ${amount} para ${merchant} - ${date}`,
             customRules: {
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
+                policyDocument: 'Documento de política',
+                policyText: 'Texto de política',
             },
             spendRules: {
                 title: 'Gastos',
@@ -7560,6 +7562,7 @@ ${amount} para ${merchant} - ${date}`,
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
+                centralInvoicing: 'Facturación centralizada',
                 individualCards: 'Tarjetas individuales',
                 closedCards: 'Tarjetas cerradas',
                 cardFeeds: 'Flujos de tarjetas',

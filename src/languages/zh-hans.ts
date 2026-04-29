@@ -6631,6 +6631,8 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+                policyDocument: '政策文件',
+                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',
@@ -7463,6 +7465,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `所有 ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `所有导入的 CSV 卡片${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: '集中开票',
             },
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',

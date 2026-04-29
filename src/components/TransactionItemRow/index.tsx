@@ -684,7 +684,7 @@ function TransactionItemRow({
         return (
             <>
                 <View
-                    style={[bgActiveStyles, styles.justifyContentEvenly, style]}
+                    style={[styles.expenseWidgetRadius, styles.overflowHidden, bgActiveStyles, styles.justifyContentEvenly, style]}
                     testID="transaction-item-row"
                 >
                     <View style={[styles.flexRow]}>
@@ -718,7 +718,7 @@ function TransactionItemRow({
                                         isDescription={!merchant}
                                     />
                                 ) : null}
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !merchantOrDescription && styles.mlAuto]}>
                                     {shouldRenderChatBubbleCell && (
                                         <ChatBubbleCell
                                             transaction={transactionItem}

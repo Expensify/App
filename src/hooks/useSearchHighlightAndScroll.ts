@@ -7,6 +7,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -100,8 +101,12 @@ function useSearchHighlightAndScroll({
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
-            // If we're not focused or offline, don't trigger search
-            if (!isFocused || isOffline) {
+            // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
+            // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
+            // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
+            // entries the user creates from the RHP until they close it.
+            const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
+            if (!isSearchStillActive || isOffline) {
                 hasPendingSearchRef.current = true;
                 return;
             }

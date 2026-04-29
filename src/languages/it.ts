@@ -6826,6 +6826,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             customRules: {
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
+                policyDocument: 'Documento di politica',
+                policyText: 'Testo della politica',
             },
             spendRules: {
                 title: 'Spesa',
@@ -7690,6 +7692,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tutti ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Tutte le carte CSV importate${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Fatturazione centralizzata',
             },
             reportField: (name: string, value: string) => `${name} è ${value}`,
             current: 'Attuale',
