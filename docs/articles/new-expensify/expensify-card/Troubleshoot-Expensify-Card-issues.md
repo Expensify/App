@@ -1,7 +1,7 @@
 ---
 title: How to Troubleshoot Expensify Card Issues
 description: Learn how to fix common problems with your Expensify Card, including declined transactions, card activation issues, and Smart Limit errors.
-keywords: [Expensify Card, card declined, Smart Limit, inactive card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
+keywords: [Expensify Card, card declined, Smart Limit, inactive card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit, PIN blocked, card locked, unlock card]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -52,6 +52,12 @@ To check your card’s remaining limit:
 - **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
 
 Then, click on your card. Your **remaining limit** is displayed under the image of your Expensify Card. 
+
+## Expensify Card PIN blocked (GBP/EUR cards only)
+
+If you entered your PIN incorrectly too many times at a point of sale, your physical card may be locked. You'll see an error message and an **Unlock card** button on your card details page.
+
+To unlock your card, tap **Unlock card** and verify your identity via biometrics or passkey. Cardholders in offline PIN countries (UK, France, Ireland, Finland, Iceland, Israel) will also need to change their PIN at an ATM after unlocking. For full details, see [Manage Your Expensify Card PIN](https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
 
 ## Workspace limit has run out
 
