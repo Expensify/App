@@ -163,20 +163,6 @@ const stringLabelCases: Array<[string, string, () => ReactElement]> = [
 
 describe('ButtonWithDropdownMenuV2', () => {
     describe('Option registration', () => {
-        it('registers a single Option as a menu item', () => {
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger text="More" />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="Option A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
-            expect(menuItems).toHaveLength(1);
-            expect(menuItems.at(0)).toMatchObject({text: 'Option A'});
-        });
-
         it('preserves JSX order across multiple Options', () => {
             render(
                 <ButtonWithDropdownMenuV2>
@@ -235,38 +221,18 @@ describe('ButtonWithDropdownMenuV2', () => {
     });
 
     describe('Submenu nesting', () => {
-        it('registers a Submenu with its Option children as subMenuItems', () => {
+        it('keeps top-level options grouped separately from submenu children and propagates Submenu props', () => {
             render(
                 <ButtonWithDropdownMenuV2>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
                     <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="Top 1" />
                         <ButtonWithDropdownMenuV2.Submenu
                             text="Outer"
                             backButtonText="Back"
                         >
                             <ButtonWithDropdownMenuV2.Option text="Sub one" />
                             <ButtonWithDropdownMenuV2.Option text="Sub two" />
-                        </ButtonWithDropdownMenuV2.Submenu>
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-
-            const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
-            expect(menuItems).toHaveLength(1);
-            const submenu = menuItems.at(0);
-            expect(submenu).toMatchObject({text: 'Outer', backButtonText: 'Back'});
-            expect(submenu?.subMenuItems).toHaveLength(2);
-            expect(submenu?.subMenuItems?.map((item) => item.text)).toEqual(['Sub one', 'Sub two']);
-        });
-
-        it('keeps top-level options grouped separately from submenu children', () => {
-            render(
-                <ButtonWithDropdownMenuV2>
-                    <ButtonWithDropdownMenuV2.Trigger text="More" />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="Top 1" />
-                        <ButtonWithDropdownMenuV2.Submenu text="Outer">
-                            <ButtonWithDropdownMenuV2.Option text="Inner" />
                         </ButtonWithDropdownMenuV2.Submenu>
                         <ButtonWithDropdownMenuV2.Option text="Top 2" />
                     </ButtonWithDropdownMenuV2.Menu>
@@ -276,7 +242,8 @@ describe('ButtonWithDropdownMenuV2', () => {
             const menuItems = popoverMenuPropsCapture.current?.menuItems ?? [];
             expect(menuItems.map((item: PopoverMenuItem) => item.text)).toEqual(['Top 1', 'Outer', 'Top 2']);
             const submenu = menuItems.find((item: PopoverMenuItem) => item.text === 'Outer');
-            expect(submenu?.subMenuItems?.map((item) => item.text)).toEqual(['Inner']);
+            expect(submenu).toMatchObject({text: 'Outer', backButtonText: 'Back'});
+            expect(submenu?.subMenuItems?.map((item) => item.text)).toEqual(['Sub one', 'Sub two']);
         });
 
         it('attaches a right-chevron to submenu rows', () => {
@@ -313,6 +280,48 @@ describe('ButtonWithDropdownMenuV2', () => {
                 ),
             ).toThrow(/cannot be nested inside another <Submenu>/);
             error.mockRestore();
+        });
+    });
+
+    describe('Menu props plumbing', () => {
+        it('forwards Menu props through to PopoverMenu', () => {
+            render(
+                <ButtonWithDropdownMenuV2>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu
+                        headerText="Choose option"
+                        layout="scrollable"
+                        padding="tight"
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                    >
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const props = popoverMenuPropsCapture.current;
+            expect(props?.headerText).toBe('Choose option');
+            expect(props?.shouldUseScrollView).toBe(true);
+            expect(props?.shouldUseModalPaddingStyle).toBe(false);
+            expect(props?.anchorAlignment).toMatchObject({
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+            });
+        });
+
+        it('Menu defaults map to PopoverMenu defaults (fixed layout, modal padding)', () => {
+            render(
+                <ButtonWithDropdownMenuV2>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            expect(popoverMenuPropsCapture.current?.shouldUseScrollView).toBe(false);
+            expect(popoverMenuPropsCapture.current?.shouldUseModalPaddingStyle).toBe(true);
         });
     });
 
@@ -613,6 +622,45 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
+        it('toggles menu visibility when Trigger is pressed', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <ButtonWithDropdownMenuV2 onOpenChange={onOpenChange}>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const trigger = findButtonByText('More') as {onPress: () => void} | undefined;
+            expect(trigger).toBeDefined();
+
+            act(() => trigger?.onPress());
+            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+
+            const reopenedTrigger = findButtonByText('More') as {onPress: () => void} | undefined;
+            act(() => reopenedTrigger?.onPress());
+            expect(onOpenChange).toHaveBeenLastCalledWith(false);
+        });
+
+        it('toggles menu visibility when Caret is pressed', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <ButtonWithDropdownMenuV2 onOpenChange={onOpenChange}>
+                    <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
+                    <ButtonWithDropdownMenuV2.Caret accessibilityLabel="caret" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const caret = buttonPropsCapture.current.find((p) => p.accessibilityLabel === 'caret') as {onPress: () => void} | undefined;
+            expect(caret).toBeDefined();
+
+            act(() => caret?.onPress());
+            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+        });
+
         it('does not fire onOpenChange on no-op transitions', () => {
             const onOpenChange = jest.fn();
             const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
@@ -700,69 +748,87 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(activeCalls).toHaveLength(0);
         });
 
-        it('deactivates the PrimaryButton shortcut when Root is disabled or loading', () => {
-            const cases: Array<Partial<{isDisabled: boolean; isLoading: boolean}>> = [{isDisabled: true}, {isLoading: true}];
-            for (const flags of cases) {
-                jest.clearAllMocks();
-                render(
+        it.each<[string, () => ReactElement]>([
+            [
+                'PrimaryButton + Root.isDisabled',
+                () => (
                     <ButtonWithDropdownMenuV2
                         useKeyboardShortcuts
-                        isDisabled={flags.isDisabled}
-                        isLoading={flags.isLoading}
+                        isDisabled
                     >
                         <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
                         <ButtonWithDropdownMenuV2.Caret />
                         <ButtonWithDropdownMenuV2.Menu>
                             <ButtonWithDropdownMenuV2.Option text="A" />
                         </ButtonWithDropdownMenuV2.Menu>
-                    </ButtonWithDropdownMenuV2>,
-                );
-                const shortcutCalls = (useKeyboardShortcut as jest.Mock).mock.calls as Array<[unknown, unknown, {isActive?: boolean}]>;
-                const activeCalls = shortcutCalls.filter((args) => args[2].isActive === true);
-                expect(activeCalls).toHaveLength(0);
-            }
-        });
-
-        it('deactivates the PrimaryButton shortcut when its own `isDisabled` is true', () => {
-            render(
-                <ButtonWithDropdownMenuV2 useKeyboardShortcuts>
-                    <ButtonWithDropdownMenuV2.PrimaryButton
-                        isDisabled
-                        onPress={() => {}}
-                    >
-                        Pay
-                    </ButtonWithDropdownMenuV2.PrimaryButton>
-                    <ButtonWithDropdownMenuV2.Caret />
-                    <ButtonWithDropdownMenuV2.Menu>
-                        <ButtonWithDropdownMenuV2.Option text="A" />
-                    </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
-            );
-            const shortcutCalls = (useKeyboardShortcut as jest.Mock).mock.calls as Array<[unknown, unknown, {isActive?: boolean}]>;
-            const activeCalls = shortcutCalls.filter((args) => args[2].isActive === true);
-            expect(activeCalls).toHaveLength(0);
-        });
-
-        it('deactivates the Trigger shortcut when Root is disabled or loading', () => {
-            const cases: Array<Partial<{isDisabled: boolean; isLoading: boolean}>> = [{isDisabled: true}, {isLoading: true}];
-            for (const flags of cases) {
-                jest.clearAllMocks();
-                render(
+                    </ButtonWithDropdownMenuV2>
+                ),
+            ],
+            [
+                'PrimaryButton + Root.isLoading',
+                () => (
                     <ButtonWithDropdownMenuV2
                         useKeyboardShortcuts
-                        isDisabled={flags.isDisabled}
-                        isLoading={flags.isLoading}
+                        isLoading
+                    >
+                        <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
+                        <ButtonWithDropdownMenuV2.Caret />
+                        <ButtonWithDropdownMenuV2.Menu>
+                            <ButtonWithDropdownMenuV2.Option text="A" />
+                        </ButtonWithDropdownMenuV2.Menu>
+                    </ButtonWithDropdownMenuV2>
+                ),
+            ],
+            [
+                'PrimaryButton + own isDisabled',
+                () => (
+                    <ButtonWithDropdownMenuV2 useKeyboardShortcuts>
+                        <ButtonWithDropdownMenuV2.PrimaryButton
+                            isDisabled
+                            onPress={() => {}}
+                        >
+                            Pay
+                        </ButtonWithDropdownMenuV2.PrimaryButton>
+                        <ButtonWithDropdownMenuV2.Caret />
+                        <ButtonWithDropdownMenuV2.Menu>
+                            <ButtonWithDropdownMenuV2.Option text="A" />
+                        </ButtonWithDropdownMenuV2.Menu>
+                    </ButtonWithDropdownMenuV2>
+                ),
+            ],
+            [
+                'Trigger + Root.isDisabled',
+                () => (
+                    <ButtonWithDropdownMenuV2
+                        useKeyboardShortcuts
+                        isDisabled
                     >
                         <ButtonWithDropdownMenuV2.Trigger text="More" />
                         <ButtonWithDropdownMenuV2.Menu>
                             <ButtonWithDropdownMenuV2.Option text="A" />
                         </ButtonWithDropdownMenuV2.Menu>
-                    </ButtonWithDropdownMenuV2>,
-                );
-                const shortcutCalls = (useKeyboardShortcut as jest.Mock).mock.calls as Array<[unknown, unknown, {isActive?: boolean}]>;
-                const activeCalls = shortcutCalls.filter((args) => args[2].isActive === true);
-                expect(activeCalls).toHaveLength(0);
-            }
+                    </ButtonWithDropdownMenuV2>
+                ),
+            ],
+            [
+                'Trigger + Root.isLoading',
+                () => (
+                    <ButtonWithDropdownMenuV2
+                        useKeyboardShortcuts
+                        isLoading
+                    >
+                        <ButtonWithDropdownMenuV2.Trigger text="More" />
+                        <ButtonWithDropdownMenuV2.Menu>
+                            <ButtonWithDropdownMenuV2.Option text="A" />
+                        </ButtonWithDropdownMenuV2.Menu>
+                    </ButtonWithDropdownMenuV2>
+                ),
+            ],
+        ])('deactivates Ctrl+Enter shortcut: %s', (_, renderJsx) => {
+            render(renderJsx());
+            const shortcutCalls = (useKeyboardShortcut as jest.Mock).mock.calls as Array<[unknown, unknown, {isActive?: boolean}]>;
+            const activeCalls = shortcutCalls.filter((args) => args[2].isActive === true);
+            expect(activeCalls).toHaveLength(0);
         });
     });
 
@@ -800,6 +866,21 @@ describe('ButtonWithDropdownMenuV2', () => {
             });
             const after = findButtonByText('More') as {accessibilityState?: {expanded?: boolean}};
             expect(after.accessibilityState?.expanded).toBe(true);
+        });
+
+        it('disables the Caret while Root is loading', () => {
+            render(
+                <ButtonWithDropdownMenuV2 isLoading>
+                    <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
+                    <ButtonWithDropdownMenuV2.Caret accessibilityLabel="caret" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const caret = buttonPropsCapture.current.find((p) => p.accessibilityLabel === 'caret');
+            expect(caret).toBeDefined();
+            expect((caret as {isDisabled?: boolean}).isDisabled).toBe(true);
         });
 
         it('flows triggerLayout="compact" to Caret as isCompactTrigger (Icon renders inline)', () => {

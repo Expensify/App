@@ -17,7 +17,7 @@ function Caret({ref, accessibilityLabel, sentryLabel}: CaretProps): React.ReactE
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.Caret');
     const {
         state: {isMenuVisible},
-        meta: {dropdownAnchor, success, isDisabled, shouldStayNormalOnDisable, enterKeyEventListenerPriority, buttonSize, isCompactTrigger, sentryLabel: rootSentryLabel},
+        meta: {dropdownAnchor, success, isDisabled, isLoading, shouldStayNormalOnDisable, enterKeyEventListenerPriority, buttonSize, isCompactTrigger, sentryLabel: rootSentryLabel},
     } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.Caret');
     const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Caret');
     const styles = useThemeStyles();
@@ -31,7 +31,7 @@ function Caret({ref, accessibilityLabel, sentryLabel}: CaretProps): React.ReactE
         <Button
             ref={mergedRef}
             success={success}
-            isDisabled={isDisabled}
+            isDisabled={isDisabled || isLoading}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{expanded: isMenuVisible}}
             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
