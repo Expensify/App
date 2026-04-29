@@ -427,10 +427,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
                     success: false,
-                }).then((result) => {
-                    if (result.action !== ModalActions.CONFIRM) {
-                        return;
-                    }
+                }).then(() => {
                     hideDeleteWorkspaceErrorModal();
                 });
             }

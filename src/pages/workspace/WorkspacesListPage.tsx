@@ -173,6 +173,7 @@ function WorkspacesListPage() {
     // Refs to avoid stale closures in continueDeleteWorkspace callback
     const policyIDToDeleteRef = useRef<string | undefined>(undefined);
     const policyNameToDeleteRef = useRef<string | undefined>(undefined);
+    const isErrorModalShowingRef = useRef(false);
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
@@ -266,6 +267,8 @@ function WorkspacesListPage() {
         isOffline,
         lastAccessedWorkspacePolicyID,
         lastPaymentMethod,
+        lastSelectedFeed,
+        lastSelectedExpensifyCardFeed,
         isPendingDelete,
         policies,
         localeCompare,
@@ -345,6 +348,10 @@ function WorkspacesListPage() {
 
         // Handle showing error modal when offline and error occurs
         if (isOffline && policyToDeleteLatestErrorMessage) {
+            if (isErrorModalShowingRef.current) {
+                return;
+            }
+            isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
                 prompt: policyToDeleteLatestErrorMessage,
@@ -353,6 +360,7 @@ function WorkspacesListPage() {
                 success: false,
                 shouldShowCancelButton: false,
             }).then(() => {
+                isErrorModalShowingRef.current = false;
                 hideDeleteWorkspaceErrorModal();
             });
             return;
@@ -365,10 +373,13 @@ function WorkspacesListPage() {
         closeModal();
 
         if (!isFocused || !policyToDeleteLatestErrorMessage) {
-            hideDeleteWorkspaceErrorModal();
             return;
         }
 
+        if (isErrorModalShowingRef.current) {
+            return;
+        }
+        isErrorModalShowingRef.current = true;
         showConfirmModal({
             title: translate('workspace.common.delete'),
             prompt: policyToDeleteLatestErrorMessage,
@@ -377,6 +388,7 @@ function WorkspacesListPage() {
             success: false,
             shouldShowCancelButton: false,
         }).then(() => {
+            isErrorModalShowingRef.current = false;
             hideDeleteWorkspaceErrorModal();
         });
     }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, isPendingDelete, isFocused, policyIDToDelete, closeModal]);
