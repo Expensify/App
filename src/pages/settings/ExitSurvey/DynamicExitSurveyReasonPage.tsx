@@ -125,19 +125,21 @@ function DynamicExitSurveyReasonPage() {
                     <>
                         <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
                         <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.RESPONSE}
-                            label={translate(`exitSurvey.responsePlaceholder`)}
-                            accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
-                            role={CONST.ROLE.PRESENTATION}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            ref={inputCallbackRef}
-                            containerStyles={[baseResponseInputContainerStyle]}
-                            shouldSaveDraft
-                            shouldSubmitForm
-                        />
+                        {!CONFIG.IS_HYBRID_APP && (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.RESPONSE}
+                                label={translate(`exitSurvey.responsePlaceholder`)}
+                                accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                ref={inputCallbackRef}
+                                containerStyles={[baseResponseInputContainerStyle]}
+                                shouldSaveDraft
+                                shouldSubmitForm
+                            />
+                        )}
                     </>
                 )}
             </FormProvider>
