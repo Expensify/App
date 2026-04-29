@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -79,7 +81,7 @@ function DynamicExitSurveyReasonPage() {
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
                 onSubmit={submitForm}
-                submitButtonText={translate('common.next')}
+                isSubmitButtonVisible={false}
                 shouldValidateOnBlur
                 validate={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => {
                     const errors: Errors = {};
@@ -115,6 +117,21 @@ function DynamicExitSurveyReasonPage() {
                     </>
                 )}
             </FormProvider>
+            <FixedFooter>
+                <Button
+                    large
+                    text={translate('exitSurvey.switchToClassic')}
+                    onPress={() => {}}
+                />
+                <Button
+                    success
+                    large
+                    pressOnEnter
+                    text={translate('exitSurvey.goBackJustOnce')}
+                    onPress={() => {}}
+                    style={styles.mt3}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
