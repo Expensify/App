@@ -43,6 +43,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,

@@ -1,5 +1,6 @@
 import sortBy from 'lodash/sortBy';
 import React, {useContext, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';

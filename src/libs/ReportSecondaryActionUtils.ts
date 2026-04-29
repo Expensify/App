@@ -1123,12 +1123,4 @@ function getSecondaryTransactionThreadActions({
 
     return options;
 }
-export {
-    getSecondaryReportActions,
-    getSecondaryTransactionThreadActions,
-    isMergeActionForSelectedTransactions,
-    getSecondaryExportReportActions,
-    isSplitAction,
-    isChangeWorkspaceAction,
-    isDuplicateReportAction,
-};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction, isChangeWorkspaceAction};

@@ -2,6 +2,7 @@
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -5388,11 +5389,55 @@ function clearNewRoomFormError() {
     });
 }
 
+/**
+ * Builds optimistic and failure rollback data for adding invitees to a report's participants.
+ * Skips IDs that already exist in participants to avoid overwriting their settings.
+ * On failure, only nulls out the newly added keys so Onyx removes them without overwriting
+ * concurrent participant changes.
+ */
+function buildParticipantsInviteData(
+    targetReport: OnyxEntry<Report>,
+    inviteeAccountIDs: number[],
+): {optimistic: Pick<Report, 'participants'>; failure: Pick<Report, 'participants'>} | undefined {
+    if (!targetReport || inviteeAccountIDs.length === 0) {
+        return undefined;
+    }
+
+    const defaultPref = getDefaultNotificationPreferenceForReport(targetReport);
+    const participantsAfterInvitation = inviteeAccountIDs.reduce(
+        (acc: Participants, accountID: number) => {
+            if (accountID in (targetReport.participants ?? {})) {
+                return acc;
+            }
+            // eslint-disable-next-line no-param-reassign -- Mutating the reduce accumulator is intentional
+            acc[accountID] = {
+                notificationPreference: defaultPref,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+            return acc;
+        },
+        {...targetReport.participants},
+    );
+
+    const rollback: Record<number, null> = {};
+    for (const accountID of inviteeAccountIDs) {
+        if (!(accountID in (targetReport.participants ?? {}))) {
+            rollback[accountID] = null;
+        }
+    }
+
+    return {
+        optimistic: {participants: participantsAfterInvitation},
+        failure: {participants: rollback as unknown as Participants},
+    };
+}
+
 function resolveActionableMentionWhisper(
     report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean | undefined,
+    parentReport?: OnyxEntry<Report>,
 ) {
     const reportID = report?.reportID;
     if (!reportAction || !reportID) {
@@ -5425,6 +5470,22 @@ function resolveActionableMentionWhisper(
         lastActorAccountID: report.lastActorAccountID,
     };
 
+    // When the resolution is 'invited', optimistically add the invited users to report.participants
+    // so the members list updates immediately without waiting for the server response.
+    const isInviteResolution = resolution === CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE;
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>);
+    const inviteeAccountIDs = isInviteResolution ? (originalMessage?.inviteeAccountIDs ?? []) : [];
+
+    const participantsInviteData = isInviteResolution && report ? buildParticipantsInviteData(report, inviteeAccountIDs) : undefined;
+    const participantsOptimisticData = participantsInviteData?.optimistic;
+    const participantsFailureData = participantsInviteData?.failure;
+
+    // When the action belongs to a child report (e.g. a one-transaction thread), also update
+    // the parent report's participants so the members list the user is viewing updates immediately.
+    const parentInviteData = isInviteResolution && parentReport?.reportID && parentReport.reportID !== reportID ? buildParticipantsInviteData(parentReport, inviteeAccountIDs) : undefined;
+    const parentParticipantsOptimisticData = parentInviteData?.optimistic;
+    const parentParticipantsFailureData = parentInviteData?.failure;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5441,9 +5502,20 @@ function resolveActionableMentionWhisper(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: reportUpdateDataWithPreviousLastMessage,
+            value: {
+                ...reportUpdateDataWithPreviousLastMessage,
+                ...participantsOptimisticData,
+            },
         },
     ];
+
+    if (parentParticipantsOptimisticData && parentReport?.reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: parentParticipantsOptimisticData,
+        });
+    }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
@@ -5461,9 +5533,20 @@ function resolveActionableMentionWhisper(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: reportUpdateDataWithCurrentLastMessage, // revert back to the current report last message data in case of failure
+            value: {
+                ...reportUpdateDataWithCurrentLastMessage, // revert back to the current report last message data in case of failure
+                ...participantsFailureData,
+            },
         },
     ];
+
+    if (parentParticipantsFailureData && parentReport?.reportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: parentParticipantsFailureData,
+        });
+    }
 
     const parameters: ResolveActionableMentionWhisperParams = {
         reportActionID: reportAction.reportActionID,

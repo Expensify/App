@@ -2,6 +2,7 @@ import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websock
 import {Pusher} from '@pusher/pusher-websocket-react-native';
 import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';

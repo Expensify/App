@@ -3023,7 +3023,7 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
+                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds, undefined, true, cardGroup?.feedCountry),
                 keyForList: key,
             };
         }
@@ -5791,7 +5791,6 @@ export {
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     applySelectionToItem,
-    GENERIC_SEARCH_KEYS,
     TODO_SEARCH_KEYS,
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
