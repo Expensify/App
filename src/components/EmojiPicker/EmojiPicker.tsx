@@ -243,13 +243,19 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     // transition causes a position flicker because the async anchor recalculation arrives one frame late.
     useEffect(() => {
         if (prevIsSmallScreenWidth.current === isSmallScreenWidth) {
-            return;
+            return undefined;
         }
         prevIsSmallScreenWidth.current = isSmallScreenWidth;
 
-        if (isEmojiPickerVisible) {
-            hideEmojiPicker();
+        if (!isEmojiPickerVisible) {
+            return undefined;
         }
+
+        const rafId = requestAnimationFrame(() => {
+            hideEmojiPicker();
+        });
+
+        return () => cancelAnimationFrame(rafId);
     }, [isSmallScreenWidth, isEmojiPickerVisible, hideEmojiPicker]);
 
     return (
