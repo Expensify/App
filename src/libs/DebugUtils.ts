@@ -466,6 +466,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'unheldTotal':
         case 'nonReimbursableTotal':
         case 'unheldNonReimbursableTotal':
+        case 'reimbursableTotal':
+        case 'unheldReimbursableTotal':
         case 'transactionCount':
             return validateNumber(value);
         case 'chatType':
