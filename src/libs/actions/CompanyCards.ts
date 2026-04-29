@@ -64,6 +64,7 @@ type ImportCSVCompanyCardsData = {
     existingCardsList?: WorkspaceCardsList;
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
+    existingInstanceID?: string;
 };
 
 type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
@@ -1124,10 +1125,11 @@ function importCSVCompanyCards({
     existingCardsList,
     lastSelectedFeed,
     workspaceCardFeeds,
+    existingInstanceID,
 }: ImportCSVCompanyCardsData) {
     const feedName = layoutType as CompanyCardFeed;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions: optimisticTransactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
-    const instanceID = Date.now().toString();
+    const instanceID = existingInstanceID ?? Date.now().toString();
 
     const parameters: ImportCSVCompanyCardsParams = {
         policyID,

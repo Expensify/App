@@ -424,7 +424,12 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     return (
-        <NavigationDeferredMount placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}>
+        <NavigationDeferredMount
+            placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+            // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
+            // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
+            waitForUpcomingTransition={false}
+        >
             <MoneyReportHeaderSecondaryActionsInner
                 reportID={reportID}
                 primaryAction={primaryAction}

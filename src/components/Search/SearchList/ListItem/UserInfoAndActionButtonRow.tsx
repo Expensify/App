@@ -5,83 +5,58 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import StatusBadge from '@components/StatusBadge';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
+import {getReportStatusColorStyle, getReportStatusTranslation} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import ActionCell from './ActionCell';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from './types';
+import type {ExpenseReportListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './types';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 function UserInfoAndActionButtonRow({
     item,
-    handleActionButtonPress,
     shouldShowUserInfo,
     containerStyles,
-    isInMobileSelectionMode,
-    isDisabledItem = false,
+    stateNum,
+    statusNum,
 }: {
-    item: TransactionReportGroupListItemType | TransactionListItemType;
-    handleActionButtonPress: () => void;
+    item: TransactionReportGroupListItemType | TransactionListItemType | ExpenseReportListItemType;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
-    isInMobileSelectionMode: boolean;
-    isDisabledItem?: boolean;
+    stateNum: ExpenseReportListItemType['stateNum'];
+    statusNum: ExpenseReportListItemType['statusNum'];
 }) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
-    const transactionItem = item as unknown as TransactionListItemType;
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
-    const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
-    const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
     const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
-    const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
-    const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
     return (
-        <View
-            style={[
-                styles.pt0,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd,
-                styles.gap2,
-                styles.ph3,
-                containerStyles,
-            ]}
-        >
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, containerStyles]}>
             {shouldShowUserInfo && (
                 <UserInfoCellsWithArrow
-                    shouldShowToRecipient={shouldShowToRecipient}
+                    shouldShowToRecipient={false}
                     participantFrom={item?.from}
                     participantFromDisplayName={participantFromDisplayName}
-                    participantToDisplayName={participantToDisplayName}
+                    participantToDisplayName=""
                     participantTo={item?.to}
-                    avatarSize={!isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                    infoCellsTextStyle={{lineHeight: 14}}
-                    infoCellsAvatarStyle={styles.pr1}
-                    fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                    infoCellsTextStyle={styles.mutedNormalTextLabel}
+                    infoCellsAvatarStyle={styles.pr1half}
+                    fromRecipientStyle={styles.mw100}
                     shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: isLargeScreenWidth ? variables.w68 : variables.w72}, styles.alignItemsEnd]}>
-                <ActionCell
-                    action={item.action}
-                    onButtonPress={handleActionButtonPress}
-                    isSelected={item.isSelected}
-                    isLoading={isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
-                    extraSmall={!isLargeScreenWidth}
-                    shouldDisablePointerEvents={isInMobileSelectionMode || isDisabledItem}
+            {!!statusText && !!reportStatusColorStyle && (
+                <StatusBadge
+                    text={statusText}
+                    backgroundColor={reportStatusColorStyle.backgroundColor}
+                    textColor={reportStatusColorStyle.textColor}
                 />
-            </View>
+            )}
         </View>
     );
 }

@@ -4426,7 +4426,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2023-07-08 07:15:44.030',
                 participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             };
-            expect(getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
+            expect(getMostRecentlyVisitedReport(reports, {})).toEqual(latestReport);
         });
     });
 
@@ -4880,7 +4880,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -7589,13 +7589,10 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`, normalReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
-            // Set up report metadata for lastVisitTime
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${archivedReport.reportID}`, {
-                lastVisitTime: '2024-02-01 04:56:47.233', // More recent visit
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${normalReport.reportID}`, {
-                lastVisitTime: '2024-01-01 04:56:47.233',
+            // Set up lastVisitTime
+            await Onyx.merge(ONYXKEYS.REPORT_LAST_VISIT_TIMES, {
+                [archivedReport.reportID]: '2024-02-01 04:56:47.233', // More recent visit
+                [normalReport.reportID]: '2024-01-01 04:56:47.233',
             });
 
             return waitForBatchedUpdates();
