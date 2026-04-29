@@ -58,7 +58,9 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
     const composerToRefocusOnClose = useRef<ComposerType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const prevIsSmallScreenWidth = useRef(isSmallScreenWidth);
 
     /**
      * Get the popover anchor ref
@@ -234,6 +236,21 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             emojiPopoverDimensionListener.remove();
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
+
+    // Close the emoji picker when crossing the isSmallScreenWidth breakpoint.
+    // PopoverWithMeasuredContent switches between a bottom-docked Modal and an anchor-positioned
+    // PopoverWithMeasuredContentBase at this breakpoint, and keeping the picker open across that
+    // transition causes a position flicker because the async anchor recalculation arrives one frame late.
+    useEffect(() => {
+        if (prevIsSmallScreenWidth.current === isSmallScreenWidth) {
+            return;
+        }
+        prevIsSmallScreenWidth.current = isSmallScreenWidth;
+
+        if (isEmojiPickerVisible) {
+            hideEmojiPicker();
+        }
+    }, [isSmallScreenWidth, isEmojiPickerVisible, hideEmojiPicker]);
 
     return (
         <PopoverWithMeasuredContent
