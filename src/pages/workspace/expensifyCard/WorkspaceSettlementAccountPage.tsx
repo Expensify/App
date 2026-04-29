@@ -26,6 +26,7 @@ import {updateSettlementAccount as updateSettlementAccountCard} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -121,6 +122,16 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         const connectionName = reconciliationConnection ?? '';
         const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
+        const handleReconciliationAccountLinkPress = () => {
+            if (!connectionParam) {
+                return;
+            }
+            Navigation.navigate(
+                `${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}` as Route,
+                {forceReplace: true},
+            );
+        };
+
         return (
             <>
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
@@ -132,6 +143,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                                 `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`,
                                 `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                             )}
+                            onLinkPress={handleReconciliationAccountLinkPress}
                         />
                     </View>
                 )}
