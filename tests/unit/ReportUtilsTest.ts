@@ -47,6 +47,7 @@ import {
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticWorkspaceChats,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
@@ -93,6 +94,7 @@ import {
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    getNextApproverAccountID,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -145,6 +147,7 @@ import {
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
+    shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
@@ -4425,7 +4428,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2023-07-08 07:15:44.030',
                 participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
             };
-            expect(getMostRecentlyVisitedReport(reports, undefined)).toEqual(latestReport);
+            expect(getMostRecentlyVisitedReport(reports, {})).toEqual(latestReport);
         });
     });
 
@@ -4879,7 +4882,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -7079,6 +7082,69 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticWorkspaceChats', () => {
+        const policyID = 'policy-workspace-chats-1';
+        const policyName = 'Workspace Chats Policy';
+
+        it('should build #admins and expense chats using the explicit currentUserAccountID for participants and pending members', () => {
+            const explicitCurrentUser = 777;
+            const explicitCurrentUserEmail = 'owner@expensifail.com';
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, explicitCurrentUser, explicitCurrentUserEmail);
+
+            expect(result.adminsChatData.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+            expect(result.adminsChatData.policyID).toBe(policyID);
+            expect(result.adminsChatData.participants).toBeDefined();
+            expect(Object.keys(result.adminsChatData.participants ?? {}).map(Number)).toEqual([explicitCurrentUser]);
+
+            expect(result.expenseChatData.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            expect(result.expenseChatData.policyID).toBe(policyID);
+            expect(result.expenseChatData.ownerAccountID).toBe(explicitCurrentUser);
+            expect(result.expenseChatData.isOwnPolicyExpenseChat).toBe(true);
+            expect(Object.keys(result.expenseChatData.participants ?? {}).map(Number)).toEqual([explicitCurrentUser]);
+
+            expect(result.pendingChatMembers).toHaveLength(1);
+            expect(result.pendingChatMembers.at(0)?.accountID).toBe(String(explicitCurrentUser));
+            expect(result.pendingChatMembers.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should use the provided currentUserEmail as the text of the expense CREATED report action', () => {
+            const explicitCurrentUser = 888;
+            const explicitCurrentUserEmail = 'duplicate-user@expensifail.com';
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, explicitCurrentUser, explicitCurrentUserEmail);
+
+            const createdAction = result.expenseReportActionData[result.expenseCreatedReportActionID];
+            expect(createdAction).toBeDefined();
+            expect(createdAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const messages = Array.isArray(createdAction.message) ? createdAction.message : [];
+            expect(messages.at(0)?.text).toBe(explicitCurrentUserEmail);
+        });
+
+        it('should default the expense CREATED report action text to an empty string when currentUserEmail is undefined', () => {
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, undefined);
+
+            const createdAction = result.expenseReportActionData[result.expenseCreatedReportActionID];
+            const messages = Array.isArray(createdAction.message) ? createdAction.message : [];
+            expect(messages.at(0)?.text).toBe('');
+        });
+
+        it('should produce no participants or pending members when currentUserAccountID is undefined', () => {
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, undefined, 'anon@expensifail.com');
+
+            expect(Object.keys(result.adminsChatData.participants ?? {})).toHaveLength(0);
+            expect(Object.keys(result.expenseChatData.participants ?? {})).toHaveLength(0);
+            expect(result.expenseChatData.ownerAccountID).toBe(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+            expect(result.pendingChatMembers).toHaveLength(0);
+        });
+
+        it('should use the provided expenseReportId as the expense chat reportID', () => {
+            const providedExpenseReportID = 'expense-report-123';
+            const result = buildOptimisticWorkspaceChats(policyID, policyName, 100, 'user@expensifail.com', providedExpenseReportID);
+
+            expect(result.expenseChatReportID).toBe(providedExpenseReportID);
+            expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
+        });
+    });
+
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
@@ -7525,13 +7591,10 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`, normalReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
-            // Set up report metadata for lastVisitTime
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${archivedReport.reportID}`, {
-                lastVisitTime: '2024-02-01 04:56:47.233', // More recent visit
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${normalReport.reportID}`, {
-                lastVisitTime: '2024-01-01 04:56:47.233',
+            // Set up lastVisitTime
+            await Onyx.merge(ONYXKEYS.REPORT_LAST_VISIT_TIMES, {
+                [archivedReport.reportID]: '2024-02-01 04:56:47.233', // More recent visit
+                [normalReport.reportID]: '2024-01-01 04:56:47.233',
             });
 
             return waitForBatchedUpdates();
@@ -11825,6 +11888,170 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
+        const policyID = '1';
+
+        it('should return false when policy is undefined', () => {
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined)).toBe(false);
+        });
+
+        it('should return false when policy has preventSelfApproval false', () => {
+            const policyWithPreventOff: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: false,
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff)).toBe(false);
+        });
+
+        it('should return false when report is not owned by current user even with preventSelfApproval true', () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: 999,
+                managerID: 888,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(false);
+        });
+
+        it('should return true when preventSelfApproval is true, report is open expense, and owner is same as next approver', async () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(100),
+                id: policyID,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                owner: currentUserEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                reportID: 'prevent-self-report-open',
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+            });
+            await waitForBatchedUpdates();
+
+            expect(getNextApproverAccountID(report)).toBe(currentUserAccountID);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(true);
+        });
+
+        it('should return true when preventSelfApproval is true, report is processing, and owner is same as manager', async () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(true);
+        });
+
+        it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
+            const otherUserEmail = 'other@test.com';
+            const otherAccountID = 42;
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: otherUserEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: otherUserEmail,
+                    },
+                    [otherUserEmail]: {
+                        email: otherUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                ...participantsPersonalDetails,
+                [otherAccountID]: {accountID: otherAccountID, login: otherUserEmail},
+            });
+            await waitForBatchedUpdates();
+
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(false);
+        });
+
+        it('should return false when preventSelfApproval is true but report is not open or processing', () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+            };
+            const approvedReport: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn)).toBe(false);
+        });
+    });
+
     describe('canRejectReportAction', () => {
         it('should return false if the user is not the report manager', async () => {
             const approver = 'approver@gmail.com';
@@ -15850,7 +16077,7 @@ describe('ReportUtils', () => {
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
-            expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+            expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
 
         it('should return options with correct translated text', () => {
@@ -15866,7 +16093,7 @@ describe('ReportUtils', () => {
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
-            expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
+            expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addExistingExpense'));
         });
 
         it('should return options with correct sentry labels', () => {
@@ -15882,7 +16109,7 @@ describe('ReportUtils', () => {
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
-            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
+            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING);
         });
 
         it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
@@ -16026,7 +16253,7 @@ describe('ReportUtils', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
             jest.clearAllMocks();
 
-            // Trigger ADD_UNREPORTED_EXPENSE onSelected
+            // Trigger ADD_EXISTING_EXPENSE onSelected
             result.at(2)?.onSelected?.();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
         });
@@ -16362,7 +16589,7 @@ describe('ReportUtils', () => {
             expect(options).toHaveLength(3);
             expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(options.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
-            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
 
         describe('CREATE_NEW_EXPENSE', () => {
@@ -16414,7 +16641,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('ADD_UNREPORTED_EXPENSE', () => {
+        describe('ADD_EXISTING_EXPENSE', () => {
             it('should navigate to restricted action when policy owner is past due', async () => {
                 const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),

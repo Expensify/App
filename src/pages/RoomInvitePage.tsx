@@ -14,6 +14,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
@@ -76,6 +77,7 @@ function RoomInvitePage({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
@@ -199,7 +201,14 @@ function RoomInvitePage({
         }
         if (report?.reportID) {
             if (isPolicyExpenseChat(report)) {
-                inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserPersonalDetails.accountID);
+                inviteToRoomAction(
+                    report,
+                    ancestors,
+                    invitedEmailsToAccountIDs,
+                    currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                    currentUserPersonalDetails.accountID,
+                    delegateAccountID,
+                );
             } else {
                 inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
             }

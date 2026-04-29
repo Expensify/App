@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `はじめましょう`,
         showMore: 'さらに表示',
         showLess: '表示を減らす',
+        plusMore: ({count}: {count: number}) => `+${count}件`,
         merchant: '加盟店',
         change: '変更',
         category: 'カテゴリ',
@@ -851,6 +852,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'このルームでメッセージを送信できるのは管理者のみです。',
+    readOnlyConversation: 'この会話は読み取り専用です。',
     reportAction: {
         asCopilot: '共同操縦者として',
         assistedBy: (agentName: string) => `${agentName}がアシスト`,
@@ -1452,11 +1454,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費の保留を解除しました',
         moveUnreportedExpense: '未報告の経費を移動',
-        addUnreportedExpense: '未報告の経費を追加',
-        selectUnreportedExpense: 'レポートに追加する経費を少なくとも1件選択してください。',
-        emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
-        emptyStateUnreportedExpenseSubtitle: '未報告の経費はありません。下から新しく作成してみてください。',
-        addUnreportedExpenseConfirm: 'レポートに追加',
+        addExistingExpense: '既存の経費を追加',
+        selectExistingExpense: 'レポートに追加する経費を少なくとも1件選択してください。',
+        emptyStateExistingExpenseTitle: '既存の経費はありません',
+        emptyStateExistingExpenseSubtitle: '既存の経費がありません。下から新しく作成してみてください。',
+        addExistingExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
         explainHold: () => ({
             one: 'この経費を保留している理由を説明してください。',
@@ -2077,8 +2079,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'アカウント',
         general: '一般',
         helpPage: {
-            title: 'ヘルプとサポート',
-            description: '24時間365日いつでもサポートいたします',
+            title: 'ご質問がありますか？',
+            description: '24時間いつでもサポートします。',
             helpSite: 'ヘルプサイト',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'あなた専用のAIエージェント',
@@ -6751,6 +6753,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',
@@ -6803,6 +6807,8 @@ ${reportName}
                 merchants: '加盟店',
                 noAvailableCards: 'すべてのカードにはすでにルールがあります',
                 noAvailableCardsSubtitle: '既存のカードルールを編集して変更します',
+                noCardsIssuedTitle: 'Expensify カードは発行されていません',
+                noCardsIssuedSubtitle: 'Expensify カードを発行して支出ルールを作成しましょう',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',
@@ -7599,6 +7605,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: '集中請求',
             },
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
@@ -7702,8 +7709,8 @@ ${reportName}
         spendOverTime: '時間経過による支出',
         tabs: {
             expenseReports: '経費精算書',
-            reports: 'すべてのレポート',
-            expenses: 'すべての経費',
+            reports: 'レポート',
+            expenses: '経費',
             submit: '下書き',
             approve: '承認が必要',
             pay: '支払いの準備完了',
@@ -8798,12 +8805,6 @@ ${reportName}
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
         accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>テスト用レシートをスキャン</strong>して、どのように動作するか見てみましょう！</tooltip>',
-            manager: '<tooltip>お試しには<strong>テストマネージャー</strong>を選択してください！</tooltip>',
-            confirmation: '<tooltip>さあ、<strong>経費を提出</strong>して、何が起こるか見てみましょう！</tooltip>',
-            tryItOut: '試してみる',
-        },
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
@@ -9029,6 +9030,11 @@ ${reportName}
         groups: {
             title: 'グループ',
             memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`}),
+            defaultGroup: '新しいメンバーのデフォルトグループ',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `本当に ${newName} をデフォルトグループに設定しますか？新しいメンバーは、以前のデフォルトグループ (${currentName}) ではなく、このグループに招待されます。`,
+            makeDefault: 'デフォルトに設定',
+            neverMind: 'やめておく',
         },
     },
     proactiveAppReview: {

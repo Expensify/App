@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Commençons`,
         showMore: 'Afficher plus',
         showLess: 'Afficher moins',
+        plusMore: ({count}: {count: number}) => `+${count} de plus`,
         merchant: 'Commerçant',
         change: 'Modifier',
         category: 'Catégorie',
@@ -867,6 +868,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'Seuls les administrateurs peuvent envoyer des messages dans ce salon.',
+    readOnlyConversation: 'Cette conversation est en lecture seule.',
     reportAction: {
         asCopilot: 'en tant que copilote pour',
         assistedBy: (agentName: string) => `assisté par ${agentName}`,
@@ -1476,11 +1478,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'a mis cette dépense en attente',
         unheldExpense: 'blocage levé pour cette dépense',
         moveUnreportedExpense: 'Déplacer la dépense non déclarée',
-        addUnreportedExpense: 'Ajouter une dépense non déclarée',
-        selectUnreportedExpense: 'Sélectionnez au moins une dépense à ajouter à la note de frais.',
-        emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
-        emptyStateUnreportedExpenseSubtitle: 'Il semble que vous n’ayez aucune dépense non déclarée. Essayez d’en créer une ci-dessous.',
-        addUnreportedExpenseConfirm: 'Ajouter à la note de frais',
+        addExistingExpense: 'Ajouter une dépense existante',
+        selectExistingExpense: 'Sélectionnez au moins une dépense à ajouter à la note de frais.',
+        emptyStateExistingExpenseTitle: 'Aucune dépense existante',
+        emptyStateExistingExpenseSubtitle: 'Il semble que vous n’ayez aucune dépense existante. Essayez d’en créer une ci-dessous.',
+        addExistingExpenseConfirm: 'Ajouter à la note de frais',
         newReport: 'Nouvelle note de frais',
         explainHold: () => ({
             one: 'Expliquez pourquoi vous retenez cette dépense.',
@@ -2105,8 +2107,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Compte',
         general: 'Général',
         helpPage: {
-            title: 'Aide et assistance',
-            description: 'Nous sommes là pour vous aider 24 h/24, 7 j/7',
+            title: 'Des questions ?',
+            description: 'Nous sommes là pour vous aider, à toute heure.',
             helpSite: 'Site d’aide',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Votre agent IA personnel',
@@ -6865,6 +6867,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
+                policyDocument: 'Document de politique',
+                policyText: 'Texte de politique',
             },
             spendRules: {
                 title: 'Dépenser',
@@ -6917,6 +6921,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 merchants: 'Commerçants',
                 noAvailableCards: 'Toutes les cartes ont déjà une règle',
                 noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour apporter des changements',
+                noCardsIssuedTitle: 'Aucune Carte Expensify émise',
+                noCardsIssuedSubtitle: 'Émettre des cartes Expensify pour créer des règles de dépense',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnies aériennes',
@@ -7723,6 +7729,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Facturation centralisée',
             },
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
@@ -7832,8 +7839,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         spendOverTime: 'Dépenses dans le temps',
         tabs: {
             expenseReports: 'Notes de frais',
-            reports: 'Toutes les notes de frais',
-            expenses: 'Toutes les dépenses',
+            reports: 'Notes de frais',
+            expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',
             pay: 'Prêt à payer',
@@ -8941,12 +8948,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
         accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scannez notre reçu de test</strong> pour voir comment ça marche !</tooltip>',
-            manager: '<tooltip>Choisissez notre <strong>responsable des tests</strong> pour l’essayer&nbsp;!</tooltip>',
-            confirmation: '<tooltip>Maintenant, <strong>soumettez votre dépense</strong> et regardez la magie opérer&nbsp;!</tooltip>',
-            tryItOut: 'Essayer',
-        },
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
@@ -9176,6 +9177,11 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         groups: {
             title: 'Groupes',
             memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`}),
+            defaultGroup: 'Groupe par défaut pour les nouveaux membres',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Êtes-vous sûr de vouloir faire de ${newName} le groupe par défaut ? Les nouveaux membres seront invités à ce groupe au lieu du groupe par défaut précédent (${currentName}). `,
+            makeDefault: 'Définir par défaut',
+            neverMind: 'Peu importe',
         },
     },
     proactiveAppReview: {

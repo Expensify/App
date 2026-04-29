@@ -1,5 +1,6 @@
 import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';

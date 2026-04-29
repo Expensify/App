@@ -85,14 +85,21 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(
+                    report,
+                    policy,
+                    formatPhoneNumber,
+                    filteredReportActions,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    reportTransactions,
+                );
                 if (!invite?.policyExpenseChatReportID) {
                     moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
@@ -113,6 +120,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
                     reportNextStep,
+                    reportActionsList: filteredReportActions,
                 });
             } else {
                 changeReportPolicy(

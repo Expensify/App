@@ -121,9 +121,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
+    ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.IS_LOADING_APP,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
-    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -923,7 +923,6 @@ export {
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     createWorkspaceWithPolicyDraft,
