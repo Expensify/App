@@ -268,11 +268,17 @@ function getBadgeFromIOUReport(
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
-    if (
-        canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
-        canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
-    ) {
+    const canBePaidNow = canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy);
+    if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    const canBePaidElsewhere = canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy);
+    if (canBePaidElsewhere) {
+        // Non-reimbursable-only reports: paying is optional, do not pin in LHN
+        const isNonReimbursableOnly = hasOnlyNonReimbursableTransactions(iouReport?.reportID);
+        if (!isNonReimbursableOnly) {
+            return CONST.REPORT.ACTION_BADGE.PAY;
+        }
     }
     if (canApproveIOU(iouReport, policy, reportMetadata)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
