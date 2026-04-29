@@ -11,7 +11,7 @@ const STALE_THRESHOLD_MS = 10_000;
  * When a pending response exists, schedules the action to be moved to REPORT_ACTIONS
  * after the remaining delay, with automatic cleanup on unmount via useEffect.
  */
-function usePendingConciergeResponse(reportID: string) {
+function usePendingConciergeResponse(reportID: string | undefined) {
     const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
 
     useEffect(() => {

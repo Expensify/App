@@ -39,7 +39,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
 
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
@@ -58,7 +58,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                 if (isDisabled || !shouldDisplayContextMenu) {
                     return;
                 }
-                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived), originalReportID);
             }}
             shouldUseHapticsOnLongPress
             accessibilityLabel={displayName}

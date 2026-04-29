@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
@@ -26,7 +26,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Send']);
     const Tap = Gesture.Tap()
         .onEnd(() => {
             handleSendMessage();
@@ -79,4 +79,4 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     );
 }
 
-export default memo(SendButton);
+export default SendButton;

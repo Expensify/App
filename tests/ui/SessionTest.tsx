@@ -22,8 +22,6 @@ jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
-
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
 // cspell:disable-next-line
@@ -118,7 +116,8 @@ describe('Deep linking', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
+        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
 
         expect(hasAuthToken()).toBe(true);
 
@@ -133,7 +132,7 @@ describe('Deep linking', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(lastVisitedPath).toBeDefined();
-        expect(lastVisitedPath).not.toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        expect(decodeURIComponent(lastVisitedPath ?? '')).not.toContain(reportPath);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -152,13 +151,6 @@ describe('Deep linking', () => {
         // Unmount so we can prepare the deep link login
         unmount1();
 
-        await waitForBatchedUpdatesWithAct();
-
-        // In production, RAM-only keys don't exist on a fresh app start because they're never persisted to storage.
-        // In tests, however, unmounting and remounting <App /> doesn't restart the JS process,
-        // so RAM-only keys retain their values from the previous mount. We need to manually
-        // remove them to simulate a real app restart.
-        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, null);
         await waitForBatchedUpdatesWithAct();
 
         const url = getInitialURL();

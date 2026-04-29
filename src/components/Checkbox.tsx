@@ -95,7 +95,7 @@ function Checkbox({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Minus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Minus']);
 
     const handleSpaceOrEnterKey = (event?: ReactKeyboardEvent) => {
         if (event?.code !== 'Space' && event?.code !== 'Enter') {

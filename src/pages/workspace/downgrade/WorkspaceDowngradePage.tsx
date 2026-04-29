@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -53,7 +54,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             setIsDowngradeWarningModalOpen(true);
             return;
         }
-        downgradeToTeam(policy.id);
+        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled);
     };
 
     const onClose = () => {

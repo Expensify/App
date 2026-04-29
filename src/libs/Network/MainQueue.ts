@@ -1,8 +1,9 @@
 import type {OnyxKey} from 'react-native-onyx';
+import {getIsOffline} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest} from '@src/types/onyx/Request';
-import {isAuthenticating, isOffline} from './NetworkStore';
+import {isAuthenticating} from './NetworkStore';
 import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -32,7 +33,7 @@ function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function process() {
-    if (isOffline()) {
+    if (getIsOffline()) {
         return;
     }
 

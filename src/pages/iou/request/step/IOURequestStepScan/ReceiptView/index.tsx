@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
@@ -34,7 +35,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
 

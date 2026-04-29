@@ -2,12 +2,13 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import CategoryListItemHeader from '@components/Search/SearchList/ListItem/CategoryListItemHeader';
+import type {TransactionCategoryGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
-import CategoryListItemHeader from '@components/SelectionListWithSections/Search/CategoryListItemHeader';
-import type {TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +27,7 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -43,6 +45,7 @@ const mockSearchStateContext = {
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
@@ -80,7 +83,7 @@ const renderCategoryListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchStateContext.Provider value={mockSearchStateContext}>
                 <SearchActionsContext.Provider value={mockSearchActionsContext}>
                     <CategoryListItemHeader
@@ -111,6 +114,7 @@ describe('CategoryListItemHeader', () => {
     beforeEach(() => {
         // Default to small screen (mobile) layout
         mockedUseResponsiveLayout.mockReturnValue({
+            isInLandscapeMode: false,
             isLargeScreenWidth: false,
             shouldUseNarrowLayout: true,
             isSmallScreenWidth: true,
@@ -266,6 +270,7 @@ describe('CategoryListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

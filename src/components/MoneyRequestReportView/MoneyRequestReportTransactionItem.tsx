@@ -18,7 +18,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {CardList, Policy, Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -66,6 +66,12 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
+
+    /** List of cards for the user */
+    nonPersonalAndWorkspaceCards: CardList;
+
+    /** Whether this is the last item in the list (used to skip border-bottom on narrow) */
+    isLastItem?: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -84,6 +90,8 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
+    nonPersonalAndWorkspaceCards,
+    isLastItem = false,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -109,10 +117,11 @@ function MoneyRequestReportTransactionItem({
     }, [scrollToNewTransaction, shouldBeHighlighted]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: shouldUseNarrowLayout ? 0 : variables.componentBorderRadius,
         shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 
     return (
@@ -127,7 +136,7 @@ function MoneyRequestReportTransactionItem({
                 role={getButtonRole(true)}
                 isNested
                 id={transaction.transactionID}
-                style={[styles.transactionListItemStyle]}
+                style={[styles.transactionListItemStyle, shouldUseNarrowLayout && styles.noBorderRadius]}
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
@@ -137,7 +146,7 @@ function MoneyRequestReportTransactionItem({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && styles.borderBottom]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -155,12 +164,13 @@ function MoneyRequestReportTransactionItem({
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={[styles.p3]}
+                        style={shouldUseNarrowLayout ? [styles.p4, styles.noBorderRadius] : [styles.p3]}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     />
                 )}
             </PressableWithFeedback>

@@ -1,6 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -9,6 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
+// eslint-disable-next-line no-restricted-imports
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+// eslint-disable-next-line no-restricted-imports
+import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
@@ -47,6 +52,7 @@ function ReanimatedModal({
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -56,6 +62,7 @@ function ReanimatedModal({
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
+    const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
     const styles = useThemeStyles();
 
@@ -102,6 +109,10 @@ function ReanimatedModal({
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
+            if (transitionHandleRef.current) {
+                TransitionTracker.endTransition(transitionHandleRef.current);
+                transitionHandleRef.current = null;
+            }
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
@@ -114,6 +125,7 @@ function ReanimatedModal({
         if (isVisible && !isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
+            transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
             setIsVisibleState(true);
@@ -121,6 +133,7 @@ function ReanimatedModal({
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
+            transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
             blurActiveElement();
@@ -141,6 +154,10 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
+        }
         onModalShow();
     }, [onModalShow]);
 
@@ -150,6 +167,10 @@ function ReanimatedModal({
         if (handleRef.current) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
+        }
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         }
 
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
@@ -242,7 +263,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
-                        shouldReturnFocus={!shouldEnableNewFocusManagement}
+                        shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}

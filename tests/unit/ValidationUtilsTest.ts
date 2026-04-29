@@ -8,6 +8,7 @@ import {
     isRequiredFulfilled,
     isValidAccountRoute,
     isValidDate,
+    isValidEmailWithTLD,
     isValidExpirationDate,
     isValidInputLength,
     isValidLegalName,
@@ -660,6 +661,24 @@ describe('ValidationUtils', () => {
             expect(isValidPIN('6969')).toBe(false);
             expect(isValidPIN('2000')).toBe(false);
             expect(isValidPIN('2015')).toBe(false);
+        });
+    });
+
+    describe('isValidEmailWithTLD', () => {
+        test('Valid email with valid TLD', () => {
+            expect(isValidEmailWithTLD('user@example.com')).toBe(true);
+            expect(isValidEmailWithTLD('user@example.co.uk')).toBe(true);
+        });
+
+        test('Valid email format but invalid TLD', () => {
+            expect(isValidEmailWithTLD('user@example.con')).toBe(false);
+            expect(isValidEmailWithTLD('user@example.xyzinvalid')).toBe(false);
+        });
+
+        test('Invalid email format', () => {
+            expect(isValidEmailWithTLD('notanemail')).toBe(false);
+            expect(isValidEmailWithTLD('user@')).toBe(false);
+            expect(isValidEmailWithTLD('@domain.com')).toBe(false);
         });
     });
 });

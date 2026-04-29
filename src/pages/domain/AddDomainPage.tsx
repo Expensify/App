@@ -59,7 +59,11 @@ function AddDomainPage() {
             (domain) => domain && submittedDomainName.current && Str.caseInsensitiveEquals(Str.extractEmailDomain(domain.email), submittedDomainName.current),
         )?.accountID;
         if (accountID) {
-            Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
+            Navigation.dismissModal({
+                afterTransition: () => {
+                    Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
+                },
+            });
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 

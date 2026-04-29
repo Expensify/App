@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
+import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCompanyCardFeed} from '@libs/CardUtils';
@@ -31,7 +31,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
         },
         {
@@ -43,13 +43,23 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {
@@ -57,6 +67,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         androidPackage,
         country,
         domain,
+        isPersonal,
         feed: feed ? getCompanyCardFeed(feed) : undefined,
     };
 
@@ -68,12 +79,22 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
@@ -141,7 +162,35 @@ function importPlaidAccounts(
         plaidAccessToken,
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);
+    const onyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isRefreshing: null},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isRefreshing: null},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters, onyxData);
 }
 
-export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts};
+function addPersonalPlaidCard(publicToken: string, feed: string, country: string, plaidAccounts: string) {
+    const parameters: AddPersonalPlaidCardParams = {
+        publicToken,
+        feed,
+        country,
+        plaidAccounts,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_PERSONAL_PLAID_CARD, parameters);
+}
+
+export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts, addPersonalPlaidCard};

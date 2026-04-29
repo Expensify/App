@@ -78,20 +78,21 @@ function EmojiPickerButtonDropdown(
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
-                        <Text
-                            style={styles.emojiPickerButtonDropdownIcon}
-                            numberOfLines={1}
-                        >
-                            {
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                value || (
-                                    <Icon
-                                        src={icons.Emoji}
-                                        fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
-                                    />
-                                )
-                            }
-                        </Text>
+                        {value ? (
+                            <Text
+                                style={styles.emojiPickerButtonDropdownIcon}
+                                numberOfLines={1}
+                            >
+                                {value}
+                            </Text>
+                        ) : (
+                            <View style={styles.emojiPickerButtonDropdownIcon}>
+                                <Icon
+                                    src={icons.Emoji}
+                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                />
+                            </View>
+                        )}
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={icons.ArrowRight}

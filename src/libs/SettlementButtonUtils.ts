@@ -36,6 +36,12 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
                 ),
         },
         {
+            check: (activeRoute: string) =>
+                activeRoute.includes(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, chatReportID)),
+            navigate: () =>
+                Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_VERIFY_ACCOUNT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, chatReportID)),
+        },
+        {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(chatReportID)),
             navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
         },
@@ -93,7 +99,7 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
  * Retrieves SettlementButton payment methods.
  */
 const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle']);
 
     const paymentMethods = useMemo(() => {
         return {

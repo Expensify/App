@@ -1,4 +1,5 @@
 import type {RefObject} from 'react';
+import type {RotationDegrees} from 'react-fast-pdf';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -142,6 +143,9 @@ type AttachmentModalBaseContentProps = {
 
     /** Extra styles to pass for the attachment view container */
     attachmentViewContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Controlled rotation angle for the PDF */
+    pdfRotation?: RotationDegrees;
 };
 
 export type {

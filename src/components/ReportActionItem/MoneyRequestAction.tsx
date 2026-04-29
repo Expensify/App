@@ -5,13 +5,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
-import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -32,7 +30,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
@@ -47,9 +44,6 @@ type MoneyRequestActionProps = {
 
     /** The ID of the current report */
     reportID: string | undefined;
-
-    /** Is this IOU ACTION the most recent? */
-    isMostRecentIOUReportAction: boolean;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -68,6 +62,9 @@ type MoneyRequestActionProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 function MoneyRequestAction({
@@ -75,24 +72,22 @@ function MoneyRequestAction({
     chatReportID,
     requestReportID,
     reportID,
-    isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive = () => {},
     isHovered = false,
     style,
     isWhisper = false,
     shouldDisplayContextMenu = true,
+    originalReportID,
 }: MoneyRequestActionProps) {
     const {shouldOpenReportInRHP} = useReportActionItemState();
     const {onPreviewPressed} = useReportActionItemActions();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
@@ -124,7 +119,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
 
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, iouReport, action);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, iouReport, action);
             if (shouldOpenReportInRHP) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
                 return;
@@ -141,19 +136,8 @@ function MoneyRequestAction({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
     };
 
-    let shouldShowPendingConversionMessage = false;
     const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);
     const isReversedTransaction = isReversedTransactionReportActionsUtils(action);
-    if (
-        !isEmptyObject(iouReport) &&
-        !isEmptyObject(reportActions) &&
-        chatReport?.iouReportID &&
-        isMostRecentIOUReportAction &&
-        action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        isOffline
-    ) {
-        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport);
-    }
 
     if (isDeletedParentAction || isReversedTransaction) {
         let message: TranslationPaths;
@@ -180,12 +164,12 @@ function MoneyRequestAction({
             isTrackExpense={isTrackExpenseAction}
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}
-            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, isReviewDuplicateTransactionPage ? [containerStyles, styles.borderNone] : styles.mt2]}
             isHovered={isHovered}
             isWhisper={isWhisper}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
+            originalReportID={originalReportID}
         />
     );
 }

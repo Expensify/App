@@ -115,7 +115,7 @@ describe('handleUnvalidatedUserNavigation', () => {
 
 describe('useSettlementButtonPaymentMethods', () => {
     const {translate} = useLocalize();
-    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const));
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle']));
 
     beforeEach(() => {
         jest.clearAllMocks();

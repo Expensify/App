@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseGenericEmptyStateIllustration from './types';
 
 const useGenericEmptyStateIllustration: UseGenericEmptyStateIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const styles = useThemeStyles();
 
     return {

@@ -1,34 +1,34 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
-let mockGetLocalPublicKey: jest.Mock;
+let mockGetLocalCredentialID: jest.Mock;
 let mockServerKnownCredentialIDs: string[];
 let mockHaveCredentialsEverBeenConfigured: boolean;
 
-jest.mock('@components/MultifactorAuthentication/Context/useNativeBiometrics', () => ({
+jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
-        getLocalPublicKey: mockGetLocalPublicKey,
+        getLocalCredentialID: mockGetLocalCredentialID,
         serverKnownCredentialIDs: mockServerKnownCredentialIDs,
         haveCredentialsEverBeenConfigured: mockHaveCredentialsEverBeenConfigured,
     }),
 }));
 
 function resetMocks({
-    localPublicKey = undefined as string | undefined,
+    localCredentialID = undefined as string | undefined,
     serverKnownCredentialIDs = [] as string[],
     haveCredentialsEverBeenConfigured = false,
 }: {
-    localPublicKey?: string | undefined;
+    localCredentialID?: string | undefined;
     serverKnownCredentialIDs?: string[];
     haveCredentialsEverBeenConfigured?: boolean;
 } = {}) {
-    mockGetLocalPublicKey = jest.fn().mockResolvedValue(localPublicKey);
+    mockGetLocalCredentialID = jest.fn().mockResolvedValue(localCredentialID);
     mockServerKnownCredentialIDs = serverKnownCredentialIDs;
     mockHaveCredentialsEverBeenConfigured = haveCredentialsEverBeenConfigured;
 }
@@ -64,7 +64,7 @@ describe('useBiometricRegistrationStatus', () => {
 
         it('returns REGISTERED_THIS_DEVICE when the local key is in the server list', async () => {
             resetMocks({
-                localPublicKey: 'local-key-abc',
+                localCredentialID: 'local-key-abc',
                 serverKnownCredentialIDs: ['local-key-abc'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -78,7 +78,7 @@ describe('useBiometricRegistrationStatus', () => {
 
         it('returns REGISTERED_OTHER_DEVICE when devices exist but local key is not among them', async () => {
             resetMocks({
-                localPublicKey: 'local-key-abc',
+                localCredentialID: 'local-key-abc',
                 serverKnownCredentialIDs: ['other-key-xyz'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -92,7 +92,7 @@ describe('useBiometricRegistrationStatus', () => {
 
         it('returns REGISTERED_OTHER_DEVICE when local key is undefined and devices exist', async () => {
             resetMocks({
-                localPublicKey: undefined,
+                localCredentialID: undefined,
                 serverKnownCredentialIDs: ['other-key-xyz'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -108,7 +108,7 @@ describe('useBiometricRegistrationStatus', () => {
     describe('computed values', () => {
         it('sets isCurrentDeviceRegistered to true when local key matches a server key', async () => {
             resetMocks({
-                localPublicKey: 'my-key',
+                localCredentialID: 'my-key',
                 serverKnownCredentialIDs: ['my-key', 'other-key'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -124,7 +124,7 @@ describe('useBiometricRegistrationStatus', () => {
 
         it('sets isCurrentDeviceRegistered to false when local key is undefined', async () => {
             resetMocks({
-                localPublicKey: undefined,
+                localCredentialID: undefined,
                 serverKnownCredentialIDs: ['other-key'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -140,7 +140,7 @@ describe('useBiometricRegistrationStatus', () => {
 
         it('sets isCurrentDeviceRegistered to false when local key does not match any server key', async () => {
             resetMocks({
-                localPublicKey: 'unknown-key',
+                localCredentialID: 'unknown-key',
                 serverKnownCredentialIDs: ['other-key'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -170,7 +170,7 @@ describe('useBiometricRegistrationStatus', () => {
 
         it('returns the local public key after async resolution', async () => {
             resetMocks({
-                localPublicKey: 'resolved-key',
+                localCredentialID: 'resolved-key',
                 serverKnownCredentialIDs: ['resolved-key'],
                 haveCredentialsEverBeenConfigured: true,
             });
@@ -178,22 +178,22 @@ describe('useBiometricRegistrationStatus', () => {
             const {result} = renderHook(() => useBiometricRegistrationStatus());
 
             await waitFor(() => {
-                expect(result.current.localPublicKey).toBe('resolved-key');
+                expect(result.current.localCredentialID).toBe('resolved-key');
             });
         });
     });
 
     describe('initial state before async resolution', () => {
-        it('localPublicKey is undefined before getLocalPublicKey resolves', () => {
+        it('localCredentialID is undefined before getLocalCredentialID resolves', () => {
             resetMocks({
-                localPublicKey: 'pending-key',
+                localCredentialID: 'pending-key',
                 serverKnownCredentialIDs: ['pending-key'],
                 haveCredentialsEverBeenConfigured: true,
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
 
-            expect(result.current.localPublicKey).toBeUndefined();
+            expect(result.current.localCredentialID).toBeUndefined();
         });
     });
 });

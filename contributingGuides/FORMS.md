@@ -348,6 +348,43 @@ To generate these unique keys, use `Str.guid()`.
 
 An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
 
+### Keyboard Dismissal on Submit
+
+By default, `FormProvider` waits for the keyboard to fully dismiss before calling `onSubmit`. This is controlled by the `keyboardSubmitBehavior` prop (defaults to `'dismiss-then-submit'`).
+
+On some platforms, this default behavior causes visual glitches when the form's `onSubmit` triggers navigation (e.g. `Navigation.goBack()`), because `KeyboardAvoidingView` removes its keyboard offset before the screen finishes unmounting — making the submit button appear to float briefly.
+
+The prop accepts three values:
+
+| Value | Behavior | Best for |
+|---|---|---|
+| `'dismiss-then-submit'` | Waits for keyboard to fully dismiss, then calls `onSubmit` | Forms that stay on-screen after submission |
+| `'submit-and-dismiss'` | Calls `onSubmit` immediately via `dismissKeyboardAndExecute` | iOS native / web forms that navigate on submit |
+| `'submit-only'` | Calls `onSubmit` immediately, no keyboard dismissal | Android native forms that navigate on submit (navigation handles keyboard cleanup) |
+
+Since the correct value is platform-specific, use a platform-specific constant file to export the appropriate value:
+
+```
+myFeature/keyboardSubmitBehavior/
+├── index.ts           → 'submit-and-dismiss'  (web + iOS native)
+└── index.android.ts   → 'submit-only'          (Android native)
+```
+
+```jsx
+import KEYBOARD_SUBMIT_BEHAVIOR from './keyboardSubmitBehavior';
+
+<FormProvider
+    formID="myForm"
+    onSubmit={onSubmit}
+    keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
+>
+    {/* form inputs */}
+</FormProvider>
+```
+
+> [!NOTE]
+> Only override `keyboardSubmitBehavior` on screens where `onSubmit` triggers navigation. For forms that stay on-screen after submission, keep the default (`'dismiss-then-submit'`) to avoid layout jumps.
+
 ### Safe Area Padding
 
 Any `FormProvider.tsx` that has a button at the bottom. If the `<FormProvider>` is inside a `<ScreenWrapper>`, the bottom safe area inset is handled automatically (`includeSafeAreaPaddingBottom` needs to be set to `true`, but its the default).

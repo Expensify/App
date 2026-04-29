@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {validateBankAccount} from '@libs/actions/BankAccounts';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
+import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +62,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
     const styles = useThemeStyles();
 
     const policyID = reimbursementAccount?.achData?.policyID;
+    const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const decimalSeparator = toLocaleDigit('.');
     const permittedDecimalSeparator = getPermittedDecimalSeparator(decimalSeparator);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -90,12 +92,11 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             const validateCode = [amount1, amount2, amount3].join(',');
 
             // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-            const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
             if (bankAccountID) {
                 validateBankAccount(bankAccountID, validateCode, policyID);
             }
         },
-        [reimbursementAccount?.achData?.bankAccountID, policyID, permittedDecimalSeparator],
+        [bankAccountID, policyID, permittedDecimalSeparator],
     );
     // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
     // See https://github.com/Expensify/App/issues/51868 for more information

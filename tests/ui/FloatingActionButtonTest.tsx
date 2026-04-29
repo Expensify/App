@@ -24,9 +24,6 @@ jest.mock('@components/ProductTrainingContext', () => ({
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
-// Mock useIsHomeRouteActive to avoid navigation state issues
-jest.mock('@navigation/helpers/useIsHomeRouteActive', () => (): boolean => false);
-
 let mockUseAnimatedStyleUpdater: () => Record<string, unknown>;
 // Silence react-native-reanimated warnings in Jest
 jest.mock('react-native-reanimated', () => {

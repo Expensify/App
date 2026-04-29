@@ -6,11 +6,11 @@ import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
-function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPin = false}: CustomSubPageProps) {
+function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPIN = false}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const {setIsConfirmStep} = usePINActions();
 
-    const pageIndexes = shouldCollectPin ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
+    const pageIndexes = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
     const legalNameIndex = pageIndexes.LEGAL_NAME;
     const dateOfBirthIndex = pageIndexes.DATE_OF_BIRTH;
     const addressIndex = pageIndexes.ADDRESS;
@@ -55,7 +55,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
             },
         ];
 
-        if (shouldCollectPin) {
+        if (shouldCollectPIN) {
             baseItems.push({
                 description: translate('cardPage.physicalCardPin'),
                 title: '••••',
@@ -68,7 +68,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
         }
 
         return baseItems;
-    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPin, setIsConfirmStep]);
+    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPIN, setIsConfirmStep]);
 
     return (
         <ConfirmationStep

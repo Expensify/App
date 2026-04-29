@@ -48,4 +48,11 @@ function getReportActionsForReportIDs(allReportActions: OnyxCollection<ReportAct
     return filteredReportActions;
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs};
+function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, reportActionID?: string): OnyxEntry<ReportAction> {
+    if (!reportActions || !reportActionID) {
+        return;
+    }
+    return reportActions[reportActionID];
+}
+
+export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs, getReportActionByIDSelector};

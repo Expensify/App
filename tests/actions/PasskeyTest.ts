@@ -64,6 +64,24 @@ describe('actions/Passkey', () => {
             expect(value).toEqual([{id: 'existing', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: [CONST.PASSKEY_TRANSPORT.INTERNAL]}, credential]);
         });
 
+        it('should store credential with aaguid field', async () => {
+            // Given a credential with an AAGUID
+            const credentialWithAAGUID: PasskeyCredential = {
+                id: 'cred-aaguid',
+                type: CONST.PASSKEY_CREDENTIAL_TYPE,
+                transports: [CONST.PASSKEY_TRANSPORT.INTERNAL],
+                aaguid: 'fbfc3007-154e-4ecc-8c0b-6e020557d7bd',
+            };
+
+            // When adding it to Onyx
+            addLocalPasskeyCredential({userId, credential: credentialWithAAGUID, existingCredentials: null});
+            await waitForBatchedUpdates();
+
+            // Then the AAGUID should be preserved in Onyx storage
+            const value = await getOnyxValue(getPasskeyOnyxKey(userId));
+            expect(value).toEqual([credentialWithAAGUID]);
+        });
+
         it('should throw error when credential with same id already exists', () => {
             // Given an existing entry that already contains a credential with the same id
             const existingCredentials: LocalPasskeyCredentialsEntry = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: [CONST.PASSKEY_TRANSPORT.INTERNAL]}];
@@ -186,6 +204,20 @@ describe('actions/Passkey', () => {
 
             const value = await getOnyxValue(getPasskeyOnyxKey(userId));
             expect(value).toEqual([]);
+        });
+
+        it('should preserve aaguid from local credentials', () => {
+            // Given a local credential with an AAGUID and a backend credential without it
+            const localCredentials: PasskeyCredential[] = [
+                {id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: [CONST.PASSKEY_TRANSPORT.INTERNAL], aaguid: 'fbfc3007-154e-4ecc-8c0b-6e020557d7bd'},
+            ];
+            const backendCredentials: BackendPasskeyCredential[] = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
+
+            // When reconciling with backend
+            const result = reconcileLocalPasskeysWithBackend({userId, backendCredentials, localCredentials});
+
+            // Then the local AAGUID should be preserved in the result
+            expect(result).toEqual(localCredentials);
         });
 
         it('should preserve transports from local credentials', () => {

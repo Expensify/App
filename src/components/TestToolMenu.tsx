@@ -33,7 +33,7 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
     const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
-    const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
+    const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -125,7 +125,7 @@ function TestToolMenu() {
                                 text={translate('multifactorAuthentication.biometricsTest.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
-                            {isCurrentDeviceRegistered && !!localPublicKey && (
+                            {isCurrentDeviceRegistered && !!localCredentialID && (
                                 <Button
                                     danger
                                     isLoading={isMFARevokeLoading}
@@ -133,7 +133,7 @@ function TestToolMenu() {
                                     text={translate('multifactorAuthentication.revoke.revoke')}
                                     onPress={async () => {
                                         setIsMFARevokeLoading(true);
-                                        await revokeMultifactorAuthenticationCredentials({onlyKeyID: localPublicKey});
+                                        await revokeMultifactorAuthenticationCredentials({onlyKeyID: localCredentialID});
                                         setIsMFARevokeLoading(false);
                                     }}
                                 />
@@ -180,7 +180,7 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
-                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
+                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>

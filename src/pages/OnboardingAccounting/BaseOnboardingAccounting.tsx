@@ -9,10 +9,11 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -27,6 +28,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingAccountingProps} from './types';
 
@@ -99,7 +101,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         'SapSquare',
         'OracleSquare',
         'MicrosoftDynamicsSquare',
-    ] as const);
+    ]);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -107,6 +109,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
     const [error, setError] = useState('');
@@ -129,7 +132,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         const createAccountingOption = (integration: Integration): OnboardingListItem => {
             const icon = expensifyIcons[integration.iconName] as IconAsset | undefined;
             return {
-                keyForList: integration.key,
+                keyForList: integration.key ?? 'none',
                 text: translate(integration.translationKey),
                 leftElement: (
                     <Icon
@@ -144,7 +147,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         };
 
         const noneAccountingOption: OnboardingListItem = {
-            keyForList: null,
+            keyForList: 'none',
             text: translate('onboarding.accounting.none'),
             leftElement: (
                 <Icon
@@ -188,15 +191,15 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
     }, [translate, userReportedIntegration, route.params?.backTo]);
 
-    const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
-        setUserReportedIntegration(integrationKey);
+    const handleIntegrationSelect = useCallback((integrationKey: OnboardingListItem['keyForList']) => {
+        setUserReportedIntegration(integrationKey === 'none' ? null : integrationKey);
         setError('');
     }, []);
 
     const renderOption = useCallback(
         (item: OnboardingListItem) => (
             <PressableWithoutFeedback
-                key={item.keyForList ?? ''}
+                key={item.keyForList}
                 onPress={() => handleIntegrationSelect(item.keyForList)}
                 accessibilityLabel={item.text}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
@@ -243,7 +246,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!isVsb}
-                progressBarPercentage={80}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
                 shouldDisplayHelpButton={false}
             />

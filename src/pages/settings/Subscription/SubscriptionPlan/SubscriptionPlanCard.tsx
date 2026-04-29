@@ -44,7 +44,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const lazyIllustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
         translate,
         subscriptionPlan,

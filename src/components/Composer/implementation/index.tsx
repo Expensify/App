@@ -54,6 +54,7 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
