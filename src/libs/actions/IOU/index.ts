@@ -1144,6 +1144,15 @@ function buildOnyxDataForTestDriveIOU(
         },
     );
 
+    // Remove the optimistic PAY action on success so it doesn't duplicate the server-generated PAY action
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testDriveIOUParams.iouOptimisticParams.report.reportID}`,
+        value: {
+            [testDriveIOUParams.iouOptimisticParams.action.reportActionID]: null,
+        },
+    });
+
     return {
         optimisticData,
         successData,
