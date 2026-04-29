@@ -503,6 +503,39 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
+            it('should use the caller-provided policy for the forwarded snapshot fallback when global policy data is stale', async () => {
+                await seedForwardedSnapshotMoveFixture();
+                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
+                if (!currentPolicy) {
+                    throw new Error('Expected policy fixture');
+                }
+
+                await Onyx.set(policyKey, {
+                    ...currentPolicy,
+                    employeeList: {
+                        ...currentPolicy.employeeList,
+                        [FORWARDED_APPROVER_EMAIL]: {
+                            email: FORWARDED_APPROVER_EMAIL,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                        },
+                    },
+                });
+                await waitForBatchedUpdates();
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                    reportActions: {},
+                });
+
+                expect(canEditReportField).toBe(false);
+            });
+
             it.each([
                 ['missing nextStep', null],
                 [

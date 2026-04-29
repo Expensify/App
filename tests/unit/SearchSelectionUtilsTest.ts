@@ -39,42 +39,28 @@ describe('getSearchMoveSelectionValidation', () => {
             }),
         };
 
-        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual(
-            expect.objectContaining({
-                canAllTransactionsBeMoved: true,
-                canMoveToReport: true,
-                hasMultipleOwners: false,
-                hasOnlyTransactionSelections: true,
-                hasSelections: true,
-                targetOwnerAccountID: 1,
-            }),
-        );
+        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual({
+            canMoveToReport: true,
+        });
     });
 
     it('blocks empty selections', () => {
-        expect(getSearchMoveSelectionValidation({})).toEqual(
-            expect.objectContaining({
-                canAllTransactionsBeMoved: false,
-                canMoveToReport: false,
-                hasSelections: false,
-            }),
-        );
+        expect(getSearchMoveSelectionValidation({})).toEqual({
+            canMoveToReport: false,
+        });
     });
 
-    it('blocks report-level selections without transaction data', () => {
+    it('blocks report-level selections without transaction data even when canChangeReport is true', () => {
         const selectedTransactions: SelectedTransactions = {
             report1: createSelectedTransaction({
                 transaction: undefined,
-                canChangeReport: false,
+                canChangeReport: true,
             }),
         };
 
-        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual(
-            expect.objectContaining({
-                canMoveToReport: false,
-                hasOnlyTransactionSelections: false,
-            }),
-        );
+        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual({
+            canMoveToReport: false,
+        });
     });
 
     it('blocks mixed-owner selections', () => {
@@ -90,13 +76,9 @@ describe('getSearchMoveSelectionValidation', () => {
             }),
         };
 
-        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual(
-            expect.objectContaining({
-                canMoveToReport: false,
-                hasMultipleOwners: true,
-                targetOwnerAccountID: undefined,
-            }),
-        );
+        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual({
+            canMoveToReport: false,
+        });
     });
 
     it('blocks selections when any transaction cannot move', () => {
@@ -113,12 +95,9 @@ describe('getSearchMoveSelectionValidation', () => {
             }),
         };
 
-        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual(
-            expect.objectContaining({
-                canAllTransactionsBeMoved: false,
-                canMoveToReport: false,
-            }),
-        );
+        expect(getSearchMoveSelectionValidation(selectedTransactions)).toEqual({
+            canMoveToReport: false,
+        });
     });
 
     it('uses the report-owner fallback when owner metadata is not attached to the selection', () => {
@@ -135,12 +114,9 @@ describe('getSearchMoveSelectionValidation', () => {
             getSearchMoveSelectionValidation(selectedTransactions, {
                 getOwnerAccountIDForReportID: (reportID) => (reportID === 'report-1' ? 42 : undefined),
             }),
-        ).toEqual(
-            expect.objectContaining({
-                canMoveToReport: true,
-                targetOwnerAccountID: 42,
-            }),
-        );
+        ).toEqual({
+            canMoveToReport: true,
+        });
     });
 
     it('blocks the move action in expense-report search even when the selection is otherwise valid', () => {
@@ -155,10 +131,8 @@ describe('getSearchMoveSelectionValidation', () => {
             getSearchMoveSelectionValidation(selectedTransactions, {
                 isExpenseReportSearch: true,
             }),
-        ).toEqual(
-            expect.objectContaining({
-                canMoveToReport: false,
-            }),
-        );
+        ).toEqual({
+            canMoveToReport: false,
+        });
     });
 });
