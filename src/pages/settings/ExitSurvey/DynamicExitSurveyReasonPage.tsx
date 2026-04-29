@@ -78,7 +78,8 @@ function DynamicExitSurveyReasonPage() {
         submitForm();
     }, [isTrackingGPS, submitForm]);
 
-    const isSwitchToClassicDisabled = !CONFIG.IS_HYBRID_APP && !draftResponse.trim();
+    const isSwitchToClassicDisabled = !CONFIG.IS_HYBRID_APP && (isOffline || !draftResponse.trim());
+    const isGoBackJustOnceDisabled = !CONFIG.IS_HYBRID_APP && isOffline;
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -156,6 +157,7 @@ function DynamicExitSurveyReasonPage() {
                     pressOnEnter
                     text={translate('exitSurvey.goBackJustOnce')}
                     onPress={goBackJustOnce}
+                    isDisabled={isGoBackJustOnceDisabled}
                     style={styles.mt3}
                 />
             </FixedFooter>
