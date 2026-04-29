@@ -195,9 +195,13 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
-                <View style={[styles.flexRow, styles.w100, styles.justifyContentCenter]}>
-                    <RenderHTML html={getTextForImportModal()} />
-                </View>
+                {isImportingMultiLevelTags ? (
+                    <View style={[styles.flexRow, styles.w100, styles.justifyContentCenter]}>
+                        <RenderHTML html={getTextForImportModal()} />
+                    </View>
+                ) : (
+                    <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{getTextForImportModal().replace(/<\/?muted-link>/g, '')}</Text>
+                )}
             </View>
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
