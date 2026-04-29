@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {saveResponse} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
@@ -62,6 +63,7 @@ function DynamicExitSurveyReasonPage() {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 
     const goBackJustOnce = useCallback(() => {
+        Log.info('[ExitSurvey] User chose Go back just once', false, {isHybridApp: CONFIG.IS_HYBRID_APP});
         if (CONFIG.IS_HYBRID_APP) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS});
             return;
@@ -71,6 +73,7 @@ function DynamicExitSurveyReasonPage() {
     }, [isTrackingGPS]);
 
     const switchToClassic = useCallback(() => {
+        Log.info('[ExitSurvey] User chose Switch to Classic', false, {isHybridApp: CONFIG.IS_HYBRID_APP});
         if (CONFIG.IS_HYBRID_APP) {
             closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
             return;
