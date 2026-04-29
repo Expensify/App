@@ -6,9 +6,11 @@ import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getPlatform from '@libs/getPlatform';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type SearchRowSkeletonProps = {
@@ -24,7 +26,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWithLHBWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth + (getPlatform() === CONST.PLATFORM.WEB ? variables.navigationTabBarSize : 0);
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;

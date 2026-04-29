@@ -6823,8 +6823,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
   • Geldautomaten (ATM's)  
   • Gokken  
   • Geldoverschrijvingen  
-
-Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
+er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 addSpendRule: 'Uitgaveregel toevoegen',
                 cardPageTitle: 'Kaart',
@@ -7667,6 +7666,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle geïmporteerde CSV-kaarten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Gecentraliseerde facturatie',
             },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Huidig',

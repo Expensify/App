@@ -74,11 +74,11 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Selects the Expensify Card feed from the card list and returns the first one.
+ * Selects the Expensify Card feed from the card list and returns the first regular (non-travel) one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = getExpensifyCardFeedsForDisplay(allCards ?? undefined);
-    return Object.values(cards)?.at(0);
+    const cards = Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined));
+    return cards.find((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
 };
 
 /**

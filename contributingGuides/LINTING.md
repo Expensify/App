@@ -14,11 +14,16 @@ npm run lint-changed
 # Lint specific files or directories:
 npm run lint -- src/components/Foo/index.tsx src/libs/bar.ts
 
+# Include grandfathered seatbelt warnings in the output:
+npm run lint -- --show-warnings
+
 # Continuously re-lint changed files as you edit:
 npm run lint-watch
 ```
 
 Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. Those wrappers increase the memory allocation to prevent OOM errors, and also include caching and concurrency flags for faster linting.
+
+By default the wrapper passes `--quiet` to ESLint so only blocking errors are printed — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
 
 ## eslint-seatbelt
 We use [eslint-seatbelt](https://github.com/justjake/eslint-seatbelt) to manage known lint errors.
