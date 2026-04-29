@@ -7,6 +7,7 @@ import {findFocusedRoute, useNavigation, useNavigationState} from '@react-naviga
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import DebugTabView from '@components/Navigation/DebugTabView';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,6 +71,7 @@ const TAB_SCREEN_OPTIONS_BASE = {
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -89,32 +91,35 @@ function TabNavigator() {
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigatorScreen}
-            />
-        </Tab.Navigator>
+        <View style={styles.flex1}>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                tabBar={renderTabBar}
+                screenOptions={screenOptions}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigatorScreen}
+                />
+            </Tab.Navigator>
+            <DebugTabView />
+        </View>
     );
 }
 

@@ -4,32 +4,40 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import DebugTabView from '@components/Navigation/DebugTabView';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-// Mock useRootNavigationState - invoke selector with mock state so getLastRoute returns undefined
-jest.mock('@src/hooks/useRootNavigationState', () => {
-    const mockRootState = {
-        routes: [
-            {
-                name: 'Main',
-                state: {
-                    routes: [{name: 'Home', params: {}}],
-                    index: 0,
+// Configurable per-test: simulates which tab is currently focused inside TAB_NAVIGATOR.
+jest.mock('@hooks/useRootNavigationState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+const setMockFocusedTab = (tabName: string) => {
+    (useRootNavigationState as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+        selector({
+            routes: [
+                {
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    state: {
+                        routes: [{name: tabName, params: {}}],
+                        index: 0,
+                    },
                 },
-            },
-        ],
-        index: 0,
-    };
-    return jest.fn((selector: (state: unknown) => unknown) => selector(mockRootState));
-});
+            ],
+            index: 0,
+        }),
+    );
+};
 
 // Mock useResponsiveLayout for consistent layout in tests
 jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: true}));
@@ -63,7 +71,7 @@ const renderWithNavigation = (component: React.ReactElement) => {
     );
 };
 
-describe('NavigationTabBar', () => {
+describe('DebugTabView', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
@@ -78,9 +86,10 @@ describe('NavigationTabBar', () => {
         jest.clearAllMocks();
         await Onyx.clear();
     });
-    describe('Home tab', () => {
+    describe('Inbox tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
+                setMockFocusedTab(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
                 Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             });
             describe('Has GBR', () => {
@@ -94,7 +103,7 @@ describe('NavigationTabBar', () => {
                         lastMessageText: 'Hello world!',
                     });
 
-                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />);
+                    renderWithNavigation(<DebugTabView />);
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
@@ -114,7 +123,7 @@ describe('NavigationTabBar', () => {
                         lastMessageText: 'Hello world!',
                     });
 
-                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />);
+                    renderWithNavigation(<DebugTabView />);
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
@@ -124,6 +133,7 @@ describe('NavigationTabBar', () => {
     describe('Settings tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
+                setMockFocusedTab(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
                 Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             });
             describe('Has GBR', () => {
@@ -141,7 +151,7 @@ describe('NavigationTabBar', () => {
                         },
                     });
 
-                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
+                    renderWithNavigation(<DebugTabView />);
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
@@ -160,7 +170,7 @@ describe('NavigationTabBar', () => {
                         },
                     });
 
-                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
+                    renderWithNavigation(<DebugTabView />);
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });

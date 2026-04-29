@@ -10,26 +10,54 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
+import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
-type DebugTabViewProps = {
-    selectedTab?: ValueOf<typeof NAVIGATION_TABS>;
-    chatTabBrickRoad: BrickRoad;
+const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
+    [SCREENS.HOME]: NAVIGATION_TABS.HOME,
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.INBOX,
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
+    [NAVIGATORS.WORKSPACE_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
+};
+
+// Mirrors helpers in TabNavigatorBar — keeps tab-root detection consistent with tab-bar visibility.
+const TAB_WRAPPER_NAVIGATORS = new Set<string>([
+    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
+]);
+
+const isAtTabRootLevel = (name: string | undefined): boolean => !name || ROOT_TAB_SCREENS.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
+
+const getPushTargetLeaf = (params: unknown): string | undefined => {
+    const p = params as {screen?: unknown; params?: unknown} | undefined;
+    if (typeof p?.screen !== 'string') {
+        return undefined;
+    }
+    return getPushTargetLeaf(p.params) ?? p.screen;
 };
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
@@ -103,16 +131,34 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
+function DebugTabView() {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const {orderedReportIDs, chatTabBrickRoad} = useSidebarOrderedReportsState();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+
+    const tabRootInfo = useRootNavigationState((rootState) => {
+        if (!rootState) {
+            return undefined;
+        }
+        const tabRoute = rootState.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const activeRoute = tabRoute?.state?.routes?.[tabRoute.state.index ?? 0];
+        if (!activeRoute) {
+            return undefined;
+        }
+        const isAtRoot = isAtTabRootLevel(getFocusedLeafScreenName(activeRoute.state)) && isAtTabRootLevel(getPushTargetLeaf(activeRoute.params));
+        return {tabName: activeRoute.name, isAtRoot};
+    });
+
+    const selectedTab = tabRootInfo ? ROUTE_TO_NAVIGATION_TAB[tabRootInfo.tabName] : undefined;
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
@@ -161,26 +207,42 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         }
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator || !message) {
+    if (
+        !isDebugModeEnabled ||
+        !tabRootInfo ||
+        (shouldUseNarrowLayout && !tabRootInfo.isAtRoot) ||
+        !([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') ||
+        !indicator ||
+        !message
+    ) {
         return null;
     }
 
+    const positionStyle = shouldUseNarrowLayout
+        ? {bottom: variables.bottomTabHeight + safeAreaPaddingBottom, left: 0, right: 0}
+        : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth};
+
     return (
         <View
-            testID="DebugTabView"
-            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+            style={[styles.pAbsolute, positionStyle]}
+            pointerEvents="box-none"
         >
-            <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
-                <Icon
-                    src={icons.DotIndicator}
-                    fill={indicator}
+            <View
+                testID="DebugTabView"
+                style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+            >
+                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
+                    <Icon
+                        src={icons.DotIndicator}
+                        fill={indicator}
+                    />
+                    {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
+                </View>
+                <Button
+                    text={translate('common.view')}
+                    onPress={navigateTo}
                 />
-                {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
             </View>
-            <Button
-                text={translate('common.view')}
-                onPress={navigateTo}
-            />
         </View>
     );
 }
