@@ -217,6 +217,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
+                    {/* JACK_TODO: Make all below this into  a component */}
                     <Text style={[styles.textStrong, styles.ph5, styles.mt5]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
                     <View style={[styles.ph5, styles.pv3]}>
                         <SpendRuleRestrictionTypeToggle

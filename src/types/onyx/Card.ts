@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {CardFeedWithNumber} from './CardFeeds';
+import {ExpensifyCardRule} from './ExpensifyCardSettings';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -336,6 +337,12 @@ type IssueNewCardData = {
 
     /** Optional end date for card validity (YYYY-MM-DD) */
     validThru?: string;
+
+    /** Optional card rule ID for card rule creation/duplicating */
+    cardRuleID?: string;
+
+    /** Optional card rule value for creating a new card rule */
+    cardRuleValue?: ExpensifyCardRule;
 };
 
 /** Model of Issue new card flow */
