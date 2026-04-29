@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +18,7 @@ import FailedKYC from './FailedKYC';
 // Steps
 import OnfidoStep from './OnfidoStep';
 import TermsStep from './TermsStep';
+import useHasFreshWalletData from './useHasFreshWalletData';
 
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
@@ -25,7 +26,7 @@ function EnablePaymentsPage() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
-    const wasLoadingRef = useRef(false);
+    const hasFreshData = useHasFreshWalletData(isOffline, userWallet?.isLoading);
 
     // Always fetch fresh wallet data on mount
     useEffect(() => {
@@ -39,16 +40,7 @@ function EnablePaymentsPage() {
     // Only redirect after the fresh data loading cycle (isLoading: true → false) completes,
     // to avoid acting on stale cached values from a previous session.
     useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-
-        if (userWallet?.isLoading) {
-            wasLoadingRef.current = true;
-            return;
-        }
-
-        if (!wasLoadingRef.current) {
+        if (isOffline || !hasFreshData) {
             return;
         }
 
@@ -56,10 +48,10 @@ function EnablePaymentsPage() {
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
         }
-    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, userWallet?.isLoading]);
+    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, hasFreshData]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
-    if (isUserWalletEmpty || userWallet?.isLoading) {
+    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
             isUserWalletEmpty,

@@ -42,7 +42,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
-        if (!!searchRouterListVisible || !textInputRef.current || !textInputRef.current.isFocused()) {
+        if (!!searchRouterListVisible || !textInputRef.current?.isFocused()) {
             return;
         }
         textInputRef.current.blur();

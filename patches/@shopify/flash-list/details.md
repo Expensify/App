@@ -48,7 +48,15 @@
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: https://github.com/Expensify/App/pull/85114
 
-### [@shopify+flash-list+2.3.0+007+sort-for-natural-DOM-order.patch](@shopify+flash-list+2.3.0+007+sort-for-natural-DOM-order.patch)
+### [@shopify+flash-list+2.3.0+007+fix-scroll-anchor-unmount-on-ios.patch](@shopify+flash-list+2.3.0+007+fix-scroll-anchor-unmount-on-ios.patch)
+
+- Reason: Fixes a scroll position reset on iOS when `maintainVisibleContentPosition.disabled` toggles from `true` to `false` (e.g. when `shouldMaintainVisibleContentPosition` changes based on scroll offset). Root cause: `ScrollAnchor` was conditionally rendered based on `shouldMaintainVisibleContentPosition()`. When MVCP was disabled, the anchor unmounted, which made the native Fabric `_firstVisibleView` weak-ref become nil. When MVCP was re-enabled, the anchor remounted at `top: 1,000,000` (its initial position), but `_prevFirstVisibleFrame` was stale at `1,000,000 + X` from the prior anchor instance. `_adjustForMaintainVisibleContentPosition` then computed `deltaY = 0 - (1,000,000 + X)` — a massive negative offset — causing the list to jump to the start. The fix decouples anchor lifetime from the `disabled` flag: `ScrollAnchor` is now always mounted (and `maintainVisibleContentPositionInternal` always non-null) whenever `maintainVisibleContentPosition` prop is defined. The `disabled` flag continues to gate JS-level `scrollBy` corrections in `applyOffsetCorrection` (via `shouldMaintainVisibleContentPosition()`), so the anchor stays in place when MVCP is logically off — the native side always has a live `_firstVisibleView` and a fresh `_prevFirstVisibleFrame` to diff against.
+- Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/33725
+- PR introducing patch: TBD
+
+### [@shopify+flash-list+2.3.0+008+sort-for-natural-DOM-order.patch](@shopify+flash-list+2.3.0+008+sort-for-natural-DOM-order.patch)
 
 - Reason: Fixes scrambled DOM order in virtualized list items on web. FlashList uses `position: absolute` to position items, so visual order is determined by CSS `top`/`left` values rather than DOM order. Due to recycling (reusing ViewHolder components for different data items), the DOM order reflects Map insertion order rather than data index order. This causes three web-specific issues:
   1. **Screen reader reading order**: Assistive technologies follow DOM order, so items are read in a scrambled sequence that doesn't match the visual layout.
@@ -72,6 +80,6 @@
   On web: reconcile preserves order, deferred sort, focusin listener.
   On non-web: the ref is set to a fresh `Array.from(renderStack.entries())` on every render, preserving original behavior identically.
 
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/1955
 - E/App issue: https://github.com/Expensify/App/issues/86126
 - PR introducing patch: https://github.com/Expensify/App/pull/85825

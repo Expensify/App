@@ -53,7 +53,6 @@ function ShareTab({ref}: ShareTabProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedActions = useSortedActions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -81,7 +80,6 @@ function ShareTab({ref}: ShareTabProps) {
         ? getSearchOptions({
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
-              nvpDismissedProductTraining,
               betas: betas ?? [],
               isUsedInChatFinder: false,
               includeReadOnly: false,

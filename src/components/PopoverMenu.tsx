@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
@@ -22,10 +23,11 @@ import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import CompactMenuContext from './CompactMenuContext';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
-import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type {MenuItemProps} from './MenuItem';
 import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -312,6 +314,7 @@ function BasePopoverMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
@@ -374,7 +377,10 @@ function BasePopoverMenu({
                 icon={expensifyIcons.BackArrow}
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
+                additionalIconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}, styles.opacitySemiTransparent, styles.mr1]}
+                iconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}]}
+                wrapperStyle={[styles.ph5, styles.pv3]}
+                innerContainerStyle={styles.alignItemsCenter}
                 title={backButtonTitle}
                 accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
@@ -547,16 +553,17 @@ function BasePopoverMenu({
             return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
+            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
+        (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};
     const {
         paddingVertical: menuContainerPaddingVertical,
         paddingTop: menuContainerPaddingTop,
@@ -624,16 +631,18 @@ function BasePopoverMenu({
                 active={isVisible}
                 shouldReturnFocus={!shouldEnableNewFocusManagement}
             >
-                <View
-                    onLayout={onLayout}
-                    style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
-                >
-                    {renderWithConditionalWrapper(
-                        shouldUseScrollView,
-                        [scrollViewPaddingStyles, restScrollContainerStyle],
-                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
-                    )}
-                </View>
+                <CompactMenuContext.Provider value>
+                    <View
+                        onLayout={onLayout}
+                        style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
+                    >
+                        {renderWithConditionalWrapper(
+                            shouldUseScrollView,
+                            [scrollViewPaddingStyles, restScrollContainerStyle],
+                            [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                        )}
+                    </View>
+                </CompactMenuContext.Provider>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

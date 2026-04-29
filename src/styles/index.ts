@@ -62,6 +62,18 @@ type AnchorPosition = {
     vertical: number;
 };
 
+type SelectionListPopover = {
+    itemCount: number;
+    itemHeight?: number;
+    windowHeight: number;
+    isInLandscapeMode: boolean;
+    hasTitle?: boolean;
+    hasHeader?: boolean;
+    hasButton?: boolean;
+    isSearchable?: boolean;
+    extraHeight?: number;
+};
+
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
     borderRadius: variables.componentBorderRadiusLarge,
     borderColor: theme.borderFocus,
@@ -249,6 +261,12 @@ const webViewStyles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
         },
     }) satisfies WebViewStyle;
+
+const compactPopoverMenuItemBaseStyle = {
+    ...spacing.ph5,
+    ...spacing.pv1,
+    alignItems: 'center' as const,
+};
 
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
@@ -666,6 +684,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        bottomTabBarSpacer: {
+            height: variables.bottomTabHeight,
+        },
+
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -700,8 +722,6 @@ const staticStyles = (theme: ThemeColors) =>
         leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
-            position: 'fixed',
-            left: 0,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
@@ -941,6 +961,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         messagesRowHeight: {
             height: variables.componentSizeXSmall,
+        },
+
+        threeDotsMenuIconWidth: {
+            width: variables.componentSizeXSmall,
         },
 
         touchableButtonImage: {
@@ -1630,7 +1654,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginLeft: variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1640,7 +1664,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -1790,6 +1813,13 @@ const staticStyles = (theme: ThemeColors) =>
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
+        },
+
+        compactPopoverMenuItemBase: compactPopoverMenuItemBaseStyle,
+
+        compactPopoverMenuItem: {
+            ...compactPopoverMenuItemBaseStyle,
+            height: variables.componentSizeLarge,
         },
 
         createMenuHeaderText: {
@@ -3993,6 +4023,12 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
         },
 
+        compactQuickReactionsContainer: {
+            ...spacing.ph4,
+            paddingTop: variables.spacing2,
+            gap: variables.spacing2,
+        },
+
         reactionListContainer: {
             maxHeight: variables.listItemHeightNormal * 5.75,
             ...spacing.pv2,
@@ -4184,8 +4220,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
-            minWidth: 320,
-            maxWidth: 375,
+            minWidth: variables.compactPopoverMenuWidth,
+            maxWidth: variables.compactPopoverMenuWidth,
         },
 
         formSpaceVertical: {
@@ -4645,7 +4681,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
+            // aspectRatio is calculated first and then maxWidth/maxHeight clamps the dimensions, thus both have to be specified
             maxWidth: variables.receiptPreviewMaxWidth,
+            maxHeight: (variables.receiptPreviewMaxWidth * 9) / 16,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -4788,7 +4826,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         transactionGroupListItemStyle: {
-            borderRadius: 8,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
             flex: 1,
@@ -4797,7 +4834,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
-            paddingVertical: 6,
         },
 
         searchQueryListItemStyle: {
@@ -4810,7 +4846,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         listTableHeader: {
             paddingVertical: 12,
-            paddingHorizontal: 32,
+            paddingHorizontal: 36,
         },
 
         listTableHeaderCompact: {
@@ -4914,8 +4950,10 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
+        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
         searchBulkActionsButton: {
-            marginVertical: 3,
+            marginVertical: -3,
         },
 
         filtersBar: {
@@ -5511,6 +5549,41 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
 
+        userPillsContainer: {
+            gap: 4,
+            marginTop: 4,
+            marginBottom: 4,
+            paddingRight: 12,
+        },
+
+        userPill: {
+            gap: 4,
+            paddingLeft: 5,
+            paddingRight: 7,
+            paddingVertical: 3,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 260,
+        },
+
+        userPillStandalone: {
+            marginTop: 4,
+            marginBottom: 4,
+        },
+
+        userPillText: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            flexShrink: 1,
+        },
+
+        userPillMoreText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
@@ -5977,16 +6050,6 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
-            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
-            // On natives we can use absolute positioning.
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
-            pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
-            paddingBottom: bottomSafeAreaOffset,
-        }),
-
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
@@ -6151,8 +6214,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -6288,74 +6350,38 @@ const dynamicStyles = (theme: ThemeColors) =>
             width,
         }),
 
-        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean, isInLandscapeMode: boolean, shouldShowLabel: boolean) => {
-            const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
-            const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
-            const PADDING = 32;
-            const GAP = 8;
-            const BUTTON_HEIGHT = 40;
-            const LABEL_HEIGHT = 26;
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
-            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
-            const MAX_HEIGHT = popoverHeight - (PADDING + GAP + BUTTON_HEIGHT) - (shouldShowLabel ? LABEL_HEIGHT + GAP : 0);
+        getSelectionListPopoverHeight: ({
+            itemCount,
+            itemHeight = variables.optionRowHeightCompact,
+            windowHeight,
+            isInLandscapeMode,
+            hasTitle,
+            hasHeader,
+            hasButton = true,
+            isSearchable,
+            extraHeight = 0,
+        }: SelectionListPopover) => {
+            const MODAL_VERTICAL_PADDING = 32;
+            const BUTTON_HEIGHT = hasButton ? 48 : 0;
+            const HEADER_HEIGHT = hasHeader ? 48 : 0;
+            const TITLE_HEIGHT = hasTitle ? 34 : 0;
+            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+
+            const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
+            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING;
+
+            const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
-            const height = Math.min(ESTIMATED_LIST_HEIGHT, MAX_HEIGHT, windowHeight * 0.9);
-
+            const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT - ESTIMATED_NON_LIST_HEIGHT, windowHeight * heightRatio - ESTIMATED_NON_LIST_HEIGHT);
             return {height};
         },
 
-        getCommonSelectionListPopoverHeight: (
-            itemCount: number,
-            itemHeight: number,
-            windowHeight: number,
-            shouldUseNarrowLayout: boolean,
-            isInLandscapeMode: boolean,
-            isSearchable = true,
-        ) => {
-            const MODAL_PADDING = 32;
-            const BUTTON_HEIGHT = 48;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
-            const TITLE_HEIGHT = shouldUseNarrowLayout ? 34 : 0;
-            const PADDING = shouldUseNarrowLayout ? 0 : MODAL_PADDING;
-            const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + BUTTON_HEIGHT + TITLE_HEIGHT + PADDING;
-
-            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight - MODAL_PADDING : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
-
-            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
-            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
-            // and never expand over the max height
-            const height = Math.min(ESTIMATED_LIST_HEIGHT, popoverHeight, windowHeight * 0.9);
-            const width = shouldUseNarrowLayout ? sizing.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
-
-            return {height, ...width};
-        },
-
-        getCardSelectionListPopoverHeight: (
-            itemCount: number,
-            sectionHeaderCount: number,
-            windowHeight: number,
-            shouldUseNarrowLayout: boolean,
-            isInLandscapeMode: boolean,
-            isSearchable = true,
-        ) => {
-            const MODAL_PADDING = 32;
-            const BUTTON_HEIGHT = 48;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
-            const TITLE_HEIGHT = shouldUseNarrowLayout ? 34 : 0;
-            const PADDING = shouldUseNarrowLayout ? 0 : MODAL_PADDING;
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeight + sectionHeaderCount * 28 + SEARCHBAR_HEIGHT + BUTTON_HEIGHT + TITLE_HEIGHT + PADDING;
-
-            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight - MODAL_PADDING : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
-
-            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
-            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
-            // and never expand over the max height
-            const height = Math.min(ESTIMATED_LIST_HEIGHT, popoverHeight, windowHeight * 0.9);
-
-            return {height};
+        getPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
+            const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
+            return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
         },
 
         testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({

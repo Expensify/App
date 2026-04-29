@@ -1,5 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -28,7 +29,6 @@ import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, isAttendeeTrackingEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
@@ -258,14 +258,7 @@ function MoneyRequestConfirmationList({
         return transaction?.receipt?.isTestDriveReceipt ?? false;
     }, [transaction?.receipt?.isTestDriveReceipt]);
 
-    const isManagerMcTestReceipt = useMemo(() => {
-        return isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
-    }, [isBetaEnabled, selectedParticipantsProp]);
-
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
-        isTestDriveReceipt || isManagerMcTestReceipt,
-    );
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION, isTestDriveReceipt);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policy} = usePolicyForTransaction({
@@ -307,21 +300,25 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = getRateID(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
+    const prevSubRates = usePrevious(subRates);
     const defaultRate = defaultMileageRate?.customUnitRateID;
 
     const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy,
         ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}),
+        isMovingTransactionFromTrackExpense,
         policyDraft,
     });
-    const rate = mileageRate.rate;
+    const distanceRate = mileageRate.rate;
+    const distanceUnit = mileageRate.unit;
+    const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
+    const unit = calculateFromTransactionData ? transaction?.comment?.customUnit?.distanceUnit : distanceUnit;
+    const rate = calculateFromTransactionData ? Math.abs(iouAmount) / (transaction?.comment?.customUnit?.quantity ?? 1) : distanceRate;
+    const currency = calculateFromTransactionData ? iouCurrencyCode : (mileageRate.currency ?? CONST.CURRENCY.USD);
     const prevRate = usePrevious(rate);
-    const unit = mileageRate.unit;
     const prevUnit = usePrevious(unit);
-    const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
     const prevCurrency = usePrevious(currency);
-    const prevSubRates = usePrevious(subRates);
 
     // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense
@@ -457,7 +454,7 @@ function MoneyRequestConfirmationList({
         // Reset the form error whenever the screen gains or loses focus
         // but preserve violation-related errors since those represent real validation issues
         // that can only be resolved by fixing the underlying issue
-        if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
+        if (formError && !formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
             setFormError('');
             return;
         }
@@ -788,7 +785,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (iouCategory && policyCategories && (!policyCategories[iouCategory] || !policyCategories[iouCategory]?.enabled)) {
+            if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled) {
                 setFormError('violations.categoryOutOfPolicy');
                 return;
             }

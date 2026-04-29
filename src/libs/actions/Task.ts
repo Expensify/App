@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1487,7 +1488,6 @@ export {
     setDetailsValue,
     setAssigneeValue,
     setShareDestinationValue,
-    clearOutTaskInfo,
     reopenTask,
     buildTaskData,
     completeTask,

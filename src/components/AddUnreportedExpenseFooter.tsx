@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -58,6 +59,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -93,6 +95,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     reportNextStep,
                     policyCategories,
                     allTransactions: selectedTransactions,
+                    policyTagList,
                 });
             }
         });
