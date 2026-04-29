@@ -200,7 +200,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                         <RenderHTML html={getTextForImportModal()} />
                     </View>
                 ) : (
-                    <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{getTextForImportModal().replace(/<\/?muted-link>/g, '')}</Text>
+                    <Text style={[styles.subTextFileUpload, styles.textSupporting]}>{getTextForImportModal().replaceAll(/<\/?muted-link>/g, '')}</Text>
                 )}
             </View>
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
