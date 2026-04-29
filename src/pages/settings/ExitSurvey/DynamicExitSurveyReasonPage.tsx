@@ -109,6 +109,7 @@ function DynamicExitSurveyReasonPage() {
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
                 onSubmit={submitForm}
+                submitButtonText=""
                 isSubmitButtonVisible={false}
                 shouldValidateOnBlur
                 validate={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => {
