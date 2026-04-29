@@ -1,5 +1,6 @@
 import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -113,9 +114,14 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                 validate={validate}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
-                {/* <ToggleSettingOptionRow
-                    title={translate('workspace.card.issueNewCard.se')}
-                /> */}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.card.issueNewCard.addSpendRule')}
+                    isActive={spendRulesToggle}
+                    onToggle={setSpendRulesToggle}
+                    switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
+                    wrapperStyle={[styles.mv3]}
+                />
+                {spendRulesToggle && <View />}
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.addExpirationDate')}
                     subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
