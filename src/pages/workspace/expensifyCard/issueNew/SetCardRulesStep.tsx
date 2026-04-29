@@ -53,12 +53,13 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
         return toZonedTime(new Date(), assigneeTimeZone);
     }, [assigneeTimeZone]);
 
-    // JACK_TODO: Derive from state
-    const [spendRulesToggle, setSpendRulesToggle] = useState(false);
-    const [expirationToggle, setExpirationToggle] = useState(!!issueNewCard?.data?.validFrom);
-    const [activeSpendRuleTab, setActiveSpendRuleTab] = useState<string>(CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING);
-
     const isEditing = issueNewCard?.isEditing;
+    const hasCardRuleData = !!issueNewCard?.data?.cardRuleID || !!issueNewCard?.data?.cardRuleValue;
+
+    // JACK_TODO: Derive from state
+    const [spendRuleEnabled, setSpendRulesEnabled] = useState(hasCardRuleData);
+    const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
+    const [spendRuleOption, setSpendRuleOption] = useState<string>(CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING);
 
     const spendRuleTabs = [
         {
@@ -84,14 +85,14 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
-            data: expirationToggle ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''},
+            data: expirationToggled ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''},
             isEditing: false,
             policyID,
         });
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-        if (!expirationToggle) {
+        if (!expirationToggled) {
             return {};
         }
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> = {};
@@ -136,21 +137,21 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.addSpendRule')}
-                    isActive={spendRulesToggle}
-                    onToggle={setSpendRulesToggle}
+                    isActive={spendRuleEnabled}
+                    onToggle={setSpendRulesEnabled}
                     switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
                     wrapperStyle={[styles.mv3]}
                 />
-                {spendRulesToggle && (
+                {spendRuleEnabled && (
                     <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
                         <TabSelectorBase
                             equalWidth
                             tabs={spendRuleTabs}
-                            activeTabKey={activeSpendRuleTab}
-                            onTabPress={setActiveSpendRuleTab}
+                            activeTabKey={spendRuleOption}
+                            onTabPress={setSpendRuleOption}
                         />
 
-                        {activeSpendRuleTab === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
+                        {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
                                 // title="Choose a rule"
                                 shouldShowRightIcon
@@ -160,19 +161,19 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                             />
                         )}
 
-                        {activeSpendRuleTab === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && <></>}
+                        {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && <></>}
                     </View>
                 )}
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.addExpirationDate')}
-                    subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
-                    isActive={expirationToggle}
-                    onToggle={setExpirationToggle}
+                    subtitle={!expirationToggled ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
+                    isActive={expirationToggled}
+                    onToggle={setExpirationToggled}
                     switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3]}
                 />
-                {expirationToggle && (
+                {expirationToggled && (
                     <>
                         <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
                         <InputWrapper
