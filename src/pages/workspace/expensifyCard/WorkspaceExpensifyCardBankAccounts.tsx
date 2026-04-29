@@ -118,8 +118,9 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return;
         }
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.dismissModal();
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID)),
+        });
     };
 
     const getHeaderButtonText = () => {
