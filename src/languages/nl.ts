@@ -8476,6 +8476,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         bookACallTextTop: 'Als je overschakelt naar Expensify Classic, loop je het volgende mis:',
         bookACallTextBottom: 'We spreken graag met je om te begrijpen waarom. Je kunt een gesprek inplannen met een van onze senior productmanagers om je behoeften te bespreken.',
         takeMeToExpensifyClassic: 'Breng me naar Expensify Classic',
+        switchToClassic: 'Wisselen naar Classic',
+        goBackJustOnce: 'Eenmalig teruggaan',
     },
     listBoundary: {
         errorMessage: 'Er is een fout opgetreden bij het laden van meer berichten',
