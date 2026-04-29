@@ -47,8 +47,6 @@ import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
     goToWithdrawalAccountSetupStep,
-    setBankAccountFormValidationErrors,
-    resetReimbursementAccount,
     resetUSDBankAccount,
     resetNonUSDBankAccount,
     hideBankAccountErrors,
@@ -87,7 +85,7 @@ type OpenPersonalBankAccountSetupViewProps = {
 };
 
 function clearPlaid(): Promise<void | void[]> {
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+    Onyx.set(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
     return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }
@@ -1619,7 +1617,7 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
 }
 
-function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined) {
+function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined, delegateAccountID: number | undefined) {
     let optimisticReportActionID: string | undefined;
 
     if (conciergeReportID) {
@@ -1629,7 +1627,12 @@ function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTrans
         const html = translate('bankAccount.htmlUnlockMessage', maskedAccountNumber);
         const text = translate('bankAccount.textUnlockMessage', maskedAccountNumber);
 
-        const {reportAction} = buildOptimisticAddCommentReportAction({text, actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, reportID: conciergeReportID});
+        const {reportAction} = buildOptimisticAddCommentReportAction({
+            text,
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            reportID: conciergeReportID,
+            delegateAccountIDParam: delegateAccountID,
+        });
         optimisticReportActionID = reportAction.reportActionID;
 
         reportAction.message = [

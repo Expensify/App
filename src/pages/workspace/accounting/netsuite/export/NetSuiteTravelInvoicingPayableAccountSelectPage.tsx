@@ -62,7 +62,7 @@ function NetSuiteTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCon
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteTravelInvoicingPayableAccountSelectPage"
-            title="workspace.netsuite.travelInvoicingPayableAccount"
+            title="workspace.common.travelInvoicingPayableAccount"
             data={data}
             listItem={RadioListItem}
             onSelectRow={selectAccount}

@@ -14,4 +14,18 @@ function useReportAttributes() {
     return reportAttributes?.reports;
 }
 
+/**
+ * Returns a single report's attributes using a selector.
+ * Deep comparison is cheap (single small object), so re-renders only occur
+ * when that specific report's attributes change — not on every global report change.
+ */
+function useReportAttributesByID(reportID: string | undefined) {
+    const reportAttributesByIDSelector = (value: {reports?: Record<string, unknown>} | undefined) => (reportID ? value?.reports?.[reportID] : undefined);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesByIDSelector,
+    });
+    return reportAttributes;
+}
+
 export default useReportAttributes;
+export {useReportAttributesByID};

@@ -166,7 +166,7 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles]}
+                        style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
