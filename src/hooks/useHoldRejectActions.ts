@@ -71,11 +71,12 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                const shouldShowHoldEducationalModal = isReportSubmitter || isChatReportDM;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
-                if (isDismissed || isChatReportDM) {
+                if (isDismissed) {
                     changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
-                } else if (isReportSubmitter) {
+                } else if (shouldShowHoldEducationalModal) {
                     onHoldEducationalOpen();
                 } else {
                     onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
