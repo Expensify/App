@@ -19,6 +19,9 @@ npm run lint -- --show-warnings
 
 # Continuously re-lint changed files as you edit:
 npm run lint-watch
+
+# HTML dashboard: seatbelt baseline broken down by rule and by file (optional git charts):
+npm run eslint-report
 ```
 
 Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. Those wrappers increase the memory allocation to prevent OOM errors, and also include caching and concurrency flags for faster linting.
@@ -62,6 +65,20 @@ If you're iterating specifically on a CI failure and you already know which file
 ```bash
 npm run lint -- src/components/Foo/index.tsx src/libs/bar.ts
 ```
+
+### "What if I want to see lint errors broken down by type or by file?"
+
+Use `npm run eslint-report`. Implementation lives in [`scripts/eslint-report.ts`](../scripts/eslint-report.ts): it reads [`config/eslint/eslint.seatbelt.tsv`](../config/eslint/eslint.seatbelt.tsv) and writes an HTML report with aggregated tables — violations grouped by ESLint rule and by source file — plus optional Chart.js history graphs when git history is available. After generating the report, your default browser opens unless you pass `--no-open` or run with `CI` set.
+
+If `eslint-report` is not listed under `scripts` in your root [`package.json`](../package.json), merge `origin/main` into your branch — the helper was added on `main` after older branches diverged.
+
+```bash
+npm run eslint-report
+```
+
+![Seatbelt report: breakdown by ESLint rule](https://github.com/user-attachments/assets/2e1cc9dd-155e-4975-8a1f-365c5a830f27)
+
+![Seatbelt report: breakdown by file](https://github.com/user-attachments/assets/e4b4bf50-ae5b-416d-96ff-0357e5fe5b59)
 
 ### "I fixed an existing baselined error"
 
