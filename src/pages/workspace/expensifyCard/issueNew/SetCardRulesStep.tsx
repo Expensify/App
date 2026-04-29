@@ -7,6 +7,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -141,12 +143,19 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                     wrapperStyle={[styles.mv3]}
                 />
                 {spendRulesToggle && (
-                    <View style={[styles.pv4, styles.border, styles.borderRadiusComponentLarge]}>
+                    <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
                         <TabSelectorBase
                             equalWidth
                             tabs={spendRuleTabs}
                             activeTabKey={activeSpendRuleTab}
                             onTabPress={setActiveSpendRuleTab}
+                        />
+                        <MenuItemWithTopDescription
+                            // title="Choose a rule"
+                            shouldShowRightIcon
+                            description="Choose a rule"
+                            // onPress={item.onPress}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
                         />
                     </View>
                 )}

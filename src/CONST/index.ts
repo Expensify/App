@@ -9374,6 +9374,7 @@ const CONST = {
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
                 MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
+                CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
             },
             PER_DIEM: {
                 ADD_BUTTON: 'WorkspacePerDiem-AddButton',
