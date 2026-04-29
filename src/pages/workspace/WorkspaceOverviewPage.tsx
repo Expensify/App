@@ -320,8 +320,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         });
     }, [showConfirmModal, translate, hasCardFeedOrExpensifyCard, policy, confirmDelete]);
 
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
-        usePayAndDowngrade(continueDeleteWorkspace);
+    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(continueDeleteWorkspace);
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 

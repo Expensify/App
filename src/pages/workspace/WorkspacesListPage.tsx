@@ -278,8 +278,7 @@ function WorkspacesListPage() {
         translate,
     ]);
 
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
-        usePayAndDowngrade(continueDeleteWorkspace);
+    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(continueDeleteWorkspace);
 
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         setPolicyIDToDelete(undefined);
