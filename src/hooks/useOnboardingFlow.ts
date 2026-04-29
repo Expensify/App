@@ -86,8 +86,12 @@ function useOnboardingFlowRouter() {
             const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-            // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
-            if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
+            // `hasCompletedGuidedSetupFlowSelector` treats empty NVP as completed (for legacy old-admin
+            // accounts that predate the guided flow). Users who signed up via OldDot also have empty NVP
+            // but `nvp_introSelected.inviteType` is set — read the raw field to onboard them.
+            const hasExplicitlyCompletedOnboarding = onboardingValues?.hasCompletedGuidedSetupFlow === true;
+            const isFreshInviteeNeedingOnboarding = !CONFIG.IS_HYBRID_APP && !!wasInvitedToNewDot && !hasExplicitlyCompletedOnboarding;
+            if (isMigratedUser || (isInvitedOrGroupMember && !isFreshInviteeNeedingOnboarding)) {
                 return;
             }
 
@@ -96,7 +100,8 @@ function useOnboardingFlowRouter() {
             // navigate goes through the router where OnboardingGuard would block the navigation.
             // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
             // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
-            if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
+            const shouldStartOnboarding = isOnboardingCompleted === false || isFreshInviteeNeedingOnboarding;
+            if (shouldStartOnboarding && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
                 Navigation.waitForProtectedRoutes().then(() => {
                     startOnboardingFlow({
                         onboardingValuesParam: onboardingValues ?? undefined,
