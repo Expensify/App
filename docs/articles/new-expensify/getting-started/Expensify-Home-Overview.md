@@ -123,7 +123,7 @@ Use this section to quickly check how much you can spend before making a purchas
 
 ## What is Home for?
 
-Home helps you get oriented when you sign in. It shows whether anything needs attention, highlights what’s new, and points you to the right place—like Inbox or Reports—if you need to take action.
+Home helps you get oriented when you sign in. It shows whether anything needs attention, highlights what’s new, and points you to the right place—like Inbox or Spend—if you need to take action.
 
 ## Is Home the same as Inbox?
 

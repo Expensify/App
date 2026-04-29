@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
@@ -268,7 +269,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 }}
                             />
                         )}
-                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
+                        {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}

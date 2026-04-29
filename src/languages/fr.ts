@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Commençons`,
         showMore: 'Afficher plus',
         showLess: 'Afficher moins',
+        plusMore: ({count}: {count: number}) => `+${count} de plus`,
         merchant: 'Commerçant',
         change: 'Modifier',
         category: 'Catégorie',
@@ -6862,6 +6863,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
+                policyDocument: 'Document de politique',
+                policyText: 'Texte de politique',
             },
             spendRules: {
                 title: 'Dépenser',
@@ -6914,6 +6917,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 merchants: 'Commerçants',
                 noAvailableCards: 'Toutes les cartes ont déjà une règle',
                 noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour apporter des changements',
+                noCardsIssuedTitle: 'Aucune Carte Expensify émise',
+                noCardsIssuedSubtitle: 'Émettre des cartes Expensify pour créer des règles de dépense',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnies aériennes',
@@ -7009,7 +7014,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Mode d’approbation', finalApprover: 'Approbateur final'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
+                connect: 'Connect',
+                connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
+            },
         },
     },
     getAssistancePage: {
@@ -7714,6 +7725,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Facturation centralisée',
             },
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
@@ -7823,8 +7835,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         spendOverTime: 'Dépenses dans le temps',
         tabs: {
             expenseReports: 'Notes de frais',
-            reports: 'Toutes les notes de frais',
-            expenses: 'Toutes les dépenses',
+            reports: 'Notes de frais',
+            expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',
             pay: 'Prêt à payer',
@@ -8753,9 +8765,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             collectBillingDescription: 'Les espaces de travail Collect sont facturés mensuellement par membre, sans engagement annuel.',
             pricing: 'Tarification',
         },
-        requestEarlyCancellation: {
-            title: 'Demander une résiliation anticipée',
-            subtitle: 'Quelle est la principale raison pour laquelle vous demandez une résiliation anticipée ?',
+        cancelSubscription: {
+            title: "Annuler l'abonnement",
+            subtitle: 'Quelle est la principale raison pour laquelle vous souhaitez résilier votre abonnement ?',
             subscriptionCanceled: {
                 title: 'Abonnement annulé',
                 subtitle: 'Votre abonnement annuel a été annulé.',
@@ -8768,7 +8780,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 subtitle:
                     'Merci de nous avoir informés que vous souhaitez résilier votre abonnement. Nous examinons votre demande et nous vous contacterons bientôt via votre discussion avec <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `En demandant une résiliation anticipée, je reconnais et j’accepte qu’Expensify n’a aucune obligation d’accéder à une telle demande en vertu des <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d’utilisation</a> d’Expensify ou de tout autre contrat de services applicable entre Expensify et moi, et qu’Expensify conserve toute latitude quant à l’acceptation ou non de cette demande.`,
+            acknowledgement: `En demandant une résiliation, je reconnais et j’accepte qu’Expensify n’a aucune obligation d’accéder à une telle demande en vertu des <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d’utilisation</a> d’Expensify ou de tout autre contrat de services applicable entre Expensify et moi, et qu’Expensify conserve toute latitude quant à l’acceptation ou non de cette demande.`,
         },
     },
     feedbackSurvey: {
@@ -8932,12 +8944,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
         accountSwitcher: '<tooltip>Accédez à vos <strong>comptes Copilot</strong> ici</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scannez notre reçu de test</strong> pour voir comment ça marche !</tooltip>',
-            manager: '<tooltip>Choisissez notre <strong>responsable des tests</strong> pour l’essayer&nbsp;!</tooltip>',
-            confirmation: '<tooltip>Maintenant, <strong>soumettez votre dépense</strong> et regardez la magie opérer&nbsp;!</tooltip>',
-            tryItOut: 'Essayer',
-        },
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
@@ -9162,8 +9168,12 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
+            error: 'Impossible d’enregistrer cette modification. Veuillez réessayer.',
         },
-        groups: {title: 'Groupes', memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`})},
+        groups: {
+            title: 'Groupes',
+            memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`}),
+        },
     },
     proactiveAppReview: {
         title: 'Vous appréciez le nouveau Expensify ?',

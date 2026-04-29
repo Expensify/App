@@ -1015,6 +1015,7 @@ describe('mergeTransactionRequest', () => {
                 text: 'test comment',
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: TEST_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 

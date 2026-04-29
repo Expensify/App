@@ -1,5 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';

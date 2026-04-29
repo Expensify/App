@@ -143,6 +143,9 @@ type SearchCardGroup = {
 
     /** Last four Primary Account Number digits */
     lastFourPAN: string;
+
+    /** Expensify Card program (e.g. `TRAVEL_US`) */
+    feedCountry?: string;
 };
 
 /** Model of withdrawal ID grouped search result */

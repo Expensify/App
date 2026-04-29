@@ -60,6 +60,7 @@ const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([
     FILTER_KEYS.VIEW,
     FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
+    FILTER_KEYS.COLUMNS,
 ]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
@@ -201,9 +202,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 
         if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
             return {
-                PopoverComponent: ({closeOverlay}) => (
+                PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
                     <ReportFieldPopup
                         closeOverlay={closeOverlay}
+                        setPopoverWidth={setPopoverWidth}
                         updateFilterForm={updateFilterForm}
                     />
                 ),

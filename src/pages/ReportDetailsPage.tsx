@@ -3,6 +3,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -161,7 +162,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
+function ReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: ReportDetailsPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -276,7 +277,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         return pendingMember?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
+    const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -326,8 +327,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
-        if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
+        // Do not fetch private notes if the feature is disabled, isLoadingPrivateNotes is already defined, the network is offline, or if the report is a self DM.
+        if (!Permissions.canUsePrivateNotes() || isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
 
@@ -529,8 +530,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             }
         }
 
-        // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
+        // Prevent displaying private notes option for threads and task reports, or when the feature is disabled
+        if (Permissions.canUsePrivateNotes() && !isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',

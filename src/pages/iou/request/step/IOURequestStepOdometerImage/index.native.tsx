@@ -23,6 +23,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -38,7 +40,6 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
-import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -184,7 +185,7 @@ function IOURequestStepOdometerImage({
                                     {
                                         uri: source,
                                         name: filename,
-                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        type: (file as FileObject | undefined)?.type ?? getMimeTypeFromUri(source) ?? 'image/jpeg',
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,

@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
