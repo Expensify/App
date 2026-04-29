@@ -8,7 +8,10 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +39,7 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const personalDetails = usePersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
 
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -49,9 +53,24 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
 
     // JACK_TODO: Derive from state
     const [spendRulesToggle, setSpendRulesToggle] = useState(false);
+    // JACK_TODO: use consts
+    const [activeSpendRuleTab, setActiveSpendRuleTab] = useState('existing');
     const [expirationToggle, setExpirationToggle] = useState(!!issueNewCard?.data?.validFrom);
 
     const isEditing = issueNewCard?.isEditing;
+
+    const spendRuleTabs = [
+        {
+            key: 'existing',
+            title: 'Copy existing',
+            icon: icons.Copy,
+        },
+        {
+            key: 'new',
+            title: 'Create new',
+            icon: icons.Pencil,
+        },
+    ];
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -121,7 +140,16 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                     switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
                     wrapperStyle={[styles.mv3]}
                 />
-                {spendRulesToggle && <View />}
+                {spendRulesToggle && (
+                    <View style={[styles.pv4, styles.border, styles.borderRadiusComponentLarge]}>
+                        <TabSelectorBase
+                            equalWidth
+                            tabs={spendRuleTabs}
+                            activeTabKey={activeSpendRuleTab}
+                            onTabPress={setActiveSpendRuleTab}
+                        />
+                    </View>
+                )}
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.addExpirationDate')}
                     subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
