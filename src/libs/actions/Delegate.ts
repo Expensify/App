@@ -115,7 +115,7 @@ type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCred
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
 function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false}: ConnectParams) {
-    if (delegatedAccess?.delegate) {
+    if (isConnectedAsDelegate({delegatedAccess})) {
         Log.info('[Delegate] Already connected as delegate, skipping daisy-chain attempt');
         return;
     }
