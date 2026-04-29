@@ -537,11 +537,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 confirmText: translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText'),
                 shouldShowCancelButton: false,
             }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
+                if (result.action === ModalActions.CONFIRM) {
+                    // TODO: Navigate to Receipt Partners settings page when it exists
+                    // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
                 }
-                // TODO: Navigate to Receipt Partners settings page when it exists
-                // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
             });
         },
         action: (isEnabled: boolean) => {
