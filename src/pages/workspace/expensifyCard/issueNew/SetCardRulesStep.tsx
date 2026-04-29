@@ -55,20 +55,19 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
 
     // JACK_TODO: Derive from state
     const [spendRulesToggle, setSpendRulesToggle] = useState(false);
-    // JACK_TODO: use consts
-    const [activeSpendRuleTab, setActiveSpendRuleTab] = useState('existing');
     const [expirationToggle, setExpirationToggle] = useState(!!issueNewCard?.data?.validFrom);
+    const [activeSpendRuleTab, setActiveSpendRuleTab] = useState<string>(CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING);
 
     const isEditing = issueNewCard?.isEditing;
 
     const spendRuleTabs = [
         {
-            key: 'existing',
+            key: CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING,
             title: 'Copy existing',
             icon: icons.Copy,
         },
         {
-            key: 'new',
+            key: CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW,
             title: 'Create new',
             icon: icons.Pencil,
         },
@@ -150,13 +149,18 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                             activeTabKey={activeSpendRuleTab}
                             onTabPress={setActiveSpendRuleTab}
                         />
-                        <MenuItemWithTopDescription
-                            // title="Choose a rule"
-                            shouldShowRightIcon
-                            description="Choose a rule"
-                            // onPress={item.onPress}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
-                        />
+
+                        {activeSpendRuleTab === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
+                            <MenuItemWithTopDescription
+                                // title="Choose a rule"
+                                shouldShowRightIcon
+                                description="Choose a rule"
+                                // onPress={item.onPress}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
+                            />
+                        )}
+
+                        {activeSpendRuleTab === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && <></>}
                     </View>
                 )}
                 <ToggleSettingOptionRow

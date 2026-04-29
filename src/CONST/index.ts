@@ -4029,6 +4029,10 @@ const CONST = {
             STOLEN: 'stolen',
             DAMAGED: 'damaged',
         },
+        CARD_RULE_OPTION: {
+            COPY_EXISTING: 'copy',
+            CREATE_NEW: 'create',
+        },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
         PIN: {
             LENGTH: 4,
