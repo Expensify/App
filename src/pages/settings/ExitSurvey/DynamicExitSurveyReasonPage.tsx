@@ -70,6 +70,16 @@ function DynamicExitSurveyReasonPage() {
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
     }, [isTrackingGPS]);
 
+    const switchToClassic = useCallback(() => {
+        if (CONFIG.IS_HYBRID_APP) {
+            closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
+            return;
+        }
+        submitForm();
+    }, [isTrackingGPS, submitForm]);
+
+    const isSwitchToClassicDisabled = !CONFIG.IS_HYBRID_APP && !draftResponse.trim();
+
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
     const formMaxHeight = Math.floor(
@@ -135,7 +145,8 @@ function DynamicExitSurveyReasonPage() {
                 <Button
                     large
                     text={translate('exitSurvey.switchToClassic')}
-                    onPress={() => {}}
+                    onPress={switchToClassic}
+                    isDisabled={isSwitchToClassicDisabled}
                 />
                 <Button
                     success
