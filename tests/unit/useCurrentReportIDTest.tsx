@@ -10,6 +10,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // Mock Navigation
 jest.mock('@libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(),
+    getTopmostSuperWideRHPReportID: jest.fn(),
 }));
 
 // Mock ReportUtils
@@ -20,6 +21,7 @@ jest.mock('@libs/ReportUtils', () => ({
 
 describe('useCurrentReportID', () => {
     const mockGetTopmostReportId = jest.mocked(Navigation.getTopmostReportId);
+    const mockGetTopmostSuperWideRHPReportID = jest.mocked(Navigation.getTopmostSuperWideRHPReportID);
 
     beforeAll(() => {
         Onyx.init({
@@ -269,5 +271,61 @@ describe('useCurrentReportID', () => {
         // Then the context value is updated
         expect(result.current.state.currentReportID).toBe('123');
         expect(result.current.state).not.toBe(initialContextValue);
+    });
+
+    it('should prefer the super wide RHP report ID when an expense report is open there', async () => {
+        const {result} = renderHook(
+            () => ({
+                state: useCurrentReportIDState(),
+                actions: useCurrentReportIDActions(),
+            }),
+            {
+                wrapper: CurrentReportIDContextProvider,
+            },
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const navigationState = {
+            index: 0,
+            routes: [
+                {
+                    key: 'reports-split',
+                    name: 'ReportsSplitNavigator',
+                    state: {
+                        index: 0,
+                        routes: [
+                            {
+                                key: 'workspace-chat',
+                                name: 'Report',
+                                params: {reportID: 'workspaceChatReportID'},
+                            },
+                        ],
+                    },
+                },
+                {
+                    key: 'right-modal',
+                    name: 'RightModalNavigator',
+                    state: {
+                        index: 0,
+                        routes: [
+                            {
+                                key: 'expense-report-rhp',
+                                name: 'ExpenseReport',
+                                params: {reportID: 'expenseReportID'},
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as NavigationState;
+
+        mockGetTopmostSuperWideRHPReportID.mockReturnValue('expenseReportID');
+        mockGetTopmostReportId.mockReturnValue('workspaceChatReportID');
+
+        act(() => {
+            result.current.actions.updateCurrentReportID(navigationState);
+        });
+
+        expect(result.current.state.currentReportID).toBe('expenseReportID');
     });
 });
