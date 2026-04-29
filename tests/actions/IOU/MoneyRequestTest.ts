@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
-import * as IOU from '../../../src/libs/actions/IOU';
+import type * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
@@ -29,7 +29,6 @@ jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {
         ...actualNav,
-        createDistanceRequest: jest.fn(),
     };
 });
 
@@ -46,6 +45,7 @@ jest.mock('@libs/actions/IOU/Split', () => {
     const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
         ...actualSplit,
+        createDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
         resetSplitShares: jest.fn(),
     };
@@ -1215,7 +1215,7 @@ describe('MoneyRequest', () => {
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
-            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
@@ -1319,7 +1319,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
             });
 
-            expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
+            expect(Split.createDistanceRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     // participants: getParticipantsForTest(),
@@ -1358,7 +1358,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
             });
 
-            expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
+            expect(Split.createDistanceRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     // participants: getParticipantsForTest(),

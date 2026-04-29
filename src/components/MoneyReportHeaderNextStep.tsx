@@ -16,8 +16,8 @@ type MoneyReportHeaderNextStepProps = {
  */
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const {isOffline} = useNetwork();
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
-    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const optimisticNextStep = useOptimisticNextStep(reportID);
 
     const showNextStepBar = !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);

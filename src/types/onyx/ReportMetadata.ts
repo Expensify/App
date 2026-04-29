@@ -14,52 +14,21 @@ type PendingChatMember = {
     errors?: OnyxCommon.Errors;
 };
 
-/** Model of report metadata */
+/** Per-report business state. Loading flags, pagination cursors, and last-visit timestamps
+ *  are tracked in dedicated Onyx keys (RAM_ONLY_REPORT_LOADING_STATE, REPORT_PAGINATION_STATE,
+ *  REPORT_LAST_VISIT_TIMES) and are NOT part of this type. */
 type ReportMetadata = {
-    /** Whether the user has successfully opened a report at least once, or if it was created by this user */
-    hasOnceLoadedReportActions?: boolean;
-
-    /** Are we loading newer report actions? */
-    isLoadingNewerReportActions?: boolean;
-
-    /** Was there an error when loading newer report actions? */
-    hasLoadingNewerReportActionsError?: boolean;
-
-    /** Are we loading older report actions? */
-    isLoadingOlderReportActions?: boolean;
-
-    /** Was there an error when loading older report actions? */
-    hasLoadingOlderReportActionsError?: boolean;
-
-    /** Flag to check if the report actions data are loading */
-    isLoadingInitialReportActions?: boolean;
-
-    /** The time when user last visited the report */
-    lastVisitTime?: string;
-
-    /** Whether participants private notes are being currently loaded */
-    isLoadingPrivateNotes?: boolean;
-
     /** Whether the current report is optimistic */
     isOptimisticReport?: boolean;
 
     /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
 
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
     /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
     pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
-
-    /** The newest report action ID from the last pagination response (excludes Pusher-delivered actions) */
-    newestFetchedReportActionID?: string;
-
-    /** The oldest report action ID from the last pagination response, used as advancing cursor for backfill */
-    oldestFetchedReportActionID?: string;
 };
 
 export default ReportMetadata;

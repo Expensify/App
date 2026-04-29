@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -254,6 +255,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: currentUserPersonalDetails?.accountID,
+                currentUserLogin: currentUserPersonalDetails?.email ?? '',
             });
         }
     };
@@ -399,6 +402,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
+                        currentUserAccountID: currentUserPersonalDetails?.accountID,
+                        currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                 });
             },

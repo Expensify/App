@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -272,6 +273,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'MoneyBag',
         'ArrowSplit',
         'ExpenseCopy',
+        'ReportCopy',
         'RotateLeft',
         'QBOSquare',
         'XeroSquare',
@@ -721,7 +723,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, reportTransactions);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, accountID, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
@@ -788,6 +790,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policyExpenseChatReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
+            accountID,
         ],
     );
 
@@ -860,6 +863,31 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             currentSearchResults?.data,
         ],
     );
+
+    const duplicateReportHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateReportHandler = useCallback((handler: () => void) => {
+        duplicateReportHandlerRef.current = handler;
+    }, []);
+    const invokeDuplicateReportHandler = useCallback(() => {
+        duplicateReportHandlerRef.current();
+    }, []);
+
+    const isDuplicateReportOptionVisible = useMemo(() => {
+        if (!isBetaEnabled(CONST.BETAS.BULK_DUPLICATE_REPORT)) {
+            return false;
+        }
+
+        if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
+            return false;
+        }
+
+        return selectedReports.every((report) => {
+            if (!report.reportID) {
+                return false;
+            }
+            return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
+        });
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID, isBetaEnabled]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -1003,17 +1031,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCallAfterModalHide: true,
             });
 
-            for (const template of exportTemplates) {
-                exportOptions.push({
-                    text: template.name,
-                    icon: expensifyIcons.Table,
-                    description: template.description,
-                    onSelected: () => {
-                        beginExportWithTemplate(template.templateName, template.type, template.policyID);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
+            if (!allSelectedAreDeleted) {
+                for (const template of exportTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: expensifyIcons.Table,
+                        description: template.description,
+                        onSelected: () => {
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                        },
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    });
+                }
             }
 
             return exportOptions;
@@ -1381,6 +1411,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        if (isDuplicateReportOptionVisible) {
+            options.push({
+                text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
+                icon: expensifyIcons.ReportCopy,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: invokeDuplicateReportHandler,
+            });
+        }
+
         if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
@@ -1460,6 +1500,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransactionPolicy,
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
@@ -1525,6 +1567,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData: currentSearchResults?.data,
