@@ -1,11 +1,11 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useConciergeReportActions from '@hooks/useConciergeSidePanelReportActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,7 +16,6 @@ import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
@@ -86,24 +85,9 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
-    const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-    const isConciergeSidePanel = isInSidePanel && isConciergeChat;
-
-    const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
-    const isFocused = useIsFocused();
-    const shouldHideConciergeDM = !isFocused || !isConciergeChat || isInSidePanel;
-    const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
-    const [prevShouldHideConciergeDM, setPrevShouldHideConciergeDM] = useState(true);
-
-    if (prevShouldHideConciergeDM !== shouldHideConciergeDM) {
-        setPrevShouldHideConciergeDM(shouldHideConciergeDM);
-        if (!shouldHideConciergeDM) {
-            setMainDMSessionStartTime(DateUtils.getDBTime());
-        }
-    }
-    const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
+    const sessionStartTime = useConciergeSessionStartTime(isConciergeChat);
 
     const hasUserSentMessage = useMemo(() => {
         if (!isConciergeChat || !sessionStartTime) {

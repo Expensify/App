@@ -450,7 +450,7 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
@@ -544,7 +544,7 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
