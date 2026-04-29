@@ -6019,7 +6019,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 enterValidDate: 'Inserisci una data valida',
                 expirationDate: 'Data di scadenza',
                 limitAmount: 'Importo del limite',
-                setExpiryOptions: 'Imposta opzioni di scadenza',
+                setCardRules: '',
                 setExpiryDate: 'Imposta data di scadenza',
                 setExpiryDateDescription: 'La carta scadrà come indicato sulla carta',
                 amount: 'Importo',

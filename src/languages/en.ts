@@ -6038,7 +6038,7 @@ const translations = {
                 enterValidDate: 'Enter a valid date',
                 expirationDate: 'Expiration date',
                 limitAmount: 'Limit amount',
-                setExpiryOptions: 'Set expiry options',
+                setCardRules: 'Set card rules',
                 setExpiryDate: 'Set expiry date',
                 setExpiryDateDescription: 'Card will expire as listed on the card',
                 amount: 'Amount',

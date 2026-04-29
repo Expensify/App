@@ -5850,7 +5850,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 enterValidDate: '请输入有效日期',
                 expirationDate: '过期日期',
                 limitAmount: '限额金额',
-                setExpiryOptions: '设置过期选项',
+                setCardRules: '',
                 setExpiryDate: '设置过期日期',
                 setExpiryDateDescription: '卡片将按照卡片上列出的日期过期',
                 amount: '金额',

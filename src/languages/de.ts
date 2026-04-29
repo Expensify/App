@@ -6031,7 +6031,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 enterValidDate: 'Gib ein gültiges Datum ein',
                 expirationDate: 'Ablaufdatum',
                 limitAmount: 'Limitbetrag',
-                setExpiryOptions: 'Ablaufoptionen festlegen',
+                setCardRules: '',
                 setExpiryDate: 'Ablaufdatum festlegen',
                 setExpiryDateDescription: 'Die Karte läuft ab, wie auf der Karte angegeben',
                 amount: 'Betrag',

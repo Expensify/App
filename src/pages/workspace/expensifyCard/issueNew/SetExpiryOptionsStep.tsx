@@ -110,7 +110,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                 shouldHideFixErrorsAlert
                 validate={validate}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setExpiryOptions')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.setExpiryDate')}
                     subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.setExpiryDateDescription') : ''}

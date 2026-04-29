@@ -5952,7 +5952,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 enterValidDate: '有効な日付を入力してください',
                 expirationDate: '有効期限',
                 limitAmount: '制限額',
-                setExpiryOptions: '有効期限オプションを設定',
+                setCardRules: '',
                 setExpiryDate: '有効期限を設定',
                 setExpiryDateDescription: 'カードに記載されている通りにカードは期限切れになります',
                 amount: '金額',

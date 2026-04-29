@@ -6051,7 +6051,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 enterValidDate: 'Entrez une date valide',
                 expirationDate: 'Date d’expiration',
                 limitAmount: 'Montant de la limite',
-                setExpiryOptions: 'Définir les options d’expiration',
+                setCardRules: '',
                 setExpiryDate: 'Définir la date d’expiration',
                 setExpiryDateDescription: 'La carte expirera comme indiqué sur la carte',
                 amount: 'Montant',

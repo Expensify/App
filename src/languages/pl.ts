@@ -5993,7 +5993,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 enterValidDate: 'Wprowadź prawidłową datę',
                 expirationDate: 'Data ważności',
                 limitAmount: 'Kwota limitu',
-                setExpiryOptions: 'Ustaw opcje wygaśnięcia',
+                setCardRules: '',
                 setExpiryDate: 'Ustaw datę wygaśnięcia',
                 setExpiryDateDescription: 'Karta wygaśnie zgodnie z informacją na karcie',
                 amount: 'Kwota',

@@ -5999,7 +5999,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 enterValidDate: 'Digite uma data válida',
                 expirationDate: 'Data de validade',
                 limitAmount: 'Valor do limite',
-                setExpiryOptions: 'Definir opções de validade',
+                setCardRules: '',
                 setExpiryDate: 'Definir data de validade',
                 setExpiryDateDescription: 'O cartão expirará conforme indicado no cartão',
                 amount: 'Valor',

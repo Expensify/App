@@ -6000,7 +6000,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 enterValidDate: 'Voer een geldige datum in',
                 expirationDate: 'Vervaldatum',
                 limitAmount: 'Limietbedrag',
-                setExpiryOptions: 'Vervalopties instellen',
+                setCardRules: '',
                 setExpiryDate: 'Vervaldatum instellen',
                 setExpiryDateDescription: 'De kaart verloopt zoals vermeld op de kaart',
                 amount: 'Bedrag',
