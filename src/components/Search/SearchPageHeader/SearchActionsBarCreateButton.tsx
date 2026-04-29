@@ -187,11 +187,10 @@ function SearchActionsBarCreateButton() {
                         if (
                             !workspaceIDForReportCreation ||
                             (shouldRestrictUserBillableActions(
-                                workspaceIDForReportCreation,
+                                defaultChatEnabledPolicy,
                                 ownerBillingGracePeriodEnd,
                                 userBillingGracePeriodEnds,
                                 amountOwed,
-                                undefined,
                                 currentUserPersonalDetails.accountID,
                             ) &&
                                 groupPoliciesWithChatEnabled.length > 1)
@@ -203,11 +202,10 @@ function SearchActionsBarCreateButton() {
                         // Default workspace is not restricted → create report directly
                         if (
                             !shouldRestrictUserBillableActions(
-                                workspaceIDForReportCreation,
+                                defaultChatEnabledPolicy,
                                 ownerBillingGracePeriodEnd,
                                 userBillingGracePeriodEnds,
                                 amountOwed,
-                                undefined,
                                 currentUserPersonalDetails.accountID,
                             )
                         ) {
@@ -240,6 +238,7 @@ function SearchActionsBarCreateButton() {
             handleCreateWorkspaceReport,
             amountOwed,
             currentUserPersonalDetails.accountID,
+            defaultChatEnabledPolicy,
         ],
     );
 

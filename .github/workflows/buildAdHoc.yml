@@ -145,10 +145,6 @@ jobs:
         with:
           ref: ${{ inputs.APP_REF }}
 
-      - name: Download Artifact
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-
       - name: Publish links to apps for download on Expensify/App PR
         if: ${{ inputs.APP_PR_NUMBER != '' }}
         uses: ./.github/actions/javascript/postTestBuildComment

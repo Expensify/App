@@ -34,7 +34,6 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1497,16 +1496,15 @@ function getDisplayQueryFiltersForKey(
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
-            const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
-            const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
-            const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
             if (plaidFeedName) {
+                const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
+                const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
                 if (plaidValue) {
                     acc.push({operator: filter.operator, value: plaidValue});
                 }
                 return acc;
             }
-            const value = cardFeedsForDisplay[`${idPrefix}_${regularBank}` as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
+            const value = cardFeedsForDisplay[feedKey as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
             acc.push({operator: filter.operator, value});
 
             return acc;
@@ -1604,6 +1602,21 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
+type BuildUserReadableQueryStringParams = {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+};
+
 function buildUserReadableQueryString({
     queryJSON,
     PersonalDetails,
@@ -1617,20 +1630,7 @@ function buildUserReadableQueryString({
     translate,
     feedKeysWithCards,
     reportAttributes,
-}: {
-    queryJSON: SearchQueryJSON;
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
-    reports: OnyxCollection<OnyxTypes.Report>;
-    taxRates: Record<string, string[]>;
-    cardList: OnyxTypes.CardList | undefined;
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
-    policies: OnyxCollection<OnyxTypes.Policy>;
-    currentUserAccountID: number;
-    autoCompleteWithSpace: boolean;
-    translate: LocalizedTranslate;
-    feedKeysWithCards?: FeedKeysWithAssignedCards;
-    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
-}) {
+}: BuildUserReadableQueryStringParams) {
     const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
@@ -1784,20 +1784,6 @@ function buildCannedSearchQuery({
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-/**
- * Returns whether a given search query is a Canned query.
- *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip" is a canned query.
- */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = [queryJSON.columns ?? []].flat();
-    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
-    const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
-}
-
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
@@ -1869,14 +1855,18 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-
+    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const lastSearchNavigator = lastTabNavigator?.state?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
         lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     }
+
+    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
+    // neither .state nor the preserved state map will have an entry. Fall back to the default
+    // query that the navigator would use as its initialParams.
     if (!lastSearchNavigatorState) {
-        return;
+        return buildSearchQueryJSON(buildSearchQueryString());
     }
 
     const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
@@ -2125,7 +2115,6 @@ export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
-    parseRangeQueryValue,
     isSearchDatePreset,
     getDateRangeForPreset,
     isFilterSupported,
@@ -2138,7 +2127,6 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
-    isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,
@@ -2161,5 +2149,7 @@ export {
     serializeQueryJSONForBackend,
     isAmountFilterKey,
 };
+
+export type {BuildUserReadableQueryStringParams};
 
 export type {SearchDateValues};

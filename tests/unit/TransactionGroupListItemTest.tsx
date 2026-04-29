@@ -48,6 +48,8 @@ jest.mock('@react-navigation/core', () => ({
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
+jest.mock('@hooks/useResponsiveLayout');
+
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
     chatReportID: '4735435600700077',

@@ -435,4 +435,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsList, useOptionsListState, useOptionsListActions, OptionsListStateContext, OptionsListActionsContext};
+export {useOptionsList, OptionsListStateContext, OptionsListActionsContext};

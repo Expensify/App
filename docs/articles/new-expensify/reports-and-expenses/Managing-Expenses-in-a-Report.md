@@ -46,7 +46,7 @@ You can move expenses to a different report, create a new report, or remove them
 
 **To move or remove all expenses from a report**
 
-1. In the left side tabs, choose **Reports** > **Reports**
+1. In the left side tabs, choose **Spend** > **Reports**
 2. Click the report with the expense(s) you want to move. 
 3. Choose the green **selected** button > **Move expense(s)**.
 4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report**.

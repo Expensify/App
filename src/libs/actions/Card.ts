@@ -28,13 +28,13 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
+import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SpendRuleForm} from '@src/types/form';
-import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
-import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
+import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
@@ -748,7 +748,7 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
         isEditing,
         currentStep: step,
@@ -764,7 +764,7 @@ function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAcco
 }
 
 function clearIssueNewCardFlow(policyID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
         isSuccessful: false,
@@ -777,7 +777,7 @@ function clearIssueNewCardFormData() {
 }
 
 function clearIssueNewCardError(policyID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
 function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
@@ -1367,10 +1367,10 @@ function issueExpensifyCard(
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: true,
                 errors: null,
@@ -1379,10 +1379,10 @@ function issueExpensifyCard(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 isSuccessful: true,
@@ -1390,10 +1390,10 @@ function issueExpensifyCard(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -1521,6 +1521,31 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
+function setCardReconciliationAccount(workspaceAccountID: number, domainName: string, expensifyCardIntegrationWithdrawalID: string, currentReconciliationBankAccountID?: string) {
+    const parameters = {
+        domainName,
+        expensifyCardIntegrationWithdrawalID,
+    };
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: expensifyCardIntegrationWithdrawalID,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: currentReconciliationBankAccountID ?? null,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT, parameters, {optimisticData, failureData});
+}
+
 function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -1556,156 +1581,6 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     };
 
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
-}
-
-function isSpendRuleASTNode(value: unknown): value is ExpensifyCardRuleFilter {
-    return !!value && typeof value === 'object' && 'left' in value && 'operator' in value && 'right' in value;
-}
-
-function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): ExpensifyCardRuleFilter | undefined {
-    const [firstNode, ...remainingNodes] = nodes;
-    if (!firstNode) {
-        return undefined;
-    }
-
-    return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
-}
-
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: string): ExpensifyCardRule | undefined {
-    const cardIDs = spendRuleValues.cardIDs ?? [];
-    if (cardIDs.length === 0) {
-        return undefined;
-    }
-
-    const merchantNames = (spendRuleValues.merchantNames ?? []).map((merchant) => merchant.trim()).filter((merchant) => merchant !== '');
-    const merchantMatchTypes = spendRuleValues.merchantMatchTypes ?? [];
-    const categories = (spendRuleValues.categories ?? []).map((category) => category.trim()).filter((category) => category !== '');
-    const maxAmount = spendRuleValues.maxAmount?.trim() ?? '';
-
-    const cardNode: ExpensifyCardRuleFilter = {
-        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-        right: cardIDs,
-    };
-
-    const exactMerchantNames = merchantNames.filter((_, index) => merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-    const containsMerchantNames = merchantNames.filter((_, index) => merchantMatchTypes.at(index) !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-    const merchantNodes: ExpensifyCardRuleFilter[] = [];
-
-    if (exactMerchantNames.length > 0) {
-        merchantNodes.push({
-            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            right: exactMerchantNames,
-        });
-    }
-
-    if (containsMerchantNames.length > 0) {
-        merchantNodes.push({
-            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            right: containsMerchantNames,
-        });
-    }
-
-    const merchantNode = combineSpendRuleASTNodes(merchantNodes, CONST.SEARCH.SYNTAX_OPERATORS.OR);
-    const categoryNode =
-        categories.length > 0
-            ? {
-                  left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                  operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                  right: categories,
-              }
-            : undefined;
-
-    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
-    const amountNode =
-        maxAmount !== ''
-            ? {
-                  left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                  operator:
-                      spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK
-                          ? CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN
-                          : CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
-                  right: [maxAmount],
-              }
-            : undefined;
-
-    const ruleNode = combineSpendRuleASTNodes(
-        [amountNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
-        spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
-    );
-    const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
-
-    if (!filters) {
-        return undefined;
-    }
-
-    return {
-        created: existingCreated ?? DateUtils.getDBTime(),
-        action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
-        filters,
-    };
-}
-
-function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendRuleForm | undefined {
-    if (!cardRule || typeof cardRule !== 'object' || !('filters' in cardRule) || !('action' in cardRule)) {
-        return undefined;
-    }
-
-    if (!isSpendRuleASTNode(cardRule.filters)) {
-        return undefined;
-    }
-
-    const formValues: SpendRuleForm = {
-        cardIDs: [],
-        restrictionAction: cardRule.action,
-        merchantNames: [],
-        merchantMatchTypes: [],
-        categories: [],
-        maxAmount: '',
-    };
-
-    const traverseFilters = (filterNode: ExpensifyCardRuleFilter) => {
-        const {left, operator, right} = filterNode;
-
-        if (isSpendRuleASTNode(left)) {
-            traverseFilters(left);
-        }
-
-        if (isSpendRuleASTNode(right)) {
-            traverseFilters(right);
-            return;
-        }
-
-        if (typeof left !== 'string' || !Array.isArray(right)) {
-            return;
-        }
-
-        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            formValues.cardIDs = right;
-            return;
-        }
-
-        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            formValues.maxAmount = typeof right === 'string' ? right : (right.at(0) ?? '');
-            return;
-        }
-
-        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            formValues.categories = right.filter(isSpendRuleCategory);
-            return;
-        }
-
-        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-            formValues.merchantNames = [...formValues.merchantNames, ...right];
-            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...right.map(() => operator)];
-        }
-    };
-
-    traverseFilters(cardRule.filters);
-
-    return formValues;
 }
 
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
@@ -1906,6 +1781,7 @@ export {
     updateAssignedCardName,
     updateAssignedCardTransactionStartDate,
     toggleContinuousReconciliation,
+    setCardReconciliationAccount,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
     updateSelectedExpensifyCardFeed,
@@ -1918,6 +1794,5 @@ export {
     resolveFraudAlert,
     deleteExpensifyCardRule,
     setExpensifyCardRule,
-    getSpendRuleFormValuesFromCardRule,
 };
 export type {ReplacementReason};
