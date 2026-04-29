@@ -4014,7 +4014,7 @@ const CONST = {
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
             INVITE_NEW_MEMBER: 'InviteNewMember',
-            EXPIRY_OPTIONS: 'ExpiryOptions',
+            CARD_RULES: 'CardRules',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',

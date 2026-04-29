@@ -77,7 +77,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 return;
             }
             setIssueNewCardStepAndData({
-                step: isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
+                step: isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.CARD_RULES : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
                 policyID,
             });
         });

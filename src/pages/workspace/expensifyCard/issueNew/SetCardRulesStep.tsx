@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type Policy from '@src/types/onyx/Policy';
 
-type SetExpiryOptionsStepProps = {
+type SetCardRulesStepProps = {
     // The policy that the card will be issued under
     policy: OnyxEntry<Policy>;
 
@@ -29,7 +29,7 @@ type SetExpiryOptionsStepProps = {
     stepNames: readonly string[];
 };
 
-function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOptionsStepProps) {
+function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -146,4 +146,4 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
     );
 }
 
-export default SetExpiryOptionsStep;
+export default SetCardRulesStep;
