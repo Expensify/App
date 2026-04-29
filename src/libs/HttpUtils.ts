@@ -82,7 +82,6 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const shouldPrefetch = !!headers.prefetchKey;
     if (shouldPrefetch) {
-        removeFromAutoPrefetch(headers.prefetchKey);
         prefetchOnAppStart(url, init);
     }
 
