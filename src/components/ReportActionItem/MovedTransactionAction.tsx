@@ -34,6 +34,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
 
     const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
@@ -46,7 +47,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action);
+    const message = getMovedTransactionMessage(translate, action, conciergeReportID);
 
     if (hasReasoning(action)) {
         return (

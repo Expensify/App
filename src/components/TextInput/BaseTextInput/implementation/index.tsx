@@ -100,7 +100,7 @@ function BaseTextInput({
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
 
     // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

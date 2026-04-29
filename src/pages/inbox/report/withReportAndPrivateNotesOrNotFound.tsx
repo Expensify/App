@@ -36,14 +36,14 @@ export default function (pageTitle: TranslationPaths) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
-            const {route, report, reportMetadata} = props;
+            const {route, report, reportLoadingState} = props;
             const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
-            const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
+            const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
             const isReconnecting = prevIsOffline && !isOffline;
             const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
-            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !reportMetadata.isLoadingPrivateNotes;
+            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !reportLoadingState?.isLoadingPrivateNotes;
             const isPrivateNotesUndefined = accountID ? report?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {

@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
@@ -5,23 +6,23 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {
-    getReportTransactions,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasUpdatedTotal,
-    hasViolations as hasViolationsReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
-} from '@libs/ReportUtils';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest} from '@userActions/IOU';
+import {hasHeldExpenses as hasHeldExpensesReportUtils, hasUpdatedTotal, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
+import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type PayActionButtonProps = {
@@ -54,12 +55,14 @@ function PayActionButton({
     reportPreviewAction,
 }: PayActionButtonProps) {
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -69,16 +72,20 @@ function PayActionButton({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
+        (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
@@ -93,7 +100,7 @@ function PayActionButton({
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
 
-    const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction);
+    const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions);
 
     const confirmApproval = () => {
         if (isDelegateAccessRestricted) {
@@ -103,6 +110,7 @@ function PayActionButton({
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
+                expenseReportPolicy: policy,
                 policy: activePolicy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
@@ -110,11 +118,12 @@ function PayActionButton({
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
                 full: true,
                 onApproved: startApprovedAnimation,
+                delegateEmail,
             });
         }
     };
@@ -145,6 +154,7 @@ function PayActionButton({
                     activePolicy,
                     betas,
                     isSelfTourViewed,
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                 });
             } else {
                 payMoneyRequest({
@@ -158,9 +168,9 @@ function PayActionButton({
                     policy,
                     betas,
                     isSelfTourViewed,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                     onPaid: startAnimation,
                 });
             }

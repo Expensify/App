@@ -222,7 +222,6 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    // TODO: Remove the optional operator once all call sites pass sortedActions (https://github.com/Expensify/App/issues/66381)
     sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 
@@ -242,7 +241,6 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
-    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

@@ -45,7 +45,6 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [reportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
         {
-            canEvict: false,
             selector: getReportActionSelector,
         },
         [getReportActionSelector],
@@ -62,7 +61,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy);
         }
     }
 

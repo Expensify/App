@@ -92,7 +92,8 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
         addExpenseApprovalsTaskReport &&
         (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
     ) {
-        completeTask(addExpenseApprovalsTaskReport, false, false, undefined);
+        // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined);
     }
 }
 

@@ -29,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OnboardingCurrencyPicker from './OnboardingCurrencyPicker';
@@ -57,7 +58,9 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
 
-    const defaultWorkspaceName = draftValues?.name ?? generateDefaultWorkspaceName(session?.email);
+    const email = session?.email ?? '';
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
+    const defaultWorkspaceName = draftValues?.name ?? generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     useEffect(() => {

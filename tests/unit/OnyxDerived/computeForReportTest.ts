@@ -3,6 +3,7 @@ import {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import {createMockReport} from '../../utils/ReportTestUtils';
 
 function createAction(id: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -19,18 +20,6 @@ function createAction(id: string, created: string, overrides: Partial<ReportActi
         person: [{type: 'TEXT', style: 'strong', text: 'User'}],
         ...overrides,
     } as ReportAction;
-}
-
-function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
-    return {
-        reportID,
-        reportName: `Report ${reportID}`,
-        type: CONST.REPORT.TYPE.CHAT,
-        chatType: undefined,
-        ownerAccountID: 1,
-        isPinned: false,
-        ...overrides,
-    } as Report;
 }
 
 function toReportActions(...actions: ReportAction[]): ReportActions {
@@ -52,7 +41,7 @@ describe('computeForReport', () => {
         const action3 = createAction('3', '2024-01-03 10:00:00.000');
         const actions = toReportActions(action1, action2, action3);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
-        const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
+        const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
         const result = computeForReport(reportID, actions, allReportActions, allReports);
 
@@ -65,7 +54,7 @@ describe('computeForReport', () => {
         const action3 = createAction('3', '2024-01-02 10:00:00.000');
         const actions = toReportActions(action1, action2, action3);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
-        const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
+        const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
         const result = computeForReport(reportID, actions, allReportActions, allReports);
 
@@ -75,7 +64,7 @@ describe('computeForReport', () => {
     it('returns undefined lastAction for an empty actions object', () => {
         const actions: ReportActions = {};
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
-        const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
+        const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
         const result = computeForReport(reportID, actions, allReportActions, allReports);
 
@@ -87,7 +76,7 @@ describe('computeForReport', () => {
         const action1 = createAction('1', '2024-01-01 10:00:00.000');
         const actions = toReportActions(action1);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
-        const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID, {type: CONST.REPORT.TYPE.CHAT})};
+        const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID, type: CONST.REPORT.TYPE.CHAT})};
 
         const result = computeForReport(reportID, actions, allReportActions, allReports);
 
@@ -114,8 +103,8 @@ describe('computeForReport', () => {
         const threadAction200 = createAction('200', '2024-01-01 11:00:00.000');
         const threadAction201 = createAction('201', '2024-01-01 12:00:00.000');
         const threadActions = toReportActions(threadAction200, threadAction201);
-        const chatReport = createReport('3', {type: CONST.REPORT.TYPE.CHAT});
-        const expenseReport = createReport(reportID, {type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'});
+        const chatReport = createMockReport({reportID: '3', type: CONST.REPORT.TYPE.CHAT});
+        const expenseReport = createMockReport({reportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'});
 
         const allReportActions: OnyxCollection<ReportActions> = {
             [reportActionsKey]: parentActions,
@@ -141,7 +130,7 @@ describe('computeForReport', () => {
         const action1 = createAction('1', '2024-06-15 08:30:00.000');
         const actions = toReportActions(action1);
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKey]: actions};
-        const allReports: OnyxCollection<Report> = {[reportKey]: createReport(reportID)};
+        const allReports: OnyxCollection<Report> = {[reportKey]: createMockReport({reportID})};
 
         const result = computeForReport(reportID, actions, allReportActions, allReports);
 
@@ -153,8 +142,8 @@ describe('computeForReport', () => {
     it('handles undefined allReportActions gracefully for transaction thread merging', () => {
         const action1 = createAction('1', '2024-01-01 10:00:00.000');
         const actions = toReportActions(action1);
-        const expenseReport = createReport(reportID, {type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'});
-        const chatReport = createReport('3', {type: CONST.REPORT.TYPE.CHAT});
+        const expenseReport = createMockReport({reportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '3'});
+        const chatReport = createMockReport({reportID: '3', type: CONST.REPORT.TYPE.CHAT});
         const allReports: OnyxCollection<Report> = {
             [reportKey]: expenseReport,
             [`${ONYXKEYS.COLLECTION.REPORT}3`]: chatReport,

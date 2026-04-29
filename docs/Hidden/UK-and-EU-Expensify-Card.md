@@ -13,7 +13,7 @@ REMOVE noindex: true AND sitemap: false FROM YAML HEADER BEFORE PUBLISHING!
 
 # Set up the Expensify Card in the UK and EU
 
-The Expensify Card is available for companies in the United Kingdom and select European countries. This guide walks you through eligibility and how to set up and start using the card in GBP or EUR. 
+The Expensify Card is available for companies in the United Kingdom and select European countries. This guide walks you through eligibility and how to set up and start using the card in GBP or EUR.
 
 Workspace Admins can issue virtual Expensify Cards to members and manage spending in GBP or EUR. Physical cards will be available soon.
 
@@ -33,34 +33,27 @@ If your company hasn’t yet connected a GBP or EUR business bank account, [foll
 
 The Expensify Card can be used **anywhere Visa is accepted**.
 
-However, only companies registered in the following 20 UK and EU countries can enable the Expensify Card for their Workspace:
+Companies registered in the following countries can enable the Expensify Card for their Workspaces:
 
-- Belgium  
-- Denmark  
-- Estonia  
-- Finland  
-- Gibraltar  
-- Greece 
-- Ireland  
-- Latvia  
-- Liechtenstein  
-- Lithuania  
-- Luxembourg  
-- Malta  
-- Netherlands  
-- Poland  
-- Romania  
-- Slovakia  
-- Slovenia  
-- Spain  
-- Sweden  
+- Belgium
+- Denmark
+- Finland
+- Gibraltar
+- Ireland
+- Latvia
+- Lithuania
+- Luxembourg
+- Netherlands
+- Poland
+- Spain
+- Sweden
 - United Kingdom
 
 ## What are the pre-requisites to set up the Expensify Card in the UK and EU
 
-To set up the Expensify Card in the UK and EU, you must: 
+To set up the Expensify Card in the UK and EU, you must:
 
-1. Have a GBP or EUR bank account connected. To connect one, [Enable Global Reimbursement](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
+1. Have a GBP or EUR bank account connected. To connect one, [Enable Global Reimbursement](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement).
 2. Complete the **[Know Your Customer (KYC)](https://launch-workflow.trulioo.com/68223577c5dae52a6ec9347f)** and **[Know Your Business (KYB)](https://launch-workflow.trulioo.com/681a7cc4e65d2e48f19de9c3)** forms.
 3. Share the last 90 days of statements from your connected GBP or EUR bank account with Concierge so they can assess your eligible limit
 
@@ -70,9 +63,9 @@ To set up the Expensify Card in the UK and EU, you must:
 
 1. From navigation tabs (on the left on Web, on the bottom on Mobile), choose **Workspaces > [Workspace Name] > More features**.
 2. In the **Spend** section, enable **Expensify Card**.
-3. So that we can assess your request, reach out to Concierge and provide the last 90 days of statements from the connected UK or EU bank account 
+3. So that we can assess your request, reach out to Concierge and provide the last 90 days of statements from the connected UK or EU bank account
 
-Once enabled, **Expensify Card** will appear in the navigation tabs. 
+Once enabled, **Expensify Card** will appear in the navigation tabs.
 
 ---
 
@@ -88,7 +81,7 @@ Once enabled, **Expensify Card** will appear in the navigation tabs.
 
 1. From navigation tabs (on the left on Web, on the bottom on Mobile), choose **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**.
-3. Select the employee the card should be issued to. 
+3. Select the employee the card should be issued to.
 4. Choose **Virtual**.
 5. Pick a limit type:
    - **Smart limit** – Spend up to a threshold before needing approval
@@ -110,7 +103,7 @@ We use the [Visa FX calculator](https://www.visa.co.uk/support/consumer/travel-s
 
 ## Does the Expensify Card support Visa Secure for online transactions?
 
-Yes, the Expensify Card protects online transactions with Visa Secure. Please review the [Visa Secure FAQs]({{site.url}}/assets/Files/Visa-secure-faq-expensify.pdf) for more information. 
+Yes, the Expensify Card protects online transactions with Visa Secure. Please review the [Visa Secure FAQs]({{site.url}}/assets/Files/Visa-secure-faq-expensify.pdf) for more information.
 
 ## How do I get help with the Expensify Card in the UK and EU?
 

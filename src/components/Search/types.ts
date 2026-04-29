@@ -102,6 +102,11 @@ type SelectedReports = {
     total: number;
     currency?: string;
     chatReportID: string | undefined;
+    managerID?: number;
+    ownerAccountID?: number;
+    parentReportActionID?: string;
+    parentReportID?: string;
+    type?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -180,7 +185,7 @@ type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    shouldShowActionsBarLoading: boolean;
+    shouldShowFiltersBarLoading: boolean;
     lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
@@ -199,7 +204,7 @@ type SearchActionsContextValue = {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowActionsBarLoading: (shouldShow: boolean) => void;
+    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
@@ -305,6 +310,7 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
+    isViewExplicitlySet?: boolean;
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {

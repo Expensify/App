@@ -100,7 +100,7 @@ function PressableWithDelayToggle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 
     const updatePressState = () => {
@@ -154,7 +154,7 @@ function PressableWithDelayToggle({
                     text={tooltipTexts}
                     shouldRender
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors -- Inner pressable is intentionally non-accessible (accessible={false}) since the outer PressableView handles accessibility */}
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors -- Inner pressable is intentionally non-accessible (accessible={false}) since the outer PressableView handles accessibility. */}
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}

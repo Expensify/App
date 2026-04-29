@@ -505,6 +505,39 @@ describe('getPrimaryAction', () => {
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
+    it('should not return PAY for expense report with only non-reimbursable transactions when total is 0', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            reimbursable: false,
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
         const report = {
             reportID: REPORT_ID,

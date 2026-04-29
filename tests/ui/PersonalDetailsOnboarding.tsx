@@ -15,6 +15,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -62,6 +63,7 @@ describe('OnboardingPersonalDetails Page', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
@@ -100,6 +102,7 @@ describe('OnboardingPersonalDetails Page', () => {
 
         // Submit the form
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
@@ -131,6 +134,7 @@ describe('OnboardingPersonalDetails Page', () => {
 
         // Submit the form
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());

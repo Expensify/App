@@ -68,7 +68,7 @@ function QRCode({
     svgLogoFillColor,
     logoBackgroundColor,
     getRef,
-    size = 120,
+    size = CONST.QR.DEFAULT_LOGO_SIZE,
     color,
     backgroundColor,
     logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,

@@ -28,6 +28,7 @@ import {
     getPlaidInstitutionIconUrl,
     isCardConnectionBroken,
     isCardFrozen,
+    isCardInactive,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
@@ -177,7 +178,7 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
@@ -314,6 +315,7 @@ function PaymentMethodList({
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
+                        isInactive: isCardInactive(card),
                         onPress: cardOnPress,
                     });
                     continue;
@@ -381,6 +383,7 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
+                    isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                 });
             }

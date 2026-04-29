@@ -11,7 +11,9 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,9 +41,10 @@ type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreen
 function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApprovalLimitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) || 0;
@@ -51,7 +54,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
 
-    const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, currency) : '';
+    const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, getCurrencyDecimals(currency)) : '';
 
     const [editedApprovalLimit, setEditedApprovalLimit] = useState<{approverEmail: string; value: string} | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -198,10 +201,22 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             {isEditFlow ? (
                                 <>
                                     <MenuItemWithTopDescription
-                                        title={approverDisplayName}
+                                        accessibilityLabel={approverDisplayName}
                                         titleStyle={styles.textNormalThemeText}
                                         description={translate('workflowsPage.approver')}
                                         descriptionTextStyle={approverDisplayName ? styles.textLabelSupportingNormal : undefined}
+                                        titleComponent={
+                                            currentApprover ? (
+                                                <View style={styles.pr3}>
+                                                    <UserPill
+                                                        avatar={currentApprover.avatar}
+                                                        displayName={currentApprover.displayName}
+                                                        email={currentApprover.email}
+                                                        style={styles.userPillStandalone}
+                                                    />
+                                                </View>
+                                            ) : undefined
+                                        }
                                         onPress={navigateToApproverChange}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -235,10 +250,22 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             </View>
 
                             <MenuItemWithTopDescription
-                                title={selectedApproverDisplayName}
+                                accessibilityLabel={selectedApproverDisplayName}
                                 titleStyle={styles.textNormalThemeText}
                                 description={translate('workflowsApprovalLimitPage.additionalApproverLabel')}
                                 descriptionTextStyle={selectedApproverDisplayName ? styles.textLabelSupportingNormal : undefined}
+                                titleComponent={
+                                    selectedApproverEmail ? (
+                                        <View style={styles.pr3}>
+                                            <UserPill
+                                                avatar={selectedApproverPersonalDetails?.avatar}
+                                                displayName={selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail}
+                                                email={selectedApproverEmail}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </View>
+                                    ) : undefined
+                                }
                                 onPress={navigateToApproverSelector}
                                 shouldShowRightIcon
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

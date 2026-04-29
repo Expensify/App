@@ -75,7 +75,7 @@
 ### [react-native+0.83.1+011+Add-onPaste-to-TextInput.patch](react-native+0.83.1+011+Add-onPaste-to-TextInput.patch)
 
 - Reasons:
-    - Adds `onPaste` callback to `TextInput` to support image and file pasting on native
+    - Adds `onPaste` callback to `TextInput` to support image pasting on native
     - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
     - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
     - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
@@ -174,7 +174,7 @@
     ```
     This patch restores the old InteractionManager behavior. React Native 0.80 deprecated InteractionManager and modified
     it to behave like `setImmediate`, more info here - https://github.com/facebook/react-native/blob/d9262c60f4c02d66417008970dc9c34b742aaa75/CHANGELOG.md?plain=1#L597
-
+  
     We need to restore the previous behavior to avoid introducing any bugs in the app.
     Bug example - https://github.com/Expensify/App/pull/69535#issuecomment-3443059319
     ```
@@ -253,7 +253,13 @@
 - E/App issue: https://github.com/Expensify/App/issues/85877
 - PR introducing patch: 🛑
 
-### [react-native+0.83.1+034+fix-pressability-new-arch.patch](react-native+0.83.1+034+fix-pressability-new-arch.patch)
+### [react-native+0.83.1+034+fix-fabric-collapsed-accessibility-announcement.patch](react-native+0.83.1+034+fix-fabric-collapsed-accessibility-announcement.patch)
+
+- Reason: Fixes a Fabric regression where VoiceOver on iOS only announces "expanded" but never "collapsed" for elements with `accessibilityState.expanded`. In `RCTViewComponentView.mm`, the code uses `value_or(false)` which skips the announcement entirely when `expanded` is `false`. This patch changes the logic to use `has_value()` and correctly announce both "expanded" and "collapsed" states, matching the old architecture (Paper) behavior.
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/56296
+- E/App issue: [#76929](https://github.com/Expensify/App/issues/76929)
+
+### [react-native+0.83.1+035+fix-pressability-new-arch.patch](react-native+0.83.1+035+fix-pressability-new-arch.patch)
 
 - Reason: Fixes an Android-specific issue (reproducible on certain Samsung models) where `onPress` events do not trigger for `Pressable` components when used inside a `Tooltip`. The root cause is that in the new architecture, `Pressability.measure()` reads stale layout information from the shadow tree instead of the actual native view hierarchy. This patch introduces a new `measureAsyncOnUI` method that measures the view asynchronously using the native layout hierarchy on the UI thread, bypassing stale shadow tree data.
 - Upstream PR/issue: [facebook/react-native#51835](https://github.com/facebook/react-native/pull/51835)

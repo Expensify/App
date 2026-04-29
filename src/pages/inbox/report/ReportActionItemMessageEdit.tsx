@@ -1,6 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';

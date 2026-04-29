@@ -11,7 +11,15 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasDynamicExternalWorkflow} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {hasActionWithErrorsForTransaction, hasReceiptError, isPaidGroupPolicyExpenseReport, isPaidGroupPolicy as isPaidGroupPolicyUtil, isReportApproved, isSettled} from './ReportUtils';
+import {
+    hasActionWithErrorsForTransaction,
+    hasReceiptError,
+    isExpenseReport,
+    isPaidGroupPolicyExpenseReport,
+    isPaidGroupPolicy as isPaidGroupPolicyUtil,
+    isReportApproved,
+    isSettled,
+} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -34,7 +42,6 @@ import {
     isOnHold,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
@@ -267,12 +274,15 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
-        const amountMissing = isAmountMissing(transaction);
-        const merchantMissing = isMerchantMissing(transaction);
+        const isFromExpenseReport = isExpenseReport(iouReport);
+        const amountMissing = isAmountMissing(transaction, isFromExpenseReport);
+        const merchantMissing = isFromExpenseReport && isMerchantMissing(transaction);
         if (amountMissing && merchantMissing) {
             RBRMessage = {translationPath: 'violations.reviewRequired'};
         } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
+        } else if (amountMissing) {
+            RBRMessage = {translationPath: 'iou.missingAmount'};
         }
     }
 
@@ -292,11 +302,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
-    if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
-    } else if (isTransactionScanning) {
+    if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -412,9 +418,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
+        !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&

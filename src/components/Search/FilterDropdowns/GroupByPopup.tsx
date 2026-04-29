@@ -1,18 +1,17 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Button from '@components/Button';
 import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {GroupBySection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import BasePopup from './BasePopup';
 
 type GroupByPopupItem = {
     text: string;
@@ -20,9 +19,6 @@ type GroupByPopupItem = {
 };
 
 type GroupByPopupProps = {
-    /** The label to show when in an overlay on mobile */
-    label?: string;
-
     /** The grouped options to show in the list */
     sections: GroupBySection[];
 
@@ -30,6 +26,7 @@ type GroupByPopupProps = {
     value: GroupByPopupItem | null;
 
     style?: StyleProp<ViewStyle>;
+    onBackButtonPress: () => void;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
@@ -38,11 +35,10 @@ type GroupByPopupProps = {
     onChange: (item: GroupByPopupItem | null) => void;
 };
 
-function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({value, sections, style, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -62,7 +58,7 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
         [sections, selectedItem?.value, styles.dividerLine],
     );
 
-    const optionsCount = Math.max(
+    const itemCount = Math.max(
         1,
         listSections.reduce((count, section) => count + section.data.length + (section.data.length > 0 && !!section.customHeader ? 1 : 0), 0),
     );
@@ -86,10 +82,15 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
     }, [closeOverlay, onChange]);
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
-            {isSmallScreenWidth && !!label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
-
-            <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false)]}>
+        <BasePopup
+            onReset={resetChanges}
+            onApply={applyChanges}
+            onBackButtonPress={onBackButtonPress}
+            label={translate('search.display.groupBy')}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+        >
+            <View style={[style, styles.getSelectionListPopoverHeight({itemCount, windowHeight, isInLandscapeMode, hasHeader: true})]}>
                 <SelectionListWithSections
                     sections={listSections}
                     shouldSingleExecuteRowSelect
@@ -97,25 +98,7 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
                     onSelectRow={updateSelectedItem}
                 />
             </View>
-
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 

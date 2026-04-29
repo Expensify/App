@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -40,7 +41,7 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 const initialEmoji = '💬';
 
 function StatusPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Trashcan']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

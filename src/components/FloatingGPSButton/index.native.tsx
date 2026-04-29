@@ -14,7 +14,7 @@ function FloatingGpsButton() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Crosshair'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Crosshair']);
     const styles = useThemeStyles();
 
     if (!gpsDraftDetails?.isTracking) {

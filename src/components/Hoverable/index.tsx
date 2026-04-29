@@ -1,7 +1,7 @@
 import React, {cloneElement} from 'react';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
+import getReturnValue from '@libs/getReturnValue';
 import mergeRefs from '@libs/mergeRefs';
-import {getReturnValue} from '@libs/ValueUtils';
 import ActiveHoverable from './ActiveHoverable';
 import type HoverableProps from './types';
 

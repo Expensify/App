@@ -1,6 +1,7 @@
 import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -10,12 +11,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
-import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
@@ -27,6 +30,27 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
+
+/** All tab routes derived from the shared TAB_SCREENS constant. */
+const TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = TAB_SCREENS.map((name) => ({name}));
+
+/**
+ * Builds TabNavigator state with all tabs and the correct selected tab.
+ * Tab navigators require all routes in the state for proper rendering.
+ */
+function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
+    const tabIndex = TAB_NAVIGATOR_ROUTES.findIndex((r) => r.name === selectedTabRoute.name);
+    const index = tabIndex >= 0 ? tabIndex : 0;
+
+    const routes = TAB_NAVIGATOR_ROUTES.map((route, i) => {
+        if (i === index && selectedTabRoute.state) {
+            return {...route, state: selectedTabRoute.state, params: selectedTabRoute.params};
+        }
+        return {...route};
+    });
+
+    return {name: NAVIGATORS.TAB_NAVIGATOR, state: {routes, index}};
+}
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
@@ -54,8 +78,13 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+    const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
+
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
-    if (isRouteWithBackToParam(route)) {
+    // Dynamic screens are skipped here because they never carry their own backTo - they only
+    // inherit it from the screen underneath. Letting backTo dictate the full-screen route for
+    // a dynamic screen would resolve the wrong page.
+    if (isRouteWithBackToParam(route) && !isDynamicScreen) {
         const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
@@ -96,38 +125,35 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             name: RHP_TO_SEARCH[routeNameForLookup],
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
-        return {
-            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-            state: getRoutesWithIndex([searchRoute]),
-        };
-    }
-
-    if (RHP_TO_SIDEBAR[route.name]) {
-        return getInitialSplitNavigatorState({
-            name: RHP_TO_SIDEBAR[route.name],
-        });
+        const searchState = getRoutesWithIndex([searchRoute]);
+        return getTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
     }
 
     if (RHP_TO_HOME[route.name]) {
         return {
-            name: SCREENS.HOME,
+            ...getTabNavigatorState({name: SCREENS.HOME}),
             path: normalizePath(ROUTES.HOME),
         };
     }
 
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
-        return {
-            name: SCREENS.WORKSPACES_LIST,
-            // prepending a slash to ensure closing the RHP after refreshing the page
-            // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
-            path: normalizePath(ROUTES.WORKSPACES_LIST.route),
-        };
+        return getTabNavigatorState({
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: getRoutesWithIndex([
+                {
+                    name: SCREENS.WORKSPACES_LIST,
+                    // prepending a slash to ensure closing the RHP after refreshing the page
+                    // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
+                    path: normalizePath(ROUTES.WORKSPACES_LIST.route),
+                },
+            ]),
+        });
     }
 
     if (RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE[route.name]);
 
-        return getInitialSplitNavigatorState(
+        const workspaceSplitRoute = getInitialSplitNavigatorState(
             {
                 name: SCREENS.WORKSPACE.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -137,26 +163,30 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+
+        return getTabNavigatorState({
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, workspaceSplitRoute]),
+        });
     }
 
     if (RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
-        return getInitialSplitNavigatorState(
-            {
-                name: SCREENS.SETTINGS.ROOT,
-            },
+        const settingsState = getInitialSplitNavigatorState(
+            {name: SCREENS.SETTINGS.ROOT},
             {
                 name: RHP_TO_SETTINGS[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+        return getTabNavigatorState(settingsState);
     }
 
     if (RHP_TO_DOMAIN[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
 
-        return getInitialSplitNavigatorState(
+        const domainSplitRoute = getInitialSplitNavigatorState(
             {
                 name: SCREENS.DOMAIN.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -166,19 +196,36 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+
+        return getTabNavigatorState({
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, domainSplitRoute]),
+        });
+    }
+
+    // Fallback: if no specific central screen RELATION matched, check if the RHP screen
+    // maps to a sidebar. This shows the split navigator with just the sidebar (no central screen).
+    if (RHP_TO_SIDEBAR[route.name]) {
+        const splitState = getInitialSplitNavigatorState({
+            name: RHP_TO_SIDEBAR[route.name],
+        });
+        return getTabNavigatorState(splitState);
     }
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
-        if (dynamicRouteSuffix) {
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+        const suffixMatch = findMatchingDynamicSuffix(route.path);
+        if (suffixMatch) {
+            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
+            // suffix and the registered pattern so query params can be resolved correctly.
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 return undefined;
             }
 
-            // Get navigation state for the base path without dynamic suffix
+            // Parse the base path (without dynamic suffix) into a navigation state
+            // to determine which full-screen route should be visible underneath the overlay.
             const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
@@ -216,21 +263,14 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
         // Only allReports should be checked here
         if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
-            return {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR};
+            return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
 
-        return getInitialSplitNavigatorState(
-            {
-                name: SCREENS.INBOX,
-            },
-            {
-                name: SCREENS.REPORT,
-                params: {reportID},
-            },
-        );
+        const reportsState = getInitialSplitNavigatorState({name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID}});
+        return getTabNavigatorState(reportsState);
     }
 
-    return {name: SCREENS.HOME};
+    return getTabNavigatorState({name: SCREENS.HOME});
 }
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
@@ -251,32 +291,53 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
-    if (isWorkspaceSplitNavigator) {
-        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
-        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
+    // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
+    if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
+        const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        const wsNavRoute = tabState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+        if (wsNavRoute) {
+            const wsNavState = wsNavRoute.state as PartialState<NavigationState> | undefined;
+            const hasWorkspacesList = wsNavState?.routes?.some((r) => r.name === SCREENS.WORKSPACES_LIST);
+
+            if (!hasWorkspacesList && wsNavState?.routes?.length) {
+                const updatedNestedState = getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, ...(wsNavState.routes ?? [])]);
+                const updatedWsNavRoute = {...wsNavRoute, state: updatedNestedState};
+                const updatedTabRoutes = (tabState?.routes ?? []).map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
+                const updatedTabState = {...tabState, routes: updatedTabRoutes};
+                const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
+                const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+                return getRoutesWithIndex(updatedRoutes);
+            }
+        }
     }
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
         const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
+        let currentState = state;
+        if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
+            currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+
+            // getDynamicRouteAdaptedState may have already resolved the full screen route.
+            // In that case, skip the default full screen route injection below - the state is already complete.
+            const hasFullScreenRoute = currentState.routes.some((route) => isFullScreenName(route.name));
+            if (hasFullScreenRoute) {
+                return currentState;
+            }
+        }
+
         if (focusedRoute) {
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
-                const routes = [matchingRootRoute, ...state.routes];
-                if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
-                    routes.unshift(workspacesListRoute);
-                }
-                return getRoutesWithIndex(routes);
+                return getRoutesWithIndex([matchingRootRoute, ...currentState.routes]);
             }
         }
 
-        const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+        const onboardingNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
 
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
@@ -285,19 +346,19 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([getTabNavigatorState({name: SCREENS.HOME}), adaptedOnboardingNavigator]);
         }
 
-        const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+        const isRightModalNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
         if (isRightModalNavigator) {
-            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...state.routes]);
+            return getRoutesWithIndex([getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...currentState.routes]);
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
 
         // If not, add the default full screen route.
-        return getRoutesWithIndex([defaultFullScreenRoute, ...state.routes]);
+        return getRoutesWithIndex([defaultFullScreenRoute, ...currentState.routes]);
     }
 
     return state;
@@ -318,7 +379,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 // We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    normalizedPath = getRedirectedPath(normalizedPath);
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.

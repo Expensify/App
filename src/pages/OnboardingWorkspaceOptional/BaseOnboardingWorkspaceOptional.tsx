@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,6 +35,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkspaceOptionalProps} from './types';
@@ -158,11 +160,13 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
+        const email = session?.email ?? '';
+        const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
         const {adminsChatReportID, policyID} = shouldCreateWorkspace
             ? createWorkspace({
                   policyOwnerEmail: undefined,
                   makeMeAdmin: true,
-                  policyName: generateDefaultWorkspaceName(session?.email),
+                  policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                   currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -200,6 +204,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         isSelfTourViewed,
         hasActiveAdminPolicies,
         completeOnboarding,
+        translate,
     ]);
 
     return (
@@ -213,41 +218,44 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
                 shouldDisplayHelpButton={false}
             />
-            <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text
-                        style={styles.textHeadlineH1}
-                        accessibilityRole={CONST.ROLE.HEADER}
-                    >
-                        {translate('onboarding.workspace.title')}
-                    </Text>
-                </View>
-                <View style={styles.mb2}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
-                </View>
-                <View>
-                    {section.map((item) => {
-                        return (
-                            <View
-                                key={item.titleTranslationKey}
-                                style={[styles.mt2, styles.mb3, styles.flexRow]}
-                            >
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                                    <Icon
-                                        src={item.icon}
-                                        height={ICON_SIZE}
-                                        width={ICON_SIZE}
-                                        additionalStyles={[styles.mr3]}
-                                    />
-                                    <View style={[styles.flexColumn, styles.flex1]}>
-                                        <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+            <ScrollView>
+                <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.workspace.title')}
+                        </Text>
+                    </View>
+                    <View style={styles.mb2}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
+                    </View>
+                    <View>
+                        {section.map((item) => {
+                            return (
+                                <View
+                                    key={item.titleTranslationKey}
+                                    style={[styles.mt2, styles.mb3, styles.flexRow]}
+                                >
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                        <Icon
+                                            src={item.icon}
+                                            height={ICON_SIZE}
+                                            width={ICON_SIZE}
+                                            additionalStyles={[styles.mr3]}
+                                        />
+                                        <View style={[styles.flexColumn, styles.flex1]}>
+                                            <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        );
-                    })}
+                            );
+                        })}
+                    </View>
                 </View>
-            </View>
+            </ScrollView>
+
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pb5]}>
                 <View style={[styles.flexRow, styles.renderHTML, styles.pb5]}>
                     <RenderHTML html={processedHelperText} />

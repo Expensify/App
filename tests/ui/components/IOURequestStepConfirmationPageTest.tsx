@@ -14,6 +14,8 @@ import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
+import * as Split from '../../../src/libs/actions/IOU/Split';
+import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -63,14 +65,20 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...actualNav,
         startMoneyRequest: jest.fn(),
-        requestMoney: jest.fn(() => ({iouReport: undefined})),
-        trackExpense: jest.fn(),
-        createDistanceRequest: jest.fn(),
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
+        createDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
+    };
+});
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
+    return {
+        ...actual,
+        requestMoney: jest.fn(() => ({iouReport: undefined})),
+        trackExpense: jest.fn(),
     };
 });
 jest.mock('@components/ProductTrainingContext', () => ({
@@ -78,6 +86,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
+jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -94,12 +103,28 @@ jest.mock('@libs/Navigation/Navigation', () => {
             params: {},
         })),
         getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
     };
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        dismissModal: jest.fn((options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         dismissModalWithReport: jest.fn(),
+        dismissToPreviousRHP: jest.fn((options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
+        clearFullscreenPreInsertedFlag: jest.fn(),
+        revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
+        getTopmostReportId: jest.fn(() => undefined),
+        preInsertFullscreenUnderRHP: jest.fn(),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -652,7 +677,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(transaction?.taxAmount).toBe(909);
         });
 
-        it('should not zero out tax when re-selecting distance rate without reclaimable configured', async () => {
+        it('should zero out tax when re-selecting distance rate without reclaimable configured', async () => {
             const policy = createPolicyWithTaxAndDistance();
             const waypoints = createWaypoints('New York', 'Boston');
 
@@ -744,12 +769,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Read tax amount - should NOT be zero even though taxClaimablePercentage is not configured
+            // Read tax amount - should be zero since taxClaimablePercentage is not configured
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
-            // With the fix, taxClaimablePercentage defaults to 1 (100%), so tax should calculate correctly
+            // taxClaimablePercentage defaults to 0, so tax should calculate correctly consistently with how it is calculated in the backend
             expect(transaction?.taxAmount).toBeDefined();
-            expect(transaction?.taxAmount).toBeGreaterThan(0);
+            expect(transaction?.taxAmount).toBe(0);
 
             // Tax code should be taxRate2 (from the distance rate configuration)
             expect(transaction?.taxCode).toBe('taxRate2');
@@ -994,8 +1019,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-            await waitFor(() => expect(IOU.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
         });
@@ -1060,8 +1085,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-            await waitFor(() => expect(IOU.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
         });
@@ -1135,8 +1160,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-                await waitFor(() => expect(IOU.requestMoney).toHaveBeenCalled());
-                const requestMoneyMock = IOU.requestMoney as jest.MockedFunction<typeof IOU.requestMoney>;
+                await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+                const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
@@ -1194,8 +1219,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(IOU.requestMoney).toHaveBeenCalled());
-            expect(IOU.trackExpense).not.toHaveBeenCalled();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
         it('should route unreported distance expense to requestMoney and skip createDistanceRequest', async () => {
@@ -1268,8 +1293,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
-            await waitFor(() => expect(IOU.requestMoney).toHaveBeenCalled());
-            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -1352,8 +1377,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(IOU.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = IOU.createDistanceRequest as jest.MockedFunction<typeof IOU.createDistanceRequest>;
+            await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
+            const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
         });
