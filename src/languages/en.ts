@@ -6039,8 +6039,9 @@ const translations = {
                 expirationDate: 'Expiration date',
                 limitAmount: 'Limit amount',
                 setCardRules: 'Set card rules',
-                setExpiryDate: 'Set expiry date',
-                setExpiryDateDescription: 'Card will expire as listed on the card',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Amount',
             },
             deactivateCardModal: {

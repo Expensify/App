@@ -6001,8 +6001,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 expirationDate: 'Vervaldatum',
                 limitAmount: 'Limietbedrag',
                 setCardRules: '',
-                setExpiryDate: 'Vervaldatum instellen',
-                setExpiryDateDescription: 'De kaart verloopt zoals vermeld op de kaart',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Bedrag',
             },
             deactivateCardModal: {

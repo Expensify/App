@@ -6000,8 +6000,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 expirationDate: 'Data de validade',
                 limitAmount: 'Valor do limite',
                 setCardRules: '',
-                setExpiryDate: 'Definir data de validade',
-                setExpiryDateDescription: 'O cartão expirará conforme indicado no cartão',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Valor',
             },
             deactivateCardModal: {

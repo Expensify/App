@@ -46,6 +46,8 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
         return toZonedTime(new Date(), assigneeTimeZone);
     }, [assigneeTimeZone]);
 
+    // JACK_TODO: Derive from state
+    const [spendRulesToggle, setSpendRulesToggle] = useState(false);
     const [expirationToggle, setExpirationToggle] = useState(!!issueNewCard?.data?.validFrom);
 
     const isEditing = issueNewCard?.isEditing;
@@ -111,12 +113,15 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                 validate={validate}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
+                {/* <ToggleSettingOptionRow
+                    title={translate('workspace.card.issueNewCard.se')}
+                /> */}
                 <ToggleSettingOptionRow
-                    title={translate('workspace.card.issueNewCard.setExpiryDate')}
-                    subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.setExpiryDateDescription') : ''}
+                    title={translate('workspace.card.issueNewCard.addExpirationDate')}
+                    subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
                     isActive={expirationToggle}
                     onToggle={setExpirationToggle}
-                    switchAccessibilityLabel={translate('workspace.card.issueNewCard.setExpiryDate')}
+                    switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3]}
                 />

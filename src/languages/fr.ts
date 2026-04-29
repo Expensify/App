@@ -6052,8 +6052,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 expirationDate: 'Date d’expiration',
                 limitAmount: 'Montant de la limite',
                 setCardRules: '',
-                setExpiryDate: 'Définir la date d’expiration',
-                setExpiryDateDescription: 'La carte expirera comme indiqué sur la carte',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Montant',
             },
             deactivateCardModal: {

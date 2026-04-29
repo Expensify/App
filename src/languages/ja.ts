@@ -5953,8 +5953,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 expirationDate: '有効期限',
                 limitAmount: '制限額',
                 setCardRules: '',
-                setExpiryDate: '有効期限を設定',
-                setExpiryDateDescription: 'カードに記載されている通りにカードは期限切れになります',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: '金額',
             },
             deactivateCardModal: {

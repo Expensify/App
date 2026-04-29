@@ -6020,8 +6020,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 expirationDate: 'Data di scadenza',
                 limitAmount: 'Importo del limite',
                 setCardRules: '',
-                setExpiryDate: 'Imposta data di scadenza',
-                setExpiryDateDescription: 'La carta scadrà come indicato sulla carta',
+                addSpendRule: 'Add spend rule',
+                addExpirationDate: 'Add expiration date',
+                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Importo',
             },
             deactivateCardModal: {
