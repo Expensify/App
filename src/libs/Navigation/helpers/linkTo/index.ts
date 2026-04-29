@@ -203,7 +203,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
-    if (shouldCheckFullScreenRouteMatching(action)) {
+    // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
+    // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
+    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the

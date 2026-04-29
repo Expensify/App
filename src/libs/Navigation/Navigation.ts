@@ -484,6 +484,13 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
+    // For TAB_NAVIGATOR targets, POP_TO restores nested state from the payload (#89006). Skip when
+    // there's nothing to pop — POP_TO would otherwise pop to an older matching route (#89209).
+    if (distanceToPop > 0 && (minimalAction.payload as {name?: string} | undefined)?.name === NAVIGATORS.TAB_NAVIGATOR) {
+        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO, target: targetState.key});
+        return;
+    }
+
     navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 

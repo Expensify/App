@@ -14,7 +14,7 @@ const mockGetDescription = getDescription as jest.MockedFunction<typeof getDescr
 const mockGetAmount = getAmount as jest.MockedFunction<typeof getAmount>;
 const mockGetCurrency = getCurrency as jest.MockedFunction<typeof getCurrency>;
 
-describe('AddUnreportedExpense Search Functionality', () => {
+describe('AddExistingExpense Search Functionality', () => {
     const mockTransaction1: Partial<Transaction> = {
         transactionID: '1',
         merchant: 'Starbucks',

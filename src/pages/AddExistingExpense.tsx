@@ -1,13 +1,19 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
+import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
+import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -21,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
+import type {AddExistingExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -35,14 +41,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {openExpenseReportIDsSelector} from '@src/selectors/Report';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
-type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
+type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
+type ExpenseStatus = typeof CONST.SEARCH.STATUS.EXPENSE.UNREPORTED | typeof CONST.SEARCH.STATUS.EXPENSE.DRAFTS;
 
-function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
+function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transaction?.reportID === '';
+}
+
+function AddExistingExpense({route}: AddExistingExpensePageType) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
@@ -50,6 +62,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
+    const [selectedStatuses, setSelectedStatuses] = useState<Array<MultiSelectItem<ExpenseStatus>>>([]);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -66,27 +79,35 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [allOpenReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: openExpenseReportIDsSelector});
+    const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddUnreportedExpense.InitialSkeleton',
+        context: 'AddExistingExpense.InitialSkeleton',
         isLoadingUnreportedTransactions,
     };
 
     const paginationSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddUnreportedExpense.PaginationSkeleton',
+        context: 'AddExistingExpense.PaginationSkeleton',
         isLoadingUnreportedTransactions,
         hasMoreUnreportedTransactionsResults,
         isOffline,
     };
 
-    const getUnreportedTransactions = useCallback(
+    const getEligibleTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
             if (!transactions) {
                 return [];
             }
             return Object.values(transactions || {}).filter((item) => {
-                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
-                if (!isUnreported) {
+                const isUnreported = isUnreportedTransaction(item);
+                const isOnOpenExpenseReport = !!(item?.reportID && (allOpenReports?.[item.reportID] ?? openReportDrafts?.[item.reportID]));
+                if (!isUnreported && !isOnOpenExpenseReport) {
+                    return false;
+                }
+
+                // Don't show expenses that are already on the current report
+                if (item?.reportID === reportID) {
                     return false;
                 }
 
@@ -121,15 +142,15 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy, report, cardList, currentUserAccountID],
+        [policy, report, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
-            selector: getUnreportedTransactions,
+            selector: getEligibleTransactions,
         },
-        [getUnreportedTransactions],
+        [getEligibleTransactions],
     );
 
     const fetchMoreUnreportedTransactions = () => {
@@ -182,16 +203,38 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         });
     }, [convertToDisplayString, debouncedSearchValue, shouldShowTextInput, transactions]);
 
+    const selectedStatusValues = useMemo(() => selectedStatuses.map((s) => s.value), [selectedStatuses]);
+
+    const statusFilteredTransactions = useMemo(() => {
+        if (selectedStatusValues.length === 0) {
+            return filteredTransactions;
+        }
+
+        const includesUnreported = selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
+        const includesDrafts = selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.DRAFTS);
+
+        return filteredTransactions.filter((item) => {
+            const isUnreported = isUnreportedTransaction(item);
+            if (includesUnreported && isUnreported) {
+                return true;
+            }
+            if (includesDrafts && !isUnreported) {
+                return true;
+            }
+            return false;
+        });
+    }, [filteredTransactions, selectedStatusValues]);
+
     const unreportedExpenses = useMemo(() => {
-        return createUnreportedExpenses(filteredTransactions).map((item) => ({
+        return createUnreportedExpenses(statusFilteredTransactions).map((item) => ({
             ...item,
             isSelected: selectedIds.has(item.transactionID),
         }));
-    }, [filteredTransactions, selectedIds]);
+    }, [statusFilteredTransactions, selectedIds]);
 
     const footerContent = useMemo(
         () => (
-            <AddUnreportedExpenseFooter
+            <AddExistingExpenseFooter
                 selectedIds={selectedIds}
                 report={report}
                 reportToConfirm={reportToConfirm}
@@ -206,20 +249,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     );
 
     const headerMessage = useMemo(() => {
-        if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
+        if ((debouncedSearchValue.trim() || selectedStatusValues.length > 0) && unreportedExpenses?.length === 0) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate, selectedStatusValues.length]);
 
     const textInputOptions = useMemo(
         () => ({
             value: searchValue,
             label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
             onChangeText: setSearchValue,
-            headerMessage,
         }),
-        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
+        [searchValue, shouldShowTextInput, translate, setSearchValue],
     );
 
     const onSelectRow = useCallback(
@@ -253,6 +295,81 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         });
     };
 
+    const statusItems: Array<MultiSelectItem<ExpenseStatus>> = useMemo(
+        () => [
+            {text: translate('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+            {text: translate('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+        ],
+        [translate],
+    );
+
+    const statusPopoverComponent = useCallback(
+        (props: {closeOverlay: () => void}) => (
+            <MultiSelectPopup
+                label={translate('common.status')}
+                items={statusItems}
+                value={selectedStatuses}
+                closeOverlay={props.closeOverlay}
+                onChange={setSelectedStatuses}
+            />
+        ),
+        [translate, statusItems, selectedStatuses],
+    );
+
+    const customListHeader = useMemo(
+        () => (
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <PressableWithFeedback
+                    style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
+                    onPress={onSelectAll}
+                    accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                    accessibilityRole={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
+                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                </PressableWithFeedback>
+                <DropdownButton
+                    label={translate('common.status')}
+                    value={selectedStatuses.map((s) => s.text)}
+                    PopoverComponent={statusPopoverComponent}
+                />
+            </View>
+        ),
+        [
+            styles.flex1,
+            styles.flexRow,
+            styles.alignItemsCenter,
+            styles.justifyContentBetween,
+            styles.userSelectNone,
+            styles.textStrong,
+            styles.ph3,
+            onSelectAll,
+            translate,
+            selectedStatuses,
+            statusPopoverComponent,
+        ],
+    );
+
+    const listFooterContent = useMemo(() => {
+        if (shouldShowUnreportedTransactionsSkeletons) {
+            return (
+                <UnreportedExpensesSkeleton
+                    fixedNumberOfItems={3}
+                    reasonAttributes={paginationSkeletonReasonAttributes}
+                />
+            );
+        }
+        if (headerMessage) {
+            return (
+                <View style={[styles.ph5, styles.pt3]}>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
+                </View>
+            );
+        }
+        return undefined;
+    }, [shouldShowUnreportedTransactionsSkeletons, headerMessage, paginationSkeletonReasonAttributes, styles.ph5, styles.pt3, styles.textLabel, styles.colorMuted]);
+
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
 
@@ -267,7 +384,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
-                    title={translate('iou.addUnreportedExpense')}
+                    title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <UnreportedExpensesSkeleton reasonAttributes={initialSkeletonReasonAttributes} />
@@ -285,7 +402,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
-                    title={translate('iou.addUnreportedExpense')}
+                    title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
@@ -294,8 +411,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         cardStyles={[styles.appBG]}
                         cardContentStyles={[styles.pb0]}
                         headerMedia={illustrations.FolderWithPapersAndWatch}
-                        title={translate('iou.emptyStateUnreportedExpenseTitle')}
-                        subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
+                        title={translate('iou.emptyStateExistingExpenseTitle')}
+                        subtitle={translate('iou.emptyStateExistingExpenseSubtitle')}
                         headerStyles={[styles.emptyStateMoneyRequestReport]}
                         headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                         buttons={[
@@ -330,7 +447,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
-                title={translate('iou.addUnreportedExpense')}
+                title={translate('iou.addExistingExpense')}
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<Transaction & ListItem>
@@ -338,22 +455,17 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 ref={selectionListRef}
                 onSelectRow={onSelectRow}
                 onSelectAll={onSelectAll}
+                customListHeader={customListHeader}
                 style={{listHeaderWrapperStyle: styles.ph8}}
                 textInputOptions={textInputOptions}
                 shouldShowTextInput={shouldShowTextInput}
+                shouldShowListEmptyContent={false}
                 canSelectMultiple
                 ListItem={UnreportedExpenseListItem}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
-                listFooterContent={
-                    shouldShowUnreportedTransactionsSkeletons ? (
-                        <UnreportedExpensesSkeleton
-                            fixedNumberOfItems={3}
-                            reasonAttributes={paginationSkeletonReasonAttributes}
-                        />
-                    ) : undefined
-                }
+                listFooterContent={listFooterContent}
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
             />
@@ -361,4 +473,4 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     );
 }
 
-export default AddUnreportedExpense;
+export default AddExistingExpense;
