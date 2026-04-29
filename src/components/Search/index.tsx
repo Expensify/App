@@ -70,7 +70,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, SaveSearch, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -121,6 +121,7 @@ function mapTransactionItemToSelectedEntry(
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     allowNegativeAmount = true,
+    parentReport?: OnyxEntry<Report>,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
@@ -135,7 +136,7 @@ function mapTransactionItemToSelectedEntry(
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy),
+            canSplit: isSplitAction(item.report, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -192,6 +193,7 @@ function prepareTransactionsList(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    parentReport?: OnyxEntry<Report>,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -207,6 +209,7 @@ function prepareTransactionsList(
         currentUserAccountID,
         outstandingReportsByPolicyID,
         false,
+        parentReport,
     );
 
     return {
@@ -792,6 +795,7 @@ function Search({
                     const originalItemTransaction =
                         searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                         transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                    const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
 
                     newTransactionList[transactionItem.transactionID] = {
                         transaction: transactionItem,
@@ -799,7 +803,7 @@ function Search({
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
                         canUnhold: canUnholdRequest,
-                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
+                        canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport),
                         hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                         canChangeReport: canEditFieldOfMoneyRequest({
                             reportAction: transactionItem.reportAction,
@@ -848,6 +852,7 @@ function Search({
 
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
 
                 newTransactionList[transactionItem.transactionID] = {
                     transaction: transactionItem,
@@ -855,7 +860,7 @@ function Search({
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
                     canUnhold: canUnholdRequest,
-                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy),
+                    canSplit: isSplitAction(transactionItem.report, [itemTransaction], originalItemTransaction, login ?? '', accountID, transactionItem.policy, itemParentReport),
                     hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
                     canChangeReport: canEditFieldOfMoneyRequest({
                         reportAction: transactionItem.reportAction,
@@ -990,6 +995,7 @@ function Search({
                 }
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
                 const updatedTransactions = prepareTransactionsList(
                     item,
                     itemTransaction,
@@ -998,6 +1004,7 @@ function Search({
                     email ?? '',
                     accountID,
                     outstandingReportsByPolicyID,
+                    itemParentReport,
                 );
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1063,7 +1070,17 @@ function Search({
                             const originalItemTransaction =
                                 searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                            const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                            return mapTransactionItemToSelectedEntry(
+                                transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                email ?? '',
+                                accountID,
+                                outstandingReportsByPolicyID,
+                                true,
+                                itemParentReport,
+                            );
                         }),
                 ),
             };
@@ -1387,7 +1404,17 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            true,
+                            itemParentReport,
+                        );
                     });
             });
             updatedTransactions = Object.fromEntries(allSelections);
@@ -1399,7 +1426,17 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+                        const itemParentReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            true,
+                            itemParentReport,
+                        );
                     }),
             );
         }

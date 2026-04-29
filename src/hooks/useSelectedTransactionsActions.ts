@@ -458,8 +458,12 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         const canSplitTransaction =
-            selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
+            selectedTransactionsList.length === 1 &&
+            report &&
+            !isExpenseSplit &&
+            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy, parentReport);
 
         if (canSplitTransaction) {
             options.push({
