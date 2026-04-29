@@ -24,7 +24,7 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.companyCards.addWorkEmail')} />
+                <HeaderWithBackButton title={translate('workspace.card.chooseRule')} />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

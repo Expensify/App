@@ -6119,7 +6119,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         card: {
             issueCard: 'Emitir tarjeta',
+            chooseRule: 'Choose a rule',
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
+
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
                 inviteNewMember: 'Invitar nuevo miembro',

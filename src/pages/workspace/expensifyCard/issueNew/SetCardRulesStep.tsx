@@ -7,20 +7,20 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
-import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -73,6 +73,13 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
             icon: icons.Pencil,
         },
     ];
+
+    const handleChooseSpendRule = () => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION.getRoute(policyID));
+    };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -156,7 +163,7 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
                                 // title="Choose a rule"
                                 shouldShowRightIcon
                                 description="Choose a rule"
-                                // onPress={item.onPress}
+                                onPress={handleChooseSpendRule}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
                             />
                         )}
