@@ -7,6 +7,7 @@ import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
+import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -186,7 +187,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 created: '2024-01-01 12:00:00',
@@ -203,7 +204,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was updated
@@ -267,7 +268,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: [],
                 created: '2024-01-01 12:00:00',
@@ -284,7 +285,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with empty duplicate list
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was still updated
@@ -318,7 +319,7 @@ describe('actions/Duplicate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 created: '2024-01-01 12:00:00',
@@ -335,7 +336,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates without expense report
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify function completed without errors
@@ -498,6 +499,7 @@ describe('actions/Duplicate', () => {
                     text: message,
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
             };
@@ -519,7 +521,7 @@ describe('actions/Duplicate', () => {
 
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 created: '2024-01-01 12:00:00',
@@ -536,7 +538,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
@@ -618,7 +620,7 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const mergeParams = {
+            const mergeParams: MergeDuplicatesParams = {
                 transactionID: mainTransactionID,
                 transactionIDList: duplicateTransactionIDs,
                 transactionThreadReportID: optimisticTransactionThreadReportID,
@@ -636,7 +638,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with transactionThreadReportID
-            mergeDuplicates(mergeParams);
+            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             // Then: Verify the optimistic transaction thread report was created
@@ -1162,6 +1164,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1225,6 +1229,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1281,6 +1287,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1333,6 +1341,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1394,6 +1404,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1441,6 +1453,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1481,6 +1495,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1523,6 +1539,8 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1574,6 +1592,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1638,6 +1658,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1687,6 +1709,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1747,6 +1771,8 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -1912,6 +1938,8 @@ describe('actions/Duplicate', () => {
             isSelfTourViewed: false,
             transactionViolations: {},
             translate: mockTranslate,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
             ...overrides,
         });
@@ -2375,7 +2403,13 @@ describe('actions/Duplicate', () => {
     describe('bulkDuplicateExpenses', () => {
         let writeSpy: jest.SpyInstance;
 
-        const mockPolicy = createRandomPolicy(1);
+        const mockPolicy: Policy = {
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            harvesting: {enabled: false},
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        };
         const fakePolicyCategories = createRandomPolicyCategories(3);
         const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
@@ -2395,7 +2429,9 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy.id}`, mockPolicy);
+            await waitForBatchedUpdates();
         });
 
         afterEach(() => {

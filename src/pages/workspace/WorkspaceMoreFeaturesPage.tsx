@@ -521,49 +521,50 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
-        integrateItems.push({
-            icon: illustrations.ReceiptPartners,
-            titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
-            isActive: policy?.receiptPartners?.enabled ?? false,
-            pendingAction: policy?.pendingFields?.receiptPartners,
-            disabledAction: () => {
-                if (!isUberConnected || !isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
+    integrateItems.push({
+        icon: illustrations.ReceiptPartners,
+        titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
+        isActive: policy?.receiptPartners?.enabled ?? false,
+        pendingAction: policy?.pendingFields?.receiptPartners,
+        disabledAction: () => {
+            if (!isUberConnected) {
+                return;
+            }
+            showConfirmModal({
+                title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
+                prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'),
+                confirmText: translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText'),
+                shouldShowCancelButton: false,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-
-                showConfirmModal({
-                    title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
-                    prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'),
-                    confirmText: translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText'),
-                    shouldShowCancelButton: false,
-                });
                 // TODO: Navigate to Receipt Partners settings page when it exists
                 // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
-            },
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                enablePolicyReceiptPartners(policyID, isEnabled);
-            },
-            disabled: isUberConnected,
-            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
-            onCloseError: () => {
-                if (!policyID) {
-                    return;
-                }
-                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
-            },
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-            },
-        });
-    }
+            });
+        },
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            enablePolicyReceiptPartners(policyID, isEnabled);
+        },
+        disabled: isUberConnected,
+        errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
+        onCloseError: () => {
+            if (!policyID) {
+                return;
+            }
+            clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
+        },
+        onPress: () => {
+            if (!policyID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+        },
+    });
 
     if (isBetaEnabled(CONST.BETAS.GUSTO)) {
         integrateItems.push({

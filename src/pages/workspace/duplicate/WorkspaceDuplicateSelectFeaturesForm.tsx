@@ -223,6 +223,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
         duplicateWorkspaceAction(policy, {
             currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email,
             policyName: duplicateWorkspace.name,
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
@@ -258,6 +259,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         translate,
         duplicatedWorkspaceAvatar,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         currentUserPersonalDetails?.localCurrencyCode,
     ]);
 
@@ -284,6 +286,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             ),
             confirmText: translate('common.proceed'),
             cancelText: translate('common.cancel'),
+            success: true,
         }).then((result) => {
             if (!policy || !duplicateWorkspaceName || !duplicateWorkspacePolicyID || result.action !== ModalActions.CONFIRM) {
                 return;
