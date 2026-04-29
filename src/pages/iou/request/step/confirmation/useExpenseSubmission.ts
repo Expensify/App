@@ -478,6 +478,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policy,
                     policyCategories,
                     policyTagList: policyTags,
+                    policyRecentlyUsedTags,
                 },
                 transactionParams: {
                     amount: item.amount,
