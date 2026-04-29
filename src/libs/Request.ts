@@ -1,4 +1,3 @@
-import {CONST} from 'expensify-common';
 import type {OnyxKey} from 'react-native-onyx';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -21,7 +20,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     const isPrefetchQuery = request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP;
     const prefetchKey = isPrefetchQuery ? request.command : undefined;
 
-    const finalRequest = prefetchKey ? {...request, headers: prefetchKey ? {prefetchKey} : undefined} : request;
+    const finalRequest = prefetchKey ? {...request, headers: prefetchKey ? {...request.headers, prefetchKey} : undefined} : request;
 
     return middlewares.reduce((last, middleware) => middleware(last, finalRequest, isFromSequentialQueue), makeXHR(finalRequest));
 }
