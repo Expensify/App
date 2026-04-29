@@ -2816,6 +2816,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
         getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION: {
+        route: 'workspaces/:policyID/expensify-card/rule-selection',
+        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rule-selection` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
         getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const,

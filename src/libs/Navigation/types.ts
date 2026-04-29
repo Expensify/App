@@ -1264,6 +1264,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         fundID: number;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: {
         policyID: string;
         fundID: number;

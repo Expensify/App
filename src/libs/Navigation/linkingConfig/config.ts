@@ -845,6 +845,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.route,
                         },
