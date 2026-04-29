@@ -61,6 +61,8 @@ function Expensify() {
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
+    const dummyVariable = "x";
+
     useDebugShortcut();
 
     useEffect(() => {
