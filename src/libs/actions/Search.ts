@@ -295,7 +295,7 @@ function getPayActionCallback(
 
 function getOnyxLoadingData(
     hash: number,
-    queryJSON?: SearchQueryJSON,
+    queryJSON?: Readonly<SearchQueryJSON>,
     offset?: number,
     isOffline?: boolean,
     isSearchAPI = false,
@@ -354,7 +354,7 @@ function getOnyxLoadingData(
     return {optimisticData, finallyData, failureData};
 }
 
-function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
+function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
@@ -521,7 +521,7 @@ function search({
     shouldUpdateLastSearchParams = true,
     skipWaitForWrites = false,
 }: {
-    queryJSON: SearchQueryJSON;
+    queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;

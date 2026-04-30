@@ -53,14 +53,12 @@ const mockBuildOptimisticTaskReport = jest.fn();
 const mockBuildOptimisticCreatedReportAction = jest.fn();
 const mockBuildOptimisticTaskCommentReportAction = jest.fn();
 const mockGetTaskAssigneeChatOnyxData = jest.fn();
-const mockGetOptimisticDataForParentReportAction = jest.fn();
 const mockIsHiddenForCurrentUser = jest.fn();
 const mockFormatReportLastMessageText = jest.fn();
 jest.spyOn(ReportUtils, 'buildOptimisticTaskReport').mockImplementation(mockBuildOptimisticTaskReport);
 jest.spyOn(ReportUtils, 'buildOptimisticCreatedReportAction').mockImplementation(mockBuildOptimisticCreatedReportAction);
 jest.spyOn(ReportUtils, 'buildOptimisticTaskCommentReportAction').mockImplementation(mockBuildOptimisticTaskCommentReportAction);
 jest.spyOn(ReportUtils, 'getTaskAssigneeChatOnyxData').mockImplementation(mockGetTaskAssigneeChatOnyxData);
-jest.spyOn(ReportUtils, 'getOptimisticDataForParentReportAction').mockImplementation(mockGetOptimisticDataForParentReportAction);
 jest.spyOn(ReportUtils, 'isHiddenForCurrentUser').mockImplementation(mockIsHiddenForCurrentUser);
 jest.spyOn(ReportUtils, 'formatReportLastMessageText').mockImplementation(mockFormatReportLastMessageText);
 
@@ -374,7 +372,6 @@ describe('actions/Task', () => {
                 },
             });
 
-            mockGetOptimisticDataForParentReportAction.mockReturnValue([]);
             mockIsHiddenForCurrentUser.mockReturnValue(false);
             mockFormatReportLastMessageText.mockReturnValue('Last message text');
 

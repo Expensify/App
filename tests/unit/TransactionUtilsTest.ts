@@ -1829,6 +1829,7 @@ describe('TransactionUtils', () => {
     describe('getTaxRateTitle', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
+            tax: {trackingEnabled: true},
             taxRates: CONST.DEFAULT_TAX,
         };
 
@@ -1890,6 +1891,22 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
 
             expect(result).toBe('Tax exempt (0%) • Default');
+        });
+
+        it('should return empty string when trackingEnabled is false and transaction has no taxCode', () => {
+            const policyWithTrackingDisabled: Policy = {
+                ...createRandomPolicy(0),
+                tax: {trackingEnabled: false},
+                taxRates: CONST.DEFAULT_TAX,
+            };
+            const transaction = generateTransaction({
+                taxCode: undefined,
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policyWithTrackingDisabled, transaction, false, undefined);
+
+            expect(result).toBe('');
         });
 
         it('should return empty string when policy is undefined', () => {
@@ -2928,6 +2945,38 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+    });
+
+    describe('shouldClearConvertedAmount', () => {
+        it('returns false when destinationCurrency is undefined', () => {
+            const transaction = generateTransaction({currency: 'USD'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'EUR', undefined)).toBe(false);
+        });
+
+        it('returns false when sourceCurrency equals destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'USD'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'EUR', 'EUR')).toBe(false);
+        });
+
+        it('returns false when transactionCurrency equals destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'EUR'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'USD', 'EUR')).toBe(false);
+        });
+
+        it('returns true when both sourceCurrency and transactionCurrency differ from destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'GBP'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'USD', 'EUR')).toBe(true);
+        });
+
+        it('falls back to transactionCurrency when sourceCurrency is undefined and currencies differ', () => {
+            const transaction = generateTransaction({currency: 'GBP'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(true);
+        });
+
+        it('returns false when sourceCurrency is undefined and transactionCurrency matches destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'EUR'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(false);
         });
     });
 });

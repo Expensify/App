@@ -1,6 +1,7 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -18,6 +20,7 @@ import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isGustoConnected} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -33,8 +36,11 @@ function WorkspaceHRPage({
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const policy = usePolicy(policyID);
+    const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
+    const isConnected = isGustoConnected(policy);
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -62,6 +68,12 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
+                {!!activeGustoFlowKey && (
+                    <ConnectToGustoFlow
+                        key={activeGustoFlowKey}
+                        policyID={policyID}
+                    />
+                )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
                     title={translate('workspace.common.hr')}
@@ -82,13 +94,15 @@ function WorkspaceHRPage({
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 wrapperStyle={[styles.ph0, styles.pv2, styles.mt4]}
                                 interactive={false}
-                                shouldShowRightComponent
+                                shouldShowRightComponent={!isConnected}
                                 rightComponent={
-                                    <Button
-                                        small
-                                        text={translate('workspace.hr.gusto.connect')}
-                                        onPress={() => {}}
-                                    />
+                                    !isConnected ? (
+                                        <Button
+                                            small
+                                            text={translate('workspace.hr.gusto.connect')}
+                                            onPress={() => setActiveGustoFlowKey(Math.random())}
+                                        />
+                                    ) : undefined
                                 }
                             />
                         </Section>

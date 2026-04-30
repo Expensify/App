@@ -3,23 +3,38 @@
 # Run ESLint with the repo's standard flags (memory ceiling, shared content
 # cache, auto concurrency). Delegate target selection to the caller:
 #
-#   ./scripts/lint.sh                 -> lint the whole repo
-#   ./scripts/lint.sh src/foo.ts ...  -> lint just the given paths
+#   ./scripts/lint.sh                      -> lint the whole repo
+#   ./scripts/lint.sh src/foo.ts ...       -> lint just the given paths
+#   ./scripts/lint.sh --show-warnings ...  -> include grandfathered seatbelt warnings in the output
+#
+# By default we pass `--quiet` to ESLint so only blocking errors are printed.
+# eslint-seatbelt reclassifies grandfathered violations as warnings, so the
+# default output mirrors what CI cares about. Pass `--show-warnings` to
+# restore the full output (errors + warnings).
 
 set -euo pipefail
 
 # parse args
 USE_CACHE=true
+SHOW_WARNINGS=false
+PASSTHROUGH_ARGS=()
 for ARG in "$@"; do
-    if [[ "$ARG" == "--no-cache" ]]; then
-        USE_CACHE=false
-        break
-    fi
+    case "$ARG" in
+        --no-cache)
+            USE_CACHE=false
+            ;;
+        --show-warnings)
+            SHOW_WARNINGS=true
+            ;;
+        *)
+            PASSTHROUGH_ARGS+=("$ARG")
+            ;;
+    esac
 done
 
 # Preserve default behavior of linting the whole repo when no target is passed.
-if [[ "$#" -eq 0 ]]; then
-    set -- .
+if [[ "${#PASSTHROUGH_ARGS[@]}" -eq 0 ]]; then
+    PASSTHROUGH_ARGS=(.)
 fi
 
 # Build ESLint args
@@ -31,10 +46,13 @@ if [[ "$USE_CACHE" == "true" ]]; then
         --cache-strategy content
     )
 fi
+if [[ "$SHOW_WARNINGS" == "false" ]]; then
+    ESLINT_ARGS+=(--quiet)
+fi
 ESLINT_ARGS+=(
     --concurrency=auto
     --no-warn-ignored
-    "$@"
+    "${PASSTHROUGH_ARGS[@]}"
 )
 
 # Run ESLint with the repo's default memory ceiling and seatbelt behavior.

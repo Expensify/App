@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
@@ -102,6 +103,10 @@ function MoneyRequestReportNavigationInner({reportID, shouldDisplayNarrowVersion
         if (!reportId) {
             return;
         }
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`, {
+            name: 'ReportNavigation',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
         Navigation.setParams({
             reportID: reportId,
         });

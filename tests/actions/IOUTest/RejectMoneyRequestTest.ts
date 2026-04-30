@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getParsedComment} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
@@ -286,7 +287,26 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect.objectContaining({
                     reportID: expenseReport.reportID,
                     targetAccountID: SUBMITTER_ACCOUNT_ID,
-                    comment,
+                    comment: getParsedComment(comment),
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('queues getParsedComment output for REJECT_EXPENSE_REPORT when reject reason contains markdown', async () => {
+            const markdownComment = 'Rejected because **important**';
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REJECT_EXPENSE_REPORT,
+                expect.objectContaining({
+                    comment: getParsedComment(markdownComment),
                 }),
                 expect.anything(),
             );
