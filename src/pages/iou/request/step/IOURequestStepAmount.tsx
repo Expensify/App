@@ -246,6 +246,16 @@ function IOURequestStepAmount({
                     participant,
                     transactionReportID: report?.reportID,
                 });
+
+                // Compute the correct tax code for foreign currency transactions
+                // (same logic as the isMovingTransactionFromTrackExpense path above)
+                const skipConfirmationTaxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);
+                let skipConfirmationTaxAmount: number | undefined;
+                if (skipConfirmationTaxCode) {
+                    const taxPercentage = getTaxValue(policy, transaction, skipConfirmationTaxCode) ?? '';
+                    skipConfirmationTaxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, backendAmount, decimals));
+                }
+
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
                         [participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam],
@@ -288,6 +298,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
                             reimbursable: defaultReimbursable,
+                            ...(skipConfirmationTaxCode ? {taxCode: skipConfirmationTaxCode, taxAmount: skipConfirmationTaxAmount} : {}),
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport: false,
@@ -319,6 +330,7 @@ function IOURequestStepAmount({
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             reimbursable: defaultReimbursable,
+                            ...(skipConfirmationTaxCode ? {taxCode: skipConfirmationTaxCode, taxAmount: skipConfirmationTaxAmount} : {}),
                         },
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
