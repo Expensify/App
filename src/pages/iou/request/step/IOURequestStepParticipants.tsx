@@ -30,10 +30,8 @@ function IOURequestStepParticipants({
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
-    const participants = useMemo(() => {
-        const allParticipants = initialTransaction?.participants;
-        return isSplitRequest ? allParticipants : allParticipants?.filter((participant) => !participant.isSender && participant.selected);
-    }, [initialTransaction?.participants, isSplitRequest]);
+    const allParticipants = initialTransaction?.participants;
+    const participants = isSplitRequest ? allParticipants : allParticipants?.filter((participant) => !participant.isSender && participant.selected);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();

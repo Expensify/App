@@ -223,7 +223,7 @@ function ParticipantSearchResults({
         shouldInitialize: didScreenTransitionEnd,
         enablePhoneContacts: isNative,
         contactOptions: contacts,
-        initialSelected: participants as OptionData[],
+        initialSelected: isIOUSplit ? (participants as OptionData[]) : undefined,
         onSelectionChange: handleSelectionChange,
         onSingleSelect: (option: OptionData) => {
             if (isIOUSplit) {
@@ -372,6 +372,12 @@ function ParticipantSearchResults({
 
         if (shouldAddSingleParticipant) {
             addSingleParticipant(option);
+            return;
+        }
+
+        // If the selected option is self DM, we need to recall onParticipantsAdded to handle navigation correctly
+        if (!option && selectedOptions.length === 1 && selectedOptions.at(0)?.isSelfDM) {
+            onParticipantsAdded(selectedOptions.map((selectedOption) => sanitizedSelectedParticipant(selectedOption, iouType)));
             return;
         }
 
