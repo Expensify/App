@@ -50,7 +50,7 @@ function ReportActionsList({archivedReportsIDSet}: {archivedReportsIDSet: Archiv
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList />;
+        return <MoneyRequestReportActionsList archivedReportsIDSet={archivedReportsIDSet} />;
     }
 
     return (
