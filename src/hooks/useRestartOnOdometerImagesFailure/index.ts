@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
@@ -17,9 +17,27 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 // This is because until the request is saved, the image files are only stored in the browser's memory as blob:// URLs
 // and if the browser is refreshed, then the images cease to exist.
 // The best way for the user to recover from this is to start over from the start of the request process.
-const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, backToReport: string | undefined, onBackupHandled?: () => void) => {
+// Returns `hasVerifiedBlobs` so callers can gate dependent side-effects (e.g. odometer image stitching)
+// until this check has confirmed the blobs are still readable. When there are no blob URLs to verify
+// (e.g. native file:// paths or remote URLs), `hasVerifiedBlobs` is `true` as soon as Onyx has loaded.
+const useRestartOnOdometerImagesFailure = (
+    transaction: OnyxEntry<Transaction>,
+    reportID: string,
+    iouType: IOUType,
+    backToReport: string | undefined,
+    onBackupHandled?: () => void,
+): {hasVerifiedBlobs: boolean} => {
     const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const hasCheckedRef = useRef(false);
+    const [asyncVerificationPassed, setAsyncVerificationPassed] = useState(false);
+
+    const hasBlobUrls = (() => {
+        if (!transaction) {
+            return false;
+        }
+        const paths = [getOdometerImageUri(transaction.comment?.odometerStartImage), getOdometerImageUri(transaction.comment?.odometerEndImage), transaction.receipt?.source?.toString()];
+        return paths.some((path) => !!path && path.startsWith('blob:'));
+    })();
 
     useEffect(() => {
         if (!transaction || isLoadingOnyxValue(draftTransactionsMetadata)) {
@@ -76,6 +94,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
         ).then((results) => {
             const canBeRead = results.every(Boolean);
             if (canBeRead) {
+                setAsyncVerificationPassed(true);
                 return;
             }
 
@@ -84,6 +103,11 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
         });
     }, [draftTransactionsMetadata, transaction, iouType, reportID, backToReport, onBackupHandled]);
+
+    const isOnyxLoading = isLoadingOnyxValue(draftTransactionsMetadata);
+    const hasVerifiedBlobs = !!transaction && !isOnyxLoading && (!hasBlobUrls || asyncVerificationPassed);
+
+    return {hasVerifiedBlobs};
 };
 
 export default useRestartOnOdometerImagesFailure;

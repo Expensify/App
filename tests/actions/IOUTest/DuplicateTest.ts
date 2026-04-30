@@ -55,7 +55,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -90,7 +89,7 @@ describe('actions/Duplicate', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
@@ -499,6 +498,7 @@ describe('actions/Duplicate', () => {
                     text: message,
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: RORY_ACCOUNT_ID,
+                    delegateAccountID: undefined,
                 });
                 await waitForBatchedUpdates();
             };
@@ -839,7 +839,7 @@ describe('actions/Duplicate', () => {
                     transactionID: mainTransactionID,
                     transactionIDList: duplicateTransactionIDs,
                     reportActionIDList: expect.arrayContaining([]),
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
                     dismissedViolationReportActionID: expect.anything(),
                 }),
                 expect.objectContaining({
@@ -2402,7 +2402,13 @@ describe('actions/Duplicate', () => {
     describe('bulkDuplicateExpenses', () => {
         let writeSpy: jest.SpyInstance;
 
-        const mockPolicy = createRandomPolicy(1);
+        const mockPolicy: Policy = {
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            harvesting: {enabled: false},
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        };
         const fakePolicyCategories = createRandomPolicyCategories(3);
         const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
@@ -2422,7 +2428,9 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy.id}`, mockPolicy);
+            await waitForBatchedUpdates();
         });
 
         afterEach(() => {
@@ -2477,6 +2485,8 @@ describe('actions/Duplicate', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -2579,6 +2589,7 @@ describe('actions/Duplicate', () => {
             activePolicyExpenseChat,
             ownerPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
             currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},

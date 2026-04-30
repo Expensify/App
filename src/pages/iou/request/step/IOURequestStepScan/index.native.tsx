@@ -63,7 +63,6 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
-    onLayout,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -237,7 +236,6 @@ function IOURequestStepScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
         reportID,
@@ -388,15 +386,7 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo || isEditing}
             testID="IOURequestStepScan"
         >
-            <View
-                style={styles.flex1}
-                onLayout={() => {
-                    if (!onLayout) {
-                        return;
-                    }
-                    onLayout(setTestReceiptAndNavigate);
-                }}
-            >
+            <View style={styles.flex1}>
                 {PDFValidationComponent}
                 <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
                     <View style={[styles.flex1]}>
@@ -618,9 +608,9 @@ function IOURequestStepScan({
 }
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
-// eslint-disable-next-line rulesdir/no-negated-variables -- withWritableReportOrNotFound HOC requires this pattern
+
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
+
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;
