@@ -1497,7 +1497,9 @@ function AddWorkEmail(workEmail: string) {
         },
     ).then((response) => {
         if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-            if (!response?.message || !response?.message.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) { 
+            if (response?.message && response?.message.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) { 
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, "onboarding.workEmail2FAError");
+            }else{
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
         }

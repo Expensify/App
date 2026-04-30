@@ -104,18 +104,18 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
-        if (!onboardingErrorMessage) {
+        if (!onboardingErrorMessageTranslationKey) {
             clearWorkEmailFormErrors();
         } else {
-            addWorkEmailFormError(onboardingErrorMessage);
+            addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
         }
-    }, [onboardingErrorMessage]);
+    }, [onboardingErrorMessageTranslationKey]);
 
     const clearOnboardingErrorMessage = useCallback(() => {
         if (onboardingErrorMessage) {
-            setOnboardingErrorMessage(null);
+            setOnboardingErrorMessageTranslationKey(null);
         }
-    }, [onboardingErrorMessage]);
+    }, [onboardingErrorMessageTranslationKey]);
 
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
@@ -198,7 +198,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={onboardingErrorMessageTranslationKey ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)} : undefined}
+                            errors={(onboardingErrorMessageTranslationKey && onboardingErrorMessageTranslationKey !== 'onboarding.workEmail2FAError') ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)} : undefined}
                             errorRowStyles={[styles.mt2, styles.textWrap]}
                             onClose={() => setOnboardingErrorMessageTranslationKey(null)}
                         >
