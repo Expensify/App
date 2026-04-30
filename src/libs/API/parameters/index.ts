@@ -164,6 +164,8 @@ export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
+export type {default as UpdatePolicyRulesDocumentParams} from './UpdatePolicyRulesDocumentParams';
+export type {default as DeletePolicyRulesDocumentParams} from './DeletePolicyRulesDocumentParams';
 export type {default as AddMembersToWorkspaceParams} from './AddMembersToWorkspaceParams';
 export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersFromWorkspaceParams';
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
@@ -273,7 +275,6 @@ export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValue
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
 export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
 export type {default as UpdatePolicyTagGLCodeParams} from './UpdatePolicyTagGLCodeParams';
-export type {default as AddSubscriptionPaymentCardParams} from './AddSubscriptionPaymentCardParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
@@ -374,6 +375,7 @@ export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTax
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as SetCardReconciliationBankAccountParams} from './SetCardReconciliationBankAccountParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
 export type {default as RemoveDelegateParams} from './RemoveDelegateParams';
@@ -458,7 +460,6 @@ export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOURepo
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './ChangeReportPolicyAndInviteSubmitterParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
-export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
@@ -518,3 +519,4 @@ export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
+export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';

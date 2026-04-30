@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `开始吧`,
         showMore: '显示更多',
         showLess: '收起',
+        plusMore: ({count}: {count: number}) => `+${count}个`,
         merchant: '商户',
         change: '更改',
         category: '类别',
@@ -839,6 +840,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: '只有管理员可以在此房间中发送消息。',
+    readOnlyConversation: '此对话仅可查看。',
     reportAction: {
         asCopilot: '作为副驾驶，用于',
         assistedBy: (agentName: string) => `由${agentName}协助`,
@@ -1425,11 +1427,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: '已搁置此报销费用',
         unheldExpense: '已取消冻结此报销费用',
         moveUnreportedExpense: '移动未报销费用',
-        addUnreportedExpense: '添加未报销费用',
-        selectUnreportedExpense: '请选择至少一笔报销添加到报表中。',
-        emptyStateUnreportedExpenseTitle: '没有未报销的报销单',
-        emptyStateUnreportedExpenseSubtitle: '看起来你没有任何未报销的费用。请在下方创建一笔。',
-        addUnreportedExpenseConfirm: '添加到报表',
+        addExistingExpense: '添加现有费用',
+        selectExistingExpense: '请选择至少一笔报销添加到报表中。',
+        emptyStateExistingExpenseTitle: '没有现有费用',
+        emptyStateExistingExpenseSubtitle: '看起来你没有任何现有的费用。请在下方创建一笔。',
+        addExistingExpenseConfirm: '添加到报表',
         newReport: '新报表',
         explainHold: () => ({
             one: '请解释你为何暂时保留这笔报销。',
@@ -2039,8 +2041,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: '账户',
         general: '常规',
         helpPage: {
-            title: '帮助与支持',
-            description: '我们全天候 24/7 为您提供帮助',
+            title: '有疑问吗？',
+            description: '我们全天候为您提供帮助。',
             helpSite: '帮助网站',
             conciergeChat: 'Concierge',
             conciergeChatDescription: '你的个人 AI 助理',
@@ -6630,6 +6632,8 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+                policyDocument: '政策文件',
+                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',
@@ -6682,6 +6686,8 @@ ${reportName}
                 merchants: '商家',
                 noAvailableCards: '所有卡片已具有规则',
                 noAvailableCardsSubtitle: '编辑现有的卡片规则以进行更改',
+                noCardsIssuedTitle: '尚未发放 Expensify 卡',
+                noCardsIssuedSubtitle: '发放 Expensify 卡以创建支出规则',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空公司',
@@ -7460,6 +7466,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `所有 ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `所有导入的 CSV 卡片${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: '集中开票',
             },
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
@@ -7563,8 +7570,8 @@ ${reportName}
         spendOverTime: '随时间支出',
         tabs: {
             expenseReports: '报销报告',
-            reports: '所有报表',
-            expenses: '所有报销',
+            reports: '报表',
+            expenses: '报销费用',
             submit: '草稿',
             approve: '待审批',
             pay: '准备付款',
@@ -8463,9 +8470,9 @@ ${reportName}
             collectBillingDescription: 'Collect 工作区按每位成员每月计费，无需年度承诺。',
             pricing: '定价',
         },
-        requestEarlyCancellation: {
-            title: '请求提前取消',
-            subtitle: '您申请提前取消的主要原因是什么？',
+        cancelSubscription: {
+            title: '取消订阅',
+            subtitle: '您取消订阅的主要原因是什么？',
             subscriptionCanceled: {
                 title: '订阅已取消',
                 subtitle: '您的年度订阅已被取消。',
@@ -8477,7 +8484,7 @@ ${reportName}
                 title: '请求已提交',
                 subtitle: '感谢你告知我们你有意取消订阅。我们正在审核你的请求，并会很快通过你与<concierge-link>Concierge</concierge-link>的聊天与你联系。',
             },
-            acknowledgement: `通过请求提前取消，我确认并同意：根据 Expensify 的<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a>或我与 Expensify 之间适用的其他服务协议，Expensify 没有义务批准此类请求，并且 Expensify 保留对是否批准任何此类请求的完全自主决定权。`,
+            acknowledgement: `通过请求取消，我确认并同意：根据 Expensify 的<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a>或我与 Expensify 之间适用的其他服务协议，Expensify 没有义务批准此类请求，并且 Expensify 保留对是否批准任何此类请求的完全自主决定权。`,
         },
     },
     feedbackSurvey: {
@@ -8639,12 +8646,6 @@ ${reportName}
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',
         accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>扫描我们的测试收据</strong>，看看它如何运作！</tooltip>',
-            manager: '<tooltip>选择我们的<strong>测试管理员</strong>来试用吧！</tooltip>',
-            confirmation: '<tooltip>现在<strong>提交报销</strong>，见证奇迹发生！</tooltip>',
-            tryItOut: '试用一下',
-        },
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
@@ -8819,7 +8820,7 @@ ${reportName}
             resetDomain: '重置域名',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入要重置的域名 <strong>${domainName}</strong> 以确认。`,
             enterDomainName: '在此输入您的域名',
-            resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <bullet-list><bullet-item>公司卡关联以及这些卡上所有未报销的费用</bullet-item><bullet-item>SAML 和群组设置</bullet-item></bullet-list> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
+            resetDomainInfo: `此操作为<strong>永久性</strong>，并将删除以下数据：<br/> <bullet-list><bullet-item>公司卡关联以及这些卡上任何未报销的费用</bullet-item><bullet-item>SAML 和群组设置</bullet-item><bullet-item>差旅数据以及对 Expensify Travel 的访问权限</bullet-item></bullet-list> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过在<a href="#">联系方式</a>中移除关联邮箱，将此域从您的域列表中清除。`,
         },
         domainMembers: '域成员',
         members: {
@@ -8868,6 +8869,10 @@ ${reportName}
         groups: {
             title: '群组',
             memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`}),
+            defaultGroup: '新成员的默认群组',
+            defaultGroupPrompt: (currentName: string, newName: string) => `您确定要将 ${newName} 设为默认群组吗？新成员将被邀请加入此群组，而不是之前的默认群组（${currentName}）。`,
+            makeDefault: '设为默认',
+            neverMind: '算了',
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},

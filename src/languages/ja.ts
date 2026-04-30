@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `はじめましょう`,
         showMore: 'さらに表示',
         showLess: '表示を減らす',
+        plusMore: ({count}: {count: number}) => `+${count}件`,
         merchant: '加盟店',
         change: '変更',
         category: 'カテゴリ',
@@ -851,6 +852,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'このルームでメッセージを送信できるのは管理者のみです。',
+    readOnlyConversation: 'この会話は読み取り専用です。',
     reportAction: {
         asCopilot: '共同操縦者として',
         assistedBy: (agentName: string) => `${agentName}がアシスト`,
@@ -1452,11 +1454,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費の保留を解除しました',
         moveUnreportedExpense: '未報告の経費を移動',
-        addUnreportedExpense: '未報告の経費を追加',
-        selectUnreportedExpense: 'レポートに追加する経費を少なくとも1件選択してください。',
-        emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
-        emptyStateUnreportedExpenseSubtitle: '未報告の経費はありません。下から新しく作成してみてください。',
-        addUnreportedExpenseConfirm: 'レポートに追加',
+        addExistingExpense: '既存の経費を追加',
+        selectExistingExpense: 'レポートに追加する経費を少なくとも1件選択してください。',
+        emptyStateExistingExpenseTitle: '既存の経費はありません',
+        emptyStateExistingExpenseSubtitle: '既存の経費がありません。下から新しく作成してみてください。',
+        addExistingExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
         explainHold: () => ({
             one: 'この経費を保留している理由を説明してください。',
@@ -2074,8 +2076,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'アカウント',
         general: '一般',
         helpPage: {
-            title: 'ヘルプとサポート',
-            description: '24時間365日いつでもサポートいたします',
+            title: 'ご質問がありますか？',
+            description: '24時間いつでもサポートします。',
             helpSite: 'ヘルプサイト',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'あなた専用のAIエージェント',
@@ -6748,6 +6750,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',
@@ -6800,6 +6804,8 @@ ${reportName}
                 merchants: '加盟店',
                 noAvailableCards: 'すべてのカードにはすでにルールがあります',
                 noAvailableCardsSubtitle: '既存のカードルールを編集して変更します',
+                noCardsIssuedTitle: 'Expensify カードは発行されていません',
+                noCardsIssuedSubtitle: 'Expensify カードを発行して支出ルールを作成しましょう',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',
@@ -7596,6 +7602,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: '集中請求',
             },
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
@@ -7699,8 +7706,8 @@ ${reportName}
         spendOverTime: '時間経過による支出',
         tabs: {
             expenseReports: '経費精算書',
-            reports: 'すべてのレポート',
-            expenses: 'すべての経費',
+            reports: 'レポート',
+            expenses: '経費',
             submit: '下書き',
             approve: '承認が必要',
             pay: '支払いの準備完了',
@@ -8617,9 +8624,9 @@ ${reportName}
             collectBillingDescription: 'Collect ワークスペースは、年間契約なしで、メンバーごとに毎月課金されます。',
             pricing: '料金',
         },
-        requestEarlyCancellation: {
-            title: '早期解約をリクエスト',
-            subtitle: '早期解約を申請する主な理由を教えてください。',
+        cancelSubscription: {
+            title: 'サブスクリプションをキャンセル',
+            subtitle: 'サブスクリプションをキャンセルする主な理由を教えてください。',
             subscriptionCanceled: {
                 title: 'サブスクリプションを解約しました',
                 subtitle: '年間サブスクリプションは解約されました。',
@@ -8632,7 +8639,7 @@ ${reportName}
                 subtitle:
                     'サブスクリプションの解約をご希望とのこと、お知らせいただきありがとうございます。ご依頼の内容を確認し、まもなく<concierge-link>Concierge</concierge-link>とのチャットを通じてご連絡いたします。',
             },
-            acknowledgement: `早期解約を申請することにより、私は、Expensify の<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a>または私と Expensify 間のその他の適用されるサービス契約のいずれにおいても、Expensify は当該申請を承認する義務を負わず、また当該申請を承認するかどうかについての裁量が専ら Expensify にあることを認識し、これに同意します。`,
+            acknowledgement: `解約を申請することにより、私は、Expensify の<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a>または私と Expensify 間のその他の適用されるサービス契約のいずれにおいても、Expensify は当該申請を承認する義務を負わず、また当該申請を承認するかどうかについての裁量が専ら Expensify にあることを認識し、これに同意します。`,
         },
     },
     feedbackSurvey: {
@@ -8795,12 +8802,6 @@ ${reportName}
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',
         saveSearchTooltip: '<tooltip>保存済み検索の<strong>名前を変更</strong>しましょう！</tooltip>',
         accountSwitcher: '<tooltip>ここから<strong>Copilot アカウント</strong>にアクセスできます</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>テスト用レシートをスキャン</strong>して、どのように動作するか見てみましょう！</tooltip>',
-            manager: '<tooltip>お試しには<strong>テストマネージャー</strong>を選択してください！</tooltip>',
-            confirmation: '<tooltip>さあ、<strong>経費を提出</strong>して、何が起こるか見てみましょう！</tooltip>',
-            tryItOut: '試してみる',
-        },
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
@@ -8976,7 +8977,7 @@ ${reportName}
             resetDomain: 'ドメインをリセット',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `ドメインのリセットを確認するため、<strong>${domainName}</strong> と入力してください。`,
             enterDomainName: 'ここにドメイン名を入力してください',
-            resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <bullet-list><bullet-item>会社カードの接続と、そのカードの未報告精算</bullet-item><bullet-item>SAML およびグループ設定</bullet-item></bullet-list> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
+            resetDomainInfo: `この操作は<strong>完全に削除</strong>され、次のデータが消去されます。<br/> <bullet-list><bullet-item>会社カードの接続およびそれらのカードに紐づく未申報経費</bullet-item><bullet-item>SAML とグループ設定</bullet-item><bullet-item>旅行データおよび Expensify Travel へのアクセス</bullet-item></bullet-list> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータはそのまま残ります。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられたメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
         },
         domainMembers: 'ドメインメンバー',
         members: {
@@ -9026,6 +9027,11 @@ ${reportName}
         groups: {
             title: 'グループ',
             memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`}),
+            defaultGroup: '新しいメンバーのデフォルトグループ',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `本当に ${newName} をデフォルトグループに設定しますか？新しいメンバーは、以前のデフォルトグループ (${currentName}) ではなく、このグループに招待されます。`,
+            makeDefault: 'デフォルトに設定',
+            neverMind: 'やめておく',
         },
     },
     proactiveAppReview: {

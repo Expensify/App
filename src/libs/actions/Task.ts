@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -27,6 +28,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
@@ -272,20 +274,21 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
 
     const searchDataTypes = [CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.TASK];
 
-    const snapshotDataToStore = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`]: {
-            ...completeOptimisticTaskReport,
-            accountID: currentUserAccountID,
-        },
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`]: {
-            [optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction,
-        },
-        [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: optimisticParentReport,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
-            [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
-        },
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetailsList,
+    // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+    const snapshotDataToStore: NullishDeep<SearchResultDataType> = {};
+    const taskReportSnapshotData = {
+        ...completeOptimisticTaskReport,
+        accountID: currentUserAccountID,
     };
+    snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`] = taskReportSnapshotData;
+    snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`] = {
+        [optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction,
+    };
+    snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] = optimisticParentReport;
+    snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] = {
+        [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
+    };
+    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetailsList;
 
     // We push the optimistic task data into chat and task snapshot hashes so it appears immediately in "Reports > Chats" and "Reports > Task" while offline.
     for (const type of searchDataTypes) {

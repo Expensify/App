@@ -1,4 +1,5 @@
 import {fastMerge} from 'expensify-common';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -73,6 +74,7 @@ import {
     getRateID,
     getWaypoints,
     isCustomUnitRateIDForP2P,
+    isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -1817,7 +1819,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     : {}),
                 shouldDeferAutoSubmit,
             };
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             deferredAPIWrite = () => {
                 API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
             };
@@ -2434,8 +2436,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const isDistanceRequest =
         isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction) || isGPSDistanceRequest;
 
-    if (isDistanceRequest) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    if (isDistanceRequest && isDistanceExpenseType(transaction?.iouRequestType)) {
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,

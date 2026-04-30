@@ -20,7 +20,7 @@ jest.mock('@libs/Log', () => ({
 type MoveReceiptFn = (uri: string, fileName: string) => Promise<string>;
 
 // Bypass the global jest/setup.ts mock to test the real native implementation.
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+
 const {default: moveReceiptToDurableStorage}: {default: MoveReceiptFn} = jest.requireActual('@libs/moveReceiptToDurableStorage/index.native.ts');
 
 describe('Receipt flows should persist to durable storage after crop/rotate', () => {

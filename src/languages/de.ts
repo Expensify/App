@@ -311,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Lass uns anfangen`,
         showMore: 'Mehr anzeigen',
         showLess: 'Weniger anzeigen',
+        plusMore: ({count}: {count: number}) => `+${count} weitere`,
         merchant: 'Händler',
         change: 'Ändern',
         category: 'Kategorie',
@@ -864,6 +865,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'Nur Admins können Nachrichten in diesem Raum senden.',
+    readOnlyConversation: 'Diese Konversation ist schreibgeschützt.',
     reportAction: {
         asCopilot: 'als Copilot für',
         assistedBy: (agentName: string) => `unterstützt von ${agentName}`,
@@ -1473,11 +1475,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'hat diese Ausgabe zurückgehalten',
         unheldExpense: 'Zurückgehaltene Ausgabe freigegeben',
         moveUnreportedExpense: 'Nicht gemeldete Ausgabe verschieben',
-        addUnreportedExpense: 'Nicht gemeldete Ausgabe hinzufügen',
-        selectUnreportedExpense: 'Wähle mindestens eine Ausgabe aus, um sie dem Bericht hinzuzufügen.',
-        emptyStateUnreportedExpenseTitle: 'Keine nicht gemeldeten Ausgaben',
-        emptyStateUnreportedExpenseSubtitle: 'Sie scheinen keine nicht eingereichten Ausgaben zu haben. Erstellen Sie unten eine.',
-        addUnreportedExpenseConfirm: 'Zu Bericht hinzufügen',
+        addExistingExpense: 'Vorhandene Ausgabe hinzufügen',
+        selectExistingExpense: 'Wähle mindestens eine Ausgabe aus, um sie dem Bericht hinzuzufügen.',
+        emptyStateExistingExpenseTitle: 'Keine vorhandenen Ausgaben',
+        emptyStateExistingExpenseSubtitle: 'Es scheint, dass du keine vorhandenen Ausgaben hast. Erstelle unten eine neue.',
+        addExistingExpenseConfirm: 'Zu Bericht hinzufügen',
         newReport: 'Neuer Bericht',
         explainHold: () => ({
             one: 'Erkläre, warum du diese Ausgabe zurückhältst.',
@@ -2098,8 +2100,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Konto',
         general: 'Allgemein',
         helpPage: {
-            title: 'Hilfe und Support',
-            description: 'Wir sind rund um die Uhr für Sie da',
+            title: 'Fragen?',
+            description: 'Wir sind rund um die Uhr für Sie da.',
             helpSite: 'Hilfeseite',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
@@ -6840,6 +6842,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
+                policyDocument: 'Richtliniendokument',
+                policyText: 'Richtlinientext',
             },
             spendRules: {
                 title: 'Ausgaben',
@@ -6892,6 +6896,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 merchants: 'Händler',
                 noAvailableCards: 'Alle Karten haben bereits eine Regel',
                 noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
+                noCardsIssuedTitle: 'Keine Expensify Karten ausgestellt',
+                noCardsIssuedSubtitle: 'Geben Sie Expensify Karten aus, um Ausgabelimits festzulegen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',
@@ -7698,6 +7704,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Zentrale Rechnungsstellung',
             },
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
@@ -7807,8 +7814,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         spendOverTime: 'Ausgaben im Zeitverlauf',
         tabs: {
             expenseReports: 'Spesenabrechnungen',
-            reports: 'Alle Berichte',
-            expenses: 'Alle Ausgaben',
+            reports: 'Berichte',
+            expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
             pay: 'Zahlungsbereit',
@@ -8738,9 +8745,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             collectBillingDescription: 'Collect-Arbeitsbereiche werden monatlich pro Mitglied ohne jährliche Verpflichtung abgerechnet.',
             pricing: 'Preise',
         },
-        requestEarlyCancellation: {
-            title: 'Frühzeitige Kündigung anfordern',
-            subtitle: 'Was ist der Hauptgrund, warum du eine vorzeitige Kündigung beantragst?',
+        cancelSubscription: {
+            title: 'Abonnement kündigen',
+            subtitle: 'Was ist der Hauptgrund, warum du dein Abonnement kündigst?',
             subscriptionCanceled: {
                 title: 'Abonnement gekündigt',
                 subtitle: 'Dein Jahresabonnement wurde gekündigt.',
@@ -8753,7 +8760,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle:
                     'Danke, dass du uns mitgeteilt hast, dass du dein Abonnement kündigen möchtest. Wir prüfen deine Anfrage und melden uns in Kürze über deinen Chat mit <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `Mit dem Antrag auf vorzeitige Kündigung erkenne ich an und stimme zu, dass Expensify gemäß den Expensify-<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a> oder einer sonstigen anwendbaren Servicevereinbarung zwischen mir und Expensify nicht verpflichtet ist, einem solchen Antrag stattzugeben, und dass Expensify das alleinige Ermessen in Bezug auf die Genehmigung eines solchen Antrags behält.`,
+            acknowledgement: `Mit dem Antrag auf Kündigung erkenne ich an und stimme zu, dass Expensify gemäß den Expensify-<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a> oder einer sonstigen anwendbaren Servicevereinbarung zwischen mir und Expensify nicht verpflichtet ist, einem solchen Antrag stattzugeben, und dass Expensify das alleinige Ermessen in Bezug auf die Genehmigung eines solchen Antrags behält.`,
         },
     },
     feedbackSurvey: {
@@ -8917,12 +8924,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',
         accountSwitcher: '<tooltip>Greifen Sie hier auf Ihre <strong>Copilot-Konten</strong> zu</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scanne unseren Testbeleg</strong>, um zu sehen, wie es funktioniert!</tooltip>',
-            manager: '<tooltip>Wähle unseren <strong>Testmanager</strong>, um es auszuprobieren!</tooltip>',
-            confirmation: '<tooltip>Jetzt <strong>reiche deine Ausgabe ein</strong> und sieh zu, wie die Magie passiert!</tooltip>',
-            tryItOut: 'Probiere es aus',
-        },
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Sende diese Quittung, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
@@ -9100,7 +9101,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             resetDomain: 'Domain zurücksetzen',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Bitte gib zur Bestätigung des Zurücksetzens der Domain <strong>${domainName}</strong> ein.`,
             enterDomainName: 'Gib hier deinen Domainnamen ein',
-            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <bullet-list><bullet-item>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</bullet-item><bullet-item>SAML- und Gruppeneinstellungen</bullet-item></bullet-list> Alle Konten, Workspaces, Berichte, Ausgaben und andere Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> entfernen.`,
+            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <bullet-list><bullet-item>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</bullet-item><bullet-item>SAML- und Gruppeneinstellungen</bullet-item><bullet-item>Reisedaten und Zugang zu Expensify Travel</bullet-item></bullet-list> Alle Konten, Arbeitsbereiche, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail-Adresse aus Ihren <a href="#">Kontaktmethoden</a> löschen.`,
         },
         domainMembers: 'Domänenmitglieder',
         members: {
@@ -9150,6 +9151,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         groups: {
             title: 'Gruppen',
             memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`}),
+            defaultGroup: 'Standardgruppe für neue Mitglieder',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
+            makeDefault: 'Als Standard festlegen',
+            neverMind: 'Vergiss es',
         },
     },
     proactiveAppReview: {
