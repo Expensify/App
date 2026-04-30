@@ -1,7 +1,12 @@
 import React from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -12,7 +17,11 @@ type WorkspaceExpensifyCardRuleSelectionPageProps = PlatformStackScreenProps<Set
 
 function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCardRuleSelectionPageProps) {
     const {policyID} = route.params;
+
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
 
     return (
         <AccessOrNotFoundWrapper
@@ -25,6 +34,20 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.card.chooseRule')} />
+
+                {!!isLoadingCardRules && (
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator
+                            color={theme.spinner}
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.pl3]}
+                            reasonAttributes={{
+                                context: 'WorkspaceExpensifyCardRuleSelectionPage',
+                                isLoadingFromOnyx: true,
+                            }}
+                        />
+                    </View>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
