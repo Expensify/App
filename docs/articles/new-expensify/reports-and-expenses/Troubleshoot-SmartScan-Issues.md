@@ -25,7 +25,7 @@ Common reasons include:
  - The receipt is faded or low contrast
  - The text is obscured by shadows, glare, or folds
 
-If SmartScan cannot confidently read these required fields, the scan will fail and will show the message: "Receipt scanning failed. Enter details manually".  
+If SmartScan cannot confidently read these required fields, the scan will fail. The expense submitter will see the message: "Receipt scanning failed. Enter details manually." Other participants (such as the receiver in a 1:1 expense) will see: "Receipt scanning failed."  
 
 ---
 
@@ -36,7 +36,7 @@ SmartScan may fail if the receipt image is unreadable, or if the image is missin
 To retry SmartScan:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**.
-2. Click to open the expense with the failed scan. It will show a red dot indicator with the message "receipt scanning failed".
+2. Click to open the expense with the failed scan. It will show a red dot indicator with a "Receipt scanning failed" message.
 3. Click the receipt image. 
 4. Click **Replace**.
 5. Take a photo or upload a receipt image file from your device.
