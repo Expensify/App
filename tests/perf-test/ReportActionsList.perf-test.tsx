@@ -120,6 +120,7 @@ function ReportActionsListWrapper() {
                             loadOlderChats={mockLoadChats}
                             loadNewerChats={mockLoadChats}
                             transactionThreadReport={report}
+                            archivedReportsIDSet={new Set<string>()}
                         />
                     </ActionListContext.Provider>
                 </ReactionListContext.Provider>
