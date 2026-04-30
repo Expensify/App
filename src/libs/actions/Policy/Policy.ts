@@ -5012,14 +5012,16 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
         ],
     };
     if (policyData) {
-        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {
+        const policyUpdate = {
             areRulesEnabled: enabled,
             preventSelfApproval: false,
             ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
             pendingFields: {
                 areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
-        });
+        };
+        ReportUtils.pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyUpdate);
+        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate);
     }
 
     if (enabled && isControlPolicy(policy) && policy?.outputCurrency === CONST.CURRENCY.USD) {

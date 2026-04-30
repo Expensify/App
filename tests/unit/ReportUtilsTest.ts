@@ -141,6 +141,7 @@ import {
     parseReportActionHtmlToText,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
+    pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
@@ -9643,8 +9644,9 @@ describe('ReportUtils', () => {
 
             const onyxData = {optimisticData: [], failureData: []};
 
-            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
+            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
             const expectedOnyxData = {
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
                 optimisticData: [
@@ -9732,8 +9734,8 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-
             // The optimistic data should contain a transaction merge auto-selecting the remaining category
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -9799,8 +9801,8 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
-
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
@@ -9866,8 +9868,8 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
@@ -9931,8 +9933,8 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
-
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`,
@@ -9996,8 +9998,8 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-
             // No transaction merge should be present — only the violation push
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
@@ -10062,8 +10064,8 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, {});
-
             // No transaction merge should be present
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
@@ -10119,8 +10121,8 @@ describe('ReportUtils', () => {
 
             const onyxData = {optimisticData: [], failureData: []};
             // policyUpdate-only call (simulates setPolicyRulesEnabled and similar)
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {requiresCategory: true}, {}, {});
             pushTransactionViolationsOnyxData(onyxData, result.current, {requiresCategory: true}, {}, {});
-
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
         });
@@ -10185,8 +10187,8 @@ describe('ReportUtils', () => {
             };
 
             const onyxData = {optimisticData: [], failureData: []};
+            pushTransactionAutoSelectionsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
             pushTransactionViolationsOnyxData(onyxData, result.current, {}, {}, fakePolicyTagListsUpdate);
-
             const hasTransactionMerge = onyxData.optimisticData.some((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`);
             expect(hasTransactionMerge).toBe(false);
         });

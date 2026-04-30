@@ -33,7 +33,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
+import {pushTransactionAutoSelectionsOnyxData, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -453,6 +453,8 @@ function setWorkspaceCategoryEnabled({
         ],
     };
 
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
     appendSetupCategoriesOnboardingData(
         onyxData,
@@ -600,8 +602,9 @@ function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName:
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
     const parameters: SetPolicyCategoryReceiptsRequiredParams = {
         policyID,
         categoryName,
@@ -665,8 +668,9 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
     const parameters: RemovePolicyCategoryReceiptsRequiredParams = {
         policyID,
         categoryName,
@@ -729,8 +733,9 @@ function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categ
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
     const parameters: SetPolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
         categoryName,
@@ -794,8 +799,9 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
     const parameters: RemovePolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
         categoryName,
@@ -865,8 +871,9 @@ function setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData: PolicyD
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
     const parameters: SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams = {
         policyID,
         categoryName,
@@ -1099,8 +1106,9 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
         return acc;
     }, {});
 
-    pushTransactionViolationsOnyxData(onyxData, {...policyData, categories: policyCategories}, policyOptimisticData, policyCategoriesOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, {...policyData, categories: policyCategories}, policyOptimisticData, policyCategoriesOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, {...policyData, categories: policyCategories}, policyOptimisticData, policyCategoriesOptimisticData);
     const parameters = {
         policyID,
         categories: JSON.stringify({
@@ -1296,8 +1304,9 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyOptimisticData);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
     const parameters = {
         policyID,
         requiresCategory,
@@ -1389,6 +1398,8 @@ function deleteWorkspaceCategories(
         ],
     };
 
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
+
     pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(
         onyxData,
@@ -1476,8 +1487,9 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
+    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
     // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the categories data is also changed when disabling/enabling this feature

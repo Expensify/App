@@ -294,7 +294,7 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
         (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
     );
 
-    if (!policy || !policyTaxRates) {
+    if (!policyTaxRates) {
         console.debug('Policy or tax rates not found');
         return;
     }

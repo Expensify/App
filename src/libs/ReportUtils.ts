@@ -2032,30 +2032,19 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
 }
 
+type PolicyOptimisticOnyxData = OnyxData<
+    | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+>;
+
 /**
- * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
- *
- * @param onyxData - The OnyxData object to push updates to
- * @param policyData - The current policy Data
- * @param policyUpdate - Changed policy properties, if none pass empty object
- * @param categoriesUpdate - Changed categories properties, if none pass empty object
- * @param tagListsUpdate - Changed tag properties, if none pass empty object
+ * Returns the list of policy reports (excluding invoice reports) that have transactions to evaluate.
  */
-function pushTransactionViolationsOnyxData(
-    onyxData: OnyxData<
-        | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
-        | typeof ONYXKEYS.COLLECTION.POLICY
-        | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
-        | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-        | typeof ONYXKEYS.COLLECTION.TRANSACTION
-    >,
-    policyData: PolicyData,
-    policyUpdate: Partial<Policy> = {},
-    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
-) {
-    const nonInvoiceReportItems = policyData.reports.reduce<Array<{report: Report; transactionsAndViolations: ReportTransactionsAndViolations}>>((acc, report) => {
-        // Skipping invoice reports since they should not have any category or tag violations
+function getNonInvoiceReportItemsForPolicy(policyData: PolicyData): Array<{report: Report; transactionsAndViolations: ReportTransactionsAndViolations}> {
+    return policyData.reports.reduce<Array<{report: Report; transactionsAndViolations: ReportTransactionsAndViolations}>>((acc, report) => {
         if (isInvoiceReport(report)) {
             return acc;
         }
@@ -2065,26 +2054,24 @@ function pushTransactionViolationsOnyxData(
         }
         return acc;
     }, []);
+}
 
-    if (nonInvoiceReportItems.length === 0) {
-        return;
-    }
-
-    const updatedTagListsNames = Object.keys(tagListsUpdate);
-    const updatedCategoriesNames = Object.keys(categoriesUpdate);
-
-    // If there are no updates to policy, categories or tags, return early
+/**
+ * Merges the existing policy data with the optimistic update payloads to produce the post-update view
+ * used by both auto-selection and violation calculation.
+ */
+function getOptimisticPolicyState(
+    policyData: PolicyData,
+    policyUpdate: Partial<Policy>,
+    categoriesUpdate: Record<string, Partial<PolicyCategory>>,
+    tagListsUpdate: Record<string, Partial<PolicyTagList>>,
+) {
     const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
-    const isTagListsUpdateEmpty = updatedTagListsNames.length === 0;
-    const isCategoriesUpdateEmpty = updatedCategoriesNames.length === 0;
-    if (isPolicyUpdateEmpty && isTagListsUpdateEmpty && isCategoriesUpdateEmpty) {
-        return;
-    }
+    const isCategoriesUpdateEmpty = isEmptyObject(categoriesUpdate);
+    const isTagListsUpdateEmpty = isEmptyObject(tagListsUpdate);
 
-    // Merge the existing policy with the optimistic updates
     const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
 
-    // Merge the existing categories with the optimistic updates
     const optimisticCategories = isCategoriesUpdateEmpty
         ? policyData.categories
         : {
@@ -2101,7 +2088,6 @@ function pushTransactionViolationsOnyxData(
               }, {}),
           };
 
-    // Merge the existing tag lists with the optimistic updates
     const optimisticTagLists = isTagListsUpdateEmpty
         ? policyData.tags
         : {
@@ -2140,7 +2126,65 @@ function pushTransactionViolationsOnyxData(
 
     const hasDependentTagsValue = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
 
-    // Compute sole remaining values for auto-selection when a policy value is deleted
+    return {
+        optimisticPolicy,
+        optimisticCategories,
+        optimisticTagLists,
+        hasDependentTagsValue,
+        isPolicyUpdateEmpty,
+        isCategoriesUpdateEmpty,
+        isTagListsUpdateEmpty,
+    };
+}
+
+/**
+ * Reads any pending transaction merges already pushed to the OnyxData object so callers running
+ * after `pushTransactionAutoSelectionsOnyxData` see the auto-selected category/tag values when
+ * computing violations.
+ */
+function getPendingTransactionUpdate(onyxData: PolicyOptimisticOnyxData, transactionID: string): Partial<Transaction> {
+    const targetKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+    const merges: Partial<Transaction> = {};
+    for (const update of onyxData.optimisticData ?? []) {
+        if (update.onyxMethod === Onyx.METHOD.MERGE && update.key === targetKey) {
+            Object.assign(merges, update.value as Partial<Transaction>);
+        }
+    }
+    return merges;
+}
+
+/**
+ * Auto-selects the sole remaining enabled category/tag for transactions on open or processing reports
+ * when a category/tag is being deleted or disabled. Pushes optimistic transaction merges and matching
+ * failure rollbacks to the provided OnyxData object.
+ *
+ * Call this BEFORE `pushTransactionViolationsOnyxData` so that violations are recomputed against
+ * the auto-selected values (suppressing the violation that would otherwise be created).
+ */
+function pushTransactionAutoSelectionsOnyxData(
+    onyxData: PolicyOptimisticOnyxData,
+    policyData: PolicyData,
+    policyUpdate: Partial<Policy> = {},
+    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+) {
+    // Auto-selection is only meaningful when categories or tag lists are being updated
+    if (isEmptyObject(categoriesUpdate) && isEmptyObject(tagListsUpdate)) {
+        return;
+    }
+
+    const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
+    if (nonInvoiceReportItems.length === 0) {
+        return;
+    }
+
+    const {optimisticCategories, optimisticTagLists, hasDependentTagsValue, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
+        policyData,
+        policyUpdate,
+        categoriesUpdate,
+        tagListsUpdate,
+    );
+
     const enabledCategoryKeys = Object.entries(optimisticCategories)
         .filter(([, cat]) => cat.enabled && cat.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map(([key]) => key);
@@ -2148,7 +2192,6 @@ function pushTransactionViolationsOnyxData(
 
     const tagListKeys = Object.keys(optimisticTagLists);
 
-    // Single-level tag auto-selection
     let singleRemainingTag: string | undefined;
     if (tagListKeys.length === 1) {
         const tagListName = tagListKeys.at(0) ?? '';
@@ -2158,7 +2201,6 @@ function pushTransactionViolationsOnyxData(
         singleRemainingTag = enabledTagKeys.length === 1 ? enabledTagKeys.at(0) : undefined;
     }
 
-    // Multi-level tag auto-selection (per level)
     const sortedTagKeys = tagListKeys.length > 1 ? getSortedTagKeys(optimisticTagLists) : [];
     const perLevelSingleTag: Array<string | undefined> = sortedTagKeys.map((key) => {
         const tags = optimisticTagLists[key]?.tags ?? {};
@@ -2168,81 +2210,124 @@ function pushTransactionViolationsOnyxData(
         return enabledKeys.length === 1 ? enabledKeys.at(0) : undefined;
     });
 
-    // Iterate through all policy reports to find transactions that need optimistic violations
     for (const {
         report,
-        transactionsAndViolations: {transactions, violations},
+        transactionsAndViolations: {transactions},
     } of nonInvoiceReportItems) {
-        const isEligibleForAutoSelect = isOpenOrProcessingReport(report);
+        if (!isOpenOrProcessingReport(report)) {
+            continue;
+        }
 
         for (const transaction of Object.values(transactions)) {
-            let modifiedTransaction = transaction;
             const transactionUpdates: Partial<Transaction> = {};
             const transactionRollback: Partial<Transaction> = {};
 
-            if (isEligibleForAutoSelect) {
-                // Category auto-select: gated to calls that actually mutate categories so toggling unrelated
-                // policy settings doesn't rewrite transaction category values.
-                if (!isCategoriesUpdateEmpty && singleRemainingCategory && transaction.category && !optimisticCategories[transaction.category]?.enabled) {
-                    transactionUpdates.category = singleRemainingCategory;
-                    transactionRollback.category = transaction.category;
-                }
+            // Category auto-select: gated to calls that include a category update (delete or disable)
+            // so toggling unrelated policy settings doesn't rewrite transaction category values.
+            if (!isCategoriesUpdateEmpty && singleRemainingCategory && transaction.category && !optimisticCategories[transaction.category]?.enabled) {
+                transactionUpdates.category = singleRemainingCategory;
+                transactionRollback.category = transaction.category;
+            }
 
-                // Single-level tag auto-select: gated to tag mutations for the same reason.
-                if (!isTagListsUpdateEmpty && tagListKeys.length === 1 && singleRemainingTag && transaction.tag) {
-                    const tagListName = tagListKeys.at(0) ?? '';
-                    const isTagInPolicy = !!optimisticTagLists[tagListName]?.tags?.[transaction.tag]?.enabled;
-                    if (!isTagInPolicy) {
-                        transactionUpdates.tag = singleRemainingTag;
-                        transactionRollback.tag = transaction.tag;
-                    }
-                }
-
-                // Multi-level tag auto-select. Skipped for dependent-tag policies because the per-level
-                // sole-remaining check ignores parent-tag filtering and could write an invalid combination.
-                if (!isTagListsUpdateEmpty && !hasDependentTagsValue && tagListKeys.length > 1 && transaction.tag) {
-                    const currentTags = getTagArrayFromName(transaction.tag);
-                    let anyTagChanged = false;
-                    const newTags = [...currentTags];
-
-                    for (let i = 0; i < sortedTagKeys.length; i++) {
-                        const currentTag = currentTags.at(i);
-                        if (!currentTag) {
-                            continue;
-                        }
-                        const sortedTagKey = sortedTagKeys.at(i) ?? '';
-                        const levelTags = optimisticTagLists[sortedTagKey]?.tags ?? {};
-                        const isInPolicy = !!levelTags[currentTag]?.enabled;
-                        const singleTag = perLevelSingleTag.at(i);
-                        if (!isInPolicy && singleTag) {
-                            newTags[i] = singleTag;
-                            anyTagChanged = true;
-                        }
-                    }
-
-                    if (anyTagChanged) {
-                        transactionUpdates.tag = newTags.join(CONST.COLON);
-                        transactionRollback.tag = transaction.tag;
-                    }
+            // Single-level tag auto-select: gated to calls that include a tag-list update for the same reason.
+            if (!isTagListsUpdateEmpty && tagListKeys.length === 1 && singleRemainingTag && transaction.tag) {
+                const tagListName = tagListKeys.at(0) ?? '';
+                const isTagInPolicy = !!optimisticTagLists[tagListName]?.tags?.[transaction.tag]?.enabled;
+                if (!isTagInPolicy) {
+                    transactionUpdates.tag = singleRemainingTag;
+                    transactionRollback.tag = transaction.tag;
                 }
             }
 
-            // If auto-selection modified the transaction, push optimistic transaction updates
-            if (Object.keys(transactionUpdates).length > 0) {
-                modifiedTransaction = {...transaction, ...transactionUpdates};
+            // Multi-level tag auto-select. Skipped for dependent-tag policies because the per-level
+            // sole-remaining check ignores parent-tag filtering and could write an invalid combination.
+            if (!isTagListsUpdateEmpty && !hasDependentTagsValue && tagListKeys.length > 1 && transaction.tag) {
+                const currentTags = getTagArrayFromName(transaction.tag);
+                let anyTagChanged = false;
+                const newTags = [...currentTags];
 
-                onyxData.optimisticData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                    value: transactionUpdates,
-                });
+                for (let i = 0; i < sortedTagKeys.length; i++) {
+                    const currentTag = currentTags.at(i);
+                    if (!currentTag) {
+                        continue;
+                    }
+                    const sortedTagKey = sortedTagKeys.at(i) ?? '';
+                    const levelTags = optimisticTagLists[sortedTagKey]?.tags ?? {};
+                    const isInPolicy = !!levelTags[currentTag]?.enabled;
+                    const singleTag = perLevelSingleTag.at(i);
+                    if (!isInPolicy && singleTag) {
+                        newTags[i] = singleTag;
+                        anyTagChanged = true;
+                    }
+                }
 
-                onyxData.failureData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                    value: transactionRollback,
-                });
+                if (anyTagChanged) {
+                    transactionUpdates.tag = newTags.join(CONST.COLON);
+                    transactionRollback.tag = transaction.tag;
+                }
             }
+
+            if (Object.keys(transactionUpdates).length === 0) {
+                continue;
+            }
+
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transactionUpdates,
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transactionRollback,
+            });
+        }
+    }
+}
+
+/**
+ * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
+ *
+ * If `pushTransactionAutoSelectionsOnyxData` was called earlier on the same OnyxData object, this
+ * function picks up the auto-selected transaction values from `onyxData.optimisticData` and uses
+ * them when computing violations — so a transaction whose category/tag was just auto-replaced will
+ * not have a stale `*OutOfPolicy` violation pushed for it.
+ *
+ * @param onyxData - The OnyxData object to push updates to
+ * @param policyData - The current policy Data
+ * @param policyUpdate - Changed policy properties, if none pass empty object
+ * @param categoriesUpdate - Changed categories properties, if none pass empty object
+ * @param tagListsUpdate - Changed tag properties, if none pass empty object
+ */
+function pushTransactionViolationsOnyxData(
+    onyxData: PolicyOptimisticOnyxData,
+    policyData: PolicyData,
+    policyUpdate: Partial<Policy> = {},
+    categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+) {
+    const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
+    if (nonInvoiceReportItems.length === 0) {
+        return;
+    }
+
+    const {optimisticPolicy, optimisticCategories, optimisticTagLists, hasDependentTagsValue, isPolicyUpdateEmpty, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
+        policyData,
+        policyUpdate,
+        categoriesUpdate,
+        tagListsUpdate,
+    );
+
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty) {
+        return;
+    }
+
+    for (const {
+        transactionsAndViolations: {transactions, violations},
+    } of nonInvoiceReportItems) {
+        for (const transaction of Object.values(transactions)) {
+            const pendingUpdate = getPendingTransactionUpdate(onyxData, transaction.transactionID);
+            const modifiedTransaction = isEmptyObject(pendingUpdate) ? transaction : {...transaction, ...pendingUpdate};
 
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
@@ -13834,6 +13919,7 @@ export {
     getHumanReadableStatus,
     getReportPersonalDetailsParticipants,
     isWorkspaceEligibleForReportChange,
+    pushTransactionAutoSelectionsOnyxData,
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
