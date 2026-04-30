@@ -1,7 +1,7 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -165,7 +166,11 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+        // `hasCompletedGuidedSetupFlowSelector` returns `true` for any NVP_ONBOARDING missing
+        // `hasCompletedGuidedSetupFlow` — including users mid-signup whose backend has written
+        // other fields (e.g. `signupQualifier`) before the completion field. Bypass that fallback
+        // by treating only an empty NVP as legacy and only an explicit `true` as completed.
+        const isOnboardingCompleted = isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === true;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;

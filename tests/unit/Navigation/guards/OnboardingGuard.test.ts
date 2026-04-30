@@ -384,6 +384,25 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('REDIRECT');
             expect(result.route).toContain('onboarding');
         });
+
+        it('should redirect OD-signup users whose NVP_ONBOARDING has signupQualifier but no completion field', async () => {
+            // Given an OD-signup user whose backend wrote `signupQualifier` to NVP_ONBOARDING but did
+            // not set `hasCompletedGuidedSetupFlow`. The selector would otherwise treat this as
+            // "completed" (the `non-empty NVP without completion field → true` fallback) and skip
+            // onboarding. Issue: https://github.com/Expensify/App/issues/89010
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+            });
+            await Onyx.merge(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates on a non-onboarding screen
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            // Then the user should be redirected to onboarding rather than allowed to bypass it
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
     });
 
     describe('infinite loop prevention (APP-7FR)', () => {

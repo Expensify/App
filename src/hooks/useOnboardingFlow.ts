@@ -11,6 +11,7 @@ import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
@@ -44,8 +45,6 @@ function useOnboardingFlowRouter() {
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
     useEffect(() => {
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
-
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const handle = InteractionManager.runAfterInteractions(() => {
@@ -86,12 +85,12 @@ function useOnboardingFlowRouter() {
             const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-            // `hasCompletedGuidedSetupFlowSelector` treats empty NVP as completed (for legacy old-admin
-            // accounts that predate the guided flow). Users who signed up via OldDot also have empty NVP
-            // but `nvp_introSelected.inviteType` is set — read the raw field to onboard them.
-            const hasExplicitlyCompletedOnboarding = onboardingValues?.hasCompletedGuidedSetupFlow === true;
-            const isFreshInviteeNeedingOnboarding = !CONFIG.IS_HYBRID_APP && !!wasInvitedToNewDot && !hasExplicitlyCompletedOnboarding;
-            if (isMigratedUser || (isInvitedOrGroupMember && !isFreshInviteeNeedingOnboarding)) {
+            // `hasCompletedGuidedSetupFlowSelector` returns `true` for any NVP_ONBOARDING missing
+            // `hasCompletedGuidedSetupFlow` — including users mid-signup whose backend has written
+            // other fields (e.g. `signupQualifier`) before the completion field. Bypass that fallback
+            // by treating only an empty NVP as legacy and only an explicit `true` as completed.
+            const isLegacyOrCompletedUser = isEmptyObject(onboardingValues) || onboardingValues?.hasCompletedGuidedSetupFlow === true;
+            if (isMigratedUser || (isInvitedOrGroupMember && isLegacyOrCompletedUser)) {
                 return;
             }
 
@@ -100,7 +99,7 @@ function useOnboardingFlowRouter() {
             // navigate goes through the router where OnboardingGuard would block the navigation.
             // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
             // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
-            const shouldStartOnboarding = isOnboardingCompleted === false || isFreshInviteeNeedingOnboarding;
+            const shouldStartOnboarding = !isLegacyOrCompletedUser;
             if (shouldStartOnboarding && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
                 Navigation.waitForProtectedRoutes().then(() => {
                     startOnboardingFlow({
