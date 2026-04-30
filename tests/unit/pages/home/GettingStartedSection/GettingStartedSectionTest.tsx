@@ -10,6 +10,12 @@ import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function isoDateDaysFromNow(daysFromToday: number): string {
+    return new Date(Date.now() + daysFromToday * MS_PER_DAY).toISOString().split('T').at(0) ?? '';
+}
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
@@ -51,7 +57,7 @@ async function setManageTeamUserState(overrides?: {
     hasConfiguredRules?: boolean;
     trialStartDate?: string;
 }) {
-    const trialStart = overrides?.trialStartDate ?? '2026-03-01';
+    const trialStart = overrides?.trialStartDate ?? isoDateDaysFromNow(-7);
 
     await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
         choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -101,7 +107,7 @@ describe('GettingStartedSection', () => {
                 choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
-            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, isoDateDaysFromNow(-7));
             await waitForBatchedUpdates();
 
             renderGettingStartedSection();
@@ -111,7 +117,7 @@ describe('GettingStartedSection', () => {
 
         it('does not render when 60-day cutoff has passed', async () => {
             await setManageTeamUserState({
-                trialStartDate: '2026-01-01',
+                trialStartDate: isoDateDaysFromNow(-61),
             });
 
             renderGettingStartedSection();
@@ -124,7 +130,7 @@ describe('GettingStartedSection', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
-            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, isoDateDaysFromNow(-7));
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
                 {
@@ -148,7 +154,7 @@ describe('GettingStartedSection', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
-            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, isoDateDaysFromNow(-7));
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
                 {
@@ -178,7 +184,7 @@ describe('GettingStartedSection', () => {
         it('renders when manage-team intent is set via fallback ONBOARDING_PURPOSE_SELECTED', async () => {
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM as never);
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
-            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
+            await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, isoDateDaysFromNow(-7));
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
                 {
