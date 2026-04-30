@@ -2,6 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -12,8 +13,10 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport} from '@libs/actions/IOU';
+import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, submitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -28,7 +31,6 @@ import {
     getNonHeldAndFullAmount,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
-    hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -46,9 +48,10 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
-import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePaymentOptions from './usePaymentOptions';
@@ -107,8 +110,7 @@ function useSelectionModeReportActions({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [networkStatus] = useOnyx(ONYXKEYS.NETWORK);
-    const isOffline = networkStatus?.isOffline ?? false;
+    const {isOffline} = useNetwork();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -117,13 +119,14 @@ function useSelectionModeReportActions({
     );
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const activeAdminPolicies = useActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(report, transactions);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
@@ -150,19 +153,19 @@ function useSelectionModeReportActions({
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const canAllowSettlement = hasUpdatedTotal(report, policy);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(report?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(report?.reportID, transactions);
     const isInvoiceReport = isInvoiceReportUtil(report);
 
     const hasOnlyPendingTransactions = !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
         canIOUBePaidAction(report, chatReport, policy, bankAccountList, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
 
     const canIOUBePaid = getCanIOUBePaid();
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(report?.reportID, transactions);
-    const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions ? false : !canIOUBePaid && getCanIOUBePaid(true);
+    const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
 
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (report?.total ?? 0) !== 0);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
 
@@ -170,7 +173,7 @@ function useSelectionModeReportActions({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(report);
 
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
 
     // confirmPayment is declared below but used by usePaymentOptions; we use a ref to avoid a circular dependency.
     const confirmPaymentRef = useRef<(params: PaymentActionParams) => void>(() => {});
@@ -328,6 +331,7 @@ function useSelectionModeReportActions({
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 full: true,
+                expenseReportPolicy: policy,
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -336,10 +340,6 @@ function useSelectionModeReportActions({
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
-            return;
-        }
-        if (shouldBlockDirectPayment(type)) {
-            showNonReimbursablePaymentErrorModal();
             return;
         }
         setPaymentType(type);
@@ -356,6 +356,7 @@ function useSelectionModeReportActions({
                 setIsHoldMenuVisible(true);
             }
         } else if (isInvoiceReport) {
+            const email = currentUserEmail ?? '';
             payInvoice({
                 paymentMethodType: type,
                 chatReport,
@@ -363,7 +364,7 @@ function useSelectionModeReportActions({
                 invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: currentUserEmail ?? '',
+                currentUserEmailParam: email,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
@@ -371,6 +372,7 @@ function useSelectionModeReportActions({
                 activePolicy,
                 betas,
                 isSelfTourViewed,
+                defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -446,6 +448,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                expenseReportPolicy: policy,
             });
         });
     };
@@ -488,6 +491,9 @@ function useSelectionModeReportActions({
     })();
 
     const selectionModeReportLevelActions = (() => {
+        if (!isBulkSubmitApprovePayBetaEnabled) {
+            return [];
+        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
@@ -556,7 +562,7 @@ function useSelectionModeReportActions({
         canAllowSettlement,
         isAnyTransactionOnHold,
         isInvoiceReport,
-        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(report?.reportID),
+        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(report?.reportID, transactions),
         nonHeldAmount,
         fullAmount,
         hasValidNonHeldAmount,

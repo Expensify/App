@@ -23,7 +23,7 @@ import {
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -40,7 +40,7 @@ type ReportActionItemParentActionProps = {
     index: number;
 
     /** The id of the report */
-    // eslint-disable-next-line react/no-unused-prop-types
+
     reportID: string;
 
     /** The current report is displayed */
@@ -60,12 +60,6 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -93,8 +87,6 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    userWalletTierName,
-    isUserValidated,
     personalDetails,
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
@@ -176,23 +168,6 @@ function ReportActionItemParentAction({
 
     const [ancestorDraftMessages] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [ancestors, ancestorsReportActions]);
 
-    const ancestorReactionSelector = useCallback(
-        (allReactions: OnyxCollection<ReportActionReactions>) => {
-            if (!allReactions) {
-                return {};
-            }
-            const result: OnyxCollection<ReportActionReactions> = {};
-            for (const ancestor of ancestors) {
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestor.reportAction.reportActionID}`;
-                result[key] = allReactions[key];
-            }
-            return result;
-        },
-        [ancestors],
-    );
-
-    const [ancestorReactions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS, {selector: ancestorReactionSelector}, [ancestors]);
-
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -222,7 +197,6 @@ function ReportActionItemParentAction({
                     const reportDraftMessages = originalReportID ? ancestorDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
-                    const actionEmojiReactions = ancestorReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
                     return (
                         <OfflineWithFeedback
@@ -257,11 +231,8 @@ function ReportActionItemParentAction({
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                                 isThreadReportParentAction
-                                userWalletTierName={userWalletTierName}
-                                isUserValidated={isUserValidated}
                                 personalDetails={personalDetails}
                                 draftMessage={matchingDraftMessageString}
-                                emojiReactions={actionEmojiReactions}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
                                 userBillingFundID={userBillingFundID}
                                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

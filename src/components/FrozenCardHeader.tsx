@@ -56,7 +56,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                     {adminFrozenTextPrefix}
                     <TextLink
                         onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
-                        style={styles.link}
+                        style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
                     </TextLink>
@@ -71,7 +71,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
                     onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
-                    style={styles.link}
+                    style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}
                 </TextLink>

@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-node-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {act, render, screen, waitFor} from '@testing-library/react-native';
@@ -34,8 +33,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
         ignoreAllLogs: jest.fn(),
     },
 }));
-
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 jest.mock('@react-navigation/native');
 

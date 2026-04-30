@@ -1,9 +1,10 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -14,13 +15,8 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 
@@ -28,23 +24,18 @@ type CategoryListItem = ListItem & {
     value: SpendRuleCategory;
 };
 
-type SpendRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CATEGORY>;
-
-function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
-    const {policyID} = route.params;
+function SpendRuleCategoryPage() {
+    const navigation = useNavigation();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const goBack = () => navigation.goBack();
 
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
     const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>([]);
 
-    useFocusEffect(
-        useCallback(() => {
-            setSelectedCategories(spendRuleForm?.categories ?? []);
-        }, [spendRuleForm?.categories]),
-    );
+    useFocusEffect(() => setSelectedCategories(spendRuleForm?.categories ?? []));
 
     const categoryItems: CategoryListItem[] = SPEND_RULE_CATEGORIES.map((category) => ({
         keyForList: category,
@@ -90,7 +81,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
 
     const handleSave = () => {
         updateDraftSpendRule({categories: selectedCategories});
-        Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+        goBack();
     };
 
     return (
@@ -102,7 +93,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.rules.spendRules.spendCategory')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                onBackButtonPress={goBack}
             />
             <SelectionList
                 canSelectMultiple
@@ -124,12 +115,14 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
                 shouldUpdateFocusedIndex
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 listEmptyContent={
-                    <BlockingView
-                        icon={illustrations.Telescope}
-                        iconWidth={variables.emptyListIconWidth}
-                        iconHeight={variables.emptyListIconHeight}
-                        title={translate('common.noResultsFound')}
-                    />
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <BlockingView
+                            icon={illustrations.Telescope}
+                            iconWidth={variables.emptyListIconWidth}
+                            iconHeight={variables.emptyListIconHeight}
+                            title={translate('common.noResultsFound')}
+                        />
+                    </ScrollView>
                 }
                 footerContent={
                     <FormAlertWithSubmitButton

@@ -24,7 +24,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
-    ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.HAS_LOADED_APP,
@@ -33,7 +33,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
-    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
@@ -109,9 +109,6 @@ type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
 type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
-
-// Clear pending action for role update
-type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
 
 /**
  * Connects the user as a delegate to another account.
@@ -330,10 +327,6 @@ function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
         return;
     }
     Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: delegatedAccess.delegators.map((delegator) => ({...delegator, errorFields: undefined}))}});
-}
-
-function requestValidationCode() {
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
 }
 
 function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
@@ -669,34 +662,6 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateRolePendingActionParams) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                delegatedAccess: {
-                    delegates: delegatedAccess.delegates.map((delegate) =>
-                        delegate.email === email
-                            ? {
-                                  ...delegate,
-                                  pendingAction: null,
-                                  pendingFields: undefined,
-                              }
-                            : delegate,
-                    ),
-                },
-            },
-        },
-    ];
-
-    Onyx.update(optimisticData);
-}
-
 function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>) {
     Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() => {
         updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
@@ -719,11 +684,9 @@ export {
     disconnect,
     clearDelegatorErrors,
     addDelegate,
-    requestValidationCode,
     clearDelegateErrorsByField,
     restoreDelegateSession,
     isConnectedAsDelegate,
-    clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,
     openSecuritySettingsPage,

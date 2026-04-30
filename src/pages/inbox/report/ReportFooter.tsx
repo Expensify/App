@@ -67,7 +67,7 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
         selector: policyRoleSelector,
     });
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
 
@@ -81,7 +81,7 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
 
-    if (!isCurrentReportLoadedFromOnyx || !report) {
+    if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
     }
 
@@ -93,7 +93,7 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
                     <ReportActionCompose
-                        reportID={report.reportID}
+                        reportID={reportIDFromRoute}
                         archivedReportsIDSet={archivedReportsIDSet}
                     />
                 </SwipeableView>
@@ -105,7 +105,7 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
     if (isArchivedRoom) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                <ArchivedReportFooter reportID={report.reportID} />
+                <ArchivedReportFooter reportID={reportIDFromRoute} />
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
@@ -119,7 +119,7 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
     if (isAnonymousUser) {
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                <AnonymousReportFooter reportID={report.reportID} />
+                <AnonymousReportFooter reportID={reportIDFromRoute} />
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
@@ -164,6 +164,30 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
                 <Banner
                     containerStyles={[styles.chatFooterBanner]}
                     text={translate('adminOnlyCanPost')}
+                    icon={expensifyIcons.Lightbulb}
+                    shouldShowIcon
+                />
+                {!shouldUseNarrowLayout && (
+                    <View style={styles.offlineIndicatorContainer}>
+                        <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
+                    </View>
+                )}
+            </View>
+        );
+    }
+
+    // Permissions-based lockout: the report's permissions array is non-empty and excludes both
+    // "write" and "auditor" (e.g. "read" only via Report::inviteToRoom, donor-matching shares,
+    // anonymous access to public rooms). Render a neutral banner so the user isn't left with an
+    // empty footer. Other reasons the composer is hidden (creation errorFields, money-request
+    // pending deletion, mobile keyboard dismiss) fall through to null so their more specific
+    // indicators keep priority.
+    if (!canWriteInReport) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                <Banner
+                    containerStyles={[styles.chatFooterBanner]}
+                    text={translate('readOnlyConversation')}
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />

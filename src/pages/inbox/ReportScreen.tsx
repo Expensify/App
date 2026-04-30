@@ -1,7 +1,9 @@
 import {PortalHost} from '@gorhom/portal';
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -11,8 +13,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+// eslint-disable-next-line no-restricted-imports
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -21,6 +27,7 @@ import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
+import ReportActionComposePlaceholder from './report/ReportActionCompose/ReportActionComposePlaceholder';
 import ReportFooter from './report/ReportFooter';
 import ReportActionsList from './ReportActionsList';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
@@ -46,13 +53,69 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+
+    // During dismiss_modal_and_open_report, defer heavy non-content components
+    // (composer, invisible handlers) so the first render is lighter.
+    // Real content (header + messages) still renders immediately.
+    //
+    // ReportFetchHandler is intentionally included in the deferred set: it fetches
+    // new actions from the server, but at this point the report's local Onyx data
+    // is already sufficient for the initial render. The fetch handler mounts once
+    // the transition commits and backfills server-side updates.
+    const [shouldDeferNonEssentials, setShouldDeferNonEssentials] = useState(() => {
+        const pending = getPendingSubmitFollowUpAction();
+        return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && pending?.reportID === reportIDFromRoute;
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldDeferNonEssentials) {
+                return;
+            }
+            const animationFrameRef = {current: 0};
+            const handle = TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    animationFrameRef.current = requestAnimationFrame(() => setShouldDeferNonEssentials(false));
+                },
+                waitForUpcomingTransition: true,
+            });
+            // *3: shorter than the orchestrator's *5 because this only defers rendering
+            // of non-essential components - the user already sees the report content.
+            const safetyTimeout = setTimeout(() => setShouldDeferNonEssentials(false), CONST.MAX_TRANSITION_DURATION_MS * 3);
+            return () => {
+                handle.cancel();
+                cancelAnimationFrame(animationFrameRef.current);
+                clearTimeout(safetyTimeout);
+            };
+        }, [shouldDeferNonEssentials]),
+    );
 
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
         reportIDFromRoute,
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
+    );
+
+    // Flush the dismiss-modal deferred write channel when ReportScreen gains focus.
+    // Empty deps: the callback identity is stable but useFocusEffect runs it on every
+    // focus gain (not just mount). On narrow layout, the modal dismiss/restore cycle
+    // always triggers a new focus event. On wide layout, the fast-path handlers use
+    // InteractionManager.runAfterInteractions as a fallback since the ReportScreen may
+    // already be focused. The 5s safety timeout in deferredLayoutWrite also covers
+    // edge cases where neither focus nor InteractionManager fires.
+    useFocusEffect(
+        useCallback(() => {
+            if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const handle = InteractionManager.runAfterInteractions(() => {
+                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            });
+            return () => handle.cancel();
+        }, []),
     );
 
     const actionListValue = useActionListContextValue();
@@ -67,25 +130,29 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
                         testID={`report-screen-${reportIDFromRoute}`}
                     >
-                        <DeleteTransactionNavigateBackHandler />
-                        <ReportRouteParamHandler />
-                        <ReportFetchHandler />
-                        <ReportNavigateAwayHandler />
+                        {!shouldDeferNonEssentials && (
+                            <>
+                                <DeleteTransactionNavigateBackHandler />
+                                <ReportRouteParamHandler />
+                                <ReportFetchHandler />
+                                <ReportNavigateAwayHandler />
+                            </>
+                        )}
                         <ReportNotFoundGuard>
                             <LinkedActionNotFoundGuard>
                                 <ReportDragAndDropProvider>
-                                    <ReportLifecycleHandler reportID={reportIDFromRoute} />
+                                    {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
                                     <ReportHeader archivedReportsIDSet={archivedReportsIDSet} />
-                                    <AccountManagerBanner reportID={reportIDFromRoute} />
+                                    {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
                                     <View style={[styles.flex1, styles.flexRow]}>
-                                        <WideRHPReceiptPanel />
+                                        {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
                                         <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                             <View
                                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                 testID="report-actions-view-wrapper"
                                             >
                                                 <ReportActionsList archivedReportsIDSet={archivedReportsIDSet} />
-                                                <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />
+                                                {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />}
                                             </View>
                                         </AgentZeroStatusProvider>
                                     </View>
