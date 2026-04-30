@@ -1007,15 +1007,21 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         ),
     };
 
-    // CSV import always requires a live server response, so the offline-queue trade-off matches reality.
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
-    if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
-        return {
-            titleKey: 'spreadsheet.importSuccessfulTitle',
-            promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-            promptKeyParams: {added, updated},
-        };
+    try {
+        // CSV import always requires a live server response, so the offline-queue trade-off matches reality.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
+        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+            return {
+                titleKey: 'spreadsheet.importSuccessfulTitle',
+                promptKey: 'spreadsheet.importMembersSuccessfulDescription',
+                promptKeyParams: {added, updated},
+            };
+        }
+    } catch (error) {
+        // Network rejection (failed to fetch, dropped connection, etc.) — fall through to the failure modal so the consumer's
+        // await always resolves and the loading state / cleanup chain still runs.
+        Log.warn('importPolicyMembers request failed', {error});
     }
     return {titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'};
 }
