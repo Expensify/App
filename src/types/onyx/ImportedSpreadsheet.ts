@@ -5,8 +5,8 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
  */
 type SpreadsheetTranslationPaths = Extract<TranslationPaths, `spreadsheet${string}`>;
 
-/** Texts to display depending on request success/failure */
-type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
+/** Texts to display depending on request success/failure for a single translation path */
+type ImportFinalModalEntry<TPath extends SpreadsheetTranslationPaths> = {
     /** Title of the modal */
     titleKey: SpreadsheetTranslationPaths;
 
@@ -14,15 +14,16 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
     promptKey: TPath;
 
     /** Parameters for the translation */
-    promptKeyParams: TranslationParameters<TPath>[0];
+    promptKeyParams?: TranslationParameters<TPath>[0];
 };
 
 /**
- * Union type of all possible ImportFinalModal configurations
- * Each translation path gets its own properly typed variant
+ * Union type of all possible ImportFinalModal configurations.
+ * Each translation path gets its own properly typed variant so that
+ * consumers can return any specific variant without losing parameter typing.
  */
-type ImportFinalModalUnion = {
-    [K in SpreadsheetTranslationPaths]: ImportFinalModal<K>;
+type ImportFinalModal = {
+    [K in SpreadsheetTranslationPaths]: ImportFinalModalEntry<K>;
 }[SpreadsheetTranslationPaths];
 
 /** Settings for importing transactions */
@@ -52,7 +53,7 @@ type ImportedSpreadsheet = {
     shouldFinalModalBeOpened: boolean;
 
     /** Texts to display depending on request success/failure */
-    importFinalModal: ImportFinalModalUnion;
+    importFinalModal: ImportFinalModal;
 
     /** Whether the first row of the spreadsheet contains headers */
     containsHeader: boolean;
@@ -80,4 +81,4 @@ type ImportedSpreadsheet = {
 };
 
 export default ImportedSpreadsheet;
-export type {ImportTransactionSettings};
+export type {ImportFinalModal, ImportTransactionSettings};
