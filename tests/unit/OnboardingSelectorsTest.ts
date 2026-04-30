@@ -4,16 +4,16 @@ import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
 describe('onboardingSelectors', () => {
-    // Not all users have this NVP defined as we did not run a migration to backfill it for existing accounts, hence we need to make sure
-    // the onboarding flow is only showed to the users with `hasCompletedGuidedSetupFlow` set to false
+    // Not all users have hasCompletedGuidedSetupFlow backfilled; legacy partial NVPs should not strand new signups
+    // (e.g. signupQualifier without the flag must still be treated as incomplete guided setup).
     describe('hasCompletedGuidedSetupFlowSelector', () => {
         it('Should return true if onboarding NVP is an empty object', () => {
             const onboarding = {} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
             expect(hasCompletedGuidedSetupFlowSelector(onboarding)).toBe(true);
         });
-        it('Should return true if onboarding NVP contains only signupQualifier', () => {
+        it('Should return false if onboarding NVP contains only signupQualifier (guided flow not finished)', () => {
             const onboarding = {signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
-            expect(hasCompletedGuidedSetupFlowSelector(onboarding)).toBe(true);
+            expect(hasCompletedGuidedSetupFlowSelector(onboarding)).toBe(false);
         });
         it('Should return true if onboarding NVP contains hasCompletedGuidedSetupFlow = true', () => {
             const onboarding = {hasCompletedGuidedSetupFlow: true} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;

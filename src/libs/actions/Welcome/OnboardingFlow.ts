@@ -130,18 +130,20 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (onboardingInitialPath) {
-            return onboardingInitialPath;
-        }
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
-    }
-
+    // VSB/SMB must win over private-domain + policies so OD company signups land on the correct guided step
+    // (e.g. accounting for VSB) instead of personal-details-only routing (#89010).
     if (isVsb) {
         return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
     }
     if (isSmb) {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+    }
+
+    if (!isUserFromPublicDomain && hasAccessiblePolicies) {
+        if (onboardingInitialPath) {
+            return onboardingInitialPath;
+        }
+        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {

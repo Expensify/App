@@ -67,6 +67,27 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/accounting');
         });
 
+        it('should return accounting for VSB even when the account has accessible domain policies', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                onboardingInitialPath: '',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/accounting');
+        });
+
         it('should return the correct path for SMB and is not from public domain', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: false,

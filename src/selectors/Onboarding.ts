@@ -15,11 +15,22 @@ function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKE
         return true;
     }
 
-    if (!isEmptyObject(onboarding) && onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+    if (onboarding?.hasCompletedGuidedSetupFlow === true) {
         return true;
     }
 
-    return onboarding?.hasCompletedGuidedSetupFlow;
+    if (onboarding?.hasCompletedGuidedSetupFlow === false) {
+        return false;
+    }
+
+    // Partial NVP before hasCompletedGuidedSetupFlow is set (e.g. OD → NewDot signup with signupQualifier only).
+    // Those users must see guided onboarding; treating them as completed hides the onboarding modal (issue #89010).
+    if (onboarding?.signupQualifier !== undefined) {
+        return false;
+    }
+
+    // Legacy accounts with onboarding keys but no guided-setup flag — assume completed
+    return true;
 }
 
 /**
