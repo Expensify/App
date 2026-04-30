@@ -337,6 +337,32 @@ describe('ButtonWithDropdownMenuV2', () => {
             ).toThrow(new RegExp(`<ButtonWithDropdownMenuV2\\.${name}> must be a sibling of <Menu>`));
             error.mockRestore();
         });
+
+        it('throws when <Option> is rendered outside <Menu>', () => {
+            const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+            expect(() =>
+                render(
+                    <ButtonWithDropdownMenuV2>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2>,
+                ),
+            ).toThrow(/<ButtonWithDropdownMenuV2\.Option> must be rendered inside <ButtonWithDropdownMenuV2\.Menu>/);
+            error.mockRestore();
+        });
+
+        it('throws when <Submenu> is rendered outside <Menu>', () => {
+            const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+            expect(() =>
+                render(
+                    <ButtonWithDropdownMenuV2>
+                        <ButtonWithDropdownMenuV2.Submenu text="X">
+                            <ButtonWithDropdownMenuV2.Option text="A" />
+                        </ButtonWithDropdownMenuV2.Submenu>
+                    </ButtonWithDropdownMenuV2>,
+                ),
+            ).toThrow(/<ButtonWithDropdownMenuV2\.Submenu> must be rendered inside <ButtonWithDropdownMenuV2\.Menu>/);
+            error.mockRestore();
+        });
     });
 
     describe('Compound rendering', () => {
@@ -703,6 +729,22 @@ describe('ButtonWithDropdownMenuV2', () => {
     });
 
     describe('Keyboard shortcut & prop plumbing', () => {
+        it('forwards `shouldStayNormalOnDisable` from Root to all sub-component buttons', () => {
+            render(
+                <ButtonWithDropdownMenuV2 shouldStayNormalOnDisable>
+                    <ButtonWithDropdownMenuV2.PrimaryButton onPress={() => {}}>Pay</ButtonWithDropdownMenuV2.PrimaryButton>
+                    <ButtonWithDropdownMenuV2.Caret accessibilityLabel="caret" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const primary = findButtonByText('Pay') as {shouldStayNormalOnDisable?: boolean} | undefined;
+            const caret = buttonPropsCapture.current.find((p) => p.accessibilityLabel === 'caret') as {shouldStayNormalOnDisable?: boolean} | undefined;
+            expect(primary?.shouldStayNormalOnDisable).toBe(true);
+            expect(caret?.shouldStayNormalOnDisable).toBe(true);
+        });
+
         it('forwards `pressOnEnter` from Root to PrimaryButton', () => {
             render(
                 <ButtonWithDropdownMenuV2 pressOnEnter>
