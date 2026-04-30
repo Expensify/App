@@ -81,8 +81,6 @@ import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportActio
 import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
-const EMPTY_ARCHIVED_REPORTS_ID_SET = new Set<string>();
-
 type ReportActionsListProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
@@ -136,7 +134,7 @@ type ReportActionsListProps = {
     onShowPreviousMessages?: () => void;
 
     /** Set of archived report ID keys */
-    archivedReportsIDSet?: ArchivedReportsIDSet;
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -176,7 +174,7 @@ function ReportActionsList({
     showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
-    archivedReportsIDSet = EMPTY_ARCHIVED_REPORTS_ID_SET,
+    archivedReportsIDSet,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

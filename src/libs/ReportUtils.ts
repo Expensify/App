@@ -2354,6 +2354,23 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
     return !!reportNameValuePairs?.private_isArchived;
 }
 
+function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet, reportID?: string): boolean {
+    if (!reportID) {
+        return false;
+    }
+    return archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+}
+
+function buildArchivedReportsIDSet(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
+    const archivedReportsIDSet = new Set<string>();
+    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
+        if (isArchivedReport(value)) {
+            archivedReportsIDSet.add(key);
+        }
+    }
+    return archivedReportsIDSet;
+}
+
 /**
  * Whether the report was created during harvesting
  */
@@ -4955,6 +4972,7 @@ function canEditFieldOfMoneyRequest({
 
     // Unreported transaction from OldDot can have the reportID as an empty string
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const archivedReportsIDSetForOutstandingReports = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
@@ -4990,7 +5008,7 @@ function canEditFieldOfMoneyRequest({
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                    archivedReportsIDSet,
+                    archivedReportsIDSetForOutstandingReports,
                 ).length > 0
             );
         }
@@ -5010,7 +5028,12 @@ function canEditFieldOfMoneyRequest({
         // Check if there are multiple outstanding reports across policies
         let outstandingReportsCount = 0;
         for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {}, archivedReportsIDSet);
+            const reports = getOutstandingReportsForUser(
+                currentPolicy.id,
+                moneyRequestReport?.ownerAccountID,
+                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
+                archivedReportsIDSetForOutstandingReports,
+            );
             outstandingReportsCount += reports.length;
 
             // Short-circuit once we find more than 1
@@ -11505,7 +11528,7 @@ function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     reports: OnyxCollection<Report> = deprecatedAllReports,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    archivedReportsIDSet: ArchivedReportsIDSet,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {
@@ -13499,6 +13522,7 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
+    isReportArchivedByID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,

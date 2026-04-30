@@ -23,11 +23,9 @@ import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 
-const EMPTY_ARCHIVED_REPORTS_ID_SET = new Set<string>();
-
 type ReportActionComposeProps = {
     reportID: string;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function ReportActionComposeInner({reportID}: Pick<ReportActionComposeProps, 'reportID'>) {
@@ -71,7 +69,7 @@ function ReportActionComposeInner({reportID}: Pick<ReportActionComposeProps, 're
     );
 }
 
-function ReportActionCompose({reportID, archivedReportsIDSet = EMPTY_ARCHIVED_REPORTS_ID_SET}: ReportActionComposeProps) {
+function ReportActionCompose({reportID, archivedReportsIDSet}: ReportActionComposeProps) {
     return (
         <ComposerProvider
             reportID={reportID}

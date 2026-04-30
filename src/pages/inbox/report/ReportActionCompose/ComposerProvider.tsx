@@ -23,7 +23,7 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 type ComposerProviderProps = {
     reportID: string;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
+    archivedReportsIDSet: ArchivedReportsIDSet;
     children: React.ReactNode;
 };
 
