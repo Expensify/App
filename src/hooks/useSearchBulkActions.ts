@@ -1384,9 +1384,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             (firstOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
             (firstOriginalTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined);
         const shouldShowEditSplitOnDeleteAction =
-            canShowDeleteAction &&
-            selectedTransactionsKeys.length === 1 &&
-            shouldRedirectDeleteToSplitExpenseEdit(firstTransaction, firstOriginalTransaction);
+            canShowDeleteAction && selectedTransactionsKeys.length === 1 && shouldRedirectDeleteToSplitExpenseEdit(firstTransaction, firstOriginalTransaction);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
