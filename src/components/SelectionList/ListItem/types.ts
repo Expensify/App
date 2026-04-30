@@ -346,6 +346,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         accessible?: boolean;
     };
 
+type CardRuleListItemType = ListItem & {};
+
 type SplitListItemType = ListItem &
     SplitExpense & {
         /** Item header text */
@@ -385,6 +387,8 @@ type SplitListItemType = ListItem &
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type CardRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -419,6 +423,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 export type {
+    CardRuleListItemType,
+    CardRuleListItemProps,
     BaseListItemProps,
     ExtendedTargetedEvent,
     ListItem,

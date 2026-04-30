@@ -3,6 +3,9 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import CardRuleListItem from '@components/SelectionList/ListItem/CardRuleListItem';
+import {CardRuleListItemType} from '@components/SelectionList/ListItem/types';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -25,8 +28,10 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
     const [cardRuleID, setCardRuleID] = useState('');
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
 
-    const onSelectCardRule = (selectedCardRuleID: string) => {
-        setCardRuleID(selectedCardRuleID);
+    const cardRuleListItems: CardRuleListItemType[] = [];
+
+    const onSelectCardRule = (item: CardRuleListItemType) => {
+        // setCardRuleID(selectedCardRuleID);
     };
 
     const onSave = () => {
@@ -57,6 +62,15 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
                             }}
                         />
                     </View>
+                )}
+
+                {!isLoadingCardRules && (
+                    <SelectionList
+                        ListItem={CardRuleListItem}
+                        data={cardRuleListItems}
+                        canSelectMultiple={false}
+                        onSelectRow={onSelectCardRule}
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
