@@ -74,14 +74,6 @@ type ReportActionContextMenu = {
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
 
-// Bridge used when PopoverReportActionContextMenu is lazy-mounted: lets showContextMenu
-// trigger eager mount if the user interacts before the idle-deferred mount runs.
-let ensureContextMenuMounted: (() => void) | null = null;
-
-function registerEnsureContextMenuMounted(handler: (() => void) | null) {
-    ensureContextMenuMounted = handler;
-}
-
 // How long the success icon (Checkmark / "Copied!") stays visible before the menu hides.
 const SUCCESS_STATE_HIDE_DELAY_MS = 800;
 
