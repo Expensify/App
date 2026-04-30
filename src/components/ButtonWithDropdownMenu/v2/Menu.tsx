@@ -8,10 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './Context';
-import {MenuRegistryActionsContext} from './MenuContext';
-import type {RegisteredOptionEntry, RegisteredSubmenuEntry} from './MenuContext';
+import {MenuRegistryActionsContext} from './MenuRegistryActionsContext';
+import type {RegisteredOptionEntry, RegisteredSubmenuEntry} from './MenuRegistryActionsContext';
 import PositionedChildren from './PositionedChildren';
+import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './RootContext';
 import type {DropdownOptionV2Props, MenuProps} from './types';
 import useRegisteredOptions from './useRegisteredOptions';
 

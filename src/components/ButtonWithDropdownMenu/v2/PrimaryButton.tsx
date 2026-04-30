@@ -5,8 +5,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useButtonWithDropdownMenuRootState} from './Context';
-import {useAssertOutsideMenu} from './MenuContext';
+import {useAssertOutsideMenu} from './MenuRegistryActionsContext';
+import {useButtonWithDropdownMenuRootState} from './RootContext';
 import type {PrimaryButtonProps} from './types';
 import useButtonSizeFlags, {TEXT_COMPACT_THRESHOLD} from './useButtonSizeFlags';
 

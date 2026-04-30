@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import type {MenuRegistryActions, RegisteredItemEntry, RegisteredOptionEntry} from './MenuContext';
+import type {MenuRegistryActions, RegisteredItemEntry, RegisteredOptionEntry} from './MenuRegistryActionsContext';
 
 type RegisteredOptionsSnapshot = {
     actions: MenuRegistryActions;
@@ -43,13 +43,13 @@ function useRegisteredOptions(): RegisteredOptionsSnapshot {
             }
             continue;
         }
-        if (entry.parentSubmenuId === undefined) {
+        if (entry.parentSubmenuID === undefined) {
             topLevelEntries.push(entry);
             continue;
         }
-        const list = submenuChildren.get(entry.parentSubmenuId) ?? [];
+        const list = submenuChildren.get(entry.parentSubmenuID) ?? [];
         list.push(entry);
-        submenuChildren.set(entry.parentSubmenuId, list);
+        submenuChildren.set(entry.parentSubmenuID, list);
     }
 
     topLevelEntries.sort(comparePosition);

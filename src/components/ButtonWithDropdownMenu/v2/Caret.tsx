@@ -8,8 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './Context';
-import {useAssertOutsideMenu} from './MenuContext';
+import {useAssertOutsideMenu} from './MenuRegistryActionsContext';
+import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './RootContext';
 import type {CaretProps} from './types';
 import useButtonSizeFlags from './useButtonSizeFlags';
 

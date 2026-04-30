@@ -1,6 +1,6 @@
 import React, {Children, isValidElement} from 'react';
 import type {ReactNode} from 'react';
-import {PositionContext} from './MenuContext';
+import {PositionContext} from './PositionContext';
 
 type PositionedChildrenProps = {
     children: ReactNode;

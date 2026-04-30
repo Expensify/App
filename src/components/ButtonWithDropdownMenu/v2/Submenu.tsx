@@ -1,6 +1,6 @@
 import React from 'react';
-import {SubmenuParentContext} from './MenuContext';
 import PositionedChildren from './PositionedChildren';
+import {SubmenuParentContext} from './SubmenuParentContext';
 import type {DropdownSubmenuV2Props} from './types';
 import {useRegisterSubmenu} from './useRegisterOption';
 

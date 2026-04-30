@@ -7,8 +7,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
-import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './Context';
-import {useAssertOutsideMenu} from './MenuContext';
+import {useAssertOutsideMenu} from './MenuRegistryActionsContext';
+import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState} from './RootContext';
 import type {TriggerProps} from './types';
 import useButtonSizeFlags, {TEXT_COMPACT_THRESHOLD} from './useButtonSizeFlags';
 

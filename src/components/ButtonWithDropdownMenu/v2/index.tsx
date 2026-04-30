@@ -1,45 +1,38 @@
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Caret from './Caret';
-import {ButtonWithDropdownMenuRootActionsContext, ButtonWithDropdownMenuRootStateContext} from './Context';
-import type {ButtonWithDropdownMenuRootActionsValue, ButtonWithDropdownMenuRootStateValue} from './Context';
 import Menu from './Menu';
 import Option from './Option';
 import PrimaryButton from './PrimaryButton';
+import {ButtonWithDropdownMenuRootActionsContext, ButtonWithDropdownMenuRootStateContext} from './RootContext';
+import type {ButtonWithDropdownMenuRootActionsValue, ButtonWithDropdownMenuRootStateValue} from './RootContext';
 import Submenu from './Submenu';
 import Trigger from './Trigger';
 import type {ButtonWithDropdownMenuV2Props} from './types';
 
-function ButtonWithDropdownMenuV2(props: ButtonWithDropdownMenuV2Props): React.ReactElement {
-    const {
-        ref,
-        children,
-        onOpenChange,
-        success = true,
-        isLoading = false,
-        isDisabled = false,
-        shouldStayNormalOnDisable = false,
-        pressOnEnter = false,
-        useKeyboardShortcuts = false,
-        enterKeyEventListenerPriority = 0,
-        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-        triggerLayout = 'default',
-        wrapperStyle,
-        testID,
-        brickRoadIndicator,
-        sentryLabel,
-    } = props;
-
+function ButtonWithDropdownMenuV2({
+    ref,
+    children,
+    onOpenChange,
+    success = true,
+    isLoading = false,
+    isDisabled = false,
+    shouldStayNormalOnDisable = false,
+    pressOnEnter = false,
+    useKeyboardShortcuts = false,
+    enterKeyEventListenerPriority = 0,
+    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    triggerLayout = 'default',
+    wrapperStyle,
+    testID,
+    brickRoadIndicator,
+    sentryLabel,
+}: ButtonWithDropdownMenuV2Props): React.ReactElement {
     const styles = useThemeStyles();
     const [isMenuVisible, setIsMenuVisibleState] = useState(false);
     const dropdownAnchor = useRef<View | null>(null);
-
-    const onOpenChangeRef = useRef(onOpenChange);
-    useLayoutEffect(() => {
-        onOpenChangeRef.current = onOpenChange;
-    });
 
     // Notify via effect so the state updater stays pure (no StrictMode double-fire).
     const previousIsMenuVisibleRef = useRef(isMenuVisible);
@@ -48,8 +41,8 @@ function ButtonWithDropdownMenuV2(props: ButtonWithDropdownMenuV2Props): React.R
             return;
         }
         previousIsMenuVisibleRef.current = isMenuVisible;
-        onOpenChangeRef.current?.(isMenuVisible);
-    }, [isMenuVisible]);
+        onOpenChange?.(isMenuVisible);
+    }, [isMenuVisible, onOpenChange]);
 
     const [actions] = useState<ButtonWithDropdownMenuRootActionsValue>(() => ({
         setIsMenuVisible: setIsMenuVisibleState,
