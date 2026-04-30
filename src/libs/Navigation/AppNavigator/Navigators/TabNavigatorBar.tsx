@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import ROOT_TAB_SCREENS from './ROOT_TAB_SCREENS';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
@@ -31,7 +30,21 @@ const TAB_WRAPPER_NAVIGATORS = new Set<string>([
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ]);
 
-const isAtTabRootLevel = (name: string | undefined): boolean => !name || ROOT_TAB_SCREENS.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
+/**
+ * Leaf screen names that represent the root/landing view of each tab.
+ * Used to decide tab-bar visibility.
+ */
+const SCREENS_WITH_TAB_BAR = new Set<string>([
+    SCREENS.HOME,
+    SCREENS.INBOX,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.WORKSPACE.INITIAL,
+    SCREENS.DOMAIN.INITIAL,
+]);
+
+const isAtTabRootLevel = (name: string | undefined): boolean => !name || SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
 
 // Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
 const getPushTargetLeaf = (params: unknown): string | undefined => {
