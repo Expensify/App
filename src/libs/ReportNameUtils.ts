@@ -24,7 +24,6 @@ import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
@@ -293,7 +292,7 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
 
     if (reportOwnerDisplayName) {
@@ -869,7 +868,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
 }: ComputeReportName): string {
-    if (!report || !report.reportID) {
+    if (!report?.reportID) {
         return '';
     }
 
@@ -1021,7 +1020,7 @@ function computeReportName({
  * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  */
 function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
-    if (!report || !report.reportID) {
+    if (!report?.reportID) {
         return '';
     }
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';

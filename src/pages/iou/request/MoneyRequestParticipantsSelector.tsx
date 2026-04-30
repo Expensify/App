@@ -1,57 +1,11 @@
-import {deepEqual} from 'fast-equals';
-import lodashPick from 'lodash/pick';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import type {Ref} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {InteractionManager} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
-import Button from '@components/Button';
-import ContactPermissionModal from '@components/ContactPermissionModal';
-import EmptySelectionListContent from '@components/EmptySelectionListContent';
-import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItem from '@components/MenuItem';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ReferralProgramCTA from '@components/ReferralProgramCTA';
-import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
-import useContactImport from '@hooks/useContactImport';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
-import useReportAttributes from '@hooks/useReportAttributes';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useSearchSelector from '@hooks/useSearchSelector';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
-import useUserToInviteReports from '@hooks/useUserToInviteReports';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import getPlatform from '@libs/getPlatform';
-import goToSettings from '@libs/goToSettings';
-import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import type {Option} from '@libs/OptionsListUtils';
-import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
-import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
-import type {OptionWithKey} from '@libs/OptionsListUtils/types';
-import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
-import {isInvoiceRoom} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
-import {searchUserInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ImportContactButton from './ImportContactButton';
+import ParticipantSearchResults from './ParticipantSearchResults';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -89,12 +43,6 @@ type InputFocusRef = {
     focus?: () => void;
 };
 
-const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUType) => ({
-    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
-    selected: true,
-    iouType,
-});
-
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -108,34 +56,8 @@ function MoneyRequestParticipantsSelector({
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
-    const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
-    const {isOffline} = useNetwork();
-    const personalDetails = usePersonalDetails();
-    const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserLogin = currentUserPersonalDetails.login;
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const reportAttributesDerived = useReportAttributes();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
-
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -600,65 +522,23 @@ function MoneyRequestParticipantsSelector({
         },
     }));
 
-    const textInputOptions = {
-        value: searchTerm,
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
-        hint: offlineMessage,
-        onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
-        headerMessage: header,
-    };
-
     return (
-        <>
-            <ContactPermissionModal
-                onGrant={contactState?.importContacts ?? initiateContactImportAndSetState}
-                onDeny={contactState?.setContactPermissionState ?? setContactPermissionState}
-                onFocusTextInput={() => {
-                    setTextInputAutoFocus(true);
-                }}
-            />
-            <SelectionListWithSections
-                confirmButtonOptions={{
-                    onConfirm: handleConfirmSelection,
-                }}
-                sections={sections}
-                ListItem={InviteMemberListItem}
-                textInputOptions={textInputOptions}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onSelectRow={onSelectRow}
-                shouldSingleExecuteRowSelect
-                canShowProductTrainingTooltip={canShowManagerMcTest}
-                customListHeaderContent={importContactsButtonComponent}
-                customHeaderContent={
-                    <ImportContactButton
-                        showImportContacts={contactState?.showImportUI ?? showImportContacts}
-                        inputHelperText={inputHelperText}
-                        isInSearch
-                    />
-                }
-                footerContent={footerContent}
-                listEmptyContent={EmptySelectionListContentWithPermission}
-                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                shouldShowTextInput
-                canSelectMultiple={isIOUSplit && isAllowedToSplit}
-                isLoadingNewOptions={!!isSearchingForReports}
-                shouldShowListEmptyContent={shouldShowListEmptyContent}
-                ref={selectionListRef}
-                onEndReached={onListEndReached}
-                onEndReachedThreshold={0.75}
-            />
-        </>
+        <ParticipantSearchResults
+            iouType={iouType}
+            action={action}
+            participants={participants}
+            isWorkspacesOnly={isWorkspacesOnly}
+            isPerDiemRequest={isPerDiemRequest}
+            isTimeRequest={isTimeRequest}
+            isNative={isNative}
+            isCorporateCardTransaction={isCorporateCardTransaction}
+            selectionListRef={selectionListRef}
+            textInputAutoFocus={textInputAutoFocus}
+            setTextInputAutoFocus={setTextInputAutoFocus}
+            onParticipantsAdded={onParticipantsAdded}
+            onFinish={onFinish}
+        />
     );
 }
 
-export default memo(
-    MoneyRequestParticipantsSelector,
-    (prevProps, nextProps) =>
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo
-        deepEqual(prevProps.participants, nextProps.participants) &&
-        prevProps.iouType === nextProps.iouType &&
-        prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
-        prevProps.onParticipantsAdded === nextProps.onParticipantsAdded &&
-        prevProps.onFinish === nextProps.onFinish,
-);
+export default MoneyRequestParticipantsSelector;

@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type UseDialogContainerFocus from './types';
 
@@ -73,4 +74,4 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
 };
 
 export default useDialogContainerFocus;
-export {focusFirstInteractiveElement, FOCUSABLE_SELECTOR};
+export {focusFirstInteractiveElement};

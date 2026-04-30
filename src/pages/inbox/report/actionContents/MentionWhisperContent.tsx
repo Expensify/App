@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -17,7 +18,6 @@ type MentionWhisperContentProps = {
     report: OnyxEntry<Report>;
     originalReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
-    currentUserAccountID: number;
     personalPolicyID: string | undefined;
     originalReportID: string | undefined;
     resolveActionableMentionWhisper: (
@@ -25,21 +25,14 @@ type MentionWhisperContentProps = {
         reportAction: OnyxEntry<ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         isReportArchived: boolean,
+        parentReport?: OnyxEntry<Report>,
     ) => void;
 };
 
-function MentionWhisperContent({
-    action,
-    report,
-    originalReport,
-    policy,
-    currentUserAccountID,
-    personalPolicyID,
-    originalReportID,
-    resolveActionableMentionWhisper,
-}: MentionWhisperContentProps) {
+function MentionWhisperContent({action, report, originalReport, policy, personalPolicyID, originalReportID, resolveActionableMentionWhisper}: MentionWhisperContentProps) {
     const {translate} = useLocalize();
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const reportActionReport = originalReport ?? report;
     const reportPolicyID = report?.policyID;
@@ -52,19 +45,40 @@ function MentionWhisperContent({
         buttons.push({
             text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         });
     }
     buttons.push(
         {
             text: 'actionableMentionWhisperOptions.inviteToChat',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         },
         {
             text: 'actionableMentionWhisperOptions.nothing',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         },
     );
 

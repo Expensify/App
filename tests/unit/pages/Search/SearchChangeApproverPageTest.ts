@@ -1,5 +1,5 @@
-import {APPROVER_TYPE} from '@pages/ReportChangeApproverPage';
-import type {ApproverType} from '@pages/ReportChangeApproverPage';
+import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
+import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
 import {shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 import type {Report} from '@src/types/onyx';
 

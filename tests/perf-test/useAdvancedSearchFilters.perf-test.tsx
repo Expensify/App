@@ -1,7 +1,6 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import Onyx from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';

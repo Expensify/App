@@ -64,7 +64,7 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksExportTravelVendorSelectPage"
-            title="workspace.qbo.travelInvoicingVendor"
+            title="workspace.common.travelInvoicingVendor"
             data={data}
             listItem={RadioListItem}
             onSelectRow={selectVendor}

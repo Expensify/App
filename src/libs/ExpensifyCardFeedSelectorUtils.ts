@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings, Policy} from '@src/types/onyx';
 import {
@@ -26,14 +27,17 @@ function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, poli
     }
     const linkedPolicyIDs = getLinkedPolicyIDsFromExpensifyCardSettings(settings);
     if (linkedPolicyIDs?.length) {
-        return linkedPolicyIDs.some((linkedPolicyID) => isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${linkedPolicyID.toUpperCase()}`]));
+        return linkedPolicyIDs.some((linkedPolicyID) => {
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${linkedPolicyID.toUpperCase()}`];
+            return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        });
     }
     const preferredPolicy = getPreferredPolicyFromExpensifyCardSettings(settings);
     if (!preferredPolicy) {
         return false;
     }
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`];
-    return isPolicyAdmin(policy);
+    return isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 function isFeedLinkedToPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {

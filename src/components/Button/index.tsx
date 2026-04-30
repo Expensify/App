@@ -367,7 +367,6 @@ function Button({
 
         const defaultFill = success || danger ? theme.textLight : theme.buttonIcon;
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>

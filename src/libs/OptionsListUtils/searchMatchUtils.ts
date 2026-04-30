@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {SearchOptionData} from './types';
