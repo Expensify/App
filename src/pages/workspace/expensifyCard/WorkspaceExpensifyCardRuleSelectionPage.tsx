@@ -30,10 +30,11 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
 
     const cardRuleListItems: CardRuleListItemType[] = cardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
-        accessibilityLabel: 'JACK_TODO',
         action: cardRule.action,
         summary: cardRule.cardSummary,
         summaryParts: cardRule.summaryParts,
+        isSelected: cardRule.ruleID === cardRuleID,
+        accessibilityLabel: cardRule.accessibilityLabel,
     }));
 
     const onSelectCardRule = (item: CardRuleListItemType) => {

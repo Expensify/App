@@ -41,7 +41,6 @@ export default function useExpensifyCardRules(policyID: string) {
                 return undefined;
             }
 
-            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
             const cardDescriptions = activeCardIDs.map((cardID) => {
                 const card = cardsList?.[cardID];
 
@@ -54,15 +53,21 @@ export default function useExpensifyCardRules(policyID: string) {
                 return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
             });
 
+            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
+            const summaryParts = getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString);
+            const cardSummary = getTruncatedSpendRuleSummary(cardDescriptions, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+            const accessibilityLabel = `${summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${cardSummary}`;
+
             return {
                 ruleID,
                 actionLabel,
+                cardSummary,
+                summaryParts,
+                accessibilityLabel,
                 created: cardRule.created,
                 action: formValues.restrictionAction,
                 pendingAction: cardRule.pendingAction,
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),
-                cardSummary: getTruncatedSpendRuleSummary(cardDescriptions, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count})),
             };
         })
         .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
