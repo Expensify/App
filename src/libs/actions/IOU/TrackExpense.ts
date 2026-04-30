@@ -86,6 +86,7 @@ import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
@@ -146,7 +147,7 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     optimisticReportID: string | undefined;
     optimisticReportActionID: string | undefined;
-    onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID>;
+    onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -835,7 +836,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         defaultWorkspaceName,
     } = params;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
-    const {policy} = policyParams;
+    const {policy, policyTagList, policyRecentlyUsedTags} = policyParams;
     const {
         comment,
         amount,
@@ -858,7 +859,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         gpsCoordinates,
     } = transactionParams;
 
-    const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID> = {
+    const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS> = {
         optimisticData: [],
         successData: [],
         failureData: [],
@@ -1143,6 +1144,20 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     onyxData.optimisticData?.push(...(trackExpenseOnyxData.optimisticData ?? []));
     onyxData.successData?.push(...(trackExpenseOnyxData.successData ?? []));
     onyxData.failureData?.push(...(trackExpenseOnyxData.failureData ?? []));
+
+    const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        policyTags: policyTagList ?? {},
+        policyRecentlyUsedTags,
+        transactionTags: tag,
+    });
+
+    if (!isEmptyObject(optimisticPolicyRecentlyUsedTags) && chatReport?.policyID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${chatReport.policyID}`,
+            value: optimisticPolicyRecentlyUsedTags,
+        });
+    }
 
     return {
         createdWorkspaceParams,
@@ -2151,6 +2166,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
         | typeof ONYXKEYS.GPS_DRAFT_DETAILS
         | typeof ONYXKEYS.SELF_DM_REPORT_ID
+        | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
     > = {
         optimisticData: trackedExpenseOnyxData?.optimisticData ?? [],
         successData: trackedExpenseOnyxData?.successData ?? [],
@@ -2281,7 +2297,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         defaultWorkspaceName,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
-    const {policy, policyCategories, policyTagList} = policyData;
+    const {policy, policyCategories, policyTagList, policyRecentlyUsedTags} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
     transactionData.comment = parsedComment;
     const {
@@ -2409,6 +2425,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             policy,
             policyCategories,
             policyTagList,
+            policyRecentlyUsedTags,
         },
         retryParams,
         isASAPSubmitBetaEnabled,

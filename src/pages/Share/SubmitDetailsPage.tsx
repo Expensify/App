@@ -220,7 +220,7 @@ function SubmitDetailsPage({
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories},
+                policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedTags},
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
                     attendees: transaction.comment?.attendees,

@@ -127,7 +127,14 @@ function getTagListSections({
         return tagSections;
     }
 
-    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    const filteredRecentlyUsedTags = recentlyUsedTags
+        .filter((recentlyUsedTag) => {
+            const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
+            return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        })
+        .map((tag) => ({name: tag, enabled: true}));
+
+    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT && filteredRecentlyUsedTags.length === 0) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -137,13 +144,6 @@ function getTagListSections({
 
         return tagSections;
     }
-
-    const filteredRecentlyUsedTags = recentlyUsedTags
-        .filter((recentlyUsedTag) => {
-            const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
-            return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        })
-        .map((tag) => ({name: tag, enabled: true}));
 
     if (selectedOptions.length) {
         tagSections.push({
