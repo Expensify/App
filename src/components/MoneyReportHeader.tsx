@@ -41,6 +41,8 @@ type MoneyReportHeaderProps = {
     archivedReportsIDSet?: ArchivedReportsIDSet;
 };
 
+type MoneyReportHeaderContentProps = Omit<MoneyReportHeaderProps, 'archivedReportsIDSet'>;
+
 function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress, archivedReportsIDSet}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
@@ -49,14 +51,13 @@ function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackBut
                     reportID={reportID}
                     shouldDisplayBackButton={shouldDisplayBackButton}
                     onBackButtonPress={onBackButtonPress}
-                    archivedReportsIDSet={archivedReportsIDSet}
                 />
             </PaymentAnimationsProvider>
         </MoneyReportHeaderModals>
     );
 }
 
-function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderContentProps) {
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);

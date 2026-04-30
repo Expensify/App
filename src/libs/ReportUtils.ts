@@ -5007,8 +5007,8 @@ function canEditFieldOfMoneyRequest({
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
-                    outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                     archivedReportsIDSetForOutstandingReports,
+                    outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
         }
@@ -5031,8 +5031,8 @@ function canEditFieldOfMoneyRequest({
             const reports = getOutstandingReportsForUser(
                 currentPolicy.id,
                 moneyRequestReport?.ownerAccountID,
-                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
                 archivedReportsIDSetForOutstandingReports,
+                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
             );
             outstandingReportsCount += reports.length;
 
@@ -11527,8 +11527,8 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
-    reports: OnyxCollection<Report> = deprecatedAllReports,
     archivedReportsIDSet: ArchivedReportsIDSet,
+    reports: OnyxCollection<Report> = deprecatedAllReports,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {

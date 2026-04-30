@@ -1027,9 +1027,10 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', new Set<string>());
+            const emptySet = new Set<string>();
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', emptySet);
             expect(result).toBe(`r/${mostRecentReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123', emptySet);
         });
 
         it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
@@ -1038,9 +1039,10 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID, new Set<string>());
+            const emptySet = new Set<string>();
+            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID, emptySet);
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID, emptySet);
         });
 
         it('should return undefined when no parentReportID, no most recent report, and conciergeReportID is undefined', () => {

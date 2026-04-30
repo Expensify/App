@@ -75,8 +75,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const availableOutstandingReports = getOutstandingReportsForUser(
         policyID,
         ownerAccountID,
-        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
         archivedReportsIDSet,
+        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
         false,
     ).sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
 

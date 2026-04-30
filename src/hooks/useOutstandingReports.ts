@@ -29,11 +29,11 @@ export default function useOutstandingReports(selectedReportID: string | undefin
                 continue;
             }
 
-            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID[policyID] ?? {}, archivedReportsIDSet, isEditing);
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, archivedReportsIDSet, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
             result.push(...reports);
         }
         return result;
     }
 
-    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, archivedReportsIDSet, isEditing);
+    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, archivedReportsIDSet, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
 }
