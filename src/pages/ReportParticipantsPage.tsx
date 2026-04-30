@@ -106,6 +106,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+    const shouldShowBulkActionsDropdown = isGroupChat && (isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
@@ -344,7 +345,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 <View style={[styles.pl5, styles.pr5]}>
                     {shouldShowInviteButton && (
                         <View style={styles.w100}>
-                            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                            {shouldShowBulkActionsDropdown ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter

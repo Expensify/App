@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +10,6 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
@@ -31,9 +30,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import {reportByIDsSelector} from '@src/selectors/Attributes';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import getInvitedEmailsToAccountIDs from './InviteReportParticipantsPageUtils';
 
 type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
@@ -45,7 +45,11 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const reportAttributes = useReportAttributes();
+    const reportID = report.reportID;
+    const reportAttributesSelector = useMemo(() => reportByIDsSelector([reportID]), [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -115,7 +119,6 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         toggleSelection(option);
     };
 
-    const reportID = report.reportID;
     const reportName = StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes));
 
     const goBack = () => {
@@ -126,14 +129,9 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         if (selectedOptions.length === 0) {
             return;
         }
-        const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        for (const option of selectedOptions) {
-            const login = option.login ?? '';
-            const accountID = option.accountID;
-            if (!login.toLowerCase().trim() || !accountID) {
-                continue;
-            }
-            invitedEmailsToAccountIDs[login] = accountID;
+        const invitedEmailsToAccountIDs = getInvitedEmailsToAccountIDs(selectedOptions);
+        if (Object.keys(invitedEmailsToAccountIDs).length === 0) {
+            return;
         }
         inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
