@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';

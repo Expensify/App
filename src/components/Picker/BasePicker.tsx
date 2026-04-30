@@ -99,7 +99,6 @@ function BasePicker<TPickerValue>({
             return () => icon(size);
         }
 
-        // eslint-disable-next-line react/display-name
         return () => (
             <Icon
                 fill={theme.icon}

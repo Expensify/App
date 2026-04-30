@@ -4,6 +4,7 @@
  */
 import seatbelt from 'eslint-seatbelt';
 import reactCompilerCompatProcessor from './eslint-processor-react-compiler-compat.mjs';
+import stratifyNoDeprecatedProcessor from './eslint-processor-stratify-no-deprecated.mjs';
 
 const seatbeltProcessor = seatbelt.processors.seatbelt;
 
@@ -13,11 +14,13 @@ export default {
 
     preprocess(text, filename) {
         const [textResult] = reactCompilerCompatProcessor.preprocess(text, filename);
-        return seatbeltProcessor.preprocess(textResult, filename);
+        const [afterStratifyPreprocess] = stratifyNoDeprecatedProcessor.preprocess(textResult, filename);
+        return seatbeltProcessor.preprocess(afterStratifyPreprocess, filename);
     },
 
     postprocess(messagesPerBlock, filename) {
         const afterCompilerFilter = reactCompilerCompatProcessor.postprocess(messagesPerBlock, filename);
-        return seatbeltProcessor.postprocess([afterCompilerFilter], filename);
+        const afterStratify = stratifyNoDeprecatedProcessor.postprocess([afterCompilerFilter], filename);
+        return seatbeltProcessor.postprocess([afterStratify], filename);
     },
 };

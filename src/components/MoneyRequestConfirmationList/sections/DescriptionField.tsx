@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDescription} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getDescription, hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -53,7 +54,9 @@ function DescriptionField({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const iouComment = getDescription(transaction);
+    // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
+    // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
+    const iouComment = Parser.htmlToMarkdown(getDescription(transaction));
 
     const contextMenuStateValue = {
         anchor: null,

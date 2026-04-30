@@ -55,7 +55,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         avatar: '',
         person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
         message: [{type: 'COMMENT', html: 'some message', text: 'some message'}],
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         originalMessage: {
             ...originalMessageExtras,
         },
@@ -1354,6 +1354,15 @@ describe('PureReportActionItem', () => {
         });
 
         it('REIMBURSEMENT_QUEUED with missing bank account shows add bank account button', async () => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}testReport`, {
+                    reportID: 'testReport',
+                    ownerAccountID: ACTOR_ACCOUNT_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: ''});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -1369,7 +1378,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    missingPaymentMethod="bankAccount"
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1382,6 +1390,15 @@ describe('PureReportActionItem', () => {
         });
 
         it('REIMBURSEMENT_QUEUED with missing wallet shows enable wallet button', async () => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}testReport`, {
+                    reportID: 'testReport',
+                    ownerAccountID: ACTOR_ACCOUNT_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {
                 paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             });
@@ -1399,7 +1416,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    missingPaymentMethod="wallet"
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1411,7 +1427,142 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.enableWallet'))).toBeOnTheScreen();
         });
 
+        it('REIMBURSEMENT_QUEUED on a chat thread uses parentReport to resolve submitter and missing payment method', async () => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}parentReport`, {
+                    reportID: 'parentReport',
+                    ownerAccountID: ACTOR_ACCOUNT_ID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}threadReport`, {
+                    reportID: 'threadReport',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: 'parentReport',
+                    parentReportActionID: 'parentAction',
+                    ownerAccountID: 0,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: ''});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={{
+                                        reportID: 'threadReport',
+                                        type: CONST.REPORT.TYPE.CHAT,
+                                        parentReportID: 'parentReport',
+                                        parentReportActionID: 'parentAction',
+                                        ownerAccountID: 0,
+                                    }}
+                                    parentReport={{reportID: 'parentReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('bankAccount.addBankAccount'))).toBeOnTheScreen();
+        });
+
+        it('REIMBURSEMENT_QUEUED with a credit bank account hides buttons and shows the waiting message', async () => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}testReport`, {
+                    reportID: 'testReport',
+                    ownerAccountID: ACTOR_ACCOUNT_ID,
+                });
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {acc1: {accountData: {defaultCredit: true}} as never});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {paymentType: ''});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('bankAccount.addBankAccount'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
+            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', 'Hidden'))).toBeOnTheScreen();
+        });
+
+        it('REIMBURSEMENT_QUEUED with a Gold wallet tier hides the enable wallet button', async () => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}testReport`, {
+                    reportID: 'testReport',
+                    ownerAccountID: ACTOR_ACCOUNT_ID,
+                });
+                await Onyx.merge(ONYXKEYS.USER_WALLET, {tierName: CONST.WALLET.TIER_NAME.GOLD});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED, {
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
+            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', 'Hidden'))).toBeOnTheScreen();
+        });
+
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
+            await act(async () => {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -1432,8 +1583,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                                    bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1446,6 +1595,12 @@ describe('PureReportActionItem', () => {
         });
 
         it('IOU PAY VBBA automatic renders auto-paid message', async () => {
+            await act(async () => {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -1466,8 +1621,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                                    bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1480,6 +1633,12 @@ describe('PureReportActionItem', () => {
         });
 
         it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
+            await act(async () => {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {55555: {accountData: {accountNumber: '000012345'}} as never});
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
@@ -1503,8 +1662,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                                    bankAccountList={{55555: {accountData: {accountNumber: '000012345'}} as never}}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1518,6 +1675,12 @@ describe('PureReportActionItem', () => {
         });
 
         it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
+            await act(async () => {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {77777: {accountData: {accountNumber: '000067890'}} as never});
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
@@ -1541,8 +1704,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                                    bankAccountList={{77777: {accountData: {accountNumber: '000067890'}} as never}}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

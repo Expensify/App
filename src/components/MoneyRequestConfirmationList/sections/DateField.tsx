@@ -32,7 +32,6 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, transaction
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- iouCreated can be an empty string which is falsy; nullish coalescing would not fall through to the default date
             title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
             description={translate('common.date')}
             style={[styles.moneyRequestMenuItem]}
