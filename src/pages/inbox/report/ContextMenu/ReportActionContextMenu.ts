@@ -90,6 +90,7 @@ function registerEnsureContextMenuMounted(handler: (() => void) | null) {
 
 // How long the success icon (Checkmark / "Copied!") stays visible before the menu hides.
 const SUCCESS_STATE_HIDE_DELAY_MS = 800;
+
 /**
  * Hide the ReportActionContextMenu modal popover.
  * @param [shouldDelay] - whether the menu should close after a delay
