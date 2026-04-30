@@ -139,7 +139,7 @@ const translations = {
         payments: 'Payments',
         approvals: 'Approvals',
         wallet: 'Wallet',
-        preferences: 'Preferences',
+        preferences: 'My Preferences',
         view: 'View',
         review: (amount?: string) => `Review${amount ? ` ${amount}` : ''}`,
         not: 'Not',
