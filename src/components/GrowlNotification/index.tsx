@@ -32,7 +32,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     const [duration, setDuration] = useState<number>();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark', 'Info']);
 
     type GrowlIconTypes = Record<
         /** String representing the growl type, all type strings
@@ -60,6 +60,10 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         [CONST.GROWL.WARNING]: {
             icon: icons.Exclamation,
             iconColor: theme.warning,
+        },
+        [CONST.GROWL.INFO]: {
+            icon: icons.Info,
+            iconColor: '#FFFFFF',
         },
     };
 
@@ -147,12 +151,12 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
                     onPress={() => fling()}
                 >
                     <GestureDetector gesture={flingGesture}>
-                        <View style={styles.growlNotificationBox}>
+                        <View style={[styles.growlNotificationBox, type === CONST.GROWL.INFO && styles.growlNotificationBoxInfo]}>
                             <Icon
                                 src={types[type].icon}
                                 fill={types[type].iconColor}
                             />
-                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                            <Text style={[styles.growlNotificationText, type === CONST.GROWL.INFO && styles.growlNotificationTextInfo]}>{bodyText}</Text>
                         </View>
                     </GestureDetector>
                 </PressableWithoutFeedback>

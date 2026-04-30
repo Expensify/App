@@ -3271,6 +3271,7 @@ const staticStyles = (theme: ThemeColors) =>
         growlNotificationContainer: {
             flex: 1,
             justifyContent: 'flex-start',
+            alignItems: 'center',
             position: 'absolute',
             width: '100%',
             top: 20,
@@ -3280,7 +3281,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         growlNotificationDesktopContainer: {
             maxWidth: variables.sideBarWidth,
+            left: 0,
             right: 0,
+            marginHorizontal: 'auto',
             ...positioning.pFixed,
         },
 
@@ -3294,6 +3297,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.p5,
         },
 
+        growlNotificationBoxInfo: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: 'rgb(7, 36, 25)',
+            boxShadow: '5px 12px 9px 0px rgba(0, 0, 0, 0.14)',
+        },
+
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3301,6 +3310,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
             ...spacing.ml4,
+        },
+
+        growlNotificationTextInfo: {
+            color: '#FFFFFF',
         },
 
         noSelect: {

@@ -3465,6 +3465,7 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        INFO: 'info',
         DURATION: 2000,
         DURATION_LONG: 3500,
     },

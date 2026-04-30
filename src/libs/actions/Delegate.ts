@@ -126,7 +126,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
 
     const slowSwitchTimer = slowSwitchMessage
         ? setTimeout(() => {
-              Growl.show(slowSwitchMessage, CONST.GROWL.SUCCESS, Infinity);
+              Growl.show(slowSwitchMessage, CONST.GROWL.INFO, Infinity);
           }, CONST.DELEGATE.SLOW_ACCOUNT_SWITCH_GROWL_DELAY_MS)
         : undefined;
 
@@ -210,21 +210,23 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 })
                 .then(() => {
                     confirmReadyToOpenApp();
-                    return openApp().then(() => {
-                        clearTimeout(slowSwitchTimer);
-                        Growl.hide();
+                    return new Promise<void>((resolve) => setTimeout(resolve, 15_000))
+                        .then(() => openApp())
+                        .then(() => {
+                            clearTimeout(slowSwitchTimer);
+                            Growl.hide();
 
-                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                            if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                                return true;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: email,
+                                authToken: restrictedToken,
+                                policyID,
+                                accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                            });
                             return true;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: email,
-                            authToken: restrictedToken,
-                            policyID,
-                            accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
                         });
-                        return true;
-                    });
                 });
         })
         .catch((error) => {
@@ -239,7 +241,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
 function disconnect({stashedCredentials, stashedSession, slowSwitchMessage}: DisconnectParams) {
     const slowSwitchTimer = slowSwitchMessage
         ? setTimeout(() => {
-              Growl.show(slowSwitchMessage, CONST.GROWL.SUCCESS, Infinity);
+              Growl.show(slowSwitchMessage, CONST.GROWL.INFO, Infinity);
           }, CONST.DELEGATE.SLOW_ACCOUNT_SWITCH_GROWL_DELAY_MS)
         : undefined;
 
@@ -327,19 +329,21 @@ function disconnect({stashedCredentials, stashedSession, slowSwitchMessage}: Dis
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
 
-                    return openApp().then(() => {
-                        clearTimeout(slowSwitchTimer);
-                        Growl.hide();
-                        if (!CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: requesterEmail,
-                            authToken,
-                            policyID: '',
-                            accountID: '',
+                    return new Promise<void>((resolve) => setTimeout(resolve, 15_000))
+                        .then(() => openApp())
+                        .then(() => {
+                            clearTimeout(slowSwitchTimer);
+                            Growl.hide();
+                            if (!CONFIG.IS_HYBRID_APP) {
+                                return;
+                            }
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: requesterEmail,
+                                authToken,
+                                policyID: '',
+                                accountID: '',
+                            });
                         });
-                    });
                 });
         })
         .catch((error) => {
