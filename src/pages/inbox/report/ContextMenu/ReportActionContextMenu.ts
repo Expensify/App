@@ -171,5 +171,5 @@ function clearActiveReportAction() {
     return contextMenuRef.current.clearActiveReportAction();
 }
 
-export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal, registerEnsureContextMenuMounted};
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
 export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};
