@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +7,7 @@ import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setIssueNewCardData} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -21,7 +22,16 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [cardRuleID, setCardRuleID] = useState('');
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
+
+    const onSelectCardRule = (selectedCardRuleID: string) => {
+        setCardRuleID(selectedCardRuleID);
+    };
+
+    const onSave = () => {
+        setIssueNewCardData(policyID, {cardRuleID});
+    };
 
     return (
         <AccessOrNotFoundWrapper

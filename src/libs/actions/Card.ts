@@ -747,6 +747,10 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
+function setIssueNewCardData(policyID: string, data: Partial<IssueNewCardData>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data});
+}
+
 function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
@@ -1794,5 +1798,6 @@ export {
     resolveFraudAlert,
     deleteExpensifyCardRule,
     setExpensifyCardRule,
+    setIssueNewCardData,
 };
 export type {ReplacementReason};
