@@ -285,7 +285,6 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,

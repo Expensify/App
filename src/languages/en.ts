@@ -325,6 +325,7 @@ const translations = {
         letsStart: `Let's start`,
         showMore: 'Show more',
         showLess: 'Show less',
+        plusMore: ({count}: {count: number}) => `+${count} more`,
         merchant: 'Merchant',
         change: 'Change',
         category: 'Category',
@@ -893,6 +894,7 @@ const translations = {
         },
     },
     adminOnlyCanPost: 'Only admins can send messages in this room.',
+    readOnlyConversation: 'This conversation is read-only.',
     reportAction: {
         asCopilot: 'as copilot for',
         assistedBy: (agentName: string) => `assisted by ${agentName}`,
@@ -1525,11 +1527,11 @@ const translations = {
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
-        addUnreportedExpense: 'Add unreported expense',
-        selectUnreportedExpense: 'Select at least one expense to add to the report.',
-        emptyStateUnreportedExpenseTitle: 'No unreported expenses',
-        emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
-        addUnreportedExpenseConfirm: 'Add to report',
+        addExistingExpense: 'Add existing expense',
+        selectExistingExpense: 'Select at least one expense to add to the report.',
+        emptyStateExistingExpenseTitle: 'No existing expenses',
+        emptyStateExistingExpenseSubtitle: 'Looks like you don’t have any existing expenses. Try creating one below.',
+        addExistingExpenseConfirm: 'Add to report',
         newReport: 'New report',
         explainHold: () => ({
             one: "Explain why you're holding this expense.",
@@ -2164,8 +2166,8 @@ const translations = {
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         helpPage: {
-            title: 'Help and support',
-            description: 'We are here to help you 24/7',
+            title: 'Got questions?',
+            description: "We're here to help, around the clock.",
             helpSite: 'Help site',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
@@ -6338,6 +6340,8 @@ const translations = {
             },
             gusto: {
                 title: 'Gusto',
+                connect: 'Connect',
+                connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
                 approvalMode: 'Approval mode',
                 finalApprover: 'Final approver',
             },
@@ -6854,6 +6858,8 @@ const translations = {
             customRules: {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
+                policyDocument: 'Policy document',
+                policyText: 'Policy text',
             },
             spendRules: {
                 title: 'Spend',
@@ -6926,6 +6932,8 @@ const translations = {
                 merchants: 'Merchants',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
+                noCardsIssuedTitle: 'No Expensify Cards issued',
+                noCardsIssuedSubtitle: 'Issue Expensify Cards to create spend rules',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Airlines',
@@ -7566,8 +7574,8 @@ const translations = {
     search: {
         tabs: {
             expenseReports: 'Expense reports',
-            reports: 'All reports',
-            expenses: 'All expenses',
+            reports: 'Reports',
+            expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',
             pay: 'Ready to pay',
@@ -7700,6 +7708,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
+                centralInvoicing: 'Central invoicing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -8718,9 +8727,9 @@ const translations = {
             collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
             pricing: 'Pricing',
         },
-        requestEarlyCancellation: {
-            title: 'Request early cancellation',
-            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+        cancelSubscription: {
+            title: 'Cancel subscription',
+            subtitle: 'What’s the main reason you’re canceling your subscription?',
             subscriptionCanceled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
@@ -8733,7 +8742,7 @@ const translations = {
                 subtitle:
                     'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
+            acknowledgement: `By requesting cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
         },
     },
     feedbackSurvey: {
@@ -8899,12 +8908,6 @@ const translations = {
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
         accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scan our test receipt</strong> to see how it works!</tooltip>',
-            manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
-            confirmation: '<tooltip>Now, <strong>submit your expense</strong> and watch the\nmagic happen!</tooltip>',
-            tryItOut: 'Try it out',
-        },
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
@@ -9077,7 +9080,7 @@ const translations = {
             resetDomain: 'Reset domain',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Please type <strong>${domainName}</strong> to confirm the domain reset.`,
             enterDomainName: 'Enter your domain name here',
-            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <bullet-list><bullet-item>Company card connections and any unreported expenses from those cards</bullet-item><bullet-item>SAML and group settings</bullet-item></bullet-list> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
+            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <bullet-list><bullet-item>Company card connections and any unreported expenses from those cards</bullet-item><bullet-item>SAML and group settings</bullet-item><bullet-item>Travel data and access to Expensify Travel</bullet-item></bullet-list> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
         domainMembers: 'Domain members',
         members: {
@@ -9129,6 +9132,7 @@ const translations = {
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             resetTwoFactorAuth: 'Reset two-factor authentication',
+            error: "Couldn't save this change. Please try again.",
         },
         groups: {
             title: 'Groups',
@@ -9138,6 +9142,11 @@ const translations = {
                     other: (count: number) => `${count} members`,
                 };
             },
+            defaultGroup: 'Default group for new members',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
+            makeDefault: 'Make default',
+            neverMind: 'Never mind',
         },
     },
 };

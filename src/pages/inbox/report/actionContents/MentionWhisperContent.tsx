@@ -25,6 +25,7 @@ type MentionWhisperContentProps = {
         reportAction: OnyxEntry<ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         isReportArchived: boolean,
+        parentReport?: OnyxEntry<Report>,
     ) => void;
 };
 
@@ -44,19 +45,40 @@ function MentionWhisperContent({action, report, originalReport, policy, personal
         buttons.push({
             text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         });
     }
     buttons.push(
         {
             text: 'actionableMentionWhisperOptions.inviteToChat',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         },
         {
             text: 'actionableMentionWhisperOptions.nothing',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         },
     );
 

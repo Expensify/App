@@ -1,5 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,8 +23,6 @@ const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>
 
 function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const personalDetails = usePersonalDetails();
 
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
@@ -75,8 +71,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         shouldDisplayNewMarker={false}
                         isFirstVisibleReportAction={false}
                         shouldDisplayContextMenu={false}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         draftMessage={matchingDraftMessage}
                         linkedTransactionRouteError={linkedTransactionRouteError}

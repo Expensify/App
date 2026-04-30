@@ -1,5 +1,6 @@
-import type {InitialState} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
+import type {InitialState, NavigatorScreenParams} from '@react-navigation/native';
 import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
@@ -10,6 +11,7 @@ import type {
     RightModalNavigatorParamList,
     SearchFullscreenNavigatorParamList,
     SettingsSplitNavigatorParamList,
+    TabNavigatorParamList,
     WorkspaceNavigatorParamList,
     WorkspaceSplitNavigatorParamList,
 } from '@libs/Navigation/types';
@@ -18,7 +20,17 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const RootStack = createRootStackNavigator<AuthScreensParamList>();
+/** Test-specific param list with split navigators at root level for simplified test setup */
+type TestRootParamList = AuthScreensParamList & {
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
+    [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+};
+
+const RootStack = createRootStackNavigator<TestRootParamList>();
+const TabNav = createBottomTabNavigator<TabNavigatorParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
@@ -155,6 +167,33 @@ function TestRightModalNavigator() {
     );
 }
 
+function TestTabNavigator() {
+    return (
+        <TabNav.Navigator screenOptions={{headerShown: false}}>
+            <TabNav.Screen
+                name={SCREENS.HOME}
+                component={getEmptyComponent()}
+            />
+            <TabNav.Screen
+                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                component={TestReportsSplitNavigator}
+            />
+            <TabNav.Screen
+                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                component={TestSearchFullscreenNavigator}
+            />
+            <TabNav.Screen
+                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                component={TestSettingsSplitNavigator}
+            />
+            <TabNav.Screen
+                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                component={TestWorkspaceNavigator}
+            />
+        </TabNav.Navigator>
+    );
+}
+
 function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
     return (
         <NavigationContainer
@@ -163,20 +202,8 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
         >
             <RootStack.Navigator>
                 <RootStack.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    component={TestReportsSplitNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    component={TestSettingsSplitNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                    component={TestWorkspaceNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                    component={TestSearchFullscreenNavigator}
+                    name={NAVIGATORS.TAB_NAVIGATOR}
+                    component={TestTabNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.VALIDATE_LOGIN}

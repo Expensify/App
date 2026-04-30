@@ -1,5 +1,6 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -29,13 +30,16 @@ type ReportScreenRoute =
     | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 
 const defaultReportMetadata = {
+    isOptimisticReport: false,
+};
+
+const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
-    isOptimisticReport: false,
 };
 
 /**
@@ -64,6 +68,7 @@ function ReportFetchHandler() {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -185,12 +190,16 @@ function ReportFetchHandler() {
     }, [isAnonymousUser]);
 
     useEffect(() => {
-        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReport?.reportID || (!reportMetadata.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)) {
+        if (
+            transactionThreadReportID !== CONST.FAKE_REPORT_ID ||
+            transactionThreadReport?.reportID ||
+            (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)
+        ) {
             return;
         }
 
         createOneTransactionThread();
-    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
+    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
@@ -294,8 +303,8 @@ function ReportFetchHandler() {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
+        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+    }, [report, reportLoadingState?.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
@@ -310,7 +319,7 @@ function ReportFetchHandler() {
             route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
             transactionThreadReport ||
             (transactionThreadReportID && transactionThreadReportID !== '0') ||
-            !reportMetadata?.hasOnceLoadedReportActions ||
+            !reportLoadingState?.hasOnceLoadedReportActions ||
             reportActions.length === 0
         ) {
             return;
@@ -347,7 +356,7 @@ function ReportFetchHandler() {
         transactionThreadReportID,
         reportID,
         route.name,
-        reportMetadata?.hasOnceLoadedReportActions,
+        reportLoadingState?.hasOnceLoadedReportActions,
         reportActions.length,
     ]);
 

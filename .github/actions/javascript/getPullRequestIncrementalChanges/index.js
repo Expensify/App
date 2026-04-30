@@ -11839,6 +11839,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -12644,6 +12645,19 @@ class Git {
         }
         catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    /**
+     * Abbreviated hash for HEAD in the current working directory.
+     *
+     * @returns Short commit hash, or `unknown` when not a git repo or git fails.
+     */
+    static getHeadShort() {
+        try {
+            return execSync('git rev-parse --short HEAD').trim();
+        }
+        catch {
+            return 'unknown';
         }
     }
     /**

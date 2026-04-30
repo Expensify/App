@@ -26,7 +26,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(filterFormValues);
+    useSearchFilterSync(queryJSON, filterFormValues);
 
     const openAdvancedFilters = () => {
         updateAdvancedFilters(filterFormValues);
