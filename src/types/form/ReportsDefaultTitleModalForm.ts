@@ -15,4 +15,3 @@ type ReportsDefaultTitleModalForm = Form<
 >;
 
 export type {ReportsDefaultTitleModalForm};
-export default INPUT_IDS;

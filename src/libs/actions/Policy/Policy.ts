@@ -7176,19 +7176,6 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
-function clearPolicyTitleFieldError(policyID: string) {
-    if (!policyID) {
-        return;
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {
-            fieldList: {
-                [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
-            },
-        },
-    });
-}
-
 /**
  * Set the workspace currency for the workspace confirmation form
  */
@@ -7317,7 +7304,6 @@ export {
     setPolicyAttendeeTrackingEnabled,
     setPolicyReimbursableMode,
     getCashExpenseReimbursableMode,
-    clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
     setPolicyRequireCompanyCardsEnabled,

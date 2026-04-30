@@ -85,83 +85,6 @@ type UpdateReportFieldInitialValueParams = {
     policy: OnyxEntry<Policy>;
 };
 
-function openPolicyReportFieldsPage(policyID: string) {
-    if (!policyID) {
-        Log.warn('openPolicyReportFieldsPage invalid params', {policyID});
-        return;
-    }
-
-    const params: OpenPolicyReportFieldsPageParams = {
-        policyID,
-    };
-
-    API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params);
-}
-
-/**
- * Sets the initial form values for the workspace report fields form.
- */
-function setInitialCreateReportFieldsForm() {
-    Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
-        [INPUT_IDS.INITIAL_VALUE]: '',
-    });
-}
-
-/**
- * Creates a new list value in the workspace report fields form.
- */
-function createReportFieldsListValue({valueName, listValues, disabledListValues}: CreateReportFieldsListValueParams) {
-    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
-        [INPUT_IDS.LIST_VALUES]: [...listValues, valueName],
-        [INPUT_IDS.DISABLED_LIST_VALUES]: [...disabledListValues, false],
-    });
-}
-
-/**
- * Renames a list value in the workspace report fields form.
- */
-function renameReportFieldsListValue({valueIndex, newValueName, listValues}: RenameReportFieldsListValueParams) {
-    const listValuesCopy = [...listValues];
-    listValuesCopy[valueIndex] = newValueName;
-
-    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
-        [INPUT_IDS.LIST_VALUES]: listValuesCopy,
-    });
-}
-
-/**
- * Sets the enabled state of a list value in the workspace report fields form.
- */
-function setReportFieldsListValueEnabled({valueIndexes, enabled, disabledListValues}: SetReportFieldsListValueEnabledParams) {
-    const disabledListValuesCopy = [...disabledListValues];
-
-    for (const valueIndex of valueIndexes) {
-        disabledListValuesCopy[valueIndex] = !enabled;
-    }
-
-    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
-        [INPUT_IDS.DISABLED_LIST_VALUES]: disabledListValuesCopy,
-    });
-}
-
-/**
- * Deletes a list value from the workspace report fields form.
- */
-function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValues}: DeleteReportFieldsListValueParams) {
-    const listValuesCopy = [...listValues];
-    const disabledListValuesCopy = [...disabledListValues];
-
-    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
-        listValuesCopy.splice(valueIndex, 1);
-        disabledListValuesCopy.splice(valueIndex, 1);
-    }
-
-    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
-        [INPUT_IDS.LIST_VALUES]: listValuesCopy,
-        [INPUT_IDS.DISABLED_LIST_VALUES]: disabledListValuesCopy,
-    });
-}
-
 /**
  * Creates a new report field.
  */
@@ -542,17 +465,4 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
 
 export type {CreateReportFieldParams};
 
-export {
-    setInitialCreateReportFieldsForm,
-    createReportFieldsListValue,
-    renameReportFieldsListValue,
-    setReportFieldsListValueEnabled,
-    deleteReportFieldsListValue,
-    createReportField,
-    deleteReportFields,
-    updateReportFieldInitialValue,
-    updateReportFieldListValueEnabled,
-    openPolicyReportFieldsPage,
-    addReportFieldListValue,
-    removeReportFieldListValue,
-};
+export {createReportField, deleteReportFields, updateReportFieldInitialValue, updateReportFieldListValueEnabled, addReportFieldListValue, removeReportFieldListValue};

@@ -24,66 +24,10 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
 }
 
 /**
- * Gets the translation key for the alternative text for the report field.
- */
-function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
-    const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
-        [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textAlternateText',
-        [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateAlternateText',
-        [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownAlternateText',
-        [CONST.REPORT_FIELD_TYPES.FORMULA]: 'workspace.reportFields.formulaAlternateText',
-    };
-
-    return typeTranslationKeysStrategy[reportFieldType];
-}
-
-/**
- * Validates the list value name.
- */
-function validateReportFieldListValueName(
-    valueName: string,
-    priorValueName: string,
-    listValues: string[],
-    inputID: InputID,
-    translate: LocalizedTranslate,
-): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
-
-    if (!isRequiredFulfilled(valueName)) {
-        errors[inputID] = translate('workspace.reportFields.listValueRequiredError');
-    } else if (priorValueName !== valueName && listValues.some((currentValueName) => currentValueName === valueName)) {
-        errors[inputID] = translate('workspace.reportFields.existingListValueError');
-    } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-        // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-        addErrorMessage(errors, inputID, translate('common.error.characterLimitExceedCounter', [...valueName].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
-    }
-
-    return errors;
-}
-/**
  * Generates a field ID based on the field name.
  */
 function generateFieldID(name: string) {
     return `field_id_${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
-}
-
-/**
- * Gets the initial value for a report field.
- */
-function getReportFieldInitialValue(reportField: PolicyReportField | null, translate: LocalizedTranslate): string {
-    if (!reportField) {
-        return '';
-    }
-
-    if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST) {
-        return reportField.defaultValue ?? '';
-    }
-
-    if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE) {
-        return translate('common.currentDate');
-    }
-
-    return reportField.value ?? reportField.defaultValue;
 }
 
 /**
@@ -209,13 +153,4 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
     return unsupported;
 }
 
-export {
-    getReportFieldTypeTranslationKey,
-    getReportFieldAlternativeTextTranslationKey,
-    validateReportFieldListValueName,
-    generateFieldID,
-    getReportFieldInitialValue,
-    getUnsupportedReportFieldFormulaParts,
-    hasFormulaPartsInInitialValue,
-    isReportFieldNameExisting,
-};
+export {getReportFieldTypeTranslationKey, generateFieldID, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting};

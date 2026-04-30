@@ -44,23 +44,4 @@ function saveSettingsTabPathToSessionStorage(url: string) {
     saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB, url);
 }
 
-function getSettingsTabStateFromSessionStorage() {
-    return getTabStateFromSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB);
-}
-
-function getLastVisitedWorkspaceTabScreen() {
-    const workspacesTabState = getWorkspacesTabStateFromSessionStorage();
-    if (!workspacesTabState) {
-        return undefined;
-    }
-    return findFocusedRoute(workspacesTabState as InitialState)?.name;
-}
-
-export {
-    clearSessionStorage,
-    getLastVisitedWorkspaceTabScreen,
-    saveSettingsTabPathToSessionStorage,
-    getSettingsTabStateFromSessionStorage,
-    saveWorkspacesTabPathToSessionStorage,
-    getWorkspacesTabStateFromSessionStorage,
-};
+export {clearSessionStorage, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};
