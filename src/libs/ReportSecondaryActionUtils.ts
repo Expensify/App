@@ -91,6 +91,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
     isScanning as isScanningTransactionUtils,
+    shouldRedirectDeleteToSplitExpenseEdit,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -643,9 +644,7 @@ function shouldShowEditSplitInDeleteAction(
         return false;
     }
 
-    const {isExpenseSplit, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
-
-    return isExpenseSplit && isPerDiemRequestTransactionUtils(sourceTransaction) && isDeleteAction(report, reportTransactions, reportActions);
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {

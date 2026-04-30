@@ -55,15 +55,14 @@ import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
-    getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation,
     hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
-    isExpenseUnreported,
     isManagedCardTransaction,
     isPerDiemRequest,
     isScanning,
+    shouldRedirectDeleteToSplitExpenseEdit,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
@@ -1384,14 +1383,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             (firstOriginalTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
             (firstOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
             (firstOriginalTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined);
-        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, firstOriginalTransaction);
         const shouldShowEditSplitOnDeleteAction =
             canShowDeleteAction &&
             selectedTransactionsKeys.length === 1 &&
-            isExpenseSplit &&
-            !isExpenseUnreported(firstTransaction) &&
-            !isExpenseUnreported(firstOriginalTransaction) &&
-            isPerDiemRequest(firstOriginalTransaction ?? firstTransaction);
+            shouldRedirectDeleteToSplitExpenseEdit(firstTransaction, firstOriginalTransaction);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
