@@ -5,7 +5,6 @@ import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncat
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import objectutils from '@src/types/utils/ObjectUtils';
 import useDefaultFundID from './useDefaultFundID';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -23,7 +22,7 @@ export default function useExpensifyCardRules(policyID: string) {
     const blockLabel = translate('workspace.rules.spendRules.block');
     const allowLabel = translate('workspace.rules.spendRules.allow');
 
-    const cardRuleValues = objectutils.typedEntries(expensifyCardSettings?.cardRules ?? {});
+    const cardRuleValues = Object.entries(expensifyCardSettings?.cardRules ?? {});
     const isLoadingCardRules = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
 
     const cardRules = cardRuleValues
