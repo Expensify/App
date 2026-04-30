@@ -9684,7 +9684,6 @@ describe('ReportUtils', () => {
             // Given a policy with 2 enabled categories, where the first one is being deleted
             const fakePolicyCategories = createRandomPolicyCategories(2);
             for (const cat of Object.values(fakePolicyCategories)) {
-                // eslint-disable-next-line no-param-reassign
                 cat.enabled = true;
             }
             const categoryNames = Object.keys(fakePolicyCategories);
@@ -9819,7 +9818,6 @@ describe('ReportUtils', () => {
             // Given a policy with 2 enabled categories, where the first one is being disabled (UPDATE, not DELETE)
             const fakePolicyCategories = createRandomPolicyCategories(2);
             for (const cat of Object.values(fakePolicyCategories)) {
-                // eslint-disable-next-line no-param-reassign
                 cat.enabled = true;
             }
             const categoryNames = Object.keys(fakePolicyCategories);
@@ -9951,7 +9949,6 @@ describe('ReportUtils', () => {
             // Given a policy with 3 enabled categories, where the first one is being deleted (2 remain — auto-select should NOT trigger)
             const fakePolicyCategories = createRandomPolicyCategories(3);
             for (const cat of Object.values(fakePolicyCategories)) {
-                // eslint-disable-next-line no-param-reassign
                 cat.enabled = true;
             }
             const categoryToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
@@ -10016,7 +10013,6 @@ describe('ReportUtils', () => {
             // Given a sole remaining enabled category but the report is already APPROVED (not eligible for auto-select)
             const fakePolicyCategories = createRandomPolicyCategories(2);
             for (const cat of Object.values(fakePolicyCategories)) {
-                // eslint-disable-next-line no-param-reassign
                 cat.enabled = true;
             }
             const categoryToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
@@ -10076,7 +10072,6 @@ describe('ReportUtils', () => {
             // (e.g. toggling an unrelated workspace setting). Auto-select must NOT mutate transactions.
             const fakePolicyCategories = createRandomPolicyCategories(2);
             for (const cat of Object.values(fakePolicyCategories)) {
-                // eslint-disable-next-line no-param-reassign
                 cat.enabled = true;
             }
             const categoryNames = Object.keys(fakePolicyCategories);
