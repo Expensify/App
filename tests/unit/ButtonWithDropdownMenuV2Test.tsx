@@ -4,7 +4,6 @@ import type {ReactElement, Ref} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import ButtonWithDropdownMenuV2 from '@components/ButtonWithDropdownMenu/v2';
-import type {ButtonWithDropdownMenuV2Ref} from '@components/ButtonWithDropdownMenu/v2';
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
@@ -539,10 +538,9 @@ describe('ButtonWithDropdownMenuV2', () => {
 
         it('fires onOpenChange(false) when PopoverMenu signals close', () => {
             const onOpenChange = jest.fn();
-            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
                 <ButtonWithDropdownMenuV2
-                    ref={ref}
+                    defaultOpen
                     onOpenChange={onOpenChange}
                 >
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -551,10 +549,6 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
             onOpenChange.mockClear();
             act(() => {
                 popoverMenuPropsCapture.current?.onClose?.();
@@ -564,10 +558,9 @@ describe('ButtonWithDropdownMenuV2', () => {
 
         it('onItemSelected closes the menu when shouldCloseModalOnSelect is true', () => {
             const onOpenChange = jest.fn();
-            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
                 <ButtonWithDropdownMenuV2
-                    ref={ref}
+                    defaultOpen
                     onOpenChange={onOpenChange}
                 >
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -576,10 +569,6 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
             onOpenChange.mockClear();
 
             const item = popoverMenuPropsCapture.current?.menuItems?.at(0);
@@ -595,10 +584,9 @@ describe('ButtonWithDropdownMenuV2', () => {
 
         it('onItemSelected does not close keepOpen items', () => {
             const onOpenChange = jest.fn();
-            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
                 <ButtonWithDropdownMenuV2
-                    ref={ref}
+                    defaultOpen
                     onOpenChange={onOpenChange}
                 >
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -610,10 +598,6 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
-
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
             onOpenChange.mockClear();
 
             const item = popoverMenuPropsCapture.current?.menuItems?.at(0);
@@ -627,12 +611,11 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(onOpenChange).not.toHaveBeenCalled();
         });
 
-        it('exposes setIsMenuVisible via ref and fires onOpenChange', () => {
+        it('uncontrolled `defaultOpen` initial state opens the menu without firing onOpenChange', () => {
             const onOpenChange = jest.fn();
-            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
             render(
                 <ButtonWithDropdownMenuV2
-                    ref={ref}
+                    defaultOpen
                     onOpenChange={onOpenChange}
                 >
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
@@ -641,11 +624,61 @@ describe('ButtonWithDropdownMenuV2', () => {
                     </ButtonWithDropdownMenuV2.Menu>
                 </ButtonWithDropdownMenuV2>,
             );
+            expect(popoverMenuPropsCapture.current?.isVisible).toBe(true);
+            expect(onOpenChange).not.toHaveBeenCalled();
+        });
 
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
+        it('controlled `open` prop drives PopoverMenu visibility without firing onOpenChange', () => {
+            const onOpenChange = jest.fn();
+            const {rerender} = render(
+                <ButtonWithDropdownMenuV2
+                    open={false}
+                    onOpenChange={onOpenChange}
+                >
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            expect(popoverMenuPropsCapture.current?.isVisible).toBe(false);
+
+            rerender(
+                <ButtonWithDropdownMenuV2
+                    open
+                    onOpenChange={onOpenChange}
+                >
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            expect(popoverMenuPropsCapture.current?.isVisible).toBe(true);
+            // Controlled mode: the parent drove the change via `open`, so we don't echo onOpenChange.
+            expect(onOpenChange).not.toHaveBeenCalled();
+        });
+
+        it('controlled mode: pressing Trigger fires onOpenChange but does not flip internal state until parent drives `open`', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <ButtonWithDropdownMenuV2
+                    open={false}
+                    onOpenChange={onOpenChange}
+                >
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
+            const trigger = findButtonByText('More') as {onPress: () => void} | undefined;
+            expect(trigger).toBeDefined();
+
+            act(() => trigger?.onPress());
             expect(onOpenChange).toHaveBeenCalledWith(true);
+            // Parent hasn't flipped `open` — internal state unchanged.
+            expect(popoverMenuPropsCapture.current?.isVisible).toBe(false);
         });
 
         it('toggles menu visibility when Trigger is pressed', () => {
@@ -687,36 +720,23 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(onOpenChange).toHaveBeenLastCalledWith(true);
         });
 
-        it('does not fire onOpenChange on no-op transitions', () => {
+        it('does not fire onOpenChange when controlled `open` re-renders with the same value', () => {
             const onOpenChange = jest.fn();
-            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
-            render(
+            const tree = (
                 <ButtonWithDropdownMenuV2
-                    ref={ref}
+                    open={false}
                     onOpenChange={onOpenChange}
                 >
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
                     <ButtonWithDropdownMenuV2.Menu>
                         <ButtonWithDropdownMenuV2.Option text="A" />
                     </ButtonWithDropdownMenuV2.Menu>
-                </ButtonWithDropdownMenuV2>,
+                </ButtonWithDropdownMenuV2>
             );
-
-            // Initial state is false; setting to false again should be a no-op.
-            act(() => {
-                ref.current?.setIsMenuVisible(false);
-            });
+            const {rerender} = render(tree);
             expect(onOpenChange).not.toHaveBeenCalled();
-
-            // Open then set true again — only one fire.
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
-            expect(onOpenChange).toHaveBeenCalledTimes(1);
-            expect(onOpenChange).toHaveBeenCalledWith(true);
+            rerender(tree);
+            expect(onOpenChange).not.toHaveBeenCalled();
         });
     });
 
@@ -890,9 +910,8 @@ describe('ButtonWithDropdownMenuV2', () => {
         });
 
         it('wires accessibilityState.expanded to isMenuVisible on Trigger', () => {
-            const ref = React.createRef<ButtonWithDropdownMenuV2Ref>();
-            render(
-                <ButtonWithDropdownMenuV2 ref={ref}>
+            const {rerender} = render(
+                <ButtonWithDropdownMenuV2 open={false}>
                     <ButtonWithDropdownMenuV2.Trigger text="More" />
                     <ButtonWithDropdownMenuV2.Menu>
                         <ButtonWithDropdownMenuV2.Option text="A" />
@@ -903,9 +922,14 @@ describe('ButtonWithDropdownMenuV2', () => {
             expect(initial.accessibilityState?.expanded).toBe(false);
 
             buttonPropsCapture.current = [];
-            act(() => {
-                ref.current?.setIsMenuVisible(true);
-            });
+            rerender(
+                <ButtonWithDropdownMenuV2 open>
+                    <ButtonWithDropdownMenuV2.Trigger text="More" />
+                    <ButtonWithDropdownMenuV2.Menu>
+                        <ButtonWithDropdownMenuV2.Option text="A" />
+                    </ButtonWithDropdownMenuV2.Menu>
+                </ButtonWithDropdownMenuV2>,
+            );
             const after = findButtonByText('More') as {accessibilityState?: {expanded?: boolean}};
             expect(after.accessibilityState?.expanded).toBe(true);
         });

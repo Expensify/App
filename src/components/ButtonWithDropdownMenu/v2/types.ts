@@ -74,12 +74,12 @@ type MenuProps = {
     anchorAlignment?: AnchorAlignment;
 };
 
-type ButtonWithDropdownMenuV2Ref = {
-    setIsMenuVisible: (visible: boolean) => void;
-};
-
 type ButtonWithDropdownMenuV2Props = WithSentryLabel & {
     children?: ReactNode;
+    /** Controlled mode — when set, the consumer owns open/close state. Pair with `onOpenChange`. */
+    open?: boolean;
+    /** Uncontrolled-mode initial value (ignored when `open` is set). */
+    defaultOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
     success?: boolean;
     isLoading?: boolean;
@@ -93,17 +93,6 @@ type ButtonWithDropdownMenuV2Props = WithSentryLabel & {
     wrapperStyle?: StyleProp<ViewStyle>;
     testID?: string;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    ref?: Ref<ButtonWithDropdownMenuV2Ref>;
 };
 
-export type {
-    ButtonWithDropdownMenuV2Props,
-    ButtonWithDropdownMenuV2Ref,
-    CaretProps,
-    DropdownOptionV2Props,
-    DropdownSubmenuV2Props,
-    ItemPresentationProps,
-    MenuProps,
-    PrimaryButtonProps,
-    TriggerProps,
-};
+export type {ButtonWithDropdownMenuV2Props, CaretProps, DropdownOptionV2Props, DropdownSubmenuV2Props, ItemPresentationProps, MenuProps, PrimaryButtonProps, TriggerProps};

@@ -1,4 +1,4 @@
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -13,8 +13,9 @@ import Trigger from './Trigger';
 import type {ButtonWithDropdownMenuV2Props} from './types';
 
 function ButtonWithDropdownMenuV2({
-    ref,
     children,
+    open,
+    defaultOpen = false,
     onOpenChange,
     success = true,
     isLoading = false,
@@ -31,24 +32,48 @@ function ButtonWithDropdownMenuV2({
     sentryLabel,
 }: ButtonWithDropdownMenuV2Props): React.ReactElement {
     const styles = useThemeStyles();
-    const [isMenuVisible, setIsMenuVisibleState] = useState(false);
     const dropdownAnchor = useRef<View | null>(null);
 
-    // Notify via effect so the state updater stays pure (no StrictMode double-fire).
+    const isControlled = open !== undefined;
+    const [internalOpen, setInternalOpen] = useState(isControlled ? open : defaultOpen);
+    const isMenuVisible = isControlled ? open : internalOpen;
+
+    // Refs mirror latest values so the lazy-init `actions` setter stays referentially stable.
+    const isControlledRef = useRef(isControlled);
+    const isMenuVisibleRef = useRef(isMenuVisible);
+    const onOpenChangeRef = useRef(onOpenChange);
+    useLayoutEffect(() => {
+        isControlledRef.current = isControlled;
+        isMenuVisibleRef.current = isMenuVisible;
+        onOpenChangeRef.current = onOpenChange;
+    });
+
+    // In controlled mode the parent already drove the transition via `open`, so skip notifying here to avoid double-firing.
     const previousIsMenuVisibleRef = useRef(isMenuVisible);
     useEffect(() => {
         if (previousIsMenuVisibleRef.current === isMenuVisible) {
             return;
         }
         previousIsMenuVisibleRef.current = isMenuVisible;
+        if (isControlled) {
+            return;
+        }
         onOpenChange?.(isMenuVisible);
-    }, [isMenuVisible, onOpenChange]);
+    }, [isMenuVisible, isControlled, onOpenChange]);
 
     const [actions] = useState<ButtonWithDropdownMenuRootActionsValue>(() => ({
-        setIsMenuVisible: setIsMenuVisibleState,
+        setIsMenuVisible: (next) => {
+            if (isControlledRef.current) {
+                const current = isMenuVisibleRef.current;
+                const resolved = typeof next === 'function' ? next(current) : next;
+                if (resolved !== current) {
+                    onOpenChangeRef.current?.(resolved);
+                }
+                return;
+            }
+            setInternalOpen(next);
+        },
     }));
-
-    useImperativeHandle(ref, () => ({setIsMenuVisible: actions.setIsMenuVisible}), [actions]);
 
     const stateValue = {
         state: {isMenuVisible},
@@ -88,4 +113,4 @@ const ButtonWithDropdownMenuV2WithStatics = Object.assign(ButtonWithDropdownMenu
 });
 
 export default ButtonWithDropdownMenuV2WithStatics;
-export type {ButtonWithDropdownMenuV2Props, ButtonWithDropdownMenuV2Ref, DropdownOptionV2Props, DropdownSubmenuV2Props, MenuProps} from './types';
+export type {ButtonWithDropdownMenuV2Props, DropdownOptionV2Props, DropdownSubmenuV2Props, MenuProps} from './types';
