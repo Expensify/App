@@ -484,6 +484,90 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isScanRequest', () => {
+        it('returns true for a scan-typed draft transaction before Smart Scan returns', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(true);
+        });
+
+        // Regression test for the GPS attachment race condition:
+        // Smart Scan can populate `amount` to a non-zero value while the
+        // location-permission prompt is open, and the gate must still flag
+        // the transaction as a scan request when permission is granted.
+        it('returns true for a scan-typed draft transaction after Smart Scan populates the amount', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 4299,
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(true);
+        });
+
+        it('returns false for a manual-typed draft transaction even when a receipt is attached', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                amount: 0,
+                receipt: {
+                    source: 'https://example.com/receipt.jpg',
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(false);
+        });
+
+        it('returns false for a distance-typed draft transaction', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                amount: 0,
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(false);
+        });
+
+        it('returns true for a server-saved transaction with a receipt source and a zero amount', () => {
+            const transaction = generateTransaction({
+                amount: 0,
+                receipt: {
+                    source: 'https://example.com/receipt.jpg',
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(true);
+        });
+
+        it('returns false for a server-saved transaction without a receipt source', () => {
+            const transaction = generateTransaction({
+                amount: 0,
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(false);
+        });
+
+        it('returns false for a server-saved distance transaction with a receipt source', () => {
+            const transaction = generateTransaction({
+                amount: 0,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+                receipt: {
+                    source: 'https://example.com/map.png',
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanRequest(transaction)).toBe(false);
+        });
+    });
+
     describe('getTransactionType', () => {
         it('returns card when the transaction is null', () => {
             expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
