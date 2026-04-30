@@ -72,6 +72,7 @@ To manage how reports are exported from Expensify to NetSuite:
   - Vendor Bills
   - Journal Entries
   - *Expensify Card expenses always export as Journal Entries*
+- **Travel Invoicing** – Travel expenses always export as journal entries. Select the NetSuite payable account where travel expenses will be recorded
 - **Export Invoices To** – Choose the Accounts Receivable account
 - **Invoice Item** – Select or create the item line for invoices
 - **Export Foreign Currency Amount** – Enable to export original currency values
