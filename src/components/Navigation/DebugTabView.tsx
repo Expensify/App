@@ -220,7 +220,7 @@ function DebugTabView() {
 
     const positionStyle = shouldUseNarrowLayout
         ? {bottom: variables.bottomTabHeight + safeAreaPaddingBottom, left: 0, right: 0}
-        : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth};
+        : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
 
     return (
         <View
