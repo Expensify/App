@@ -142,5 +142,5 @@ function getTaxRatesSection({
     return policyRatesSections;
 }
 
-export {getTaxRatesSection, getTaxRatesOptions};
+export {getTaxRatesSection};
 export type {TaxRatesOption, Tax};

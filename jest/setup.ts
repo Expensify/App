@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
@@ -13,6 +12,7 @@ import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -262,7 +262,7 @@ jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -288,7 +288,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 

@@ -1,6 +1,7 @@
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import getActiveTabName from './getActiveTabName';
 import {isFullScreenName} from './isNavigatorName';
 
 const isSearchTopmostFullScreenRoute = (): boolean => {
@@ -9,7 +10,9 @@ const isSearchTopmostFullScreenRoute = (): boolean => {
     if (!rootState) {
         return false;
     }
-    return rootState.routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+
+    const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
+    return getActiveTabName(topmostFullScreenRoute) === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 };
 
 export default isSearchTopmostFullScreenRoute;

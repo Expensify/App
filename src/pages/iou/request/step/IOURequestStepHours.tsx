@@ -67,7 +67,7 @@ function IOURequestStepHours({
     const textInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const [formError, setFormError] = useState('');
 

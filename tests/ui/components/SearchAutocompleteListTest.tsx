@@ -118,10 +118,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -159,10 +155,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

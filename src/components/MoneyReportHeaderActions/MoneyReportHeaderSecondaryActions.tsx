@@ -2,13 +2,16 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
-import {InteractionManager} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
+import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchStateContext} from '@components/Search/SearchContext';
@@ -18,6 +21,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
@@ -29,14 +33,18 @@ import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -55,7 +63,6 @@ import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IO
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type MoneyReportHeaderSecondaryActionsProps = {
@@ -66,7 +73,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
 
-function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -102,6 +109,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     const {isOffline} = useNetwork();
     const activePolicy = usePolicy(activePolicyID);
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -163,6 +171,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
                 activePolicy,
                 betas,
                 isSelfTourViewed,
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
             });
         } else {
             startAnimation();
@@ -232,25 +241,26 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building']);
 
-    const buildPaymentSubMenuItems = (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
-        if (!workspacePolicyOptions.length) {
-            return Object.values(paymentButtonOptions);
-        }
-        const result: PopoverMenuItem[] = [];
+    // Build PAY action sub-items. Workspace-policy entries carry the policy as data and have no onSelected;
+    // MoneyReportHeaderKYCDropdown picks them up via onSubItemSelected where triggerKYCFlow is in scope.
+    const paymentSubMenuItems: PopoverMenuItem[] = [];
+    if (!workspacePolicyOptions.length) {
+        paymentSubMenuItems.push(...Object.values(paymentButtonOptions));
+    } else {
         for (const opt of Object.values(paymentButtonOptions)) {
-            result.push(opt);
+            paymentSubMenuItems.push(opt);
             if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 for (const wp of workspacePolicyOptions) {
-                    result.push({
+                    const workspacePolicyItem: WorkspacePolicyPaymentOption = {
                         text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                         icon: expensifyIcons.Building,
-                        onSelected: () => onWorkspaceSelected(wp),
-                    });
+                        workspacePolicy: wp,
+                    };
+                    paymentSubMenuItems.push(workspacePolicyItem);
                 }
             }
         }
-        return result;
-    };
+    }
 
     // Domain hooks
     const lifecycleActions = useLifecycleActions({
@@ -337,10 +347,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
             backButtonText: translate('iou.settlePayment', totalAmount),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
-            // eslint-disable-next-line react-hooks/refs -- ref is only accessed inside the callback (event handler), not during render
-            subMenuItems: buildPaymentSubMenuItems((wp) => {
-                kycWallRef.current?.continueAction?.({policy: wp});
-            }),
+            subMenuItems: paymentSubMenuItems,
         },
     };
 
@@ -390,6 +397,48 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
         />
+    );
+}
+
+function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
+    const wrapperStyle = shouldDisplayNarrowVersion && !primaryAction ? styles.flex1 : undefined;
+    // Match the inner styles the real ButtonWithDropdownMenu applies when isSplitButton=false so text placement stays put on swap.
+    const innerStyles = [StyleUtils.getDropDownButtonHeight(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM), styles.dropDownButtonCartIconView];
+    return (
+        <View style={wrapperStyle}>
+            <Button
+                text={translate('common.more')}
+                iconRight={icons.DownArrow}
+                shouldShowRightIcon
+                innerStyles={innerStyles}
+                onPress={() => {}}
+            />
+        </View>
+    );
+}
+
+function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+    return (
+        <NavigationDeferredMount
+            placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+            // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
+            // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
+            waitForUpcomingTransition={false}
+        >
+            <MoneyReportHeaderSecondaryActionsInner
+                reportID={reportID}
+                primaryAction={primaryAction}
+                isReportInSearch={isReportInSearch}
+                backTo={backTo}
+                dropdownMenuRef={dropdownMenuRef}
+            />
+        </NavigationDeferredMount>
     );
 }
 

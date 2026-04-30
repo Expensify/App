@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -326,6 +325,7 @@ describe('handleActionButtonPress', () => {
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
@@ -342,6 +342,7 @@ describe('handleActionButtonPress', () => {
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);

@@ -315,7 +315,7 @@ jobs:
   iosUploadTestflight:
     name: Upload iOS to TestFlight
     needs: [prep, iosBuild]
-    runs-on: macos-15-xlarge
+    runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
@@ -395,7 +395,7 @@ jobs:
   iosSubmit:
     name: Submit iOS for production rollout
     needs: [prep, iosBuild, iosUploadTestflight]
-    runs-on: macos-15-xlarge
+    runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ always() && !cancelled() && github.ref == 'refs/heads/production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer

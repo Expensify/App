@@ -1,22 +1,25 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import useOnyx from '@hooks/useOnyx';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
-    bankAccountList: OnyxTypes.BankAccountList | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-function PaymentContent({action, bankAccountList, policy}: PaymentContentProps) {
+function PaymentContent({action, policy}: PaymentContentProps) {
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
 
     if (!originalMessage) {

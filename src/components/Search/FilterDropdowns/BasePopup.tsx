@@ -23,7 +23,7 @@ function BasePopup({children, label, applySentryLabel, resetSentryLabel, style, 
     const styles = useThemeStyles();
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, style]}>
+        <View style={[styles.pv4, style]}>
             {onBackButtonPress ? (
                 <HeaderWithBackButton
                     shouldDisplayHelpButton={false}

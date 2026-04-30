@@ -1,11 +1,16 @@
-import {LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
+import {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
+    calculateMinDomainPadding,
     edgeLabelsFit,
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getAdditionalOffset,
+    getChartColor,
+    getNiceLowerBound,
+    getNiceUpperBound,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -13,6 +18,8 @@ import {
     maxVisibleCount,
     normalizeAngle,
     processDataIntoSlices,
+    rotatedLabelCenterCorrection,
+    rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
 
@@ -542,5 +549,188 @@ describe('isCursorOverChartLabel', () => {
             expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(true);
             expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(true);
         });
+    });
+});
+
+describe('getChartColor', () => {
+    it('returns a non-empty string for index 0', () => {
+        const color = getChartColor(0);
+        expect(typeof color).toBe('string');
+        expect(color.length).toBeGreaterThan(0);
+    });
+
+    it('returns different colors for consecutive indices', () => {
+        expect(getChartColor(0)).not.toBe(getChartColor(1));
+        expect(getChartColor(1)).not.toBe(getChartColor(2));
+    });
+
+    it('wraps around to the same color after the full palette (30 entries)', () => {
+        expect(getChartColor(0)).toBe(getChartColor(30));
+        expect(getChartColor(5)).toBe(getChartColor(35));
+    });
+
+    it('handles large indices via modulo wrapping', () => {
+        expect(getChartColor(0)).toBe(getChartColor(300));
+    });
+});
+
+describe('getAdditionalOffset', () => {
+    // variables.iconSizeExtraSmall = 12
+    it('returns iconSizeExtraSmall / 3 for 0° (horizontal)', () => {
+        expect(getAdditionalOffset(0)).toBeCloseTo(12 / 3);
+    });
+
+    it('returns iconSizeExtraSmall / 1.5 for diagonal angles (0 < angle < DIAGONAL_ANGLE_RADIAN_THRESHOLD)', () => {
+        expect(getAdditionalOffset(Math.PI / 4)).toBeCloseTo(12 / 1.5);
+        // Just below the threshold
+        expect(getAdditionalOffset(DIAGONAL_ANGLE_RADIAN_THRESHOLD - 0.001)).toBeCloseTo(12 / 1.5);
+    });
+
+    it('returns iconSizeExtraSmall / 3 for 90° (vertical, angle >= DIAGONAL_ANGLE_RADIAN_THRESHOLD)', () => {
+        expect(getAdditionalOffset(Math.PI / 2)).toBeCloseTo(12 / 3);
+        expect(getAdditionalOffset(DIAGONAL_ANGLE_RADIAN_THRESHOLD)).toBeCloseTo(12 / 3);
+    });
+});
+
+describe('rotatedLabelCenterCorrection', () => {
+    const ascent = 12;
+    const descent = 4;
+
+    it('returns 0 at 0° because sin(0) = 0', () => {
+        expect(rotatedLabelCenterCorrection(ascent, descent, 0)).toBe(0);
+    });
+
+    it('returns (ascent - descent) / 2 at 90° because sin(90°) = 1', () => {
+        expect(rotatedLabelCenterCorrection(ascent, descent, Math.PI / 2)).toBeCloseTo((ascent - descent) / 2);
+    });
+
+    it('returns a positive value at 45° when ascent > descent', () => {
+        const result = rotatedLabelCenterCorrection(ascent, descent, Math.PI / 4);
+        expect(result).toBeCloseTo(((ascent - descent) * SIN_45) / 2);
+        expect(result).toBeGreaterThan(0);
+    });
+
+    it('returns 0 when ascent equals descent (symmetric font metrics)', () => {
+        expect(rotatedLabelCenterCorrection(10, 10, Math.PI / 4)).toBeCloseTo(0);
+    });
+
+    it('returns a negative value when descent > ascent', () => {
+        expect(rotatedLabelCenterCorrection(4, 12, Math.PI / 2)).toBeLessThan(0);
+    });
+});
+
+describe('rotatedLabelYOffset', () => {
+    const ascent = 12;
+    const descent = 4;
+
+    it('returns ascent at 0°', () => {
+        expect(rotatedLabelYOffset(ascent, descent, 0)).toBe(ascent);
+    });
+
+    it('returns descent at 90°', () => {
+        expect(rotatedLabelYOffset(ascent, descent, Math.PI / 2)).toBe(descent);
+    });
+
+    it('returns ascent * cos(angle) for intermediate angles', () => {
+        expect(rotatedLabelYOffset(ascent, descent, Math.PI / 4)).toBeCloseTo(ascent * Math.cos(Math.PI / 4));
+    });
+
+    it('is always smaller at 45° than at 0° for positive ascent', () => {
+        expect(rotatedLabelYOffset(ascent, descent, Math.PI / 4)).toBeLessThan(rotatedLabelYOffset(ascent, descent, 0));
+    });
+});
+
+describe('calculateMinDomainPadding', () => {
+    it('returns 0 for a single data point', () => {
+        expect(calculateMinDomainPadding(400, 1)).toBe(0);
+    });
+
+    it('returns 0 for zero data points', () => {
+        expect(calculateMinDomainPadding(400, 0)).toBe(0);
+    });
+
+    it('returns half the chart width for 2 points with no inner padding (line chart)', () => {
+        // minPaddingRatio = 1 / (2 * (1 + 0)) = 0.5 → ceil(100 * 0.5) = 50
+        expect(calculateMinDomainPadding(100, 2, 0)).toBe(50);
+    });
+
+    it('returns correct padding for multiple equally spaced points', () => {
+        // 5 points, no innerPadding: ratio = 1 / (2 * 4) = 0.125 → ceil(400 * 0.125) = 50
+        expect(calculateMinDomainPadding(400, 5, 0)).toBe(50);
+    });
+
+    it('uses innerPadding=0 as default', () => {
+        expect(calculateMinDomainPadding(400, 5)).toBe(calculateMinDomainPadding(400, 5, 0));
+    });
+
+    it('produces a smaller padding with inner padding (bar chart)', () => {
+        // innerPadding reduces the effective spacing between bars
+        const withoutPadding = calculateMinDomainPadding(400, 5, 0);
+        const withPadding = calculateMinDomainPadding(400, 5, 0.3);
+        expect(withPadding).toBeLessThan(withoutPadding);
+    });
+});
+
+describe('getNiceUpperBound', () => {
+    it('returns rawMax unchanged when range is zero', () => {
+        expect(getNiceUpperBound(0, 5)).toBe(0);
+        expect(getNiceUpperBound(100, 5, 100)).toBe(100);
+    });
+
+    it('returns rawMax unchanged when tickCount <= 1', () => {
+        expect(getNiceUpperBound(100, 1)).toBe(100);
+        expect(getNiceUpperBound(90, 0)).toBe(90);
+    });
+
+    it('rounds up to next step boundary when rawMax is already on a step', () => {
+        // range=100, step=20 → ceil(100/20)*20=100
+        expect(getNiceUpperBound(100, 5)).toBe(100);
+    });
+
+    it('rounds up when rawMax falls between step boundaries', () => {
+        // range=90, step=20 → ceil(90/20)*20=ceil(4.5)*20=5*20=100
+        expect(getNiceUpperBound(90, 5)).toBe(100);
+    });
+
+    it('scales correctly for larger values', () => {
+        // range=1000, step=200 → ceil(1000/200)*200=1000
+        expect(getNiceUpperBound(1000, 5)).toBe(1000);
+        // range=900, step=200 → ceil(900/200)*200=ceil(4.5)*200=1000
+        expect(getNiceUpperBound(900, 5)).toBe(1000);
+    });
+
+    it('uses rawMin to compute the range when negative values are present', () => {
+        // rawMax=100, rawMin=-100 → range=200, roughStep=50, magnitude=10, normalized=5 → step=50
+        // ceil(100/50)*50=100
+        expect(getNiceUpperBound(100, 5, -100)).toBe(100);
+    });
+});
+
+describe('getNiceLowerBound', () => {
+    it('returns rawMin unchanged for non-negative values', () => {
+        expect(getNiceLowerBound(0, 5)).toBe(0);
+        expect(getNiceLowerBound(10, 5)).toBe(10);
+        expect(getNiceLowerBound(100, 5)).toBe(100);
+    });
+
+    it('returns rawMin unchanged when range is zero or tickCount <= 1', () => {
+        expect(getNiceLowerBound(-100, 1, 0)).toBe(-100);
+        expect(getNiceLowerBound(-100, 5, -100)).toBe(-100);
+    });
+
+    it('returns rawMin unchanged when rawMin is already on a step boundary', () => {
+        // range=100, step=20 → floor(-100/20)*20=-5*20=-100
+        expect(getNiceLowerBound(-100, 5, 0)).toBe(-100);
+    });
+
+    it('rounds down when rawMin falls between step boundaries', () => {
+        // range=90, step=20 → floor(-90/20)*20=floor(-4.5)*20=-5*20=-100
+        expect(getNiceLowerBound(-90, 5, 0)).toBe(-100);
+    });
+
+    it('uses rawMax to compute the range for mixed positive/negative data', () => {
+        // rawMin=-50, rawMax=100 → range=150, roughStep=37.5, magnitude=10, normalized=3.75 >= 2 → step=20
+        // floor(-50/20)*20=floor(-2.5)*20=-3*20=-60
+        expect(getNiceLowerBound(-50, 5, 100)).toBe(-60);
     });
 });

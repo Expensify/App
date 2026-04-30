@@ -119,6 +119,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.originalAmount',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
     },
@@ -448,6 +452,9 @@ type SearchTableHeaderProps = {
 
     /** True when we are inside an expense report view, false if we're in the Reports page. */
     isExpenseReportView?: boolean;
+
+    /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
+    isActionColumnWide?: boolean;
 };
 
 function SearchTableHeader({
@@ -468,6 +475,7 @@ function SearchTableHeader({
     isTaxAmountColumnWide,
     groupBy,
     isExpenseReportView,
+    isActionColumnWide,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -540,7 +548,7 @@ function SearchTableHeader({
             sortBy={sortBy}
             sortOrder={sortOrder}
             shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
-            isActionColumnWide={type === CONST.SEARCH.DATA_TYPES.TASK}
+            isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {

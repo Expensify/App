@@ -1,5 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,8 +23,6 @@ const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>
 
 function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const personalDetails = usePersonalDetails();
 
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
@@ -35,7 +31,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         return IOUTransactionID === transaction?.transactionID;
@@ -44,8 +39,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
     const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
 
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
-
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`);
 
     const [linkedTransactionRouteError] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
@@ -77,11 +70,8 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         shouldDisplayNewMarker={false}
                         isFirstVisibleReportAction={false}
                         shouldDisplayContextMenu={false}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         draftMessage={matchingDraftMessage}
-                        emojiReactions={emojiReactions}
                         linkedTransactionRouteError={linkedTransactionRouteError}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

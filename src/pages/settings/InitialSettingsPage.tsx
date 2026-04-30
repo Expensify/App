@@ -3,16 +3,15 @@ import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,6 +23,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,7 +40,7 @@ import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -48,7 +48,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import variables from '@styles/variables';
@@ -62,7 +61,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
@@ -70,6 +69,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import SettingsMenuItem from './SettingsMenuItem';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -100,7 +100,10 @@ type MenuData = WithSentryLabel & {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
+export type {MenuData};
+
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons([
         'Gear',
         'Profile',
@@ -137,11 +140,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
-    const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -153,15 +156,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
-    const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
-
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
+    const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
     const {
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
@@ -257,7 +259,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             brickRoadIndicator: walletBrickRoadIndicator,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.WALLET,
             action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+            badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance, CONST.CURRENCY.USD) : undefined,
         },
         {
             translationKey: 'expenseRulesPage.title',
@@ -336,10 +338,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
                           resetExitSurveyForm(() => {
                               if (shouldOpenSurveyReasonPage) {
-                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path));
                                   return;
                               }
-                              Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path));
                           });
                       },
                   }),
@@ -350,7 +352,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
     const generalMenuItemsData: Menu = {
         sectionStyle: {
             ...styles.pt4,
@@ -414,30 +416,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns the menu items for passed data
      */
     const getMenuItemsSection = (menuItemsData: Menu) => {
-        const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-            if (!isScreenFocused) {
-                return;
-            }
-
-            if (typeof link === 'function') {
-                link?.()?.then((url) =>
-                    showContextMenu({
-                        type: CONST.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        selection: url,
-                        contextMenuAnchor: popoverAnchor.current,
-                    }),
-                );
-            } else if (link) {
-                showContextMenu({
-                    type: CONST.CONTEXT_MENU_TYPES.LINK,
-                    event,
-                    selection: link,
-                    contextMenuAnchor: popoverAnchor.current,
-                });
-            }
-        };
-
         return (
             <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
                 <Text
@@ -451,34 +429,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
                     return (
-                        <MenuItem
+                        <SettingsMenuItem
                             key={keyTitle}
-                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                            title={keyTitle}
-                            icon={item.icon}
-                            iconType={item.iconType}
-                            disabled={isExecuting}
+                            item={item}
+                            keyTitle={keyTitle}
+                            isFocused={isFocused}
+                            isExecuting={isExecuting}
+                            isScreenFocused={isScreenFocused}
                             onPress={singleExecution(item.action)}
-                            iconStyles={item.iconStyles}
-                            badgeText={item.badgeText}
-                            badgeStyle={item.badgeStyle}
-                            isBadgeSuccess={item.isBadgeSuccess}
-                            isBadgeStrong={item.isBadgeStrong}
-                            isBadgeCondensed={item.isBadgeCondensed}
-                            fallbackIcon={item.fallbackIcon}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            shouldStackHorizontally={item.shouldStackHorizontally}
-                            ref={popoverAnchor}
-                            shouldBlockSelection={!!item.link}
-                            onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                            shouldShowContextMenuHint={!!item.link}
-                            focused={isFocused}
-                            role={CONST.ROLE.TAB}
-                            isPaneMenu
-                            sentryLabel={item.sentryLabel}
-                            iconRight={item.iconRight}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            shouldIconUseAutoWidthStyle
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                         />
                     );
                 })}
@@ -559,10 +518,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
+            bottomContent={tabBarContent}
+            bottomContentStyle={styles.overflowVisible}
         >
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {shouldUseNarrowLayout && (
                 <TopBarWithLoadingBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}

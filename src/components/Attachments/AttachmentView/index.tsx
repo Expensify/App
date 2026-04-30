@@ -164,7 +164,6 @@ function AttachmentView({
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
         updateCurrentURLAndReportID(videoSource, reportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- currentlyPlayingURL and playVideo are intentionally excluded to prevent a feedback loop
     }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
 
     const [imageError, setImageError] = useState(false);
@@ -231,7 +230,7 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
-            const id = (transaction && transaction.transactionID) ?? reportActionID;
+            const id = transaction?.transactionID ?? reportActionID;
             if (path && id) {
                 addCachedPDFPaths(id, path);
             }

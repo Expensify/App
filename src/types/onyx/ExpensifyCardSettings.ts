@@ -67,11 +67,17 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
+    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    monthlySpendLimitPerUser?: number;
+
     /** Currency for the card program (e.g. USD, GBP, EUR) */
     currency?: string;
 
     /** Owner email for the card program */
     ownerEmail?: string;
+
+    /** Amount (in cents) of in-flight settlement that has been billed but not yet settled at the bank */
+    pendingSettlementAmount?: number;
 };
 
 /** Spend rule filter condition */
@@ -102,16 +108,28 @@ type ExpensifyCardRule = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
     ExpensifyCardSettingsBase & {
         /** Nested Expensify Card settings keyed by feed country from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
+        /**
+         *
+         */
         US?: ExpensifyCardSettingsBase;
         /** Nested settings for pre-2024 US card program from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
+        /**
+         *
+         */
         CURRENT?: ExpensifyCardSettingsBase;
         /** Nested settings for UK/EU card program from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
+        /**
+         *
+         */
         GB?: ExpensifyCardSettingsBase;
         /** Nested Travel Invoicing settings from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
+        /**
+         *
+         */
         TRAVEL_US?: ExpensifyCardSettingsBase;
 
         /** Spend rules for the feed keyed by rule ID - stringified JSON of ExpensifyCardRule */
