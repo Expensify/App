@@ -1,8 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {PanResponder, View} from 'react-native';
-import type {LayoutRectangle} from 'react-native';
-import type Webcam from 'react-webcam';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -17,14 +14,17 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobile, isMobileWebKit} from '@libs/Browser';
+import useWebCamera from '@hooks/useWebCamera';
+import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {isMobile} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -32,7 +32,6 @@ import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDrag
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
-import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -55,21 +54,28 @@ function IOURequestStepOdometerImage({
     const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
     const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;
     const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
+
+    useRestartOnOdometerImagesFailure(transaction, reportID, iouTypeValue, backToReport);
     const dropBlobUrlsRef = useRef<string[]>([]);
     const shouldRevokeOnUnmountRef = useRef(true);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
-    const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
-    const cameraRef = useRef<Webcam>(null);
-    const trackRef = useRef<MediaStreamTrack | null>(null);
-    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
-    const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
-    const isTabActive = useIsFocused();
+    const {
+        cameraRef,
+        viewfinderLayout,
+        cameraPermissionState,
+        setCameraPermissionState,
+        isFlashLightOn,
+        toggleFlashlight,
+        isTorchAvailable,
+        isQueriedPermissionState,
+        videoConstraints,
+        requestCameraPermission,
+        setupCameraPermissionsAndCapabilities,
+        capturePhotoWithFlash,
+    } = useWebCamera();
 
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Bolt', 'Gallery']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
@@ -99,111 +105,8 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        // For file selection, source is the blob URL
         handleImageSelected(file);
     });
-
-    /**
-     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
-     * The last deviceId is of regular len camera.
-     */
-    const requestCameraPermission = useCallback(() => {
-        if (!isMobile()) {
-            return;
-        }
-
-        const defaultConstraints = {facingMode: {exact: 'environment'}};
-        navigator.mediaDevices
-            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
-            .then((stream) => {
-                setCameraPermissionState('granted');
-                for (const track of stream.getTracks()) {
-                    track.stop();
-                }
-                // Only Safari 17+ supports zoom constraint
-                if (isMobileWebKit() && stream.getTracks().length > 0) {
-                    let deviceId;
-                    for (const track of stream.getTracks()) {
-                        const setting = track.getSettings();
-                        if (setting.zoom === 1) {
-                            deviceId = setting.deviceId;
-                            break;
-                        }
-                    }
-                    if (deviceId) {
-                        setVideoConstraints({deviceId});
-                        return;
-                    }
-                }
-                if (!navigator.mediaDevices.enumerateDevices) {
-                    setVideoConstraints(defaultConstraints);
-                    return;
-                }
-                navigator.mediaDevices
-                    .enumerateDevices()
-                    .then((devices) => {
-                        let lastBackDeviceId = '';
-                        for (let i = devices.length - 1; i >= 0; i--) {
-                            const device = devices.at(i);
-                            if (device?.kind === 'videoinput') {
-                                lastBackDeviceId = device.deviceId;
-                                break;
-                            }
-                        }
-                        if (!lastBackDeviceId) {
-                            setVideoConstraints(defaultConstraints);
-                            return;
-                        }
-                        setVideoConstraints({deviceId: lastBackDeviceId});
-                    })
-                    .catch(() => {
-                        setVideoConstraints(defaultConstraints);
-                    });
-            })
-            .catch(() => {
-                setVideoConstraints(defaultConstraints);
-                setCameraPermissionState('denied');
-            });
-    }, []);
-
-    useEffect(() => {
-        if (!isMobile() || !isTabActive) {
-            return;
-        }
-        navigator.permissions
-            .query({
-                name: 'camera',
-            })
-            .then((permissionState) => {
-                setCameraPermissionState(permissionState.state);
-                if (permissionState.state === 'granted') {
-                    requestCameraPermission();
-                }
-            })
-            .catch(() => {
-                setCameraPermissionState('denied');
-            })
-            .finally(() => {
-                setIsQueriedPermissionState(true);
-            });
-        return () => {
-            setVideoConstraints(undefined);
-        };
-    }, [isTabActive, requestCameraPermission]);
-
-    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
-        setCameraPermissionState('granted');
-
-        const [track] = stream.getVideoTracks();
-        const capabilities = track.getCapabilities();
-
-        if ('torch' in capabilities && capabilities.torch) {
-            trackRef.current = track;
-        }
-        setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
-    };
-
-    const viewfinderLayout = useRef<LayoutRectangle>(null);
 
     const getScreenshot = () => {
         if (!cameraRef.current) {
@@ -216,6 +119,15 @@ function IOURequestStepOdometerImage({
         if (imageBase64 === null) {
             return;
         }
+
+        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web',
+            },
+        });
 
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
@@ -232,51 +144,20 @@ function IOURequestStepOdometerImage({
                     URL.revokeObjectURL(imageObject.source);
                 }
                 setMoneyRequestOdometerImage(transaction, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
+                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 navigateBack();
             })
             .catch((error: unknown) => {
+                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
             });
     };
 
-    const clearTorchConstraints = () => {
-        if (!trackRef.current) {
-            return;
-        }
-        trackRef.current.applyConstraints({
-            advanced: [{torch: false}],
-        });
-    };
-
     const capturePhoto = () => {
-        if (trackRef.current && isFlashLightOn) {
-            trackRef.current
-                .applyConstraints({
-                    advanced: [{torch: true}],
-                })
-                .then(() => {
-                    getScreenshotTimeoutRef.current = setTimeout(() => {
-                        getScreenshot();
-                        clearTorchConstraints();
-                    }, CONST.RECEIPT.FLASH_DELAY_MS);
-                });
-            return;
-        }
-
-        getScreenshot();
+        capturePhotoWithFlash(getScreenshot);
     };
 
-    useEffect(
-        () => () => {
-            if (!getScreenshotTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(getScreenshotTimeoutRef.current);
-        },
-        [],
-    );
-
-    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+    const cameraLoadingReasonAttributes = {
         context: 'IOURequestStepOdometerImage',
         cameraPermissionState,
         isQueriedPermissionState,
@@ -442,6 +323,7 @@ function IOURequestStepOdometerImage({
 
     useEffect(() => {
         return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
             if (!shouldRevokeOnUnmountRef.current) {
                 return;
             }
@@ -524,7 +406,7 @@ function IOURequestStepOdometerImage({
 
 IOURequestStepOdometerImage.displayName = 'IOURequestStepOdometerImage';
 
-// eslint-disable-next-line rulesdir/no-negated-variables
+// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
 const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepOdometerImage);
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;

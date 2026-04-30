@@ -134,16 +134,15 @@ describe('useOtherFeedsForFeedSelector', () => {
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
         expect(result.current).toHaveLength(1);
-        expect(result.current.at(0)).toEqual(
-            expect.objectContaining({
-                value: '999_oauth.chase.com',
-                feed: 'oauth.chase.com',
-                fundID: 999,
-                country: 'US',
-                keyForList: '999_oauth.chase.com',
-                isSelected: false,
-            }),
-        );
+        // Use toMatchObject so Jest does not deep-compare leftElement (React nodes use private fields and break toEqual).
+        expect(result.current.at(0)).toMatchObject({
+            value: '999_oauth.chase.com',
+            feed: 'oauth.chase.com',
+            fundID: 999,
+            country: 'US',
+            keyForList: `${otherPolicyID}_999_oauth.chase.com`,
+            isSelected: false,
+        });
         expect(React.isValidElement(result.current.at(0)?.leftElement)).toBe(true);
     });
 
@@ -190,12 +189,10 @@ describe('useOtherFeedsForFeedSelector', () => {
 
         const {result} = renderHook(() => useOtherFeedsForFeedSelector(currentPolicyID));
 
-        expect(result.current.at(0)).toEqual(
-            expect.objectContaining({
-                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-                canShowSeveralIndicators: true,
-            }),
-        );
+        expect(result.current.at(0)).toMatchObject({
+            brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            canShowSeveralIndicators: true,
+        });
     });
 
     it('should use domain email domain for alternateText when domain data exists', () => {

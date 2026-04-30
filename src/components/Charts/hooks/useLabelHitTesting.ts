@@ -1,11 +1,10 @@
-import type {SkFont} from '@shopify/react-native-skia';
-import {useMemo} from 'react';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
 import {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
-import {isCursorOverChartLabel, measureTextWidth} from '@components/Charts/utils';
+import {getFontLineMetrics, isCursorOverChartLabel} from '@components/Charts/utils';
 import variables from '@styles/variables';
 import type {HitTestArgs} from './useChartInteractions';
 
@@ -58,8 +57,10 @@ type ComputeGeometryInput = {
 type ComputeGeometryFn = (input: ComputeGeometryInput) => LabelHitGeometry;
 
 type UseLabelHitTestingParams = {
-    font: SkFont | null | undefined;
-    truncatedLabels: string[];
+    fontMgr: SkTypefaceFontProvider | null | undefined;
+    fontSize: number;
+    /** Pre-computed pixel widths of each truncated label, from useChartLabelLayout. */
+    truncatedLabelWidths: number[];
     labelRotation: LabelRotation;
     labelSkipInterval: number;
     chartBottom: SharedValue<number>;
@@ -67,8 +68,7 @@ type UseLabelHitTestingParams = {
     /**
      * Chart-specific geometry factory.
      * Receives font metrics, trig values, and per-label widths; returns the
-     * normalized geometry shape. Define as a module-level constant to keep
-     * the useMemo dependency stable.
+     * normalized geometry shape. Typically a module-level constant.
      */
     computeGeometry: ComputeGeometryFn;
 };
@@ -76,42 +76,34 @@ type UseLabelHitTestingParams = {
 /**
  * Shared hook for x-axis label hit-testing in cartesian charts.
  *
- * Encapsulates label width measurement, angle conversion, pre-computed hit geometry,
- * and the isCursorOverLabel / findLabelCursorX worklets — all of which are identical
+ * Encapsulates angle conversion, pre-computed hit geometry, and the
+ * isCursorOverLabel / findLabelCursorX worklets — all of which are identical
  * between bar and line chart except for how the hit geometry is computed.
  *
+ * Label widths are accepted as a pre-computed array (from useChartLabelLayout)
+ * so no Skia measurement happens here.
+ *
  * Chart-specific geometry (45° corner anchor offsets, 90° vertical bounds) is supplied
- * via the `computeGeometry` callback, which should be a stable module-level constant.
+ * via the `computeGeometry` callback, typically a module-level constant.
  */
-function useLabelHitTesting({font, truncatedLabels, labelRotation, labelSkipInterval, chartBottom, computeGeometry}: UseLabelHitTestingParams) {
+function useLabelHitTesting({fontMgr, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom, computeGeometry}: UseLabelHitTestingParams) {
     const tickXPositions = useSharedValue<number[]>([]);
-
-    const labelWidths = useMemo(() => {
-        if (!font) {
-            return [] as number[];
-        }
-        return truncatedLabels.map((label) => measureTextWidth(label, font));
-    }, [font, truncatedLabels]);
 
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
+    const fontMetrics = fontMgr ? getFontLineMetrics(fontMgr, fontSize) : null;
+
     /**
-     * Pre-computed geometry for label hit-testing.
-     * All per-label arrays and trig values are resolved once per layout/rotation change
-     * rather than on every hover event. The `computeGeometry` callback supplies the
+     * Geometry for label hit-testing. The `computeGeometry` callback supplies the
      * chart-specific differences (bar vs. line anchor offsets).
      */
-    const labelHitGeometry = useMemo((): LabelHitGeometry | null => {
-        if (!font) {
-            return null;
-        }
-        const metrics = font.getMetrics();
-        const ascent = Math.abs(metrics.ascent);
-        const descent = Math.abs(metrics.descent);
+    let labelHitGeometry: LabelHitGeometry | null = null;
+    if (fontMetrics) {
+        const {ascent, descent} = fontMetrics;
         const sinA = Math.sin(angleRad);
         const padding = variables.iconSizeExtraSmall / 2;
-        return computeGeometry({ascent, descent, sinA, angleRad, labelWidths, padding});
-    }, [font, angleRad, labelWidths, computeGeometry]);
+        labelHitGeometry = computeGeometry({ascent, descent, sinA, angleRad, labelWidths: truncatedLabelWidths, padding});
+    }
 
     /**
      * Hit-tests whether the cursor is over the x-axis label at `activeIndex`.

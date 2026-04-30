@@ -58,6 +58,9 @@ yarn-error.log
 # Bundled code
 dist/
 
+# Generated eslint-report HTML (npm run eslint-report)
+reports/
+
 # BUCK
 buck-out/
 \.buckd/
@@ -161,6 +164,9 @@ modules/*/lib/
 # Playwright
 .playwright-output/
 .playwright-mcp/
+
+# agent-device
+agent-device-output/
 
 # cspell cache
 .cspellcache

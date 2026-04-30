@@ -57,6 +57,14 @@ You can crop a receipt image to remove unnecessary areas or focus on specific de
 
 The cropped image will replace the original receipt on the expense.
 
+## How to rotate a receipt
+
+You can rotate a receipt to correct its orientation. Rotation is available for uploaded or scanned image receipts and for PDF receipts on web or mobile web. PDF rotation is not available in the native mobile app.
+
+1. Open the expense and click on the receipt image or PDF.
+2. Click **Rotate**.
+3. Each click rotates the receipt 90° counter-clockwise.
+
 ---
 
 ## When to Use Report Comments for Supporting Documentation
@@ -112,7 +120,7 @@ Only the expense creator or a Workspace Admin can attach a receipt an expense.
 No. Receipts in the comments section are considered supplemental and are not included in audits, exports, or downloadable reports.
 
 ## Can I crop or rotate an eReceipt?
-No. The **Crop** and **Rotate** buttons are only available for image receipts that you uploaded or scanned. eReceipts cannot be cropped or rotated.
+No. eReceipts cannot be cropped or rotated. The **Crop** button is available for uploaded or scanned image receipts only. The **Rotate** button is available for image receipts and PDF receipts on web or mobile web. PDF rotation is not available in the native mobile app.
 
 ## Can I attach both the card and itemized restaurant receipts?
 Yes. Attach the **card receipt** to the expense itself, and upload the **itemized receipt** in the report comments as supporting documentation.

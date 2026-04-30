@@ -4,8 +4,8 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
-import {formatDate} from './FormulaDatetime';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
+import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
@@ -330,7 +330,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
         return part.definition;
     }
 
-    const {startDate, endDate} = getAutoReportingDates(policy, report, new Date(), context);
+    const {startDate, endDate} = getAutoReportingDates(policy, report);
 
     switch (subField.toLowerCase()) {
         case 'start':
@@ -573,11 +573,6 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
                 return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
             }
 
-            // Check if format is a valid currency code (e.g., USD, EUR, eur)
-            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
-                return '';
-            }
-
             // If a currency conversion is needed (displayCurrency differs from the source),
             // return null so the backend can compute it.
             // We can only compute the value optimistically when the amount is 0.
@@ -588,7 +583,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
         }
 
-        if (currency && isValidCurrencyCode(currency)) {
+        if (currency) {
             return convertToDisplayString(absoluteAmount, currency, true);
         }
 
@@ -657,21 +652,6 @@ function formatType(type: string | undefined): string {
 function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
-
-    // Merge optimistic transactions not yet in Onyx, passed via FormulaContext.allTransactions.
-    if (context?.allTransactions) {
-        for (const ctxTransaction of Object.values(context.allTransactions)) {
-            if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {
-                continue;
-            }
-            const existingIndex = transactions.findIndex((t) => t?.transactionID === ctxTransaction.transactionID);
-            if (existingIndex >= 0) {
-                transactions[existingIndex] = ctxTransaction;
-            } else {
-                transactions.push(ctxTransaction);
-            }
-        }
-    }
 
     if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
         const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
@@ -784,7 +764,7 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
 /**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -837,11 +817,10 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            // For trip-based, use oldest transaction as start and newest transaction as end
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
-            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
+            // For trip-based, use oldest transaction as start
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
+            endDate = currentDate;
             break;
         }
 
@@ -989,4 +968,4 @@ function resolveReportFieldValue(
 
 export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
 
-export type {FormulaContext, FieldList, MinimalTransaction};
+export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};

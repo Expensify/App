@@ -4,9 +4,9 @@ import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportP
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -34,14 +34,14 @@ function OptionRowLHNData({
     personalDetails = {},
     policy,
     invoiceReceiverPolicy,
-    localeCompare,
-    translate,
-    currentUserAccountID,
+    conciergeReportID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    const {translate, localeCompare} = useLocalize();
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
 
@@ -115,10 +115,7 @@ function OptionRowLHNData({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
-    const [fullReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport?.reportID}`);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -157,7 +154,6 @@ function OptionRowLHNData({
         reportAttributesDerived,
         policyTags,
         currentUserLogin: login ?? '',
-        reportActions: fullReportActions,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
@@ -181,7 +177,6 @@ function OptionRowLHNData({
             report={fullReport}
             hasDraftComment={hasDraftComment}
             conciergeReportID={conciergeReportID}
-            isApprovalDisabledForReport={isSubmitAndClose(policy)}
         />
     );
 }

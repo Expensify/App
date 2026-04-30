@@ -45,6 +45,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
@@ -132,11 +133,14 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type ReportLastVisitTimes from './ReportLastVisitTimes';
 import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
+import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
+import type ReportPaginationState from './ReportPaginationState';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -284,8 +288,11 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    ReportLastVisitTimes,
+    ReportLoadingState,
     ReportMetadata,
     ReportNextStepDeprecated,
+    ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
     GroupedTransactions,
@@ -366,6 +373,7 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,

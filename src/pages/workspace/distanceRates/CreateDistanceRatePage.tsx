@@ -33,7 +33,7 @@ type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function CreateDistanceRatePage({
     route: {
-        params: {policyID, transactionID, reportID},
+        params: {policyID, transactionID, reportID, iouType, action},
     },
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
@@ -70,8 +70,14 @@ function CreateDistanceRatePage({
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
+            const isEdit = action === CONST.IOU.ACTION.EDIT;
             setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), {compareParams: false});
+            Navigation.goBack(
+                !isEdit
+                    ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)
+                    : ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                {compareParams: false},
+            );
             return;
         }
         Navigation.goBack();

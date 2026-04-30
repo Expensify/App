@@ -12,7 +12,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {checkIfScanFileCanBeRead, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfLocalFileIsAccessible, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,14 +28,11 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
+        name: routeName,
         params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
-    onLayout,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
-    setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const isMobileWeb = isMobile();
     const policy = usePolicy(report?.policyID);
@@ -62,6 +60,9 @@ function IOURequestStepScan({
 
     const {
         transactions,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
@@ -74,7 +75,6 @@ function IOURequestStepScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
         reportID,
@@ -85,15 +85,10 @@ function IOURequestStepScan({
         currentUserPersonalDetails,
         backTo,
         backToReport,
-        isMultiScanEnabled,
-        isStartingScan,
+        routeName,
         updateScanAndNavigate,
         getSource,
     });
-
-    const handleOnLayout = useCallback(() => {
-        onLayout?.(setTestReceiptAndNavigate);
-    }, [onLayout, setTestReceiptAndNavigate]);
 
     const hasValidatedInitialScanFiles = useRef(false);
 
@@ -121,13 +116,13 @@ function IOURequestStepScan({
                     isAllScanFilesCanBeRead = false;
                 };
 
-                return checkIfScanFileCanBeRead(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
+                return checkIfLocalFileIsAccessible(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
             }),
         ).then(() => {
             if (isAllScanFilesCanBeRead) {
                 return;
             }
-            setIsMultiScanEnabled?.(false);
+            setIsMultiScanEnabled(false);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
@@ -177,7 +172,6 @@ function IOURequestStepScan({
                     navigateToConfirmationStep={navigateToConfirmationStep}
                     shouldSkipConfirmation={shouldSkipConfirmation}
                     setStartLocationPermissionFlow={setStartLocationPermissionFlow}
-                    onLayout={handleOnLayout}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}
                 />
@@ -186,7 +180,6 @@ function IOURequestStepScan({
                     PDFValidationComponent={PDFValidationComponent}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                     isReplacingReceipt={isReplacingReceipt}
-                    onLayout={handleOnLayout}
                     validateFiles={validateFiles}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}

@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -15,13 +14,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import BasePopup from './BasePopup';
 
 type UserSelectPopupProps = {
     /** The currently selected users */
     value: string[];
+
+    /** The popup label */
+    label: string;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
@@ -37,13 +41,14 @@ type UserSelectPopupProps = {
     isSearchable?: boolean;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
+function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -88,24 +93,48 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             ...report,
             keyForList: String(report.reportID),
         }));
-        const combinedOptions = [...selectedOptionsForDisplay, ...personalDetailsList, ...recentReports];
 
-        // Sort the options so that selected items appear first, and the current user appears right after that, followed by the rest of the options in their original order
+        const isCurrentUserSelected = selectedOptionsForDisplay.some((option) => option.accountID === currentUserAccountID);
+
+        // Extract the current user from available options to guarantee they appear at the top.
+        // Falls back to creating from personal details to handle pagination edge cases.
+        let currentUserOption: OptionData | undefined;
+        if (!isCurrentUserSelected && currentUserAccountID) {
+            const currentUserPersonalDetail = personalDetailsList.find((p) => p.accountID === currentUserAccountID) ?? recentReports.find((r) => r.accountID === currentUserAccountID);
+            if (currentUserPersonalDetail) {
+                currentUserOption = currentUserPersonalDetail;
+            } else if (personalDetails?.[currentUserAccountID]) {
+                const candidateOption = getParticipantsOption(personalDetails[currentUserAccountID], personalDetails) as OptionData;
+                const trimmedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+                if (!trimmedSearchTerm || doesPersonalDetailMatchSearchTerm(candidateOption, currentUserAccountID, trimmedSearchTerm)) {
+                    currentUserOption = candidateOption;
+                }
+            }
+        }
+
+        // Filter current user from regular lists to avoid duplication
+        const filteredPersonalDetails = currentUserOption ? personalDetailsList.filter((p) => p.accountID !== currentUserAccountID) : personalDetailsList;
+        const filteredRecentReports = currentUserOption ? recentReports.filter((r) => r.accountID !== currentUserAccountID) : recentReports;
+
+        // Place selected options first, then the current user, then the rest
+        const combinedOptions = [...selectedOptionsForDisplay, ...(currentUserOption ? [currentUserOption] : []), ...filteredPersonalDetails, ...filteredRecentReports];
+
+        // Sort so that selected items appear first; current user placement is handled explicitly above
         combinedOptions.sort((a, b) => {
-            // selected items first
             if (a.isSelected && !b.isSelected) {
                 return -1;
             }
             if (!a.isSelected && b.isSelected) {
                 return 1;
             }
-
-            // Put the current user at the top of the list
-            if (a.accountID === currentUserAccountID) {
-                return -1;
-            }
-            if (b.accountID === currentUserAccountID) {
-                return 1;
+            // Among selected items, prioritize the current user
+            if (a.isSelected && b.isSelected) {
+                if (a.accountID === currentUserAccountID) {
+                    return -1;
+                }
+                if (b.accountID === currentUserAccountID) {
+                    return 1;
+                }
             }
             return 0;
         });
@@ -115,7 +144,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             keyForList: option.keyForList ?? option.login ?? '',
         }));
         return combinedOptionsWithKeyForList;
-    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID]);
+    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID, personalDetails, debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
@@ -168,38 +197,38 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
-            <SelectionList
-                data={listData}
-                ref={selectionListRef}
-                textInputOptions={textInputOptions}
-                canSelectMultiple
-                ListItem={UserSelectionListItem}
-                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
-                onSelectRow={selectUser}
-                isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                onEndReached={onListEndReached}
-            />
-
-            <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
+        <BasePopup
+            label={label}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
+        >
+            <View
+                style={[
+                    styles.getSelectionListPopoverHeight({
+                        itemCount: listData.length || 1,
+                        windowHeight,
+                        isInLandscapeMode,
+                        hasTitle: isSmallScreenWidth,
+                        isSearchable: shouldShowSearchInput,
+                    }),
+                ]}
+            >
+                <SelectionList
+                    data={listData}
+                    ref={selectionListRef}
+                    textInputOptions={textInputOptions}
+                    canSelectMultiple
+                    ListItem={UserSelectionListItem}
+                    onSelectRow={selectUser}
+                    isLoadingNewOptions={isLoadingNewOptions}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                    onEndReached={onListEndReached}
+                    style={{contentContainerStyle: [styles.pb0]}}
                 />
             </View>
-        </View>
+        </BasePopup>
     );
 }
 

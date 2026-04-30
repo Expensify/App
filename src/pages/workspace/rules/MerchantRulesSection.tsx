@@ -1,20 +1,25 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -68,6 +73,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
@@ -101,8 +107,23 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
+    // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
+    // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
+    const visibleRules = useMemo(() => sortedRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [sortedRules, isOffline]);
+
+    const filterRule = (rule: CodingRule & {ruleID: string}, searchInput: string) => tokenizedSearch([rule], searchInput, () => [rule.filters?.right ?? '']).length > 0;
+
+    const [ruleSearchInput, setRuleSearchInput, filteredRules] = useSearchResults(visibleRules, filterRule);
+
+    useEffect(() => {
+        if (visibleRules.length > CONST.SEARCH_BAR_THRESHOLD) {
+            return;
+        }
+        setRuleSearchInput('');
+    }, [visibleRules.length, setRuleSearchInput]);
+
     const renderTitle = () => (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
@@ -122,7 +143,17 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
         >
             {hasRules && (
                 <View style={[styles.mt3, styles.gap2]}>
-                    {sortedRules.map((rule) => {
+                    {visibleRules.length > CONST.SEARCH_BAR_THRESHOLD && (
+                        <SearchBar
+                            label={translate('workspace.rules.merchantRules.findRule')}
+                            inputValue={ruleSearchInput}
+                            onChangeText={setRuleSearchInput}
+                            style={[styles.mt3, styles.mh0]}
+                            shouldShowEmptyState={filteredRules.length === 0}
+                            emptyStateContainerStyle={styles.ph0}
+                        />
+                    )}
+                    {filteredRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
@@ -138,7 +169,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        descriptionTextStyle={[styles.textNormalThemeText]}
+                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}

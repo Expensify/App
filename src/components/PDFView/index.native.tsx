@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import {Keyboard, Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import LoadingIndicator from '@components/LoadingIndicator';
@@ -9,6 +9,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -52,6 +53,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+    const {insets} = useSafeAreaPaddings();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
@@ -129,6 +131,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * @param path - Path to cache location
      */
     const finishPDFLoad = (numberOfPages: number, path: string) => {
+        Keyboard.dismiss();
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
@@ -151,9 +154,14 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     );
 
     function renderPDFView() {
-        const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
+        // Insets are used to adjust the maxWidth of the PDF view in landscape mode
+        const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth - insets.left - insets.right;
         const pdfHeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_HEIGHT : windowHeight;
-        const pdfStyles: StyleProp<ViewStyle> = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(pdfWidth, pdfHeight)];
+
+        const pdfStyles: StyleProp<ViewStyle> = [
+            themeStyles.imageModalPDF,
+            isUsedAsChatAttachment ? StyleUtils.getWidthAndHeightStyle(pdfWidth, pdfHeight) : StyleUtils.getPDFViewStyle(pdfWidth, pdfHeight),
+        ];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm

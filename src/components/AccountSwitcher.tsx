@@ -137,12 +137,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     ): PopoverMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
-            text: personalDetails?.displayName ?? personalDetails?.login ?? '',
+            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            shouldIgnoreCompactStyle: true,
             numberOfLinesDescription: 1,
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,

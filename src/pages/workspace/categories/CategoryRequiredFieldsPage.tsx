@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCategoryAttendeesRequired, setPolicyCategoryDescriptionRequired} from '@userActions/Policy/Category';
@@ -37,8 +38,6 @@ function CategoryRequiredFieldsPage({
     const policyCategory = policyCategories?.[categoryName];
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const areAttendeesRequired = policyCategory?.areAttendeesRequired ?? false;
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -82,7 +81,7 @@ function CategoryRequiredFieldsPage({
                             </View>
                         </View>
                     </OfflineWithFeedback>
-                    {isAttendeeTrackingEnabled && (
+                    {isAttendeeTrackingEnabled(policy) && (
                         <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areAttendeesRequired}>
                             <View style={[styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mv5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

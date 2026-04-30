@@ -3,9 +3,9 @@ import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -41,8 +41,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
-    useConfirmReadyToOpenApp();
-
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,20 +56,21 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
+            const actionTargetReportActionID = option.actionTargetReportActionID;
 
             // Prevent opening a new Report page if the user quickly taps on another conversation
             // before the first one is displayed.
             const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
 
             if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
                 shouldBlockReportNavigation
             ) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
         },
         [shouldUseNarrowLayout, isActiveReport],
     );
@@ -87,20 +86,28 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
+    const shouldShowEmptyLHN = optionListItems.length === 0;
+
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
-                <LHNOptionsList
-                    style={styles.flex1}
-                    contentContainerStyles={contentContainerStyles}
-                    data={optionListItems}
-                    onSelectRow={showReportPage}
-                    shouldDisableFocusOptions={shouldUseNarrowLayout}
-                    optionMode={viewMode}
-                    onFirstItemRendered={setSidebarLoaded}
-                />
+                {shouldShowEmptyLHN ? (
+                    <View style={[styles.flex1, styles.emptyLHNWrapper]}>
+                        <LHNEmptyState />
+                    </View>
+                ) : (
+                    <LHNOptionsList
+                        style={styles.flex1}
+                        contentContainerStyles={contentContainerStyles}
+                        data={optionListItems}
+                        onSelectRow={showReportPage}
+                        shouldDisableFocusOptions={shouldUseNarrowLayout}
+                        optionMode={viewMode}
+                        onFirstItemRendered={setSidebarLoaded}
+                    />
+                )}
                 {isLoadingReportData && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
+                    <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
                             shouldAnimate
                             reasonAttributes={sidebarSkeletonReasonAttributes}
