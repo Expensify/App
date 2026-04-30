@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -9,7 +8,6 @@ import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
@@ -62,7 +60,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -2176,7 +2173,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: TEST_USER_LOGIN,
             });
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_MONEY_REQUEST,

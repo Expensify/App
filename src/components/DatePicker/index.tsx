@@ -1,5 +1,6 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -119,7 +120,7 @@ function DatePicker({
             }
         },
         // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [autoFocus],
     );
 

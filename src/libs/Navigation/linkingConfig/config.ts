@@ -1524,18 +1524,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER]: {
-                            path: ROUTES.SETTINGS_TAG_APPROVER.route,
-                            parse: {
-                                orderWeight: Number,
-                            },
-                        },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW]: {
-                            path: ROUTES.SETTINGS_TAG_LIST_VIEW.route,
-                            parse: {
-                                orderWeight: Number,
-                            },
-                        },
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER]: DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW]: DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE]: {
                             path: ROUTES.SETTINGS_TAG_GL_CODE.route,
                             parse: {
@@ -2026,9 +2016,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
+                [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: {
                     screens: {
-                        [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: ROUTES.ADD_UNREPORTED_EXPENSE.route,
+                        [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: ROUTES.ADD_EXISTING_EXPENSE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {

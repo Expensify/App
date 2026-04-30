@@ -2,6 +2,7 @@ import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -82,11 +83,11 @@ function useOnboardingFlowRouter() {
                 }
             }
 
-            // Skip onboarding for migrated users or users who were invited/have workspace policies
             const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-            if (isMigratedUser || isInvitedOrGroupMember) {
+            // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
+            if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
                 return;
             }
 

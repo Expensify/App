@@ -1,10 +1,16 @@
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowSubmitError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {
+    buildNextStepNew,
+    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildOptimisticNextStepForStrictPolicyRuleViolations,
+    getReportNextStep,
+} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -1102,6 +1108,204 @@ describe('libs/NextStepUtils', () => {
                         type: 'alert-text',
                     },
                 ],
+            });
+        });
+    });
+
+    describe('getReportNextStep', () => {
+        const currentUserEmail = 'current-user@expensify.com';
+        const currentUserAccountID = 37;
+        const policyID = 'policy-1';
+
+        beforeAll(() => {
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                        avatar: '',
+                    },
+                },
+            }).then(waitForBatchedUpdates);
+        });
+
+        it('returns the current next step when no special conditions are met', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-1',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Current next step'}],
+            };
+
+            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID);
+            expect(result).toBe(currentNextStep);
+        });
+
+        it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-2',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const transaction: Transaction = {
+                transactionID: 'txn-1',
+                reportID: report.reportID,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+            } as Transaction;
+
+            const transactionViolations: OnyxCollection<TransactionViolations> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, undefined, transactionViolations, currentUserEmail, currentUserAccountID);
+
+            expect(result).toEqual({
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                actorAccountID: report.ownerAccountID,
+            });
+        });
+
+        it('returns an optimistic prevent self-approval next step when preventSelfApproval is enabled and submitter would submit to themselves', async () => {
+            const policy: Policy = {
+                id: policyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                preventSelfApproval: true,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-3',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const result = getReportNextStep(undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID);
+            expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
+        });
+
+        it('prioritizes the fix issue next step over the prevent self-approval next step when both conditions are true', async () => {
+            const policy: Policy = {
+                id: policyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                preventSelfApproval: true,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-4',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const transaction: Transaction = {
+                transactionID: 'txn-2',
+                reportID: report.reportID,
+                amount: -500,
+                currency: CONST.CURRENCY.USD,
+            } as Transaction;
+
+            const transactionViolations: OnyxCollection<TransactionViolations> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.NO_ROUTE,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, policy, transactionViolations, currentUserEmail, currentUserAccountID);
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: report.ownerAccountID,
             });
         });
     });

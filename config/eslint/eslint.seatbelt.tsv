@@ -91,7 +91,6 @@
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/Modal/ReanimatedModal/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MoneyRequestAmountInput.tsx"	"react-hooks/immutability"	2
-"../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/refs"	6
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/set-state-in-effect"	3
@@ -118,13 +117,11 @@
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
 "../../src/components/Reactions/MiniQuickEmojiReactions.tsx"	"react-hooks/refs"	1
-"../../src/components/Reactions/ReportActionItemEmojiReactions.tsx"	"react-hooks/refs"	2
 "../../src/components/ReimbursementAccountLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/refs"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ReportActionItem/MoneyRequestView.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
 "../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
 "../../src/components/ScreenWrapper/ScreenWrapperContainer.tsx"	"react-hooks/refs"	2
@@ -164,7 +161,6 @@
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/refs"	13
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/VideoPlayerContexts/VideoPopoverMenuContext.tsx"	"react-hooks/exhaustive-deps"	1
-"../../src/components/WalletStatementModal/index.native.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/WideRHPContextProvider/useShouldRenderOverlay.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ZeroWidthView/index.tsx"	"no-restricted-syntax"	2
 "../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
@@ -191,7 +187,6 @@
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/refs"	1
-"../../src/hooks/useSearchPageSetup.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchResults.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/purity"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/refs"	5
@@ -276,7 +271,6 @@
 "../../src/libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/OnyxUpdateManager/utils/applyUpdates.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/PaymentMethods.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/PersonalCards.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/PersonalDetails.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/Plaid.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Category.ts"	"no-restricted-syntax"	5
@@ -365,7 +359,6 @@
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/immutability"	2
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
-"../../src/pages/TransactionDuplicate/Review.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/TransactionMerge/MergeFieldReview.tsx"	"no-restricted-syntax"	1
 "../../src/pages/TransactionMerge/TransactionMergeReceipts.tsx"	"no-restricted-syntax"	1
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
@@ -398,11 +391,9 @@
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/SplitExpenseEditPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/request/step/IOURequestStepAccountant.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepDistance.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepDistanceManual.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -411,9 +402,7 @@
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/media/AttachmentModalScreen/routes/report/ReportAttachmentModalContent.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
-"../../src/pages/settings/InitialSettingsPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/settings/PaymentCard/ChangeCurrency/index.tsx"	"no-restricted-syntax"	1
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
@@ -480,7 +469,6 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitTypePage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/members/ImportedMembersConfirmationPage.tsx"	"react-hooks/refs"	7
