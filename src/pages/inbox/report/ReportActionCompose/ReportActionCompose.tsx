@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import ComposerActionMenu from './ComposerActionMenu';
@@ -23,14 +22,11 @@ import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 
-const EMPTY_ARCHIVED_REPORTS_ID_SET = new Set<string>();
-
 type ReportActionComposeProps = {
     reportID: string;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
 };
 
-function ReportActionComposeInner({reportID}: Pick<ReportActionComposeProps, 'reportID'>) {
+function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -71,12 +67,9 @@ function ReportActionComposeInner({reportID}: Pick<ReportActionComposeProps, 're
     );
 }
 
-function ReportActionCompose({reportID, archivedReportsIDSet = EMPTY_ARCHIVED_REPORTS_ID_SET}: ReportActionComposeProps) {
+function ReportActionCompose({reportID}: ReportActionComposeProps) {
     return (
-        <ComposerProvider
-            reportID={reportID}
-            archivedReportsIDSet={archivedReportsIDSet}
-        >
+        <ComposerProvider reportID={reportID}>
             <ReportActionComposeInner reportID={reportID} />
         </ComposerProvider>
     );

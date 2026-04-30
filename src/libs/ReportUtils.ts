@@ -1208,7 +1208,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -4865,7 +4865,6 @@ function canEditFieldOfMoneyRequest({
     transaction,
     report,
     policy,
-    archivedReportsIDSet,
 }: {
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
@@ -4875,7 +4874,6 @@ function canEditFieldOfMoneyRequest({
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4974,7 +4972,7 @@ function canEditFieldOfMoneyRequest({
             return true;
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportsIDSet)) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
 
@@ -4990,7 +4988,6 @@ function canEditFieldOfMoneyRequest({
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                    archivedReportsIDSet,
                 ).length > 0
             );
         }
@@ -5003,14 +5000,14 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportsIDSet)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return true;
         }
 
         // Check if there are multiple outstanding reports across policies
         let outstandingReportsCount = 0;
         for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {}, archivedReportsIDSet);
+            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {});
             outstandingReportsCount += reports.length;
 
             // Short-circuit once we find more than 1
@@ -11469,7 +11466,12 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined, archivedReportsIDSet?: ArchivedReportsIDSet, allowSubmitted = true): boolean {
+function isReportOutstanding(
+    iouReport: OnyxInputOrEntry<Report>,
+    policyID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
+    allowSubmitted = true,
+): boolean {
     if (
         !iouReport ||
         isEmptyObject(iouReport) ||
@@ -11481,8 +11483,8 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
     ) {
         return false;
     }
-    const reportNameValuePair = archivedReportsIDSet ? undefined : allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if ((archivedReportsIDSet && isReportArchivedByID(archivedReportsIDSet, iouReport.reportID)) || isArchivedReport(reportNameValuePair)) {
+    const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    if (isArchivedReport(reportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -11505,7 +11507,7 @@ function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     reports: OnyxCollection<Report> = deprecatedAllReports,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
     if (!reports) {
@@ -11514,7 +11516,7 @@ function getOutstandingReportsForUser(
     return Object.values(reports).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isReportOutstanding(report, policyID, archivedReportsIDSet, allowSubmitted) &&
+            isReportOutstanding(report, policyID, reportNameValuePairs, allowSubmitted) &&
             report?.ownerAccountID === reportOwnerAccountID,
     );
 }

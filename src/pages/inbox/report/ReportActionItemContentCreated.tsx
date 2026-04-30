@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -49,9 +48,6 @@ type ReportActionItemContentCreatedProps = {
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
-
-    /** Set of archived report ID keys */
-    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function ReportActionItemContentCreated({
@@ -62,7 +58,6 @@ function ReportActionItemContentCreated({
     transactionID,
     draftMessage,
     shouldHideThreadDividerLine,
-    archivedReportsIDSet,
 }: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -129,7 +124,6 @@ function ReportActionItemContentCreated({
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground
-                                archivedReportsIDSet={archivedReportsIDSet}
                             />
                             {renderThreadDivider}
                         </View>
@@ -196,7 +190,6 @@ function ReportActionItemContentCreated({
                                         parentReportID={transactionThreadReport?.parentReportID}
                                         expensePolicy={policy}
                                         shouldShowAnimatedBackground={false}
-                                        archivedReportsIDSet={archivedReportsIDSet}
                                     />
                                     {renderThreadDivider}
                                 </View>

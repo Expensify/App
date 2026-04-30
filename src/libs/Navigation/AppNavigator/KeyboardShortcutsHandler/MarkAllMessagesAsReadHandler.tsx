@@ -1,5 +1,5 @@
 import {useEffect, useRef} from 'react';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIDSet';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';

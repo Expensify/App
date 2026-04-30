@@ -20,7 +20,6 @@ import {
     navigateToLinkedReportAction,
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
@@ -72,9 +71,6 @@ type ReportActionItemParentActionProps = {
 
     /** Whether the report is archived */
     isReportArchived: boolean;
-
-    /** Set of archived report ID keys */
-    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function ReportActionItemParentAction({
@@ -91,7 +87,6 @@ function ReportActionItemParentAction({
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
-    archivedReportsIDSet,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -236,7 +231,6 @@ function ReportActionItemParentAction({
                                 linkedTransactionRouteError={linkedTransactionRouteError}
                                 userBillingFundID={userBillingFundID}
                                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                                archivedReportsIDSet={archivedReportsIDSet}
                             />
                         </OfflineWithFeedback>
                     );

@@ -11,7 +11,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIDSet';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -37,7 +37,6 @@ import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
@@ -121,7 +120,6 @@ function mapTransactionItemToSelectedEntry(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
@@ -146,7 +144,6 @@ function mapTransactionItemToSelectedEntry(
                 transaction: item,
                 report: item.report,
                 policy: item.policy,
-                archivedReportsIDSet,
             }),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -195,7 +192,6 @@ function prepareTransactionsList(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -210,7 +206,6 @@ function prepareTransactionsList(
         currentUserLogin,
         currentUserAccountID,
         outstandingReportsByPolicyID,
-        archivedReportsIDSet,
         false,
     );
 
@@ -812,7 +807,6 @@ function Search({
                             transaction: transactionItem,
                             report: transactionItem.report,
                             policy: transactionItem.policy,
-                            archivedReportsIDSet: archivedReportsIdSet,
                         }),
 
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -869,7 +863,6 @@ function Search({
                         transaction: transactionItem,
                         report: transactionItem.report,
                         policy: transactionItem.policy,
-                        archivedReportsIDSet: archivedReportsIdSet,
                     }),
 
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -1004,7 +997,6 @@ function Search({
                     email ?? '',
                     accountID,
                     outstandingReportsByPolicyID,
-                    archivedReportsIdSet,
                 );
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1070,33 +1062,14 @@ function Search({
                             const originalItemTransaction =
                                 searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(
-                                transactionItem,
-                                itemTransaction,
-                                originalItemTransaction,
-                                email ?? '',
-                                accountID,
-                                outstandingReportsByPolicyID,
-                                archivedReportsIdSet,
-                            );
+                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                         }),
                 ),
             };
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [
-            selectedTransactions,
-            setSelectedTransactions,
-            filteredData,
-            updateSelectAllMatchingItemsState,
-            transactions,
-            email,
-            accountID,
-            outstandingReportsByPolicyID,
-            searchResults?.data,
-            archivedReportsIdSet,
-        ],
+        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRow = useCallback(
@@ -1412,15 +1385,7 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(
-                            transactionItem,
-                            itemTransaction,
-                            originalItemTransaction,
-                            email ?? '',
-                            accountID,
-                            outstandingReportsByPolicyID,
-                            archivedReportsIdSet,
-                        );
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                     });
             });
             updatedTransactions = Object.fromEntries(allSelections);
@@ -1432,15 +1397,7 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(
-                            transactionItem,
-                            itemTransaction,
-                            originalItemTransaction,
-                            email ?? '',
-                            accountID,
-                            outstandingReportsByPolicyID,
-                            archivedReportsIdSet,
-                        );
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                     }),
             );
         }
@@ -1459,7 +1416,6 @@ function Search({
         accountID,
         outstandingReportsByPolicyID,
         searchResults?.data,
-        archivedReportsIdSet,
     ]);
 
     const onLayout = useCallback(() => {

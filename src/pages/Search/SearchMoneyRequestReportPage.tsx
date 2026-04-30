@@ -12,7 +12,6 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -147,7 +146,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const actionListValue = useActionListContextValue();
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
@@ -413,7 +411,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     key={report?.reportID}
                                     onLayout={handleSubmitToDestinationVisibleLayout}
                                     backToRoute={route.params.backTo}
-                                    archivedReportsIDSet={archivedReportsIDSet}
                                 />
                                 <PortalHost name="suggestions" />
                             </DragAndDropProvider>

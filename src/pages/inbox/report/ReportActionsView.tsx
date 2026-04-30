@@ -46,7 +46,6 @@ import {
     isMoneyRequestReport,
     isReportTransactionThread as isReportTransactionThreadUtil,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,14 +62,11 @@ type ReportActionsViewProps = {
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** Set of archived report ID keys */
-    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 let listOldID = Math.round(Math.random() * 100);
 
-function ReportActionsView({reportID, onLayout, archivedReportsIDSet}: ReportActionsViewProps) {
+function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     useCopySelectionHelper();
     const {translate} = useLocalize();
     usePendingConciergeResponse(reportID);
@@ -373,7 +369,6 @@ function ReportActionsView({reportID, onLayout, archivedReportsIDSet}: ReportAct
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
-                archivedReportsIDSet={archivedReportsIDSet}
             />
             <UserTypingEventListener report={report} />
         </>

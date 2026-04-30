@@ -18,7 +18,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1155,7 +1154,7 @@ function getShareDestination(
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, archivedReportsIDSet: ArchivedReportsIDSet): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined): string | undefined {
     if (!report) {
         return undefined;
     }
@@ -1170,7 +1169,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
     }
 
     // If no parent report, try to navigate to most recent report
-    const mostRecentReportID = getMostRecentReportID(report, conciergeReportID, archivedReportsIDSet);
+    const mostRecentReportID = getMostRecentReportID(report, conciergeReportID);
     if (mostRecentReportID) {
         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
     }
@@ -1188,7 +1187,6 @@ function deleteTask(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction>,
-    archivedReportsIDSet: ArchivedReportsIDSet,
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     ancestors: ReportUtils.Ancestor[] = [],
@@ -1316,7 +1314,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, archivedReportsIDSet);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID);
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

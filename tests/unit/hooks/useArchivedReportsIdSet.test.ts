@@ -1,9 +1,9 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-describe('useArchivedReportsIDSet', () => {
+describe('useArchivedReportsIdSet', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -13,7 +13,7 @@ describe('useArchivedReportsIDSet', () => {
     });
 
     it('should return an empty Set when no report name value pairs exist', async () => {
-        const {result} = renderHook(() => useArchivedReportsIDSet());
+        const {result} = renderHook(() => useArchivedReportsIdSet());
 
         await waitFor(() => {
             expect(result.current).toBeInstanceOf(Set);
@@ -25,7 +25,7 @@ describe('useArchivedReportsIDSet', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}123`, {private_isArchived: 'archived'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}456`, {private_isArchived: ''});
 
-        const {result} = renderHook(() => useArchivedReportsIDSet());
+        const {result} = renderHook(() => useArchivedReportsIdSet());
 
         await waitFor(() => {
             expect(result.current.size).toBe(1);
@@ -39,7 +39,7 @@ describe('useArchivedReportsIDSet', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}200`, {private_isArchived: 'archived'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}300`, {private_isArchived: ''});
 
-        const {result} = renderHook(() => useArchivedReportsIDSet());
+        const {result} = renderHook(() => useArchivedReportsIdSet());
 
         await waitFor(() => {
             expect(result.current.size).toBe(2);
@@ -52,7 +52,7 @@ describe('useArchivedReportsIDSet', () => {
     it('should update when a report becomes archived', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}123`, {private_isArchived: ''});
 
-        const {result} = renderHook(() => useArchivedReportsIDSet());
+        const {result} = renderHook(() => useArchivedReportsIdSet());
 
         await waitFor(() => {
             expect(result.current.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}123`)).toBe(false);
@@ -69,7 +69,7 @@ describe('useArchivedReportsIDSet', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}123`, {private_isArchived: 'archived'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}456`, null);
 
-        const {result} = renderHook(() => useArchivedReportsIDSet());
+        const {result} = renderHook(() => useArchivedReportsIdSet());
 
         await waitFor(() => {
             expect(result.current.size).toBe(1);

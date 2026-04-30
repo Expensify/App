@@ -27,7 +27,6 @@ import {
     isPublicRoom,
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
@@ -41,7 +40,7 @@ const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role
  * Footer component that decides between the composer and
  * archived/anonymous/blocked/system chat/admins-only footer.
  */
-function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedReportsIDSet}) {
+function ReportFooter() {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
@@ -92,10 +91,7 @@ function ReportFooter({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                    <ReportActionCompose
-                        reportID={reportIDFromRoute}
-                        archivedReportsIDSet={archivedReportsIDSet}
-                    />
+                    <ReportActionCompose reportID={reportIDFromRoute} />
                 </SwipeableView>
             </View>
         );

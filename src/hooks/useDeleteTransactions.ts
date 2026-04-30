@@ -9,13 +9,12 @@ import {updateSplitTransactions} from '@libs/actions/IOU/Split';
 import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isReportArchivedByID} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIDSet';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -192,7 +191,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
-                const isChatIOUReportArchived = isReportArchivedByID(archivedReportsIdSet, chatIOUReportID);
+                const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,

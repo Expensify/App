@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -64,15 +64,15 @@ function TaskShareDestinationSelectorModal() {
         onSingleSelect: selectReportHandler,
     });
 
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const filteredOptions = useMemo(() => {
-        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIDSet);
+        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
         return {
             ...availableOptions,
             recentReports: filteredReports ?? [],
         };
-    }, [availableOptions, archivedReportsIDSet]);
+    }, [availableOptions, archivedReportsIdSet]);
 
     const data = useMemo(
         () =>

@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIDSet';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useLocalize from './useLocalize';

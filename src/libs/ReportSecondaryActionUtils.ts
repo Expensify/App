@@ -77,7 +77,6 @@ import {
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -852,7 +851,6 @@ function getSecondaryReportActions({
     policies,
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
-    archivedReportsIDSet,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -870,7 +868,6 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -1001,7 +998,6 @@ function getSecondaryReportActions({
                 isChatReportArchived,
                 outstandingReportsByPolicyID,
                 transaction,
-                archivedReportsIDSet,
             });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
 
@@ -1052,31 +1048,18 @@ function getSecondaryExportReportActions(
     return options;
 }
 
-function getSecondaryTransactionThreadActions({
-    currentUserLogin,
-    currentUserAccountID,
-    parentReport,
-    reportTransaction,
-    reportAction,
-    originalTransaction,
-    policy,
-    transactionThreadReport,
-    outstandingReportsByPolicyID,
-    isChatReportArchived,
-    archivedReportsIDSet,
-}: {
-    currentUserLogin: string;
-    currentUserAccountID: number;
-    parentReport: Report;
-    reportTransaction: Transaction;
-    reportAction: ReportAction | undefined;
-    originalTransaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    transactionThreadReport?: OnyxEntry<Report>;
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
-    isChatReportArchived?: boolean;
-    archivedReportsIDSet?: ArchivedReportsIDSet;
-}): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions(
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    parentReport: Report,
+    reportTransaction: Transaction,
+    reportAction: ReportAction | undefined,
+    originalTransaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    transactionThreadReport?: OnyxEntry<Report>,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    isChatReportArchived?: boolean,
+): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
@@ -1106,14 +1089,7 @@ function getSecondaryTransactionThreadActions({
     if (
         reportTransaction?.transactionID &&
         reportAction &&
-        canEditFieldOfMoneyRequest({
-            reportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-            isChatReportArchived,
-            outstandingReportsByPolicyID,
-            transaction: reportTransaction,
-            archivedReportsIDSet,
-        }) &&
+        canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, isChatReportArchived, outstandingReportsByPolicyID, transaction: reportTransaction}) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);

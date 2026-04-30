@@ -7616,8 +7616,7 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
-            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
+            const result = findLastAccessedReport(false);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8531,8 +8530,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-            expect(isReportOutstanding(report, policy.id, archivedReportsIDSet)).toBe(false);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+            expect(isReportOutstanding(report, policy.id)).toBe(false);
         });
     });
 

@@ -10,7 +10,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIDSet';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';

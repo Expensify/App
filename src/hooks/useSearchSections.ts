@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
+import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -48,7 +48,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
