@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
+import useArchivedReportsIdSet from './useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useLocalize from './useLocalize';
@@ -52,7 +52,7 @@ function useAutoCreateTrackWorkspace() {
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const archivedReportsIdSet = useArchivedReportsIDSet();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
     const {isBetaEnabled} = usePermissions();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();

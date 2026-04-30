@@ -36,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
+import useArchivedReportsIdSet from './useArchivedReportsIDSet';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -82,7 +82,7 @@ function useSelectedTransactionsActions({
     const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const allTransactions = useAllTransactions();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIdSet();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
