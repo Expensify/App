@@ -15,7 +15,7 @@ import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/T
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIDSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -50,7 +50,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIdSet = useArchivedReportsIDSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isOffline} = useNetwork();
 

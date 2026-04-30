@@ -28,10 +28,10 @@ const archivedReportIdsSelector = (reportNameValuePairs: OnyxCollection<ReportNa
 /**
  * Hook that returns a Set of archived report IDs
  */
-function useArchivedReportsIdSet(): ArchivedReportsIDSet {
+function useArchivedReportsIDSet(): ArchivedReportsIDSet {
     const [archivedReportIds = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: archivedReportIdsSelector});
 
     return new Set(archivedReportIds);
 }
 
-export default useArchivedReportsIdSet;
+export default useArchivedReportsIDSet;

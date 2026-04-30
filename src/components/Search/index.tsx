@@ -11,7 +11,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIDSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -333,7 +333,7 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIdSet = useArchivedReportsIDSet();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
