@@ -51,7 +51,7 @@ function DynamicSageIntacctNonReimbursableExpensesDestinationPage({policy}: With
 
     return (
         <SelectionScreen
-            displayName="DynamicSageIntacctNonReimbursableExpensesDestinationPage"
+            displayName="SageIntacctNonReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             data={data}
             listItem={RadioListItem}

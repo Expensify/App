@@ -6,7 +6,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
@@ -72,7 +71,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -127,6 +125,7 @@ describe('SidebarUtils', () => {
                     false,
                     {},
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
                     isReportArchived.current,
                 ) ?? {};
@@ -157,6 +156,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -182,6 +182,7 @@ describe('SidebarUtils', () => {
                     true,
                     {},
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -194,7 +195,6 @@ describe('SidebarUtils', () => {
                 reportID: '1',
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -225,6 +225,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -255,6 +256,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -282,7 +284,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -298,6 +299,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -322,6 +324,7 @@ describe('SidebarUtils', () => {
                 false,
                 {},
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -419,7 +422,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -434,6 +436,7 @@ describe('SidebarUtils', () => {
                 false,
                 {},
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -521,6 +524,7 @@ describe('SidebarUtils', () => {
                 false,
                 reportErrors,
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -549,7 +553,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -599,6 +602,7 @@ describe('SidebarUtils', () => {
                 false,
                 {},
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
                 isReportArchived.current,
             );
@@ -687,11 +691,138 @@ describe('SidebarUtils', () => {
                     true,
                     {},
                     {[transactionKey]: transaction},
+                    false,
                     transactionViolations,
                     false,
                 ) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
+        });
+
+        it('forwards isOffline: online treats deleted pending-delete IOU as skipped, so the live IOU is the single transaction thread and its receipt error surfaces', () => {
+            // Given: an expense report with TWO IOU actions — one live (with a receipt-errored transaction) and one already-deleted with pendingAction=delete.
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: '2',
+            };
+            const MOCK_CHAT_REPORT: Report = {
+                reportID: '2',
+            };
+            const liveTransactionID = 'tx-live';
+            const deletedTransactionID = 'tx-deleted';
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    message: [{type: 'TEXT', text: 'live'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: liveTransactionID,
+                        amount: 10,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+
+                '2': {
+                    reportActionID: '2',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:25:44.171',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    // Empty html marks this as a legacy-deleted comment.
+                    message: [{type: 'TEXT', text: '', html: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: deletedTransactionID,
+                        amount: 20,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+            };
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                    transactionID: liveTransactionID,
+                    amount: 10,
+                    errors: {
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                    },
+                } as unknown as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                    transactionID: deletedTransactionID,
+                    amount: 20,
+                } as unknown as Transaction,
+            };
+
+            // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
+            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, false, {}, false);
+
+            expect(onlineResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+        });
+
+        it('forwards isOffline: offline treats deleted pending-delete IOU as still counted, so there are 2 IOU actions and no single transaction thread is identified', () => {
+            // Given: same report setup as the previous test.
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: '2',
+            };
+            const MOCK_CHAT_REPORT: Report = {
+                reportID: '2',
+            };
+            const liveTransactionID = 'tx-live';
+            const deletedTransactionID = 'tx-deleted';
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    message: [{type: 'TEXT', text: 'live'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: liveTransactionID,
+                        amount: 10,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+
+                '2': {
+                    reportActionID: '2',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:25:44.171',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    message: [{type: 'TEXT', text: '', html: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: deletedTransactionID,
+                        amount: 20,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+            };
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                    transactionID: liveTransactionID,
+                    amount: 10,
+                    errors: {
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                    },
+                } as unknown as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                    transactionID: deletedTransactionID,
+                    amount: 20,
+                } as unknown as Transaction,
+            };
+
+            // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
+            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, true, {}, false);
+
+            // Then: no single transaction thread is identified, so the receipt error is not surfaced via that path.
+            expect(offlineResult).toBeNull();
         });
     });
 
@@ -712,7 +843,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -799,7 +929,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -2793,7 +2922,6 @@ describe('SidebarUtils', () => {
                     childReportNotificationPreference: 'always',
                 };
                 const MOCK_REPORT_ACTIONS: ReportActions = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     [lastAction.reportActionID]: lastAction,
                     [deletedAction.reportActionID]: deletedAction,
                 };

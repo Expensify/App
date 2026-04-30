@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';

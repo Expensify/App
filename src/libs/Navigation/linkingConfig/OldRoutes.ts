@@ -7,8 +7,6 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
     '/workspaces/*/connections/netsuite/export/invoice-item-preference/invoice-item/select': '/workspaces/$1/connections/netsuite/export/invoice-item-preference/select/invoice-item/select',
-    '/workspaces/*/accounting/sage-intacct/export/preferred-exporter': '/workspaces/$1/accounting/sage-intacct/export/sage-preferred-exporter',
-    '/workspaces/*/accounting/sage-intacct/export/reimbursable/destination': '/workspaces/$1/accounting/sage-intacct/export/reimbursable-expenses',
     '/workspaces/*/connections/quickbooks-online/advanced/autosync/accounting-method':
         '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync/quickbooks-online-accounting-method',
     '/workspaces/*/connections/quickbooks-online/advanced/autosync': '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync',

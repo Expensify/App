@@ -36,7 +36,7 @@ function IOURequestStepTimeRate({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isTransactionDraft = shouldUseTransactionDraft(action);
@@ -93,9 +93,8 @@ function IOURequestStepTimeRate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTimeRate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTimeRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeRateWithFullTransactionOrNotFound);
 
 export default IOURequestStepTimeRateWithWritableReportOrNotFound;
