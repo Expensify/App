@@ -28,10 +28,16 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
     const [cardRuleID, setCardRuleID] = useState('');
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
 
-    const cardRuleListItems: CardRuleListItemType[] = [];
+    const cardRuleListItems: CardRuleListItemType[] = cardRules.map((cardRule) => ({
+        keyForList: cardRule.ruleID,
+        accessibilityLabel: 'JACK_TODO',
+        action: cardRule.action,
+        summary: cardRule.cardSummary,
+        summaryParts: cardRule.summaryParts,
+    }));
 
     const onSelectCardRule = (item: CardRuleListItemType) => {
-        // setCardRuleID(selectedCardRuleID);
+        setCardRuleID(item.keyForList);
     };
 
     const onSave = () => {

@@ -58,6 +58,7 @@ export default function useExpensifyCardRules(policyID: string) {
                 ruleID,
                 actionLabel,
                 created: cardRule.created,
+                action: formValues.restrictionAction,
                 pendingAction: cardRule.pendingAction,
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
                 summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),

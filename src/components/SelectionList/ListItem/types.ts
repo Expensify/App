@@ -6,6 +6,7 @@ import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -346,7 +347,16 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         accessible?: boolean;
     };
 
-type CardRuleListItemType = ListItem & {};
+type CardRuleListItemType = ListItem & {
+    /** The action for this rule */
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+    /** The cards that the spend rule applies to */
+    summary: string;
+
+    /** The summary parts for the card rule */
+    summaryParts: SpendRuleSummaryPart[];
+};
 
 type SplitListItemType = ListItem &
     SplitExpense & {
