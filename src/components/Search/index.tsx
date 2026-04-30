@@ -120,8 +120,8 @@ function mapTransactionItemToSelectedEntry(
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    archivedReportsIDSet: ArchivedReportsIDSet,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
@@ -194,8 +194,8 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
+    archivedReportsIDSet: ArchivedReportsIDSet,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
