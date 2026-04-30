@@ -158,6 +158,11 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                         pendingAction={rule.pendingAction}
                     >
                         <MenuItem
+                            shouldShowRightIcon
+                            accessibilityLabel={rule.accessibilityLabel}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                            disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
                             wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
                             titleComponent={
                                 <View>
@@ -189,11 +194,6 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                                     </Text>
                                 </View>
                             }
-                            accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                            shouldShowRightIcon
-                            disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
                         />
                     </OfflineWithFeedback>
                 ))
