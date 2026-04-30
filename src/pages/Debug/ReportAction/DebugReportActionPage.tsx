@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -45,7 +46,6 @@ function DebugReportActionPage({
     const [reportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         {
-            canEvict: false,
             selector: getReportActionSelector,
         },
         [getReportActionSelector],

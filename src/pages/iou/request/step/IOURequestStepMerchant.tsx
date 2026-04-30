@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -124,7 +125,9 @@ function IOURequestStepMerchant({
             shouldNavigateAfterSaveRef.current = true;
             return;
         }
-        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing, hasReceipt(transaction));
+        // updateMoneyRequestMerchant's optimisticData already sets merchant on TRANSACTION{id},
+        // also calling setMoneyRequestMerchant would trigger a redundant Onyx commit and
+        // re-render every subscriber of that key for nothing.
         if (isEditing) {
             updateMoneyRequestMerchant({
                 transactionID,
@@ -139,6 +142,8 @@ function IOURequestStepMerchant({
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
             });
+        } else {
+            setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, true, hasReceipt(transaction));
         }
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;

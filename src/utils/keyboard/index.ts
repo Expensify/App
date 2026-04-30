@@ -1,4 +1,5 @@
 import {Keyboard} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {DismissKeyboardOptions} from './types';
 

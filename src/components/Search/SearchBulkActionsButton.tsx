@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BulkDuplicateHandler from './BulkDuplicateHandler';
+import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
@@ -38,7 +39,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchStateContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchStateContext();
     const {selectAllMatchingItems} = useSearchActionsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -69,6 +70,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData,
@@ -112,6 +115,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     allReports={allReports}
                     searchData={searchData}
                     onHandlerReady={setDuplicateHandler}
+                />
+            )}
+            {isDuplicateReportOptionVisible && (
+                <BulkDuplicateReportHandler
+                    selectedReports={selectedReports}
+                    allReports={allReports}
+                    searchData={searchData}
+                    onHandlerReady={setDuplicateReportHandler}
                 />
             )}
             <KYCWall

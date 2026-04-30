@@ -1,0 +1,28 @@
+# @desc   Open Create Expense from the FAB, enter an amount on the Manual tab, fill the Merchant field, and submit. Supports configurable currency-aware submit button matching. Exercises the full submit-chain Sentry spans end-to-end. Assumes a workspace where Category is not required.
+# @pre    role="button" label="Open actions menu"
+# @post   text="Reports"
+# @post   role="button" label="Expenses"
+# @tag    iou
+# @tag    navigation
+# @tag    perf
+# @tag    sentry-ManualCreateExpenseSubmit
+# @tag    sentry-ManualSubmitToDestinationVisible
+# @tag    sentry-ManualCreateExpenseServerResponse
+# @tag    sentry-ManualConfirmationMount
+# @tag    sentry-ManualConfirmationListReady
+# @tag    sentry-ManualConfirmationReceiptLoad
+# @tag    sentry-ManualGeolocationWait
+env AMOUNT=22
+env CURRENCY=PLN
+env MERCHANT="Test Coffee"
+
+press "role=\"button\" label=\"Open actions menu\""
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
+press "label=\"Manual\""
+is exists "role=\"button\" label=\"Flip\""
+fill "editable=true" "${AMOUNT}"
+press "role=\"button\" label=\"Next\" || label=\"Next\""
+press "role=\"button\" label=\"Merchant\" || label=\"Merchant\""
+fill "role=\"text-field\" label=\"Merchant,\" editable=true || label=\"Merchant,\" editable=true" "${MERCHANT}"
+press "role=\"button\" label=\"Save\" || label=\"Save\""
+press "label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" || label=\"Create expense\""

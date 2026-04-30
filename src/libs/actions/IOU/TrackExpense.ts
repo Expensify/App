@@ -1,4 +1,5 @@
 import {fastMerge} from 'expensify-common';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -73,6 +74,7 @@ import {
     getRateID,
     getWaypoints,
     isCustomUnitRateIDForP2P,
+    isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -2131,7 +2133,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
+    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, currentUserAccountID} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -2190,7 +2192,14 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyParams.policy, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumber);
+        } = buildAddMembersToWorkspaceOnyxData(
+            {[accountantEmail]: accountantAccountID},
+            policyParams.policy,
+            policyMemberAccountIDs,
+            CONST.POLICY.ROLE.ADMIN,
+            formatPhoneNumber,
+            currentUserAccountID,
+        );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         onyxData.successData?.push(...addAccountantToWorkspaceSuccessData);
         onyxData.failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -2427,8 +2436,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const isDistanceRequest =
         isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction) || isGPSDistanceRequest;
 
-    if (isDistanceRequest) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    if (isDistanceRequest && isDistanceExpenseType(transaction?.iouRequestType)) {
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
@@ -2488,6 +2496,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
+                currentUserAccountID: currentUserAccountIDParam,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -2539,6 +2548,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
+                currentUserAccountID: currentUserAccountIDParam,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -2742,16 +2752,11 @@ function deleteTrackExpense({
 }
 
 export {
-    addTrackedExpenseToPolicy,
-    buildOnyxDataForTrackExpense,
-    categorizeTrackedExpense,
     convertBulkTrackedExpensesToIOU,
-    convertTrackedExpenseToRequest,
     deleteTrackExpense,
     getDeleteTrackExpenseInformation,
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
-    shareTrackedExpense,
     trackExpense,
     requestMoney,
 };

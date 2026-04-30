@@ -118,7 +118,7 @@ function MoneyRequestReportPreview({
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
         }
     }, [iouReportID, isSmallScreenWidth]);
-    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);

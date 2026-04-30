@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -22,7 +23,7 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
         if (rhpKey) {
             const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
 
-            // submit_follow_up_action: only set when tracking is active.
+            // submit_follow_up_action: only set when the span was started.
             if (hasActiveTracking) {
                 if (isSuperWideRHP) {
                     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
@@ -71,7 +72,7 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
     }
     if (hasActiveTracking) {
         Navigation.dismissModalWithReport({reportID}, undefined, {
-            onBeforeNavigate: (willOpenReport) => {
+            onBeforeNavigate: (willOpenReport: boolean) => {
                 setPendingSubmitFollowUpAction(
                     willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
                     reportID,

@@ -251,6 +251,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: 'Empecemos',
         showMore: 'Mostrar más',
         showLess: 'Mostrar menos',
+        plusMore: ({count}: {count: number}) => `+${count} más`,
         merchant: 'Comerciante',
         change: 'Cambio',
         category: 'Categoría',
@@ -794,6 +795,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
+    readOnlyConversation: 'Esta conversación es de solo lectura.',
     reportAction: {
         asCopilot: 'como copiloto de',
         assistedBy: (agentName: string) => `asistido por ${agentName}`,
@@ -1419,11 +1421,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         unholdExpense: 'Desbloquear gasto',
         moveUnreportedExpense: 'Mover gasto no reportado',
-        addUnreportedExpense: 'Añadir gasto no reportado',
-        selectUnreportedExpense: 'Selecciona al menos un gasto para agregar al informe.',
-        emptyStateUnreportedExpenseTitle: 'No hay gastos no reportados',
-        emptyStateUnreportedExpenseSubtitle: 'Parece que no tienes gastos no reportados. Puedes crear uno a continuación.',
-        addUnreportedExpenseConfirm: 'Añadir al informe',
+        addExistingExpense: 'Añadir gasto existente',
+        selectExistingExpense: 'Selecciona al menos un gasto para agregar al informe.',
+        emptyStateExistingExpenseTitle: 'No hay gastos existentes',
+        emptyStateExistingExpenseSubtitle: 'Parece que no tienes gastos existentes. Puedes crear uno a continuación.',
+        addExistingExpenseConfirm: 'Añadir al informe',
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         newReport: 'Nuevo informe',
@@ -1994,8 +1996,8 @@ const translations: TranslationDeepObject<typeof en> = {
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
         helpPage: {
-            title: 'Ayuda y soporte',
-            description: 'Estamos aquí para ayudarte las 24 horas, los 7 días de la semana',
+            title: '¿Tienes preguntas?',
+            description: 'Estamos aquí para ayudarte en todo momento.',
             helpSite: 'Sitio de ayuda',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Tu agente personal de IA',
@@ -2343,6 +2345,8 @@ const translations: TranslationDeepObject<typeof en> = {
         getPhysicalCard: 'Obtener tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reportTravelFraud: 'Reportar fraude con la tarjeta de viaje',
+        spendRules: 'Reglas de gasto',
+        editSpendRules: 'Editar reglas de gasto',
         reviewTransaction: 'Revisar transacción',
         suspiciousBannerTitle: 'Transacción sospechosa',
         suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
@@ -6196,6 +6200,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             gusto: {
                 title: 'Gusto',
+                connect: 'Conectar',
+                connectionDescription: 'Conecta Gusto para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.',
                 approvalMode: 'Modo de aprobación',
                 finalApprover: 'Aprobador final',
             },
@@ -6739,6 +6745,8 @@ ${amount} para ${merchant} - ${date}`,
             customRules: {
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
+                policyDocument: 'Documento de política',
+                policyText: 'Texto de política',
             },
             spendRules: {
                 title: 'Gastos',
@@ -6779,7 +6787,11 @@ ${amount} para ${merchant} - ${date}`,
                 currencyMismatchTitle: 'Moneda no coincide',
                 currencyMismatchPrompt: 'Para establecer un importe máximo, selecciona tarjetas que se liquiden en la misma moneda.',
                 reviewSelectedCards: 'Revisar tarjetas seleccionadas',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} más`,
+                summaryMoreCount: ({summary, count}) => (count > 0 ? `${summary}, +${count} más` : summary),
+                summaryMerchants: ({merchants, hiddenCount, shownCount, action}) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'comerciantes' : 'comerciante'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
+                summaryCategories: ({categories, hiddenCount, shownCount, action}) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'categorías' : 'categoría'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplica al menos una regla de gasto a una tarjeta',
                 confirmErrorCardRequired: 'La tarjeta es un campo obligatorio',
                 confirmErrorApplyAtLeastOneSpendRule: 'Aplica al menos una regla de gasto',
@@ -6787,6 +6799,8 @@ ${amount} para ${merchant} - ${date}`,
                 merchants: 'Comerciantes',
                 noAvailableCards: 'No hay tarjetas activas en este feed',
                 noAvailableCardsSubtitle: 'Edita una regla de tarjeta existente para hacer cambios',
+                noCardsIssuedTitle: 'No se han emitido Tarjetas Expensify',
+                noCardsIssuedSubtitle: 'Emite Tarjetas Expensify para crear reglas de gasto',
                 max: 'Máx.',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Aerolíneas',
@@ -6903,7 +6917,7 @@ ${amount} para ${merchant} - ${date}`,
             previousAddress ? `cambió la dirección de la empresa a "${newAddress}" (anteriormente "${previousAddress}")` : `estableció la dirección de la empresa en "${newAddress}"`,
         addApprovalRule: (approverEmail, approverName, field, name) => `añadió a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         deleteApprovalRule: (approverEmail, approverName, field, name) => `eliminó a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}) => {
+        updateApprovalRule: (field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
 
             return `cambió el aprobador para la ${field} "${name}" a ${formatApprover(newApproverName, newApproverEmail)} (previamente ${formatApprover(oldApproverName, oldApproverEmail)})`;
@@ -6962,7 +6976,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName, oldValue, newValue) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" cambiando Recibos detallados a ${newValue}`;
             }
@@ -6986,18 +7000,18 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
+        updateCustomUnit: (customUnitName, newValue, oldValue, updatedField) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en tasas de distancia`,
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}) =>
+        updateCustomUnitDefaultCategory: (customUnitName, newValue, oldValue) =>
             `cambió la categoría predeterminada de ${customUnitName} a "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName) => `importó tasas para la unidad personalizada "${customUnitName}"`,
         addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
-        deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
+        deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField) =>
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
         removedCustomUnitSubRate: (customUnitName, customUnitRateName, removedSubRateName) =>
             `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
-        addedReportField: ({fieldType, fieldName, defaultValue}) =>
+        addedReportField: (fieldType, fieldName, defaultValue) =>
             `añadió el campo de informe ${fieldType} "${fieldName}"${defaultValue ? ` con el valor predeterminado "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
@@ -7095,8 +7109,8 @@ ${amount} para ${merchant} - ${date}`,
         changedReimburser: (newReimburser, previousReimburser) =>
             previousReimburser ? `cambió el pagador autorizado a "${newReimburser}" (previamente "${previousReimburser}")` : `cambió el pagador autorizado a "${newReimburser}"`,
         updateReimbursementEnabled: (enabled) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}) => {
+        updatedManualApprovalThreshold: (oldLimit, newLimit) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        addBudget: (frequency, entityName, entityType, shared, individual, notificationThreshold) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
@@ -7112,7 +7126,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} a ${entityLabel} "${entityName}"`;
         },
-        updateBudget: ({entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold}) => {
+        updateBudget: (entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7166,7 +7180,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `actualizó el presupuesto para ${entityLabel} "${entityName}": ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}) => {
+        deleteBudget: (entityType, entityName, frequency, individual, shared, notificationThreshold) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
@@ -7316,9 +7330,9 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
-        updateCustomTaxName: ({oldName, newName}) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
+        updateCustomTaxName: (oldName, newName) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName, newName) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName, newName) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `cambió el nombre de la empresa de la factura a "${newValue}" (previamente "${oldValue}")` : `estableció el nombre de la empresa de la factura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
@@ -7416,8 +7430,8 @@ ${amount} para ${merchant} - ${date}`,
     search: {
         tabs: {
             expenseReports: 'Informes de gastos',
-            reports: 'Todos los informes',
-            expenses: 'Todos los gastos',
+            reports: 'Informes',
+            expenses: 'Gastos',
             submit: 'Borradores',
             approve: 'Necesita aprobación',
             pay: 'Listo para pagar',
@@ -7519,6 +7533,7 @@ ${amount} para ${merchant} - ${date}`,
             unhold: 'Desbloquear',
             reject: 'Rechazar',
             duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'gasto' : 'gastos'}`,
+            duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'informe' : 'informes'}`,
             undelete: 'Restaurar',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
@@ -7548,6 +7563,7 @@ ${amount} para ${merchant} - ${date}`,
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
+                centralInvoicing: 'Facturación centralizada',
                 individualCards: 'Tarjetas individuales',
                 closedCards: 'Tarjetas cerradas',
                 cardFeeds: 'Flujos de tarjetas',
@@ -8935,9 +8951,9 @@ ${amount} para ${merchant} - ${date}`,
             collectBillingDescription: 'Los espacios de trabajo del plan Collect se facturan mensualmente por miembro, sin compromiso anual.',
             pricing: 'Precios',
         },
-        requestEarlyCancellation: {
-            title: 'Solicitar cancelación anticipada',
-            subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
+        cancelSubscription: {
+            title: 'Cancelar suscripción',
+            subtitle: '¿Cuál es la razón principal por la que solicitas cancelar tu suscripción?',
             subscriptionCanceled: {
                 title: 'Suscripción cancelada',
                 subtitle: 'Tu suscripción anual ha sido cancelada.',
@@ -8950,7 +8966,7 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle:
                     'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Condiciones de Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.`,
+            acknowledgement: `Al solicitar la cancelación, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Condiciones de Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.`,
         },
     },
     feedbackSurvey: {
@@ -9113,12 +9129,6 @@ ${amount} para ${merchant} - ${date}`,
         conciergeLHNGBR: '<tooltip>¡Comienza <strong>aquí</strong>!</tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renombra tus búsquedas guardadas</strong> aquí</tooltip>',
         accountSwitcher: '<tooltip>Accede a tus <strong>cuentas copiloto</strong> aquí</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip>¡<strong>Escanea nuestro recibo de prueba</strong> para ver cómo funciona!</tooltip>',
-            manager: '<tooltip>¡Elige a <strong>nuestro gerente</strong> de prueba para probarlo!</tooltip>',
-            confirmation: '<tooltip>Ahora, <strong>envía tu gasto y</strong>\n¡observa cómo ocurre la magia!</tooltip>',
-            tryItOut: 'Prueba esto',
-        },
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
@@ -9299,7 +9309,7 @@ ${amount} para ${merchant} - ${date}`,
             resetDomain: 'Restablecer dominio',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Por favor escribe <strong>${domainName}</strong> para confirmar el restablecimiento del dominio.`,
             enterDomainName: 'Introduce aquí tu nombre de dominio',
-            resetDomainInfo: `Esta acción es <strong>permanente</strong> y se eliminarán los siguientes datos: <br/> <bullet-list><bullet-item>Conexiones de tarjeta corporativa y cualquier gasto no reportado de esas tarjetas</bullet-item><bullet-item>Configuración de SAML y grupos</bullet-item></bullet-list> Todas las cuentas, espacios de trabajo, informes, gastos y otros datos se conservarán. <br/><br/>Nota: Puedes eliminar este dominio de tu lista de dominios eliminando el correo electrónico asociado de tus <a href="#">métodos de contacto</a>.`,
+            resetDomainInfo: `Esta acción es <strong>permanente</strong> y se eliminarán los siguientes datos: <br/> <bullet-list><bullet-item>Conexiones de tarjeta corporativa y cualquier gasto no reportado de esas tarjetas</bullet-item><bullet-item>Configuración de SAML y grupos</bullet-item><bullet-item>Datos de viaje y acceso a Expensify Travel</bullet-item></bullet-list> Todas las cuentas, espacios de trabajo, informes, gastos y otros datos se conservarán. <br/><br/>Nota: Puedes eliminar este dominio de tu lista de dominios eliminando el correo electrónico asociado de tus <a href="#">métodos de contacto</a>.`,
         },
         domainMembers: 'Miembros del dominio',
         members: {
@@ -9353,6 +9363,7 @@ ${amount} para ${merchant} - ${date}`,
             forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
             resetTwoFactorAuth: 'Restablecer la autenticación de dos factores',
+            error: 'No se pudo guardar este cambio. Por favor, inténtalo de nuevo.',
         },
         groups: {
             title: 'Grupos',
@@ -9362,6 +9373,11 @@ ${amount} para ${merchant} - ${date}`,
                     other: (count: number) => `${count} miembros`,
                 };
             },
+            defaultGroup: 'Grupo predeterminado para nuevos miembros',
+            defaultGroupPrompt: (currentName, newName) =>
+                `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
+            makeDefault: 'Establecer como predeterminado',
+            neverMind: 'No importa',
         },
     },
     gps: {

@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -33,7 +33,8 @@ Home includes:
 - **Time-sensitive alerts** (when applicable)
 - **For you**
 - **Spend over time** (when applicable)
-- **Discover** (when applicable)
+- **Getting started** (when applicable)
+- **Discover**
 - **Announcements**
 - **Assigned cards** (when applicable)
 
@@ -79,6 +80,19 @@ If you don't hold one of these roles, or your workspace doesn't have expenses ac
 
 ---
 
+## How the Getting started section works on Home
+
+The **Getting started** section shows a checklist of key setup steps to help Workspace Admins configure their workspace during onboarding.
+
+This section appears only if:
+
+ - The workspace is on a free trial
+ - The workspace owner selected **manage my team** during setup
+
+If these conditions aren’t met, the section won’t appear.
+
+---
+
 ## How the Discover section works on Home
 
 The **Discover** section helps you get familiar with things you can do in Expensify.
@@ -109,7 +123,7 @@ Use this section to quickly check how much you can spend before making a purchas
 
 ## What is Home for?
 
-Home helps you get oriented when you sign in. It shows whether anything needs attention, highlights what’s new, and points you to the right place—like Inbox or Reports—if you need to take action.
+Home helps you get oriented when you sign in. It shows whether anything needs attention, highlights what’s new, and points you to the right place—like Inbox or Spend—if you need to take action.
 
 ## Is Home the same as Inbox?
 
@@ -134,6 +148,10 @@ The **Spend over time** section only appears if you are a Workspace Admin, Audit
 ## Why don’t I see the Discover section?
 
 The **Discover** section only appears until you’ve watched the demo. Once you’ve completed it, the section is automatically hidden from Home.
+
+## Why don’t I see the Getting started section?
+
+The **Getting started** section only appears if you selected the **manage my team** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Assigned cards section?
 

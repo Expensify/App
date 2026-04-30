@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -30,7 +31,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -124,7 +125,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
-                if (!contextualReport) {
+                if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                     return undefined;
                 }
 
