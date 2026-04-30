@@ -1002,14 +1002,14 @@ describe('actions/Task', () => {
         });
 
         it('should return undefined when report is undefined', () => {
-            expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123')).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123', new Set<string>())).toBeUndefined();
         });
 
         it('should return undefined when report has visible actions (should not delete)', () => {
             const taskReport = getFakeReport();
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123')).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', new Set<string>())).toBeUndefined();
         });
 
         it('should return parent report route when report has parentReportID and no visible actions', () => {
@@ -1017,7 +1017,7 @@ describe('actions/Task', () => {
             const taskReport = {...getFakeReport(), parentReportID};
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', new Set<string>());
             expect(result).toBe(`r/${parentReportID}`);
         });
 
@@ -1027,7 +1027,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', new Set<string>());
             expect(result).toBe(`r/${mostRecentReportID}`);
             expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
         });
@@ -1038,7 +1038,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID);
+            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID, new Set<string>());
             expect(result).toBe(`r/${conciergeReportID}`);
             expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
         });
@@ -1048,7 +1048,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(undefined);
 
-            expect(getNavigationUrlOnTaskDelete(taskReport, undefined)).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(taskReport, undefined, new Set<string>())).toBeUndefined();
         });
     });
 
