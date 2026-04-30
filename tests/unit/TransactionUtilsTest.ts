@@ -441,6 +441,61 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.taxValue).toBe('10%');
         });
+
+        it('should set receipt state to OPEN when category is edited on a SmartScan receipt', () => {
+            const transaction = generateTransaction({
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {category: 'Travel'},
+            });
+
+            expect(updatedTransaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        });
+
+        it('should set receipt state to OPEN when tag is edited on a SmartScan receipt', () => {
+            const transaction = generateTransaction({
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {tag: 'Department:Engineering'},
+            });
+
+            expect(updatedTransaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        });
+
+        it('should not change receipt state when category is edited on an already OPEN receipt', () => {
+            const transaction = generateTransaction({
+                receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {category: 'Travel'},
+            });
+
+            expect(updatedTransaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        });
+
+        it('should not create a receipt object when tag is edited on a transaction without a receipt', () => {
+            const transaction = generateTransaction();
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {tag: 'Department:Engineering'},
+            });
+
+            expect(updatedTransaction.tag).toBe('Department:Engineering');
+            expect(updatedTransaction.receipt?.state).toBeUndefined();
+        });
     });
 
     describe('isScanning', () => {

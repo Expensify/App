@@ -829,6 +829,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
+        shouldStopSmartscan = true;
         const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
         if (categoryTaxCode && categoryTaxAmount !== undefined) {
             updatedTransaction.taxCode = categoryTaxCode;
@@ -838,6 +839,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {
         updatedTransaction.tag = transactionChanges.tag;
+        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'attendees')) {
