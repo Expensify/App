@@ -1,5 +1,5 @@
 import {activeAdminPoliciesSelector, lastWorkspaceNumberSelector} from '@selectors/Policy';
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -27,25 +27,19 @@ function IOURequestStepAccountant({
 }: IOURequestStepAccountantProps) {
     const {translate} = useLocalize();
     const {accountID, login, email = ''} = useCurrentUserPersonalDetails();
-    const selector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return activeAdminPoliciesSelector(policies, login ?? '');
-        },
-        [login],
-    );
-    const lastWorkspaceNumberWithEmailSelector = useCallback((policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, email), [email]);
+
+    const selector = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
+    const lastWorkspaceNumberWithEmailSelector = (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, email);
+
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
-    const setAccountant = useCallback(
-        (accountant: Accountant) => {
-            setMoneyRequestAccountant(transactionID, accountant, true);
-        },
-        [transactionID],
-    );
+    const setAccountant = (accountant: Accountant) => {
+        setMoneyRequestAccountant(transactionID, accountant, true);
+    };
 
-    const navigateToNextStep = useCallback(() => {
+    const navigateToNextStep = () => {
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         const hasActiveAdminWorkspaces = (adminPolicies?.length ?? 0) > 0;
         if (!hasActiveAdminWorkspaces) {
@@ -54,11 +48,11 @@ function IOURequestStepAccountant({
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
-    }, [adminPolicies?.length, iouType, transactionID, reportID, action, introSelected, email, lastWorkspaceNumber, translate]);
+    };
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
 
     return (
         <StepScreenWrapper
