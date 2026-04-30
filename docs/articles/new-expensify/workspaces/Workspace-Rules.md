@@ -1,8 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, expense policy, policy document, upload policy PDF, rules document]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, report rules, and uploading an expense policy document. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
@@ -21,6 +21,35 @@ To activate Rules for your workspace:
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Manage** section, toggle on **Rules**.
+
+---
+
+## How to upload an expense policy document
+
+Workspace Admins can upload a PDF document to the workspace overview page so all members can reference the team's expense policy.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Scroll to the **Expense policy** section.
+4. Click **Choose file** and select a PDF.
+
+Once uploaded, a thumbnail preview of the PDF appears. Click the thumbnail to open the full document.
+
+## How to replace or remove an expense policy document
+
+1. In the **Expense policy** section on the workspace overview page, find the uploaded PDF thumbnail.
+2. Click the three dots **(⋮)** on the thumbnail.
+3. Select **Replace** to upload a different PDF, or **Remove** to delete the document.
+
+**Note:** Non-admin workspace members can view and open the policy document but cannot upload, replace, or remove it.
+
+## How to add expense policy text
+
+Workspace Admins can also add custom text to the **Expense policy** section to share written guidelines with members.
+
+1. In the **Expense policy** section on the workspace overview page, click **Policy text**.
+2. Enter the policy text.
+3. Click **Save**.
 
 ---
 
@@ -175,6 +204,14 @@ The **Require Company Card for All Purchases** rule only appears after at least 
 ## What happens if I disable eReceipts?
 
 Disabling eReceipts hides any previously generated eReceipts. Re-enabling the feature will restore those receipts.
+
+## Can non-admin members see the expense policy document?
+
+Yes. Non-admin members can view and open the uploaded policy document, but only Workspace Admins can upload, replace, or remove it.
+
+## What file types are supported for the expense policy document?
+
+Only PDF files are supported.
 
 ## Will disabling rules affect submitted or approved expenses?
 
