@@ -55,8 +55,11 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
-    // Check both leaves so wrapper hydration doesn't flash the tab bar on the push target (Android).
-    const isAtRoot = isAtTabRootLevel(getFocusedLeafScreenName(activeRoute?.state)) && isAtTabRootLevel(getPushTargetLeaf(activeRoute?.params));
+    // Trust the focused leaf as the source of truth. Fall back to the push target only when the navigator
+    // state hasn't hydrated yet (Android), so the tab bar doesn't flash on the push target during the transition.
+    // Tab-level params can be stale after within-tab back navigation, so they must not override an already-hydrated focused leaf.
+    const focusedLeaf = getFocusedLeafScreenName(activeRoute?.state);
+    const isAtRoot = isAtTabRootLevel(focusedLeaf ?? getPushTargetLeaf(activeRoute?.params));
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
     // On native, screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
