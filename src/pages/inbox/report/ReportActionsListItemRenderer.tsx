@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
@@ -71,6 +72,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function ReportActionsListItemRenderer({
@@ -95,6 +99,7 @@ function ReportActionsListItemRenderer({
     isReportArchived = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
+    archivedReportsIDSet,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -191,6 +196,7 @@ function ReportActionsListItemRenderer({
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
+                archivedReportsIDSet={archivedReportsIDSet}
             />
         );
     }
@@ -216,6 +222,7 @@ function ReportActionsListItemRenderer({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}
             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            archivedReportsIDSet={archivedReportsIDSet}
         />
     );
 }

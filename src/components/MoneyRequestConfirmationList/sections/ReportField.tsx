@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
@@ -50,7 +51,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const {translate, localeCompare} = useLocalize();
 
     const reportAttributes = useReportAttributes();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
@@ -67,7 +68,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, undefined, false)) || isUnreported;
+    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, archivedReportsIDSet, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
@@ -75,7 +76,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         policyID,
         ownerAccountID,
         outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-        reportNameValuePairs,
+        archivedReportsIDSet,
         false,
     ).sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
 

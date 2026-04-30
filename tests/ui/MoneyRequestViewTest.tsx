@@ -64,6 +64,7 @@ const policyID = 'policy_mrv_test';
 const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
+const archivedReportsIDSet = new Set<string>();
 
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: Record<string, unknown>) =>
     render(
@@ -84,6 +85,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                     } as never
                 }
                 shouldShowAnimatedBackground={false}
+                archivedReportsIDSet={archivedReportsIDSet}
             />
         </ComposeProviders>,
     );

@@ -28,6 +28,7 @@ import {useSearchActionsContext} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -180,6 +181,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
 
     const parentReportAction = useParentReportAction(report);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -911,6 +913,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
+                archivedReportsIDSet,
                 conciergeReportID,
                 delegateEmail,
                 ancestors,

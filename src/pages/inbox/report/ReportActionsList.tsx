@@ -60,6 +60,7 @@ import {
     isTaskReport,
     isUnread,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
@@ -131,6 +132,9 @@ type ReportActionsListProps = {
 
     /** Callback to show previous messages */
     onShowPreviousMessages?: () => void;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -170,6 +174,7 @@ function ReportActionsList({
     showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
+    archivedReportsIDSet,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -737,6 +742,7 @@ function ReportActionsList({
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                         reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                         reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                        archivedReportsIDSet={archivedReportsIDSet}
                     />
                     {showPreviousMessagesButton && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
@@ -775,6 +781,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            archivedReportsIDSet,
             reportActionsFromOnyx,
             isConciergeSidePanel,
             showHiddenHistory,
