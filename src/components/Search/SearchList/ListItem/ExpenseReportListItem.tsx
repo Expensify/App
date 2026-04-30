@@ -33,6 +33,7 @@ import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function ExpenseReportListItem<TItem extends ListItem>({
     item,
@@ -49,6 +50,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
+    isFirstItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
@@ -59,7 +61,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -129,6 +131,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -144,6 +147,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            amountOwed,
         });
     }, [
         currentSearchHash,
@@ -158,6 +162,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         ownerBillingGracePeriodEnd,
+        amountOwed,
     ]);
 
     const handleCheckboxPress = useCallback(() => {
@@ -167,16 +172,18 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const listItemPressableStyle = useMemo(
         () => [
             styles.selectionListPressableItemWrapper,
-            styles.pv3,
-            styles.ph3,
+            isLargeScreenWidth && styles.pv3,
+            isLargeScreenWidth && styles.ph3,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
-            isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
+            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+            !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
+            !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
         ],
-        [styles, item.isSelected, isLargeScreenWidth, isLastItem, isPendingDelete, StyleUtils],
+        [styles, item.isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -189,7 +196,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
+        borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -216,7 +223,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         width={12}
                         height={12}
                     />
-                    <Text style={[styles.textMicro, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
                 </View>
             );
         }
@@ -232,7 +239,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                    {translate('reportViolations.reportContainsExpensesWithViolations')}
+                </Text>
             </View>
         );
     }, [
@@ -244,7 +253,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
         styles.mt2,
         styles.mr1,
         styles.textMicro,
+        styles.mutedNormalTextLabel,
         styles.textDanger,
+        isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
         translate,
@@ -255,7 +266,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={!isLargeScreenWidth && [styles.mb2]}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -271,6 +281,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
+                !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                !isLargeScreenWidth && !isLastItem && styles.borderBottom,
             ]}
             accessible={false}
             shouldShowRightCaret={false}
@@ -280,23 +293,54 @@ function ExpenseReportListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
-                    <ExpenseReportListItemRow
-                        item={reportItem}
-                        columns={columns}
-                        reportActions={reportActions}
-                        isActionLoading={isActionLoading ?? isLoading}
-                        showTooltip={showTooltip}
-                        canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={handleCheckboxPress}
-                        onButtonPress={handleOnButtonPress}
-                        isSelectAllChecked={!!reportItem.isSelected}
-                        isIndeterminate={false}
-                        isDisabledCheckbox={isDisabledCheckbox}
-                        isHovered={hovered}
-                        isFocused={isFocused}
-                        isPendingDelete={isPendingDelete}
-                        isLargeScreenWidth={isLargeScreenWidth}
-                    />
+                    {!isLargeScreenWidth && (
+                        <UserInfoAndActionButtonRow
+                            item={reportItem}
+                            shouldShowUserInfo={!!reportItem?.from}
+                            stateNum={reportItem.stateNum}
+                            statusNum={reportItem.statusNum}
+                        />
+                    )}
+                    {!isLargeScreenWidth && (
+                        <View style={styles.pt3}>
+                            <ExpenseReportListItemRow
+                                item={reportItem}
+                                columns={columns}
+                                reportActions={reportActions}
+                                isActionLoading={isActionLoading ?? isLoading}
+                                showTooltip={showTooltip}
+                                canSelectMultiple={canSelectMultiple}
+                                onCheckboxPress={handleCheckboxPress}
+                                onButtonPress={handleOnButtonPress}
+                                isSelectAllChecked={!!reportItem.isSelected}
+                                isIndeterminate={false}
+                                isDisabledCheckbox={isDisabledCheckbox}
+                                isHovered={hovered}
+                                isFocused={isFocused}
+                                isPendingDelete={isPendingDelete}
+                                isLargeScreenWidth={isLargeScreenWidth}
+                            />
+                        </View>
+                    )}
+                    {isLargeScreenWidth && (
+                        <ExpenseReportListItemRow
+                            item={reportItem}
+                            columns={columns}
+                            reportActions={reportActions}
+                            isActionLoading={isActionLoading ?? isLoading}
+                            showTooltip={showTooltip}
+                            canSelectMultiple={canSelectMultiple}
+                            onCheckboxPress={handleCheckboxPress}
+                            onButtonPress={handleOnButtonPress}
+                            isSelectAllChecked={!!reportItem.isSelected}
+                            isIndeterminate={false}
+                            isDisabledCheckbox={isDisabledCheckbox}
+                            isHovered={hovered}
+                            isFocused={isFocused}
+                            isPendingDelete={isPendingDelete}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                    )}
                     {getDescription}
                 </View>
             )}

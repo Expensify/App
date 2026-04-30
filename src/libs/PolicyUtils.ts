@@ -38,8 +38,6 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
-    SageIntacctDataElement,
-    SageIntacctDataElementWithValue,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -47,10 +45,12 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
+import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -484,6 +484,11 @@ function isExpensifyTeam(email: string | undefined): boolean {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
+/** Whether Expensify team members should be hidden from the given policy/user combination. */
+function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
+    return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
 /**
  * Checks if the current user is of the role "user" on the policy.
  */
@@ -692,22 +697,70 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
- * Checks if a policy has any non-default rules configured.
- * Defaults are: no approval/expense/coding rules and no custom rules text.
+ * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     if (!policy) {
         return false;
     }
 
-    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
+    if (!!policy.customRules && policy.customRules.trim().length > 0) {
+        return true;
+    }
 
     const {rules} = policy;
-    const hasApprovalRules = !!rules?.approvalRules && rules.approvalRules.length > 0;
-    const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
-    const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
+    if (!!rules?.approvalRules && rules.approvalRules.length > 0) {
+        return true;
+    }
+    if (!!rules?.expenseRules && rules.expenseRules.length > 0) {
+        return true;
+    }
+    if (!!rules?.codingRules && Object.keys(rules.codingRules).length > 0) {
+        return true;
+    }
 
-    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
+    if (!!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT) {
+        return true;
+    }
+    if (!!policy.maxExpenseAge && policy.maxExpenseAge !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAge !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE) {
+        return true;
+    }
+    if (
+        !!policy.maxExpenseAmountNoReceipt &&
+        policy.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
+        policy.maxExpenseAmountNoReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT
+    ) {
+        return true;
+    }
+    if (
+        !!policy.maxExpenseAmountNoItemizedReceipt &&
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT
+    ) {
+        return true;
+    }
+
+    if (policy.defaultBillable) {
+        return true;
+    }
+    if (policy.defaultReimbursable === false) {
+        return true;
+    }
+    if (policy.eReceipts) {
+        return true;
+    }
+    if (policy.requireCompanyCardsEnabled) {
+        return true;
+    }
+
+    const {prohibitedExpenses} = policy;
+    return (
+        !!prohibitedExpenses &&
+        Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
+            const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
+            return value !== undefined && value !== defaultValue;
+        })
+    );
 }
 
 /**
@@ -852,7 +905,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -954,14 +1011,6 @@ function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
 
-function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    return Object.values(policyMemberEmailsToAccountIDs)
-        .map((policyMemberAccountID) => Number(policyMemberAccountID))
-        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
-}
-
 function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
     if (!policy) {
         return [];
@@ -1043,6 +1092,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
+        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
     }
@@ -1107,7 +1159,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
         }
         for (let j = 0; j < rule.applyWhen.length; j++) {
             const applyWhen = rule.applyWhen.at(j);
-            if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+            if (applyWhen?.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
                 continue;
             }
             if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
@@ -1192,6 +1244,19 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+    const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID) {
+        // Existing reports may already have a server-computed or manually changed approver.
+        return existingManagerID;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    return submitToAccountID > CONST.DEFAULT_NUMBER_ID ? submitToAccountID : existingManagerID;
+}
+
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
@@ -1232,7 +1297,7 @@ function getPersonalPolicy() {
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    if (!policy || !policy.employeeList) {
+    if (!policy?.employeeList) {
         return [];
     }
     return Object.keys(policy.employeeList)
@@ -1243,13 +1308,13 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
 /** Return active policies where current user is an employee (of the role "user") */
 function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
 }
 
 /**
@@ -1299,12 +1364,7 @@ function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<
 
 /** Get the Xero organizations connected to the policy */
 function getXeroTenants(policy: Policy | undefined): Tenant[] {
-    // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-    if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
-        return [];
-    }
-    return policy.connections.xero.data.tenants ?? [];
+    return policy?.connections?.xero?.data?.tenants ?? [];
 }
 
 function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
@@ -1349,11 +1409,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
-    return selectedVendor ?? vendors?.[0] ?? undefined;
-}
-
-function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
-    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
@@ -1582,8 +1637,7 @@ function getIntegrationLastSuccessfulDate(
     const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
 
     if (
-        connectionSyncProgress &&
-        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
         connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
     ) {
@@ -2022,17 +2076,6 @@ function isCurrentUserMemberOfAnyPolicy(): boolean {
 }
 
 /**
- * Whether the given policy member is an admin of the given policy
- */
-function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
-    if (!policy || !memberEmail) {
-        return false;
-    }
-    const admins = getAdminEmployees(policy);
-    return admins.some((admin) => admin.email === memberEmail);
-}
-
-/**
  * Determines which travel step should be shown based on policy state
  */
 function getTravelStep(
@@ -2098,13 +2141,38 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
+/**
+ * Builds a source URL for rendering a policy document PDF.
+ * Local blob/file URIs (from optimistic uploads) are returned directly.
+ * Remote URLs are routed through the authenticated GetPolicyRulesDocument streaming endpoint.
+ * The stored URL (which contains a unique timestamp per upload) is appended as a version
+ * parameter so the browser treats each replacement as a distinct resource.
+ */
+function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
+    if (!rulesDocumentURL || !policyID) {
+        return '';
+    }
+
+    const isLocalFile = rulesDocumentURL.startsWith('blob:') || rulesDocumentURL.startsWith('file:');
+    if (isLocalFile) {
+        return rulesDocumentURL;
+    }
+
+    return addEncryptedAuthTokenToURL(
+        // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
+        // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyRulesDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
+        encryptedAuthToken,
+        true,
+    );
+}
+
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
     getAdminEmployees,
-    getAccountingConnectionNames,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
@@ -2114,17 +2182,14 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
-    getHRConnectionNames,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
-    getNumericValue,
     isMultiLevelTags,
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPersonalPolicy,
     getPolicyBrickRoadIndicatorStatus,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
     getTagListByOrderWeight,
@@ -2132,7 +2197,7 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
-    hasNonDefaultRules,
+    hasConfiguredRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -2145,10 +2210,9 @@ export {
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     shouldShowPolicyError,
-    shouldShowPolicyErrorFields,
     shouldShowTaxRateError,
-    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
+    shouldFilterExpensifyTeam,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
@@ -2185,7 +2249,6 @@ export {
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
-    findSelectedSageVendorWithDefaultSelect,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -2223,7 +2286,6 @@ export {
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,
-    isGustoConnected,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
@@ -2236,12 +2298,12 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
+    getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
-    hasUnsupportedIntegration,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
@@ -2269,7 +2331,6 @@ export {
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
-    isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
@@ -2280,6 +2341,9 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getRulesDocumentSourceURL,
+    getHRConnectionNames,
+    isGustoConnected,
 };
 
 export type {MemberEmailsToAccountIDs};

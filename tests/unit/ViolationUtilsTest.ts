@@ -876,6 +876,30 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).toEqual([]);
         });
+        it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
+            // Make Department non-required
+            policyTags.Department.required = false;
+            // Transaction has only Region and Project filled, Department (non-required) is empty
+            transaction.tag = 'Africa::Project1';
+
+            // hasDependentTags = true to exercise getTagViolationsForDependentTags
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
+        });
+
+        it('should return allTagLevelsRequired when a required dependent tag level is empty', () => {
+            // Make Project non-required, keep Region and Department required
+            policyTags.Project.required = false;
+            // Transaction has only Region filled, Department (required) is empty
+            transaction.tag = 'Africa';
+
+            // hasDependentTags = true to exercise getTagViolationsForDependentTags
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
+        });
+
         it('should return missingTag when all dependent tags are enabled in the policy but are not set in the transaction', () => {
             const missingDepartmentTag = {...missingTagViolation, data: {tagName: 'Department'}};
             const missingRegionTag = {...missingTagViolation, data: {tagName: 'Region'}};
@@ -1591,14 +1615,20 @@ describe('getRBRMessages', () => {
 
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
+        const result = ViolationsUtils.getRBRMessages({
+            transaction: mockTransaction,
+            transactionViolations: mockViolations,
+            translate: translateLocal,
+            missingFieldError,
+            transactionThreadActions: [],
+        });
         const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
     });
 
     it('should filter out empty strings', () => {
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, undefined, []);
+        const result = ViolationsUtils.getRBRMessages({transaction: mockTransaction, transactionViolations: mockViolations, translate: translateLocal, transactionThreadActions: []});
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);

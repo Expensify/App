@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -91,12 +91,15 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-        /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+
         const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
 
-        if (policyID && policyID.length > 0) {
+        useEffect(() => {
+            if (!policyID) {
+                return;
+            }
             updateLastAccessedWorkspace(policyID);
-        }
+        }, [policyID]);
 
         return (
             <WrappedComponent

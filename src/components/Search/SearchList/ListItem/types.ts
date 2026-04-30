@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {
     BillingGraceEndPeriod,
+    CardList,
     LastPaymentMethod,
     PersonalDetails,
     PersonalDetailsList,
@@ -51,12 +52,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The report data */
     report?: Report;
-
-    /** The user wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -118,9 +113,6 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
-        /** Whether the card feed has been deleted */
-        isCardFeedDeleted?: boolean;
-
         /** The original amount of the transaction */
         originalAmount?: number;
 
@@ -161,6 +153,11 @@ type TransactionListItemType = ListItem &
         isAmountColumnWide: boolean;
 
         isTaxAmountColumnWide: boolean;
+
+        /** Whether the action column should use its wider variant.
+         * This is true if at least one transaction in the dataset is deleted.
+         */
+        isActionColumnWide?: boolean;
 
         /** Key used internally by React */
         keyForList: string;
@@ -272,6 +269,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** Whether the amount column should use the wide layout */
         isAmountColumnWide?: boolean;
+
+        /** Whether the action column should use its wider variant when any transaction in the dataset is deleted */
+        isActionColumnWide?: boolean;
 
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
@@ -423,7 +423,9 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         isLoading?: boolean;
         columns?: SearchColumnType[];
         violations?: Record<string, TransactionViolations | undefined> | undefined;
-        customCardNames?: Record<number, string>;
+        policyForMovingExpenses?: Policy;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
@@ -437,13 +439,27 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         columns?: SearchColumnType[];
         newTransactionID?: string;
         violations?: Record<string, TransactionViolations | undefined> | undefined;
+        policyForMovingExpenses?: Policy;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'onUndelete'
+    | 'showTooltip'
+    | 'canSelectMultiple'
+    | 'onCheckboxPress'
+    | 'columns'
+    | 'groupBy'
+    | 'accountID'
+    | 'isOffline'
+    | 'violations'
+    | 'onSelectRow'
+    | 'nonPersonalAndWorkspaceCards'
+    | 'onUndelete'
+    | 'policyForMovingExpenses'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
