@@ -127,11 +127,11 @@ function BaseVideoPlayer({
     }, [isOffline]);
 
     useEffect(() => {
-        if (!(isVideoOffline && isLoading && isOffline)) {
+        if (!(isVideoOffline && isOffline)) {
             return;
         }
         videoPlayerRef.current.replaceAsync('');
-    }, [isLoading, isVideoOffline, isOffline]);
+    }, [isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -158,8 +158,8 @@ function BaseVideoPlayer({
         return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
     }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isVideoOffline && currentTime + bufferedPosition <= 0;
-    }, [bufferedPosition, currentTime, isVideoOffline]);
+        return isVideoOffline;
+    }, [isVideoOffline]);
     const {updateVolume} = useVolumeActions();
     const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
