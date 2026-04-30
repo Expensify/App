@@ -278,10 +278,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                     )}
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList
-                                onLayout={onLayout}
-                                archivedReportsIDSet={archivedReportsIDSet}
-                            />
+                            <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
                             <ReportActionsView
                                 reportID={reportID}

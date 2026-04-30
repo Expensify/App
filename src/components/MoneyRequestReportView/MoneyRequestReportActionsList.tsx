@@ -8,6 +8,7 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -44,7 +45,6 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Visibility from '@libs/Visibility';
@@ -67,8 +67,6 @@ import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import SelectionToolbar from './SelectionToolbar';
 
-const EMPTY_ARCHIVED_REPORTS_ID_SET = new Set<string>();
-
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
  */
@@ -84,15 +82,13 @@ const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 type MoneyRequestReportListProps = {
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** Set of archived report ID keys */
-    archivedReportsIDSet?: ArchivedReportsIDSet;
 };
 
-function MoneyRequestReportActionsList({onLayout, archivedReportsIDSet = EMPTY_ARCHIVED_REPORTS_ID_SET}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
     const didLayout = useRef(false);
