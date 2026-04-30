@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';

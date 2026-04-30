@@ -5,8 +5,10 @@ import {
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
+    getMessageOfOldDotReportAction,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
+    getReportActionMessageText,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
@@ -39,6 +41,7 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
     CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN,
+    CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
 ]);
 
 function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
@@ -88,7 +91,8 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        return <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
+        const htmlMessage = getReportActionMessageText(action) || translate('iou.receiptScanningFailed');
+        return <ReportActionItemBasicMessage message={htmlMessage} />;
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
@@ -104,6 +108,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
         return <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, action)} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)) {
+        return <ReportActionItemBasicMessage message={getMessageOfOldDotReportAction(translate, action)} />;
     }
 
     return null;

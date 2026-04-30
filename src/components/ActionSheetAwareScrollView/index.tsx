@@ -20,8 +20,6 @@ function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAw
     );
 }
 
-export default ActionSheetAwareScrollView;
-
 /**
  * The bottom spacing config for this action sheet is only used on Android and iOS. On other platforms,
  * this component will be a default Reanimated.ScrollView, because the onScroll handler used is from Reanimated.

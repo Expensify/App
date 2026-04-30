@@ -64,7 +64,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                     title={timezone.selected}
                     description={translate('timezonePage.timezone')}
                     shouldShowRightIcon
-                    disabled={timezone.automatic}
+                    disabled={!!timezone.automatic}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                 />
             </View>

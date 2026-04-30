@@ -1,14 +1,14 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
-import InvertedFlatList from '@components/FlatList/InvertedFlatList';
+import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import getShowScrollIndicator from '@components/FlashList/InvertedFlashList/getShowScrollIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -22,6 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
@@ -116,9 +117,6 @@ type ReportActionsListProps = {
     /** ID of the list */
     listID: number;
 
-    /** Should enable auto scroll to top threshold */
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
 
@@ -154,8 +152,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-const onScrollToIndexFailed = () => {};
-
 function ReportActionsList({
     report,
     transactionThreadReport,
@@ -168,7 +164,6 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     listID,
-    shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
     isConciergeSidePanel,
@@ -180,6 +175,7 @@ function ReportActionsList({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
@@ -196,12 +192,6 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
-        selector: tierNameSelector,
-    });
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: isUserValidatedSelector,
-    });
     const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -210,18 +200,18 @@ function ReportActionsList({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
 
     const backTo = route?.params?.backTo as string;
-    // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
+    const linkedReportActionID = route?.params?.reportActionID;
 
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
+    const scrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const isAnonymousUser = useIsAnonymousUser();
 
     useEffect(() => {
@@ -234,9 +224,9 @@ function ReportActionsList({
 
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
-    const linkedReportActionID = route?.params?.reportActionID;
 
     const lastAction = sortedVisibleReportActions.at(0);
+    const [shouldMaintainVisibleContentPosition, setShouldMaintainVisibleContentPosition] = useState(() => scrollOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
             sortedVisibleReportActions.reduce((actions, action) => {
@@ -263,6 +253,17 @@ function ReportActionsList({
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
+
+    // When lastReadTime transitions from empty to a real value (e.g., data hasn't
+    // loaded yet after sign-in), update the marker so it uses the fresh value
+    // instead of the empty string from initial mount.
+    useEffect(() => {
+        if (reportLastReadTime === '' || unreadMarkerTime !== '') {
+            return;
+        }
+        setUnreadMarkerTime(reportLastReadTime);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportLastReadTime]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
@@ -356,14 +357,23 @@ function ReportActionsList({
         unreadMarkerReportActionIndex,
         isInverted: true,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            const offset = event.nativeEvent.contentOffset.y;
+            scrollOffsetRef.current = offset;
+            setShouldMaintainVisibleContentPosition(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
             onScroll?.(event);
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
+            // We use a timeout to wait for the scroll to finish before resetting the flag.
+            // onMomentumScrollEnd would be ideal but it doesn't work on web.
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline) && !scrollEndTimerRef.current) {
+                scrollEndTimerRef.current = setTimeout(() => {
+                    setShouldScrollToEndAfterLayout(false);
+                    scrollEndTimerRef.current = undefined;
+                }, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME);
             }
         },
-        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
+        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
+
+    useEffect(() => () => clearTimeout(scrollEndTimerRef.current), []);
 
     useScrollToEndOnNewMessageReceived({
         sizeChangeType: 'changed',
@@ -400,7 +410,7 @@ function ReportActionsList({
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
             if ((isVisible || isFromNotification) && scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+                readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
@@ -410,7 +420,7 @@ function ReportActionsList({
             readActionSkipped.current = true;
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
     const handleAppVisibilityMarkAsRead = useCallback(() => {
         if (report.reportID !== prevReportID) {
@@ -442,7 +452,7 @@ function ReportActionsList({
             return;
         }
 
-        readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+        readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
         return true;
 
@@ -451,7 +461,7 @@ function ReportActionsList({
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [isFocused, isVisible, reportLoadingState?.hasOnceLoadedReportActions]);
 
     const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
     const prevHandleAppVisibilityMarkAsRead = useRef<() => void>(null);
@@ -538,7 +548,10 @@ function ReportActionsList({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    // Wait for the next frame so the list has laid out new items before scrolling
+                    requestAnimationFrame(() => {
+                        reportScrollManager.scrollToBottom();
+                    });
                 }
 
                 setIsScrollToBottomEnabled(true);
@@ -618,8 +631,8 @@ function ReportActionsList({
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
-        readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions, betas]);
+        readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportLoadingState?.hasOnceLoadedReportActions, betas]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -678,13 +691,53 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
+    // Precompute a reportActionID → index map so renderItem can resolve the real index in O(1)
+    // instead of scanning sortedVisibleReportActions with indexOf on every render.
+    const actionIndexMap = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const [i, action] of sortedVisibleReportActions.entries()) {
+            map.set(action.reportActionID, i);
+        }
+        return map;
+    }, [sortedVisibleReportActions]);
+
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
             const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
 
+            // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
+            // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
+            // FlashList index offset from the full array and causing wrong displayAsGroup computation.
+            const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
+
             return (
                 <>
+                    <ReportActionsListItemRenderer
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                        index={index}
+                        report={report}
+                        transactionThreadReport={transactionThreadReport}
+                        linkedReportActionID={linkedReportActionID}
+                        displayAsGroup={
+                            !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, safeIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                            isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, safeIndex, isOffline)
+                        }
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                        personalDetails={personalDetailsList}
+                        originalReportID={originalReportID}
+                        isReportArchived={isReportArchived}
+                        userBillingFundID={userBillingFundID}
+                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    />
                     {showPreviousMessagesButton && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
                             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
@@ -700,33 +753,6 @@ function ReportActionsList({
                             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
                         </View>
                     )}
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        index={index}
-                        report={report}
-                        transactionThreadReport={transactionThreadReport}
-                        linkedReportActionID={linkedReportActionID}
-                        displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, isOffline)
-                        }
-                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
-                        personalDetails={personalDetailsList}
-                        originalReportID={originalReportID}
-                        isReportArchived={isReportArchived}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                    />
                 </>
             );
         },
@@ -737,13 +763,12 @@ function ReportActionsList({
             isOffline,
             transactionThreadReport,
             linkedReportActionID,
+            actionIndexMap,
             sortedVisibleReportActions,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
-            userWalletTierName,
-            isUserValidated,
             personalDetailsList,
             userBillingFundID,
             isTryNewDotNVPDismissed,
@@ -830,14 +855,14 @@ function ReportActionsList({
                         <View key={action.reportActionID}>
                             {renderItem({
                                 item: action,
-                                index: sortedVisibleReportActions.indexOf(action),
+                                index: actionIndexMap.get(action.reportActionID) ?? 0,
                             } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
                         </View>
                     ))}
                 </StaticReportActionsPreview>
             </>
         );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
+    }, [actionIndexMap, hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -865,20 +890,22 @@ function ReportActionsList({
                 fsClass={reportActionsListFSClass}
             >
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
-                <InvertedFlatList
+                <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
-                    style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}
+                    style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
-                    shouldHideContent={shouldScrollToEndAfterLayout}
-                    shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
-                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
-                    initialNumToRender={initialNumToRender}
+                    drawDistance={1500}
+                    renderScrollComponent={renderActionSheetAwareScrollView}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldFocusToTopOnMount && styles.justifyContentEnd,
+                        shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
+                    ]}
+                    showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
@@ -889,11 +916,11 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    getItemType={(item) => item.actionName}
+                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
+                    initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

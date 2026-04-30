@@ -2,6 +2,8 @@ import {StackActions} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -147,6 +149,7 @@ type ReportDetailsPageMenuItem = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     subtitle?: number;
     shouldShowRightIcon?: boolean;
+    subtitleStyle?: StyleProp<TextStyle>;
 };
 
 type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
@@ -159,7 +162,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
+function ReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: ReportDetailsPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -271,10 +274,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!detail) {
             return [];
         }
-        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+        return pendingMember?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
+    const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -324,8 +327,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
-        if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
+        // Do not fetch private notes if the feature is disabled, isLoadingPrivateNotes is already defined, the network is offline, or if the report is a self DM.
+        if (!Permissions.canUsePrivateNotes() || isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
 
@@ -411,6 +414,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 translationKey: 'common.members',
                 icon: expensifyIcons.Users,
                 subtitle: activeChatMembers.length,
+                subtitleStyle: [styles.ph2],
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -526,8 +530,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             }
         }
 
-        // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
+        // Prevent displaying private notes option for threads and task reports, or when the feature is disabled
+        if (Permissions.canUsePrivateNotes() && !isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -634,6 +638,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         iouTransactionID,
         moneyRequestReport?.reportID,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -650,6 +655,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        styles.ph2,
         delegateEmail,
     ]);
 
@@ -1129,6 +1135,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             isAnonymousAction={item.isAnonymousAction}
                             shouldShowRightIcon={item.shouldShowRightIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
+                            subtitleStyle={item.subtitleStyle}
                         />
                     ))}
 

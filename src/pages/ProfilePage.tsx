@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
@@ -167,7 +168,9 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
     if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed, betas}));
+        promotedActions.push(
+            PromotedActions.message({reportID: report?.reportID, personalDetails, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed, betas}),
+        );
     }
 
     return (
@@ -266,7 +269,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 }}
                             />
                         )}
-                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
+                        {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}

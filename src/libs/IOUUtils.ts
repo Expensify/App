@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
@@ -11,7 +11,7 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {generateReportID, getChatByParticipants, isSelfDM} from './ReportUtils';
+import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getTagArrayFromName} from './TransactionUtils';
 
@@ -284,8 +284,15 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // Fill any sparse slots created when tagIndex > tagArray.length
+    for (let i = 0; i < tagArray.length; i++) {
+        if (tagArray.at(i) === undefined) {
+            tagArray[i] = '';
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
@@ -459,6 +466,33 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID, chatReportID};
 }
 
+/** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
+function resolveReportForMoneyRequest({
+    transaction,
+    transactionReport,
+    routeReport,
+    policy,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    transactionReport: OnyxEntry<Report>;
+    routeReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+}): OnyxEntry<Report> {
+    if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return undefined;
+    }
+    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
+    if (shouldUseTransactionReport) {
+        return transactionReport;
+    }
+    const isTransactionReportDifferentFromRoute = !!transaction?.reportID && !!routeReport?.reportID && transaction.reportID !== routeReport.reportID;
+    if (isTransactionReportDifferentFromRoute) {
+        return undefined;
+    }
+    return routeReport;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -477,4 +511,5 @@ export {
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     resolveOptimisticChatReportID,
+    resolveReportForMoneyRequest,
 };

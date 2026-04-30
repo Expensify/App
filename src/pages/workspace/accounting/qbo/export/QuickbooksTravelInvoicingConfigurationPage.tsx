@@ -42,7 +42,7 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
     const sections: QBOSectionType[] = [
         {
             title: travelVendor?.name,
-            description: translate('workspace.qbo.travelInvoicingVendor'),
+            description: translate('workspace.common.travelInvoicingVendor'),
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -55,7 +55,7 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
         },
         {
             title: travelPayableAccount?.name,
-            description: translate('workspace.qbo.travelInvoicingPayableAccount'),
+            description: translate('workspace.common.travelInvoicingPayableAccount'),
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -71,7 +71,7 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
     return (
         <ConnectionLayout
             displayName="QuickbooksTravelInvoicingConfigurationPage"
-            headerTitle="workspace.qbo.travelInvoicing"
+            headerTitle="workspace.common.travelInvoicing"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

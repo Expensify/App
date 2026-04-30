@@ -1,41 +1,32 @@
 import sortBy from 'lodash/sortBy';
-import React, {useContext, useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
+import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEmojiReactionDetails, getLocalizedEmojiName} from '@libs/EmojiUtils';
-import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
-import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReportScreenContext';
+import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {toggleEmojiReaction} from '@userActions/Report';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
+import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import AddReactionBubble from './AddReactionBubble';
-import EmojiReactionBubble from './EmojiReactionBubble';
-import ReactionTooltipContent from './ReactionTooltipContent';
+import ReportActionReactionBubble from './ReportActionReactionBubble';
 
-type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps & {
-    /** All the emoji reactions for the report action. */
-    emojiReactions: OnyxEntry<ReportActionReactions>;
-
-    /** The user's preferred locale. */
-    preferredLocale?: OnyxEntry<Locale>;
-
+type ReportActionItemEmojiReactionsProps = {
     /** The report action that these reactions are for */
     reportAction: ReportAction;
 
-    /**
-     * Function to call when the user presses on an emoji.
-     * This can also be an emoji the user already reacted with,
-     * hence this function asks to toggle the reaction by emoji.
-     */
-    toggleReaction: (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => void;
+    /** The ID of the chat report this action belongs to */
+    reportID: string | undefined;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -43,8 +34,6 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
-
-type PopoverReactionListAnchors = Record<string, ReactionListAnchor>;
 
 type FormattedReaction = {
     /** The emoji codes to display in the bubble */
@@ -65,42 +54,45 @@ type FormattedReaction = {
     /** Callback to fire on press */
     onPress: () => void;
 
-    /** Callback to fire on reaction list open */
-    onReactionListOpen: (event: ReactionListEvent) => void;
-
     /** The name of the emoji */
     reactionEmojiName: string;
 
-    /** The type of action that's pending  */
+    /** The type of action that's pending */
     pendingAction?: PendingAction;
-
-    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-function ReportActionItemEmojiReactions({
-    reportAction,
-    currentUserPersonalDetails,
-    toggleReaction,
-    emojiReactions = {},
-    shouldBlockReactions = false,
-    preferredLocale = CONST.LOCALES.DEFAULT,
-    setIsEmojiPickerActive,
-}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
-    const reactionListRef = useContext(ReactionListContext);
-    const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
+    const {preferredLocale} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const reportActionID = reportAction.reportActionID;
+    const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+
+    // Prime the locale emoji table when this action has reactions.
+    // Skip the default locale since getLocalizedEmojiName never reads localeEmojis for it.
+    if (preferredLocale && preferredLocale !== CONST.LOCALES.DEFAULT && emojiReactions !== CONST.EMPTY_OBJECT && isFullySupportedLocale(preferredLocale)) {
+        importEmojiLocale(preferredLocale);
+    }
+
+    const toggleReaction = (emoji: Emoji, skinTone: number, ignoreSkinToneOnCompare?: boolean) => {
+        if (isAnonymousUser()) {
+            hideContextMenu(false);
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                signOutAndRedirectToSignIn();
+            });
+            return;
+        }
+        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, ignoreSkinToneOnCompare);
+    };
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const formattedReactions: Array<FormattedReaction | null> = sortBy(
         Object.entries(emojiReactions ?? {}).map(([emojiName, emojiReaction]) => {
-            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(
-                emojiName,
-                emojiReaction,
-                currentUserPersonalDetails.accountID,
-            );
+            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(emojiName, emojiReaction, currentUserAccountID);
 
             if (reactionCount === 0) {
                 return null;
@@ -110,10 +102,6 @@ function ReportActionItemEmojiReactions({
                 toggleReaction(emoji, preferredSkinTone, true);
             };
 
-            const onReactionListOpen = (event: ReactionListEvent) => {
-                reactionListRef?.current?.showReactionList(event, popoverReactionListAnchors.current[emojiName], emojiName, reportActionID);
-            };
-
             return {
                 emojiCodes,
                 userAccountIDs,
@@ -121,7 +109,6 @@ function ReportActionItemEmojiReactions({
                 hasUserReacted,
                 oldestTimestamp,
                 onPress,
-                onReactionListOpen,
                 reactionEmojiName: emojiName,
                 pendingAction: emojiReaction.pendingAction,
             };
@@ -138,38 +125,22 @@ function ReportActionItemEmojiReactions({
                     if (reaction === null) {
                         return;
                     }
+
                     return (
-                        <Tooltip
-                            renderTooltipContent={() => (
-                                <ReactionTooltipContent
-                                    emojiName={getLocalizedEmojiName(reaction.reactionEmojiName, preferredLocale)}
-                                    emojiCodes={reaction.emojiCodes}
-                                    accountIDs={reaction.userAccountIDs}
-                                    currentUserPersonalDetails={currentUserPersonalDetails}
-                                />
-                            )}
-                            renderTooltipContentKey={[...reaction.userAccountIDs.map(String), ...reaction.emojiCodes]}
+                        <ReportActionReactionBubble
                             key={reaction.reactionEmojiName}
-                        >
-                            <View>
-                                <OfflineWithFeedback
-                                    pendingAction={reaction.pendingAction}
-                                    shouldDisableOpacity={!!reportAction.pendingAction}
-                                >
-                                    <EmojiReactionBubble
-                                        ref={(ref) => {
-                                            popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null;
-                                        }}
-                                        count={reaction.reactionCount}
-                                        emojiCodes={reaction.emojiCodes}
-                                        onPress={reaction.onPress}
-                                        hasUserReacted={reaction.hasUserReacted}
-                                        onReactionListOpen={reaction.onReactionListOpen}
-                                        shouldBlockReactions={shouldBlockReactions}
-                                    />
-                                </OfflineWithFeedback>
-                            </View>
-                        </Tooltip>
+                            emojiCodes={reaction.emojiCodes}
+                            reactionCount={reaction.reactionCount}
+                            hasUserReacted={reaction.hasUserReacted}
+                            userAccountIDs={reaction.userAccountIDs}
+                            reactionEmojiName={reaction.reactionEmojiName}
+                            onPress={reaction.onPress}
+                            reportActionID={reportActionID}
+                            reportActionPendingAction={reportAction.pendingAction}
+                            pendingAction={reaction.pendingAction}
+                            currentUserAccountID={currentUserAccountID}
+                            shouldBlockReactions={shouldBlockReactions}
+                        />
                     );
                 })}
                 {!shouldBlockReactions && (
@@ -184,4 +155,4 @@ function ReportActionItemEmojiReactions({
     );
 }
 
-export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);
+export default ReportActionItemEmojiReactions;

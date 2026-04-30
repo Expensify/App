@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {useFocusEffect} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -14,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -34,7 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getDistanceInMeters, getRateID} from '@libs/TransactionUtils';
+import {getDistanceInMeters} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +39,6 @@ import type SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -65,31 +61,25 @@ function IOURequestStepDistanceManual({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
-    const textInput = useRef<BaseTextInputRef | null>(null);
-    const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const [formError, setFormError] = useState<string>('');
 
     const isArchived = useReportIsArchived(report?.reportID);
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const selfDMReport = useSelfDMReport();
     const {policy} = usePolicyForTransaction({reportPolicyID: report?.policyID, action, iouType, transaction});
+    const personalPolicy = usePersonalPolicy();
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const reportAttributesDerived = useReportAttributes();
+
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-    const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -101,22 +91,23 @@ function IOURequestStepDistanceManual({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+
+    const textInput = useRef<BaseTextInputRef | null>(null);
+    const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [formError, setFormError] = useState<string>('');
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
-    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isCreatingNewRequest = !(backTo || isEditing);
-
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
-        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
-    );
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
 
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
@@ -130,8 +121,22 @@ function IOURequestStepDistanceManual({
     const rate = mileageRate.rate ?? 0;
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
+    let shouldSkipConfirmation = false;
+    if (skipConfirmation && report?.reportID) {
+        shouldSkipConfirmation = !(isArchived || isPolicyExpenseChatUtils(report));
+    }
+
+    let buttonText: string;
+    if (shouldSkipConfirmation) {
+        buttonText = translate('iou.createExpense');
+    } else {
+        buttonText = isCreatingNewRequest ? translate('common.next') : translate('common.save');
+    }
+
+    // Sync the imperative NumberWithSymbolForm child with the React-owned `distance`
+    // whenever it or the selected tab changes. This is syncing with an external
+    // (imperative) widget, which is a legitimate effect use case.
     useEffect(() => {
         if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
             return;
@@ -139,142 +144,77 @@ function IOURequestStepDistanceManual({
         numberFormRef.current?.updateNumber(distance?.toString() ?? '');
     }, [distance, selectedTab]);
 
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
-        }
+    useFocusEffect(() => {
+        focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
+    });
 
-        return !(isArchived || isPolicyExpenseChatUtils(report));
-    }, [report, skipConfirmation, isArchived]);
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, []),
-    );
-
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
 
-    const buttonText = useMemo(() => {
-        if (shouldSkipConfirmation) {
-            return translate('iou.createExpense');
-        }
+    const navigateToNextPage = (amount: string) => {
+        const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
+        setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
 
-        return isCreatingNewRequest ? translate('common.next') : translate('common.save');
-    }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
-
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-
-    const navigateToNextPage = useCallback(
-        (amount: string) => {
-            const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-            setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
-
-            if (action === CONST.IOU.ACTION.EDIT) {
-                // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-                if (isEditingSplit && transaction) {
-                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
-                    Navigation.goBack(backTo);
-                    return;
-                }
-
-                const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-
-                const isDistanceChanged = distance !== distanceAsFloat;
-                const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== unit;
-
-                const shouldUpdateTransaction = isDistanceChanged || isDistanceUnitChanged;
-
-                if (shouldUpdateTransaction) {
-                    updateMoneyRequestDistance({
-                        transaction,
-                        transactionThreadReport: report,
-                        parentReport,
-                        distance: distanceAsFloat,
-                        // Not required for manual distance request
-                        transactionBackup: undefined,
-                        policy,
-                        policyTagList: policyTags,
-                        policyCategories,
-                        currentUserAccountIDParam,
-                        currentUserEmailParam,
-                        isASAPSubmitBetaEnabled,
-                        parentReportNextStep,
-                        recentWaypoints,
-                    });
-                }
+        if (action === CONST.IOU.ACTION.EDIT) {
+            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+            if (isEditingSplit && transaction) {
+                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
                 Navigation.goBack(backTo);
                 return;
             }
 
-            handleMoneyRequestStepDistanceNavigation({
-                iouType,
-                report,
-                policy,
-                transaction,
-                reportID,
-                transactionID,
-                reportAttributesDerived,
-                personalDetails,
-                manualDistance: distanceAsFloat,
-                currentUserLogin: currentUserEmailParam,
-                currentUserAccountID: currentUserAccountIDParam,
-                backTo,
-                backToReport,
-                shouldSkipConfirmation,
-                defaultExpensePolicy,
-                isArchivedExpenseReport: isArchived,
-                isAutoReporting: !!personalPolicy?.autoReporting,
-                isASAPSubmitBetaEnabled,
-                transactionViolations,
-                lastSelectedDistanceRates,
-                translate,
-                quickAction,
-                policyRecentlyUsedCurrencies,
-                introSelected,
-                activePolicyID,
-                privateIsArchived: isArchived,
-                selfDMReport,
-                policyForMovingExpenses,
-                betas,
-                recentWaypoints,
-                unit,
-                personalOutputCurrency: personalPolicy?.outputCurrency,
-                draftTransactionIDs,
-                isSelfTourViewed: !!isSelfTourViewed,
-                amountOwed,
-                userBillingGracePeriodEnds,
-                ownerBillingGracePeriodEnd,
-                conciergeReportID,
-            });
-        },
-        [
-            transactionID,
-            isTransactionDraft,
-            action,
+            const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+            const isDistanceChanged = distance !== distanceAsFloat;
+            const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== unit;
+            const shouldUpdateTransaction = isDistanceChanged || isDistanceUnitChanged;
+
+            if (shouldUpdateTransaction) {
+                updateMoneyRequestDistance({
+                    transaction,
+                    transactionThreadReport: report,
+                    parentReport,
+                    distance: distanceAsFloat,
+                    // Not required for manual distance request
+                    transactionBackup: undefined,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    currentUserAccountIDParam,
+                    currentUserEmailParam,
+                    isASAPSubmitBetaEnabled,
+                    parentReportNextStep,
+                    recentWaypoints,
+                });
+            }
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        handleMoneyRequestStepDistanceNavigation({
             iouType,
             report,
             policy,
             transaction,
             reportID,
+            transactionID,
             reportAttributesDerived,
             personalDetails,
-            currentUserEmailParam,
-            currentUserAccountIDParam,
+            manualDistance: distanceAsFloat,
+            currentUserLogin: currentUserEmailParam,
+            currentUserAccountID: currentUserAccountIDParam,
             backTo,
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
-            isArchived,
-            personalPolicy?.autoReporting,
+            isArchivedExpenseReport: isArchived,
+            isAutoReporting: !!personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             lastSelectedDistanceRates,
@@ -283,28 +223,23 @@ function IOURequestStepDistanceManual({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            isEditingSplit,
-            distance,
-            splitDraftTransaction,
+            privateIsArchived: isArchived,
+            selfDMReport,
             policyForMovingExpenses,
-            parentReport,
-            policyTags,
-            policyCategories,
-            parentReportNextStep,
+            betas,
             recentWaypoints,
             unit,
-            selfDMReport,
-            betas,
-            personalPolicy?.outputCurrency,
+            personalOutputCurrency: personalPolicy?.outputCurrency,
             draftTransactionIDs,
-            isSelfTourViewed,
+            isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
-        ],
-    );
+        });
+    };
 
-    const submitAndNavigateToNextPage = useCallback(() => {
+    const submitAndNavigateToNextPage = () => {
         const value = numberFormRef.current?.getNumber() ?? '';
 
         if (!value.length || parseFloat(value) <= 0) {
@@ -319,15 +254,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, rate]);
-
-    useEffect(() => {
-        if (isLoadingSelectedTab) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Clear form error when tab changes
-        setFormError('');
-    }, [selectedTab, isLoadingSelectedTab]);
+    };
 
     return (
         <StepScreenWrapper

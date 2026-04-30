@@ -10,6 +10,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
+import UserPills from '@components/UserPills';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
@@ -72,15 +74,22 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow],
     );
 
-    const members = useMemo(() => {
-        if (approvalWorkflow.isDefault) {
-            return translate('workspace.common.everyone');
-        }
+    const sortedMembers = useMemo(
+        () => (approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)),
+        [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
+    );
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
-            .map((m) => Str.removeSMSDomain(m.displayName))
-            .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
+    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+
+    const memberPills = useMemo(
+        () =>
+            sortedMembers.map((m) => ({
+                avatar: m.avatar,
+                displayName: m.displayName,
+                email: m.email,
+            })),
+        [sortedMembers],
+    );
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
@@ -145,13 +154,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 )}
 
                 <MenuItemWithTopDescription
-                    title={members}
+                    title={approvalWorkflow.isDefault ? members : undefined}
+                    accessibilityLabel={members}
                     titleStyle={styles.textNormalThemeText}
                     numberOfLinesTitle={4}
                     description={translate('workflowsExpensesFromPage.title')}
                     descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
                     onPress={handleExpensesFromPress}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    titleComponent={!approvalWorkflow.isDefault ? <UserPills users={memberPills} /> : undefined}
                     errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
                     brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     shouldShowRightIcon={!approvalWorkflow.isDefault}
@@ -172,11 +183,23 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                title={Str.removeSMSDomain(approver?.displayName ?? '')}
+                                accessibilityLabel={Str.removeSMSDomain(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}
                                 descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
+                                titleComponent={
+                                    approver ? (
+                                        <View style={styles.pr3}>
+                                            <UserPill
+                                                avatar={approver.avatar}
+                                                displayName={approver.displayName}
+                                                email={approver.email}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </View>
+                                    ) : undefined
+                                }
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
                                 hintText={hintText}

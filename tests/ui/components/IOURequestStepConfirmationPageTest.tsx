@@ -14,6 +14,7 @@ import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
+import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
@@ -64,11 +65,11 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...actualNav,
         startMoneyRequest: jest.fn(),
-        createDistanceRequest: jest.fn(),
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
+        createDistanceRequest: jest.fn(),
         startSplitBill: jest.fn(),
     };
 });
@@ -85,6 +86,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
+jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -106,12 +108,23 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
-        dismissModal: jest.fn(),
+        dismissModal: jest.fn((options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         dismissModalWithReport: jest.fn(),
+        dismissToPreviousRHP: jest.fn((options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
-        revealRouteBeforeDismissingModal: jest.fn(),
+        revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
+            options?.afterTransition?.();
+        }),
+        getTopmostReportId: jest.fn(() => undefined),
+        preInsertFullscreenUnderRHP: jest.fn(),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -1281,7 +1294,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
+            expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -1364,8 +1377,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(IOU.createDistanceRequest).toHaveBeenCalled());
-            const createDistanceRequestMock = IOU.createDistanceRequest as jest.MockedFunction<typeof IOU.createDistanceRequest>;
+            await waitFor(() => expect(Split.createDistanceRequest).toHaveBeenCalled());
+            const createDistanceRequestMock = Split.createDistanceRequest as jest.MockedFunction<typeof Split.createDistanceRequest>;
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();
         });

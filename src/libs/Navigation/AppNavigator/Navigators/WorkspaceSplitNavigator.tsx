@@ -20,6 +20,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.INVOICES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
     [SCREENS.WORKSPACE.MEMBERS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMembersPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
+    [SCREENS.WORKSPACE.HR]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/WorkspaceHRPage').default,
     [SCREENS.WORKSPACE.CATEGORIES]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesPage').default,
     [SCREENS.WORKSPACE.MORE_FEATURES]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMoreFeaturesPage').default,
     [SCREENS.WORKSPACE.TAGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsPage').default,
@@ -69,5 +70,4 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     );
 }
 
-export {CENTRAL_PANE_WORKSPACE_SCREENS};
 export default WorkspaceSplitNavigator;
