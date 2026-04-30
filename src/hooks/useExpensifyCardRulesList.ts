@@ -4,12 +4,14 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import objectutils from '@src/types/utils/ObjectUtils';
 import useDefaultFundID from './useDefaultFundID';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
-export default function useCardRules(policyID: string) {
+export default function useExpensifyCardRules(policyID: string) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const {translate, localeCompare} = useLocalize();
@@ -21,31 +23,36 @@ export default function useCardRules(policyID: string) {
     const blockLabel = translate('workspace.rules.spendRules.block');
     const allowLabel = translate('workspace.rules.spendRules.allow');
 
-    const createdRules = Object.entries(expensifyCardSettings?.cardRules ?? {})
+    const cardRuleValues = objectutils.typedEntries(expensifyCardSettings?.cardRules ?? {});
+    const cardRules = cardRuleValues
         .map(([ruleID, cardRule]) => {
             const formValues = getSpendRuleFormValuesFromCardRule(cardRule);
+
             if (!formValues) {
                 return undefined;
             }
+
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
             const activeCardIDs = formValues.cardIDs.filter((cardID) => !!cardsList?.[cardID]);
+
             if (activeCardIDs.length === 0) {
                 return undefined;
             }
-            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
-            const cardSummary = getTruncatedSpendRuleSummary(
-                activeCardIDs.map((cardID) => {
-                    const card = cardsList?.[cardID];
-                    if (!card) {
-                        return cardID;
-                    }
 
-                    const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                    return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
-                }),
-                (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
-            );
+            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
+            const cardDescriptions = activeCardIDs.map((cardID) => {
+                const card = cardsList?.[cardID];
+
+                if (!card) {
+                    return cardID;
+                }
+
+                const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
+                return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
+            });
+
+            const cardSummary = getTruncatedSpendRuleSummary(cardDescriptions, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
 
             return {
                 ruleID,
@@ -59,4 +66,8 @@ export default function useCardRules(policyID: string) {
         })
         .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .sort((a, b) => localeCompare(a.created, b.created));
+
+    const isLoading = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
+
+    return {cardRules: cardRules, isLoading};
 }
