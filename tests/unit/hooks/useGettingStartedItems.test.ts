@@ -118,8 +118,11 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            const now = new Date();
+            const firstDayFreeTrial = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+            const lastDayFreeTrial = new Date(now.getTime() + 23 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, firstDayFreeTrial);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
             await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
             await waitForBatchedUpdates();
 
@@ -758,8 +761,11 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            const now = new Date();
+            const firstDayFreeTrial = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+            const lastDayFreeTrial = new Date(now.getTime() + 23 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, firstDayFreeTrial);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
             await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
             await waitForBatchedUpdates();
 
