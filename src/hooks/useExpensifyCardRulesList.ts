@@ -24,6 +24,8 @@ export default function useExpensifyCardRules(policyID: string) {
     const allowLabel = translate('workspace.rules.spendRules.allow');
 
     const cardRuleValues = objectutils.typedEntries(expensifyCardSettings?.cardRules ?? {});
+    const isLoadingCardRules = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
+
     const cardRules = cardRuleValues
         .map(([ruleID, cardRule]) => {
             const formValues = getSpendRuleFormValuesFromCardRule(cardRule);
@@ -52,22 +54,18 @@ export default function useExpensifyCardRules(policyID: string) {
                 return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
             });
 
-            const cardSummary = getTruncatedSpendRuleSummary(cardDescriptions, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
-
             return {
                 ruleID,
                 actionLabel,
-                cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),
-                isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
                 created: cardRule.created,
                 pendingAction: cardRule.pendingAction,
+                isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),
+                cardSummary: getTruncatedSpendRuleSummary(cardDescriptions, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count})),
             };
         })
         .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .sort((a, b) => localeCompare(a.created, b.created));
 
-    const isLoading = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
-
-    return {cardRules: cardRules, isLoading};
+    return {cardRules, isLoadingCardRules};
 }
