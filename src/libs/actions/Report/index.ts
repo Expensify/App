@@ -5894,6 +5894,7 @@ type DeleteAppReportProps = {
     currentUserEmailParam: string;
     currentUserAccountIDParam: number;
     reportTransactions: Record<string, Transaction>;
+    allTransactions?: Record<string, Transaction>;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
     hash?: number;
@@ -5906,10 +5907,11 @@ function deleteAppReport({
     currentUserEmailParam,
     currentUserAccountIDParam,
     reportTransactions,
+    allTransactions,
     allTransactionViolations,
     bankAccountList,
     hash,
-}: DeleteAppReportProps) {
+}: DeleteAppReportProps): OnyxEntry<Report> | undefined {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
         return;
@@ -5942,12 +5944,14 @@ function deleteAppReport({
     > = [];
 
     let selfDMReportID = selfDMReport?.reportID;
+    let optimisticSelfDMReportForReuse: OnyxEntry<Report>;
     let createdAction: ReportAction;
     let selfDMParameters: SelfDMParameters = {};
 
     if (!selfDMReportID) {
         const currentTime = DateUtils.getDBTime();
         const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
+        optimisticSelfDMReportForReuse = optimisticSelfDMReport;
         selfDMReportID = optimisticSelfDMReport.reportID;
         createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime);
         selfDMParameters = {reportID: optimisticSelfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
@@ -6025,8 +6029,7 @@ function deleteAppReport({
             continue;
         }
 
-        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-        if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
+        if (!ReportActionsUtils.isTransactionBearingIOUAction(reportAction)) {
             continue;
         }
 
@@ -6036,7 +6039,8 @@ function deleteAppReport({
 
         // 1. Update the transaction and its violations
         if (transactionID) {
-            const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            const transaction = reportTransactions[transactionKey] ?? allTransactions?.[transactionKey];
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
             const {comment} = recalculateUnreportedTransactionDetails();
@@ -6305,6 +6309,7 @@ function deleteAppReport({
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData, successData, failureData});
+    return selfDMReport ?? optimisticSelfDMReportForReuse;
 }
 
 /**

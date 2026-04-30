@@ -75,7 +75,7 @@ import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {getCurrentUserEmail} from './IOU';
-import {deleteMoneyRequest} from './IOU/DeleteMoneyRequest';
+import {deleteMoneyRequest, getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest} from './IOU/DeleteMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
@@ -121,6 +121,7 @@ type BulkDeleteReportsParams = {
     currentUserEmailParam: string;
     currentUserAccountIDParam: number;
     reportTransactions: Record<string, Transaction>;
+    allTransactions?: Record<string, Transaction>;
     transactionsViolations: Record<string, TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
     transactions?: OnyxCollection<Transaction>;
@@ -896,6 +897,7 @@ function bulkDeleteReports({
     currentUserEmailParam,
     currentUserAccountIDParam,
     reportTransactions,
+    allTransactions,
     transactionsViolations,
     bankAccountList,
     transactions,
@@ -963,17 +965,34 @@ function bulkDeleteReports({
     }
 
     if (reportIDList.length > 0) {
+        const deletedReportIDs = new Set<string>();
         for (const reportID of reportIDList) {
             const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            deleteAppReport({
+            const rejectedSiblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
                 report,
-                selfDMReport,
-                currentUserEmailParam,
-                currentUserAccountIDParam,
-                reportTransactions,
+                allReports: reports,
+                allTransactions,
                 allTransactionViolations: transactionsViolations,
-                bankAccountList,
             });
+            const reportsToDelete = [...rejectedSiblingReports, report].filter(
+                (reportToDelete): reportToDelete is Report => !!reportToDelete?.reportID && !deletedReportIDs.has(reportToDelete.reportID),
+            );
+            let selfDMReportForDelete = selfDMReport;
+
+            for (const reportToDelete of reportsToDelete) {
+                selfDMReportForDelete =
+                    deleteAppReport({
+                        report: reportToDelete,
+                        selfDMReport: selfDMReportForDelete,
+                        currentUserEmailParam,
+                        currentUserAccountIDParam,
+                        reportTransactions,
+                        allTransactions,
+                        allTransactionViolations: transactionsViolations,
+                        bankAccountList,
+                    }) ?? selfDMReportForDelete;
+                deletedReportIDs.add(reportToDelete.reportID);
+            }
         }
     }
 }

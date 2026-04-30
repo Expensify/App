@@ -722,6 +722,17 @@ function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>)
     );
 }
 
+const transactionBearingIOUActionTypes = new Set<OriginalMessageIOU['type']>([
+    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+]);
+
+function isTransactionBearingIOUAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    const type = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.type : undefined;
+    return !!type && transactionBearingIOUActionTypes.has(type);
+}
+
 /**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
@@ -4659,6 +4670,7 @@ export {
     isModifiedExpenseAction,
     isMovedTransactionAction,
     isMoneyRequestAction,
+    isTransactionBearingIOUAction,
     isOldDotReportAction,
     isPayAction,
     isPendingRemove,

@@ -2828,8 +2828,8 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         const currentUserAccountID = 1;
-        it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
-            // Given an expense report with CREATE, TRACK, and PAY of IOU actions
+        it('should move CREATE, TRACK, and REJECT IOU actions to self DM', async () => {
+            // Given an expense report with CREATE, TRACK, REJECT, and PAY IOU actions
             const reportID = '1';
             const expenseReport: OnyxTypes.Report = {
                 ...createRandomReport(1, undefined),
@@ -2873,10 +2873,22 @@ describe('actions/Report', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 },
             };
+            const rejectAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '4',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 4', text: 'Comment 4'}],
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+                },
+            };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [firstIOUAction.reportActionID]: firstIOUAction,
                 [secondIOUAction.reportActionID]: secondIOUAction,
                 [payAction.reportActionID]: payAction,
+                [rejectAction.reportActionID]: rejectAction,
             });
 
             // When deleting the expense report
@@ -2891,7 +2903,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
+            // Then only the IOU action with type of CREATE, TRACK, and REJECT is moved to the self DM
             const selfDMReportID = ReportUtils.findSelfDMReportID();
             const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
@@ -2902,8 +2914,14 @@ describe('actions/Report', () => {
                     },
                 });
             });
-            // The length is 3 to include the CREATED action
-            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
+            // The length is 4 to include the CREATED action
+            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(4);
+
+            const movedComments = Object.values(selfDMReportActions ?? {})
+                .flatMap((action) => action?.message ?? [])
+                .map((message) => message.text);
+            expect(movedComments).toEqual(expect.arrayContaining(['Comment 1', 'Comment 2', 'Comment 4']));
+            expect(movedComments).not.toContain('Comment 3');
         });
 
         it('should not reset the chatReport hasOutstandingChildRequest if there is another outstanding report', async () => {

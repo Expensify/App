@@ -3,7 +3,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {deleteMoneyRequest, getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest, shouldDeleteReportWhenDeletingMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -1761,6 +1761,162 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             });
 
             expect(deletedTransaction).toBeUndefined();
+        });
+    });
+
+    describe('rejected sibling report deletion helpers', () => {
+        function buildExpenseReport(reportID: string): Report {
+            return {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: 'chat-report-id',
+                policyID: 'policy-id',
+                ownerAccountID: 1,
+            };
+        }
+
+        function buildIOUAction(reportActionID: string, reportID: string, transactionID: string, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+            return {
+                ...createRandomReportAction(Number(reportActionID)),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type,
+                },
+            };
+        }
+
+        it('should find rejected sibling reports linked through moved rejected transactions', () => {
+            const currentReport = buildExpenseReport('100');
+            const rejectedSiblingReport = buildExpenseReport('101');
+            const unrelatedRejectedReport = {
+                ...buildExpenseReport('102'),
+                chatReportID: 'different-chat-report-id',
+            };
+            const visibleTransaction = {...createRandomTransaction(100), reportID: currentReport.reportID};
+            const rejectedTransaction = {...createRandomTransaction(101), reportID: rejectedSiblingReport.reportID};
+            const unrelatedRejectedTransaction = {...createRandomTransaction(102), reportID: unrelatedRejectedReport.reportID};
+            const reportActions = {
+                visible: buildIOUAction('100', currentReport.reportID, visibleTransaction.transactionID),
+                rejected: buildIOUAction('101', currentReport.reportID, rejectedTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.REJECT),
+                unrelatedRejected: buildIOUAction('102', currentReport.reportID, unrelatedRejectedTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.REJECT),
+            };
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`]: currentReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${rejectedSiblingReport.reportID}`]: rejectedSiblingReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${unrelatedRejectedReport.reportID}`]: unrelatedRejectedReport,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${visibleTransaction.transactionID}`]: visibleTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${rejectedTransaction.transactionID}`]: rejectedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${unrelatedRejectedTransaction.transactionID}`]: unrelatedRejectedTransaction,
+            };
+            const allTransactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${rejectedTransaction.transactionID}`]: [
+                    {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.WARNING},
+                ],
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${unrelatedRejectedTransaction.transactionID}`]: [
+                    {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.WARNING},
+                ],
+            };
+
+            const siblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
+                report: currentReport,
+                reportActions,
+                allReports,
+                allTransactions,
+                allTransactionViolations,
+            });
+
+            expect(siblingReports.map((report) => report.reportID)).toEqual([rejectedSiblingReport.reportID]);
+        });
+
+        it('should fall back to rejected-only sibling reports when the original report actions are not loaded', () => {
+            const currentReport = buildExpenseReport('105');
+            const rejectedSiblingReport = buildExpenseReport('106');
+            const currentVisibleTransaction = {...createRandomTransaction(105), reportID: currentReport.reportID};
+            const rejectedTransaction = {...createRandomTransaction(106), reportID: rejectedSiblingReport.reportID};
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`]: currentReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${rejectedSiblingReport.reportID}`]: rejectedSiblingReport,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${currentVisibleTransaction.transactionID}`]: currentVisibleTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${rejectedTransaction.transactionID}`]: rejectedTransaction,
+            };
+            const allTransactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${rejectedTransaction.transactionID}`]: [
+                    {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.WARNING},
+                ],
+            };
+
+            const siblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
+                report: currentReport,
+                allReports,
+                allTransactions,
+                allTransactionViolations,
+            });
+
+            expect(siblingReports.map((report) => report.reportID)).toEqual([rejectedSiblingReport.reportID]);
+        });
+
+        it('should require report teardown only when deleting the last visible transaction and rejected siblings exist', () => {
+            const currentReport = buildExpenseReport('110');
+            const rejectedSiblingReport = buildExpenseReport('111');
+            const visibleTransaction = {...createRandomTransaction(110), reportID: currentReport.reportID};
+            const secondVisibleTransaction = {...createRandomTransaction(112), reportID: currentReport.reportID};
+            const rejectedTransaction = {...createRandomTransaction(111), reportID: rejectedSiblingReport.reportID};
+            const reportActions = {
+                visible: buildIOUAction('110', currentReport.reportID, visibleTransaction.transactionID),
+                secondVisible: buildIOUAction('112', currentReport.reportID, secondVisibleTransaction.transactionID),
+                rejected: buildIOUAction('111', currentReport.reportID, rejectedTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.REJECT),
+            };
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`]: currentReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${rejectedSiblingReport.reportID}`]: rejectedSiblingReport,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${visibleTransaction.transactionID}`]: visibleTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondVisibleTransaction.transactionID}`]: secondVisibleTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${rejectedTransaction.transactionID}`]: rejectedTransaction,
+            };
+            const allTransactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${rejectedTransaction.transactionID}`]: [
+                    {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.WARNING},
+                ],
+            };
+
+            expect(
+                shouldDeleteReportWhenDeletingMoneyRequest({
+                    report: currentReport,
+                    reportActions,
+                    allReports,
+                    allTransactions,
+                    allTransactionViolations,
+                    transactionID: visibleTransaction.transactionID,
+                }),
+            ).toBe(false);
+
+            expect(
+                shouldDeleteReportWhenDeletingMoneyRequest({
+                    report: currentReport,
+                    reportActions: {visible: reportActions.visible, rejected: reportActions.rejected},
+                    allReports,
+                    allTransactions: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${visibleTransaction.transactionID}`]: visibleTransaction,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${rejectedTransaction.transactionID}`]: rejectedTransaction,
+                    },
+                    allTransactionViolations,
+                    transactionID: visibleTransaction.transactionID,
+                }),
+            ).toBe(true);
         });
     });
 });

@@ -17,7 +17,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
@@ -29,7 +29,7 @@ import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
@@ -91,6 +91,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -341,7 +342,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -374,16 +374,29 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport({
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+            const rejectedSiblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
                 report: childReport,
-                selfDMReport,
-                currentUserEmailParam: email ?? '',
-                currentUserAccountIDParam: currentUserAccountID,
-                reportTransactions,
+                allTransactions,
                 allTransactionViolations,
-                bankAccountList,
-                hash: currentSearchHash,
             });
+            const reportsToDelete = [...rejectedSiblingReports, childReport].filter((reportToDelete): reportToDelete is Report => !!reportToDelete?.reportID);
+            let selfDMReportForDelete = selfDMReport;
+
+            for (const reportToDelete of reportsToDelete) {
+                selfDMReportForDelete =
+                    deleteAppReport({
+                        report: reportToDelete,
+                        selfDMReport: selfDMReportForDelete,
+                        currentUserEmailParam: email ?? '',
+                        currentUserAccountIDParam: currentUserAccountID,
+                        reportTransactions: validTransactions,
+                        allTransactions: validTransactions,
+                        allTransactionViolations,
+                        bankAccountList,
+                        hash: currentSearchHash,
+                    }) ?? selfDMReportForDelete;
+            }
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -417,7 +430,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         deleteTransactions,
         currentSearchHash,
         email,
-        reportTransactions,
+        allTransactions,
         bankAccountList,
         isOriginalReportArchived,
         visibleReportActionsData,

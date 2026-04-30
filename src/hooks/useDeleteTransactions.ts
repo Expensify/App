@@ -3,8 +3,9 @@ import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import {getIOURequestPolicyID} from '@libs/actions/IOU';
-import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {deleteMoneyRequest, getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest, shouldDeleteReportWhenDeletingMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {deleteAppReport} from '@libs/actions/Report';
 import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -36,6 +37,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -50,6 +52,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isOffline} = useNetwork();
 
     /**
@@ -75,6 +80,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }
 
             const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
 
             const transactionsWithActions = transactionIDs.map((transactionID) => ({
                 transactionID,
@@ -86,6 +92,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }));
             const deletedTransactionIDs: string[] = [];
             const deletedTransactionThreadReportIDs = new Set<string>();
+            const deletedReportIDs = new Set<string>();
             const {splitTransactionsByOriginalTransactionID, nonSplitTransactions} = transactionsWithActions.reduce(
                 (acc, item) => {
                     const {transaction} = item;
@@ -188,6 +195,56 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 }
                 const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                if (iouReport?.reportID && deletedReportIDs.has(iouReport.reportID)) {
+                    continue;
+                }
+                const reportActionCollection = iouReport?.reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] : undefined;
+                const shouldDeleteReport = shouldDeleteReportWhenDeletingMoneyRequest({
+                    report: iouReport,
+                    reportActions: reportActionCollection,
+                    allReports,
+                    allTransactions,
+                    allTransactionViolations: transactionViolations,
+                    selectedTransactionIDs: transactionIDs,
+                    transactionID,
+                });
+
+                if (shouldDeleteReport) {
+                    const rejectedSiblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
+                        report: iouReport,
+                        reportActions: reportActionCollection,
+                        allReports,
+                        allTransactions,
+                        allTransactionViolations: transactionViolations,
+                    });
+                    const reportsToDelete = [...rejectedSiblingReports, iouReport].filter(
+                        (reportToDelete): reportToDelete is Report => !!reportToDelete?.reportID && !deletedReportIDs.has(reportToDelete.reportID),
+                    );
+                    let selfDMReportForDelete = selfDMReport;
+
+                    for (const reportToDelete of reportsToDelete) {
+                        selfDMReportForDelete =
+                            deleteAppReport({
+                                report: reportToDelete,
+                                selfDMReport: selfDMReportForDelete,
+                                currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                                reportTransactions: validTransactions,
+                                allTransactions: validTransactions,
+                                allTransactionViolations: transactionViolations,
+                                bankAccountList,
+                                hash: currentSearchHash,
+                            }) ?? selfDMReportForDelete;
+                        deletedReportIDs.add(reportToDelete.reportID);
+                    }
+
+                    deletedTransactionIDs.push(transactionID);
+                    if (action.childReportID) {
+                        deletedTransactionThreadReportIDs.add(action.childReportID);
+                    }
+                    continue;
+                }
+
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
@@ -221,6 +278,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allSnapshots,
             allTransactions,
             archivedReportsIdSet,
+            allReportActions,
             currentUserPersonalDetails,
             currentSearchQueryJSON,
             currentSearchResults?.data,
@@ -237,6 +295,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyTags,
             personalDetails,
             isOffline,
+            selfDMReport,
+            bankAccountList,
         ],
     );
 

@@ -12,7 +12,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getLastVisibleAction, getLastVisibleMessage, getOriginalMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getLastVisibleAction, getLastVisibleMessage, getOriginalMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction, isTransactionBearingIOUAction} from '@libs/ReportActionsUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getOutstandingChildRequest,
@@ -22,9 +22,10 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isExpenseReport,
+    isOpenReport,
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
-import {getAmount, getCurrency, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasTransactionBeenRejected, isOnHold, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {optimisticReportLastData} from '@userActions/Report';
@@ -51,6 +52,154 @@ type DeleteMoneyRequestFunctionParams = {
     currentUserAccountID: number;
     currentUserEmail: string;
 };
+
+type ReportActionsLookup = OnyxEntry<OnyxTypes.ReportActions> | OnyxTypes.ReportAction[];
+
+type RejectedSiblingReportLookupParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    reportActions?: ReportActionsLookup;
+    allReports?: OnyxCollection<OnyxTypes.Report>;
+    allTransactions?: OnyxCollection<OnyxTypes.Transaction>;
+    allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
+};
+
+type ShouldDeleteReportWhenDeletingMoneyRequestParams = RejectedSiblingReportLookupParams & {
+    selectedTransactionIDs?: string[];
+    transactionID?: string;
+};
+
+function getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
+    report,
+    reportActions,
+    allReports = getAllReports(),
+    allTransactions = getAllTransactions(),
+    allTransactionViolations = getAllTransactionViolations(),
+}: RejectedSiblingReportLookupParams): OnyxTypes.Report[] {
+    if (!report?.reportID) {
+        return [];
+    }
+
+    const reportActionsForReport = reportActions ?? getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+    const rejectedSiblingReports = new Map<string, OnyxTypes.Report>();
+    const reportActionsList = Array.isArray(reportActionsForReport) ? reportActionsForReport : Object.values(reportActionsForReport ?? {});
+
+    for (const reportAction of reportActionsList) {
+        if (!isTransactionBearingIOUAction(reportAction) || isDeletedAction(reportAction)) {
+            continue;
+        }
+
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
+        const transactionID = originalMessage?.IOUTransactionID;
+        if (!transactionID) {
+            continue;
+        }
+
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID || transaction.reportID === report.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            continue;
+        }
+
+        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        if (!hasTransactionBeenRejected(transactionViolations)) {
+            continue;
+        }
+
+        const siblingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        if (
+            !siblingReport?.reportID ||
+            siblingReport.reportID === report.reportID ||
+            siblingReport.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+            siblingReport.type !== CONST.REPORT.TYPE.EXPENSE ||
+            !isOpenReport(siblingReport) ||
+            siblingReport.chatReportID !== report.chatReportID ||
+            siblingReport.policyID !== report.policyID ||
+            siblingReport.ownerAccountID !== report.ownerAccountID
+        ) {
+            continue;
+        }
+
+        rejectedSiblingReports.set(siblingReport.reportID, siblingReport);
+    }
+
+    if (rejectedSiblingReports.size > 0) {
+        return Array.from(rejectedSiblingReports.values());
+    }
+
+    // In some delete entry points we only have the currently opened expense action loaded,
+    // so fall back to looking for sibling expense reports whose remaining visible transactions
+    // are all rejected and still belong to the same expense chat/policy/owner.
+    for (const siblingReport of Object.values(allReports ?? {})) {
+        if (
+            !siblingReport?.reportID ||
+            siblingReport.reportID === report.reportID ||
+            siblingReport.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+            siblingReport.type !== CONST.REPORT.TYPE.EXPENSE ||
+            !isOpenReport(siblingReport) ||
+            siblingReport.chatReportID !== report.chatReportID ||
+            siblingReport.policyID !== report.policyID ||
+            siblingReport.ownerAccountID !== report.ownerAccountID
+        ) {
+            continue;
+        }
+
+        const visibleSiblingTransactions = Object.values(allTransactions ?? {}).filter(
+            (transaction): transaction is OnyxTypes.Transaction =>
+                !!transaction && transaction.reportID === siblingReport.reportID && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+
+        if (visibleSiblingTransactions.length === 0) {
+            continue;
+        }
+
+        const hasOnlyRejectedVisibleTransactions = visibleSiblingTransactions.every((transaction) =>
+            hasTransactionBeenRejected(allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]),
+        );
+
+        if (!hasOnlyRejectedVisibleTransactions) {
+            continue;
+        }
+
+        rejectedSiblingReports.set(siblingReport.reportID, siblingReport);
+    }
+
+    return Array.from(rejectedSiblingReports.values());
+}
+
+function shouldDeleteReportWhenDeletingMoneyRequest({
+    report,
+    reportActions,
+    allReports,
+    allTransactions = getAllTransactions(),
+    allTransactionViolations,
+    selectedTransactionIDs,
+    transactionID,
+}: ShouldDeleteReportWhenDeletingMoneyRequestParams): boolean {
+    if (!report?.reportID) {
+        return false;
+    }
+
+    const transactionIDsToDelete = new Set([transactionID, ...(selectedTransactionIDs ?? [])].filter((id): id is string => !!id));
+    if (transactionIDsToDelete.size === 0) {
+        return false;
+    }
+
+    const visibleTransactions = Object.values(allTransactions ?? {}).filter(
+        (transaction): transaction is OnyxTypes.Transaction =>
+            !!transaction && transaction.reportID === report.reportID && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+    const remainingVisibleTransactions = visibleTransactions.filter((transaction) => !transactionIDsToDelete.has(transaction.transactionID));
+
+    return (
+        remainingVisibleTransactions.length === 0 &&
+        getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
+            report,
+            reportActions,
+            allReports,
+            allTransactions,
+            allTransactionViolations,
+        }).length > 0
+    );
+}
 
 /**
  *
@@ -915,4 +1064,11 @@ function deleteMoneyRequest({
     return urlToNavigateBack;
 }
 
-export {cleanUpMoneyRequest, deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete, getCleanUpTransactionThreadReportOnyxData};
+export {
+    cleanUpMoneyRequest,
+    deleteMoneyRequest,
+    getNavigationUrlOnMoneyRequestDelete,
+    getCleanUpTransactionThreadReportOnyxData,
+    getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest,
+    shouldDeleteReportWhenDeletingMoneyRequest,
+};

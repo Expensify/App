@@ -10,6 +10,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -124,6 +125,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -524,16 +526,33 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     Navigation.goBack(backToRoute);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport({
+                        const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, OnyxTypes.Transaction] => entry[1] !== undefined));
+                        const rejectedSiblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
                             report: moneyRequestReport,
-                            selfDMReport,
-                            currentUserEmailParam: email ?? '',
-                            currentUserAccountIDParam: accountID,
-                            reportTransactions,
+                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`],
+                            allReports,
+                            allTransactions,
                             allTransactionViolations,
-                            bankAccountList,
-                            hash: currentSearchHash,
                         });
+                        const reportsToDelete = [...rejectedSiblingReports, moneyRequestReport].filter(
+                            (reportToDelete): reportToDelete is OnyxTypes.Report => !!reportToDelete?.reportID,
+                        );
+                        let selfDMReportForDelete = selfDMReport;
+
+                        for (const reportToDelete of reportsToDelete) {
+                            selfDMReportForDelete =
+                                deleteAppReport({
+                                    report: reportToDelete,
+                                    selfDMReport: selfDMReportForDelete,
+                                    currentUserEmailParam: email ?? '',
+                                    currentUserAccountIDParam: accountID,
+                                    reportTransactions: validTransactions,
+                                    allTransactions: validTransactions,
+                                    allTransactionViolations,
+                                    bankAccountList,
+                                    hash: currentSearchHash,
+                                }) ?? selfDMReportForDelete;
+                        }
                     });
                 });
             },

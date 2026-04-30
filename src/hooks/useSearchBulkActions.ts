@@ -10,6 +10,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
+import {getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -591,18 +592,36 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
+                    const deletedReportIDs = new Set<string>();
                     for (const reportID of selectedReportIDs) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport({
+                        const rejectedSiblingReports = getRejectedSiblingReportsToDeleteWhenDeletingMoneyRequest({
                             report,
-                            selfDMReport,
-                            currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
-                            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
-                            reportTransactions: validTransactions,
+                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                            allReports,
+                            allTransactions,
                             allTransactionViolations,
-                            bankAccountList,
-                            hash,
                         });
+                        const reportsToDelete = [...rejectedSiblingReports, report].filter(
+                            (reportToDelete): reportToDelete is Report => !!reportToDelete?.reportID && !deletedReportIDs.has(reportToDelete.reportID),
+                        );
+                        let selfDMReportForDelete = selfDMReport;
+
+                        for (const reportToDelete of reportsToDelete) {
+                            selfDMReportForDelete =
+                                deleteAppReport({
+                                    report: reportToDelete,
+                                    selfDMReport: selfDMReportForDelete,
+                                    currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
+                                    currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+                                    reportTransactions: validTransactions,
+                                    allTransactions: validTransactions,
+                                    allTransactionViolations,
+                                    bankAccountList,
+                                    hash,
+                                }) ?? selfDMReportForDelete;
+                            deletedReportIDs.add(reportToDelete.reportID);
+                        }
                     }
                 } else {
                     const transactionsViolations = allTransactionViolations
@@ -631,6 +650,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         deleteModalPrompt,
         translate,
         allTransactions,
+        allReportActions,
         allTransactionViolations,
         accountID,
         selectedTransactions,
