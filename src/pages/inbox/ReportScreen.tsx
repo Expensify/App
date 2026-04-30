@@ -152,7 +152,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 testID="report-actions-view-wrapper"
                                             >
                                                 <ReportActionsList archivedReportsIDSet={archivedReportsIDSet} />
-                                                {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />}
+                                                {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter />}
                                             </View>
                                         </AgentZeroStatusProvider>
                                     </View>

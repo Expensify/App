@@ -5596,6 +5596,7 @@ describe('actions/Report', () => {
     // Shared test constants for leave functions
     const TEST_CONCIERGE_REPORT_ID = '999';
     const TEST_CURRENT_USER_ACCOUNT_ID = 1;
+
     describe('leaveGroupChat', () => {
         const GROUP_CHAT_REPORT_ID = '1001';
 

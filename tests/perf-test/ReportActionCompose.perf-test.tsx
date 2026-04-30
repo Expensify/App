@@ -89,10 +89,7 @@ beforeEach(() => {
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
-            <ReportActionCompose
-                reportID="1"
-                archivedReportsIDSet={new Set<string>()}
-            />
+            <ReportActionCompose reportID="1" />
         </ComposeProviders>
     );
 }

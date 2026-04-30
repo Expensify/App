@@ -8,7 +8,6 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -23,7 +22,6 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 type ComposerProviderProps = {
     reportID: string;
-    archivedReportsIDSet: ArchivedReportsIDSet;
     children: React.ReactNode;
 };
 

@@ -239,7 +239,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
                 <ReportActionsSkeletonView />
-                {shouldDisplayReportFooter ? <ReportFooter archivedReportsIDSet={archivedReportsIDSet} /> : null}
+                {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
         );
     }
@@ -288,7 +288,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
-                                <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />
+                                <ReportFooter />
                                 <PortalHost name="suggestions" />
                             </>
                         ) : null}
