@@ -345,7 +345,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             }
             const nonPendingCount = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
             if (nonPendingCount === selectedTransactionIDs.length) {
-                // eslint-disable-next-line no-restricted-syntax -- backTo is a legacy route param, preserving existing behavior
                 const backToRoute = ((route.params as {backTo?: Route} | undefined)?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined)) as
                     | Route
                     | undefined;
@@ -359,7 +358,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
-    /* eslint-disable react-hooks/refs */
+
     const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = !isBulkSubmitApprovePayBetaEnabled
         ? []
         : [

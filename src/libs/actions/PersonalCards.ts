@@ -15,7 +15,6 @@ type AddNewPersonalCardFlowData = {
 };
 
 function setAddNewPersonalCardStepAndData({data, isEditing, step}: NullishDeep<AddNewPersonalCardFlowData>) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- false positive when AddNewPersonalCard includes `errors`; merge fields are NullishDeep<AddNewPersonalCardFlowData>
     Onyx.merge(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {data, isEditing, currentStep: step} as Partial<AddNewPersonalCard>);
 }
 

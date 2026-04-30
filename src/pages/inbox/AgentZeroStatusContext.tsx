@@ -202,7 +202,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         // Immediate update when enough time has passed or when clearing the label
         if (remainingMinTime === 0 || targetLabel === '') {
             displayedLabelRef.current = targetLabel;
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- guarded by displayedLabelRef check above; fires once per serverLabel/optimistic transition
+
             setDisplayedLabel(targetLabel);
             lastUpdateTimeRef.current = now;
         } else {
