@@ -14,10 +14,6 @@ type ButtonWithDropdownMenuRootMeta = {
     success: boolean;
     isDisabled: boolean;
     isLoading: boolean;
-    shouldStayNormalOnDisable: boolean;
-    pressOnEnter: boolean;
-    useKeyboardShortcuts: boolean;
-    enterKeyEventListenerPriority: number;
     buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
     isCompactTrigger: boolean;
     brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;

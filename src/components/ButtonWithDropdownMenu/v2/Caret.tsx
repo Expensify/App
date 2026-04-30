@@ -13,11 +13,11 @@ import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState
 import type {CaretProps} from './types';
 import useButtonSizeFlags from './useButtonSizeFlags';
 
-function Caret({ref, accessibilityLabel, sentryLabel}: CaretProps): React.ReactElement {
+function Caret({ref, accessibilityLabel, shouldStayNormalOnDisable = false, sentryLabel}: CaretProps): React.ReactElement {
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.Caret');
     const {
         state: {isMenuVisible},
-        meta: {dropdownAnchor, success, isDisabled, isLoading, shouldStayNormalOnDisable, enterKeyEventListenerPriority, buttonSize, isCompactTrigger, sentryLabel: rootSentryLabel},
+        meta: {dropdownAnchor, success, isDisabled, isLoading, buttonSize, isCompactTrigger, sentryLabel: rootSentryLabel},
     } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.Caret');
     const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Caret');
     const styles = useThemeStyles();
@@ -43,7 +43,6 @@ function Caret({ref, accessibilityLabel, sentryLabel}: CaretProps): React.ReactE
             medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             small={isButtonSizeSmall}
             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
-            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             sentryLabel={sentryLabel ?? rootSentryLabel}
         >
             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>

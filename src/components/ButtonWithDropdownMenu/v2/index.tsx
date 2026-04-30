@@ -20,10 +20,6 @@ function ButtonWithDropdownMenuV2({
     success = true,
     isLoading = false,
     isDisabled = false,
-    shouldStayNormalOnDisable = false,
-    pressOnEnter = false,
-    useKeyboardShortcuts = false,
-    enterKeyEventListenerPriority = 0,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     triggerLayout = 'default',
     wrapperStyle,
@@ -38,7 +34,7 @@ function ButtonWithDropdownMenuV2({
     const [internalOpen, setInternalOpen] = useState(isControlled ? open : defaultOpen);
     const isMenuVisible = isControlled ? open : internalOpen;
 
-    // Refs mirror latest values so the lazy-init `actions` setter stays referentially stable.
+    // Mirror latest values so the lazy-init setter below stays referentially stable.
     const isControlledRef = useRef(isControlled);
     const isMenuVisibleRef = useRef(isMenuVisible);
     const onOpenChangeRef = useRef(onOpenChange);
@@ -48,7 +44,7 @@ function ButtonWithDropdownMenuV2({
         onOpenChangeRef.current = onOpenChange;
     });
 
-    // In controlled mode the parent already drove the transition via `open`, so skip notifying here to avoid double-firing.
+    // Skip notify in controlled mode — the parent already drove the change via `open`.
     const previousIsMenuVisibleRef = useRef(isMenuVisible);
     useEffect(() => {
         if (previousIsMenuVisibleRef.current === isMenuVisible) {
@@ -82,10 +78,6 @@ function ButtonWithDropdownMenuV2({
             success,
             isDisabled,
             isLoading,
-            shouldStayNormalOnDisable,
-            pressOnEnter,
-            useKeyboardShortcuts,
-            enterKeyEventListenerPriority,
             buttonSize,
             isCompactTrigger: triggerLayout === 'compact',
             brickRoadIndicator,

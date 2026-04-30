@@ -12,25 +12,23 @@ import {useButtonWithDropdownMenuRootActions, useButtonWithDropdownMenuRootState
 import type {TriggerProps} from './types';
 import useButtonSizeFlags, {TEXT_COMPACT_THRESHOLD} from './useButtonSizeFlags';
 
-function Trigger({ref, text, children, icon, style, disabledStyle, sentryLabel}: TriggerProps): React.ReactElement {
+function Trigger({
+    ref,
+    text,
+    children,
+    icon,
+    style,
+    disabledStyle,
+    shouldStayNormalOnDisable = false,
+    pressOnEnter = false,
+    useKeyboardShortcuts = false,
+    enterKeyEventListenerPriority = 0,
+    sentryLabel,
+}: TriggerProps): React.ReactElement {
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.Trigger');
     const {
         state: {isMenuVisible},
-        meta: {
-            dropdownAnchor,
-            success,
-            isDisabled,
-            isLoading,
-            shouldStayNormalOnDisable,
-            pressOnEnter,
-            useKeyboardShortcuts,
-            enterKeyEventListenerPriority,
-            buttonSize,
-            isCompactTrigger,
-            brickRoadIndicator,
-            sentryLabel: rootSentryLabel,
-            testID,
-        },
+        meta: {dropdownAnchor, success, isDisabled, isLoading, buttonSize, isCompactTrigger, brickRoadIndicator, sentryLabel: rootSentryLabel, testID},
     } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.Trigger');
     const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Trigger');
     const styles = useThemeStyles();

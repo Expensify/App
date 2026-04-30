@@ -10,23 +10,21 @@ import {useButtonWithDropdownMenuRootState} from './RootContext';
 import type {PrimaryButtonProps} from './types';
 import useButtonSizeFlags, {TEXT_COMPACT_THRESHOLD} from './useButtonSizeFlags';
 
-function PrimaryButton({ref, children, onPress, icon, isDisabled: primaryIsDisabled, sentryLabel}: PrimaryButtonProps): React.ReactElement {
+function PrimaryButton({
+    ref,
+    children,
+    onPress,
+    icon,
+    isDisabled: primaryIsDisabled,
+    shouldStayNormalOnDisable = false,
+    pressOnEnter = false,
+    useKeyboardShortcuts = false,
+    enterKeyEventListenerPriority = 0,
+    sentryLabel,
+}: PrimaryButtonProps): React.ReactElement {
     useAssertOutsideMenu('ButtonWithDropdownMenuV2.PrimaryButton');
     const {
-        meta: {
-            success,
-            isDisabled: rootIsDisabled,
-            isLoading,
-            shouldStayNormalOnDisable,
-            pressOnEnter,
-            useKeyboardShortcuts,
-            enterKeyEventListenerPriority,
-            buttonSize,
-            isCompactTrigger,
-            brickRoadIndicator,
-            sentryLabel: rootSentryLabel,
-            testID,
-        },
+        meta: {success, isDisabled: rootIsDisabled, isLoading, buttonSize, isCompactTrigger, brickRoadIndicator, sentryLabel: rootSentryLabel, testID},
     } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.PrimaryButton');
     const styles = useThemeStyles();
     const theme = useTheme();

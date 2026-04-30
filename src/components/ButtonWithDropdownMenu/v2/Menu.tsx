@@ -38,8 +38,7 @@ function Menu({
     } = useButtonWithDropdownMenuRootState('ButtonWithDropdownMenuV2.Menu');
     const {setIsMenuVisible} = useButtonWithDropdownMenuRootActions('ButtonWithDropdownMenuV2.Menu');
     const styles = useThemeStyles();
-    // PopoverMenu itself reads isSmallScreenWidth — match it for styling parity.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- PopoverMenu itself reads isSmallScreenWidth; match it for styling parity.
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings(true);
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -82,7 +81,7 @@ function Menu({
         const {children: submenuDescriptors, ...presentation} = entry.props;
         return {
             ...presentation,
-            // PopoverMenu only renders the right chevron when `rightIcon` is set; default to ArrowRight so submenu rows look like submenus.
+            // Default to ArrowRight so submenu rows show a chevron (PopoverMenu only renders one when `rightIcon` is set).
             rightIcon: icons.ArrowRight,
             shouldCallAfterModalHide: true,
             subMenuItems: subOptions.map((subEntry) => buildOptionMenuItem(subEntry.props)),
@@ -106,8 +105,7 @@ function Menu({
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={(item) => {
-                        // PopoverMenu's `close()` path is skipped on Safari (its built-in exception around
-                        // `shouldCallAfterModalHide`); closing externally here ensures the popover hides.
+                        // PopoverMenu skips its `close()` path on Safari; close externally here so the popover hides.
                         if (item.shouldCloseModalOnSelect === false) {
                             return;
                         }

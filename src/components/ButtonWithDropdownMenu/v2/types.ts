@@ -45,11 +45,17 @@ type PrimaryButtonProps = WithSentryLabel & {
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
     icon?: IconAsset;
     isDisabled?: boolean;
+    shouldStayNormalOnDisable?: boolean;
+    pressOnEnter?: boolean;
+    /** Registers a Ctrl+Enter shortcut that fires `onPress`. Auto-deactivates while disabled or loading. */
+    useKeyboardShortcuts?: boolean;
+    enterKeyEventListenerPriority?: number;
     ref?: Ref<View>;
 };
 
 type CaretProps = WithSentryLabel & {
     accessibilityLabel?: string;
+    shouldStayNormalOnDisable?: boolean;
     ref?: Ref<View>;
 };
 
@@ -60,6 +66,11 @@ type TriggerProps = WithSentryLabel & {
     icon?: IconAsset;
     style?: StyleProp<ViewStyle>;
     disabledStyle?: StyleProp<ViewStyle>;
+    shouldStayNormalOnDisable?: boolean;
+    pressOnEnter?: boolean;
+    /** Registers a Ctrl+Enter shortcut that toggles the menu. Auto-deactivates while disabled or loading. */
+    useKeyboardShortcuts?: boolean;
+    enterKeyEventListenerPriority?: number;
     ref?: Ref<View>;
 };
 
@@ -76,7 +87,7 @@ type MenuProps = {
 
 type ButtonWithDropdownMenuV2Props = WithSentryLabel & {
     children?: ReactNode;
-    /** Controlled mode — when set, the consumer owns open/close state. Pair with `onOpenChange`. */
+    /** Controlled mode — pair with `onOpenChange`. */
     open?: boolean;
     /** Uncontrolled-mode initial value (ignored when `open` is set). */
     defaultOpen?: boolean;
@@ -84,10 +95,6 @@ type ButtonWithDropdownMenuV2Props = WithSentryLabel & {
     success?: boolean;
     isLoading?: boolean;
     isDisabled?: boolean;
-    shouldStayNormalOnDisable?: boolean;
-    pressOnEnter?: boolean;
-    useKeyboardShortcuts?: boolean;
-    enterKeyEventListenerPriority?: number;
     buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
     triggerLayout?: 'default' | 'compact';
     wrapperStyle?: StyleProp<ViewStyle>;

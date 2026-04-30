@@ -12,8 +12,13 @@ const noop = () => {};
 function Split() {
     const icons = useMemoizedLazyExpensifyIcons(['Wallet', 'CheckCircle']);
     return (
-        <ButtonWithDropdownMenuV2 pressOnEnter>
-            <ButtonWithDropdownMenuV2.PrimaryButton onPress={noop}>Pay $123.45</ButtonWithDropdownMenuV2.PrimaryButton>
+        <ButtonWithDropdownMenuV2>
+            <ButtonWithDropdownMenuV2.PrimaryButton
+                pressOnEnter
+                onPress={noop}
+            >
+                Pay $123.45
+            </ButtonWithDropdownMenuV2.PrimaryButton>
             <ButtonWithDropdownMenuV2.Caret />
             <ButtonWithDropdownMenuV2.Menu>
                 <ButtonWithDropdownMenuV2.Option
