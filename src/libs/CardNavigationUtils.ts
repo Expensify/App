@@ -1,6 +1,6 @@
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import Navigation from './Navigation/Navigation';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 function navigateToCardTransactions(cardID: string) {
@@ -11,4 +11,4 @@ function navigateToCardTransactions(cardID: string) {
     );
 }
 
-export {navigateToCardTransactions};
+export default navigateToCardTransactions;
