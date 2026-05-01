@@ -1,4 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;

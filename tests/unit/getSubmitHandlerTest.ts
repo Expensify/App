@@ -116,6 +116,20 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.DEFAULT);
     });
 
+    it('returns SEARCH_DISMISS (not REPORT_IN_RHP_DISMISS) for global create from Search with report in RHP', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    isSearchTopmostFullScreen: true,
+                    isReportInRHP: true,
+                    destinationReportID: '456',
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
+    });
+
     it('returns DEFAULT when destination report is set but not loaded', () => {
         expect(
             getSubmitHandler(

@@ -2,7 +2,7 @@ import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import useChartParagraphs from '@components/Charts/hooks/useChartParagraphs';
+import {useChartParagraphs} from '@components/Charts/hooks';
 import type {LabelRotation} from '@components/Charts/types';
 import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
 import variables from '@styles/variables';

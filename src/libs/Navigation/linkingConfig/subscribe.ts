@@ -1,6 +1,7 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
+import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -24,6 +25,10 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         // React Navigation would resolve to NotFound (or reset navigation away from the Plaid step)
         // and break the flow — keep the current screen mounted so the SDK can finish.
         if (url.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
+            // Forward the OAuth redirect URI into the Plaid SDK so it can finalize OAuth.
+            // Without this, the native SDK never sees the callback URL and retries OAuth in a loop
+            // after app-to-app bank auth returns. See issue #87757.
+            continuePlaidOAuth(url);
             return;
         }
         listener(url);

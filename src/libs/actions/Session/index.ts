@@ -3,6 +3,7 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -49,7 +50,8 @@ import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
-import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
+import {clearCachedAttachments} from '@userActions/Attachment';
+import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
@@ -69,7 +71,6 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import pkg from '../../../../package.json';
-import {clearCachedAttachments} from '../Attachment';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -717,7 +718,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             }
 
             Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
-            return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS)
+            return clearOnyxForDelegateTransition()
                 .then(() =>
                     Onyx.multiSet({
                         ...stashedData,
@@ -1657,7 +1658,6 @@ export {
     clearAccountMessages,
     setAccountError,
     authenticatePusher,
-    reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
     expireSessionWithDelay,
@@ -1679,5 +1679,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    getShortLivedLoginParams,
 };

@@ -144,7 +144,6 @@ export {
     isDeletedNode,
     isChildOfTaskTitle,
     isChildOfRBR,
-    isCommentTag,
     getFontSizeOfRBRChild,
     isChildOfMutedTextLabel,
     isChildOfLabelText,

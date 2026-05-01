@@ -1,20 +1,20 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useIsFocused, usePreventRemove} from '@react-navigation/native';
+import {usePreventRemove} from '@react-navigation/native';
 import {useCallback, useRef, useState} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, isEnabled = true}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const {showConfirmModal} = useConfirmModal();
     const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    const shouldPrevent = isEnabled && isFocused && !shouldAllowNavigation;
+    const shouldPrevent = !shouldAllowNavigation;
 
     usePreventRemove(
         shouldPrevent,
@@ -36,18 +36,28 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange
                 }).then((result) => {
                     onVisibilityChange?.(false);
                     if (result.action !== ModalActions.CONFIRM) {
+                        onCancel?.();
                         return;
                     }
-                    setShouldAllowNavigation(true);
-                    if (blockedNavigationAction.current) {
-                        navigationRef.current?.dispatch(blockedNavigationAction.current);
-                        blockedNavigationAction.current = undefined;
-                    } else {
-                        navigationRef.current?.goBack();
-                    }
+                    const confirmNavigation = () => {
+                        setShouldAllowNavigation(true);
+                        if (blockedNavigationAction.current) {
+                            navigationRef.current?.dispatch(blockedNavigationAction.current);
+                            blockedNavigationAction.current = undefined;
+                        } else {
+                            navigationRef.current?.goBack();
+                        }
+                    };
+                    Promise.resolve()
+                        .then(() => onConfirm?.())
+                        .then(confirmNavigation)
+                        .catch((error: unknown) => {
+                            Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
+                            blockedNavigationAction.current = undefined;
+                        });
                 });
             },
-            [getHasUnsavedChanges, onVisibilityChange, showConfirmModal, translate],
+            [getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm, showConfirmModal, translate],
         ),
     );
 }

@@ -14,7 +14,7 @@ type EmptyStateButton = {
     style?: StyleProp<ViewStyle>;
     dropDownOptions?: Array<
         DropdownOption<
-            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense'}>
+            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_EXISTING_EXPENSE: 'addExistingExpense'}>
         >
     >;
 };

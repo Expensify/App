@@ -26,7 +26,7 @@ jest.mock('@libs/Log', () => ({
 
 // Bypass the global jest/setup.ts mock to test the real native implementation.
 // Dependencies above are still resolved through their respective mocks.
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+
 const {default: prepareRequestPayload}: {default: PrepareRequestPayload} = jest.requireActual('@libs/prepareRequestPayload/index.native.ts');
 
 describe('prepareRequestPayload (native)', () => {

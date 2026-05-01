@@ -2,6 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -15,6 +16,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, submitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -27,7 +29,7 @@ import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
@@ -46,6 +48,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -80,7 +83,7 @@ function useSelectionModeReportActions({
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -116,6 +119,7 @@ function useSelectionModeReportActions({
     );
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const activeAdminPolicies = useActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -149,7 +153,7 @@ function useSelectionModeReportActions({
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const canAllowSettlement = hasUpdatedTotal(report, policy);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(report?.reportID, transactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
     const isInvoiceReport = isInvoiceReportUtil(report);
 
     const hasOnlyPendingTransactions = !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -352,6 +356,7 @@ function useSelectionModeReportActions({
                 setIsHoldMenuVisible(true);
             }
         } else if (isInvoiceReport) {
+            const email = currentUserEmail ?? '';
             payInvoice({
                 paymentMethodType: type,
                 chatReport,
@@ -359,7 +364,7 @@ function useSelectionModeReportActions({
                 invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: currentUserEmail ?? '',
+                currentUserEmailParam: email,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
@@ -367,6 +372,7 @@ function useSelectionModeReportActions({
                 activePolicy,
                 betas,
                 isSelfTourViewed,
+                defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -378,6 +384,7 @@ function useSelectionModeReportActions({
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
                 betas,

@@ -22,6 +22,7 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExportActions from '@hooks/useExportActions';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -44,7 +46,13 @@ import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {hasHeldExpenses, hasUpdatedTotal, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    hasHeldExpensesFromTransactions,
+    hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
+    isInvoiceReport as isInvoiceReportUtil,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
@@ -77,6 +85,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
     const activeAdminPolicies = useActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const {selectedTransactionIDs, currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -111,9 +120,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
-    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const isAnyTransactionOnHold = hasHeldExpenses(moneyRequestReport?.reportID);
-
     const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
@@ -126,6 +132,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
+
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesFromTransactions(transactions);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -251,6 +260,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 activePolicy,
                 betas,
                 isSelfTourViewed,
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
             });
         } else {
             payMoneyRequest({
@@ -260,6 +270,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
                 betas,
@@ -341,7 +352,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             }
             const nonPendingCount = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
             if (nonPendingCount === selectedTransactionIDs.length) {
-                // eslint-disable-next-line no-restricted-syntax -- backTo is a legacy route param, preserving existing behavior
                 const backToRoute = ((route.params as {backTo?: Route} | undefined)?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined)) as
                     | Route
                     | undefined;
@@ -355,7 +365,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
-    /* eslint-disable react-hooks/refs */
+
     const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = !isBulkSubmitApprovePayBetaEnabled
         ? []
         : [
