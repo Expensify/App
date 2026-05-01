@@ -157,7 +157,7 @@ describe('reportAttributes compute — policy change code flow', () => {
 
     beforeEach(() => {
         jest.resetModules();
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access -- Dynamic require is needed here because jest.resetModules() clears the module registry and we need a fresh import
+
         config = (require('@userActions/OnyxDerived/configs/reportAttributes') as {default: ReportAttributesConfig}).default;
     });
 

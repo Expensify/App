@@ -11,12 +11,19 @@ function useGetExpensifyCardFromReportAction({reportAction, policyID}: {reportAc
     const allExpensifyCards = useWorkspaceCardList();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const expensifyCards = allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
 
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
-
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    return isPolicyAdmin(policy) ? expensifyCards?.[cardID] : allUserCards?.[cardID];
+    if (!isPolicyAdmin(policy)) {
+        return allUserCards?.[cardID];
+    }
+
+    // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
+    // Travel Invoicing cards on the `_TRAVEL_US` variant. Check both.
+    return (
+        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
+        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`]?.[cardID]
+    );
 }
 
 export default useGetExpensifyCardFromReportAction;

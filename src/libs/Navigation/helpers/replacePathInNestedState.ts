@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';

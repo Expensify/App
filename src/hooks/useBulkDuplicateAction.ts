@@ -26,7 +26,7 @@ type UseBulkDuplicateActionParams = {
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
@@ -78,6 +78,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             draftTransactionIDs,
             betas,
             recentWaypoints,
+            currentUserAccountID: accountID,
+            currentUserLogin: currentUserLogin ?? '',
         });
 
         if (onAfterDuplicate) {

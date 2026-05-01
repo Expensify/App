@@ -1,4 +1,3 @@
-import {StackActions} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,16 +14,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
-import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import navigationRef from '@navigation/navigationRef';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -42,7 +38,6 @@ import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
-    isTopLevelBar?: boolean;
     shouldShowFloatingButtons?: boolean;
 };
 
@@ -50,25 +45,32 @@ function doesLastReportExistSelector(report: OnyxEntry<Report>) {
     return !!report?.reportID;
 }
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
 
-    const lastReportRoute = useRootNavigationState((rootState) => {
+    const lastReportRouteReportID = useRootNavigationState((rootState) => {
         if (!rootState) {
             return undefined;
         }
-        return getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+        return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
     });
-    const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
+
+    const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
+        if (!rootState) {
+            return undefined;
+        }
+        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+        return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
+    });
+
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
-    const lastReportRouteReportActionID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
     const doesLastReportActionExistSelector = (reportActions: OnyxEntry<ReportActions>) => {
         const reportAction = lastReportRouteReportActionID ? reportActions?.[lastReportRouteReportActionID] : undefined;
         return !!reportAction && !isDeletedAction(reportAction);
@@ -79,7 +81,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
 
     const StyleUtils = useStyleUtils();
 
-    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled && !isTopLevelBar;
+    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled;
 
     let inboxStatusIndicatorColor: string | undefined;
     if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
@@ -107,15 +109,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
 
-        if (!shouldUseNarrowLayout) {
-            if (doesLastReportExist && lastReportRoute) {
-                const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+        if (!shouldUseNarrowLayout && doesLastReportExist) {
+            // Fetch route params on-demand to avoid storing the full route object in render-time state
+            const rootState = navigationRef.getRootState();
+            const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
+            if (lastRoute) {
+                const {reportID, reportActionID, referrer, backTo} = lastRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
-                return;
-            }
-
-            if (isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-                navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
                 return;
             }
         }
@@ -128,13 +128,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             return;
         }
         interceptAnonymousUser(() => {
-            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
-
-            if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params: accountTabPayload}});
-                return;
-            }
-            navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
+            Navigation.navigate(ROUTES.SETTINGS);
         });
     };
 
