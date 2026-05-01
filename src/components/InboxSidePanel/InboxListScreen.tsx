@@ -52,7 +52,6 @@ function InboxListScreen() {
         <View style={[styles.flex1, styles.h100, styles.appBG]}>
             <TopBarWithLoadingBar
                 breadcrumbLabel={translate('common.chats')}
-                shouldDisplaySearch={false}
                 shouldDisplayHelpButton={false}
                 leftContent={
                     <PressableWithoutFeedback

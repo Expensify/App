@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
+// import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -19,7 +19,6 @@ import type {Session} from '@src/types/onyx';
 
 type TopBarProps = {
     breadcrumbLabel: string;
-    shouldDisplaySearch?: boolean;
     shouldDisplayHelpButton?: boolean;
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
@@ -29,7 +28,7 @@ type TopBarProps = {
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, leftContent}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, leftContent}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -40,7 +39,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
     const displaySignIn = isAnonymousUser;
-    const displaySearch = !isAnonymousUser && shouldDisplaySearch;
+    // const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
         <View style={[styles.w100, styles.zIndex10]}>
@@ -75,7 +74,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {displaySearch && <SearchButton />}
+                {/* displaySearch && <SearchButton /> */}
                 {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.mr2} />}
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />

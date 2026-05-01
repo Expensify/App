@@ -52,7 +52,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 <TopBar
                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                     breadcrumbLabel={translate('common.spend')}
-                    shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
                 <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />

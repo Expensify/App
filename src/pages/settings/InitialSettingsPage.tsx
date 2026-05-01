@@ -568,7 +568,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {shouldUseNarrowLayout && (
                 <TopBarWithLoadingBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}
-                    shouldDisplaySearch
                     shouldDisplayHelpButton
                 />
             )}

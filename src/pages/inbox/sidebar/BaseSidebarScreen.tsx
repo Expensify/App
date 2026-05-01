@@ -54,10 +54,7 @@ function BaseSidebarScreen() {
         >
             {({insets}) => (
                 <>
-                    <TopBarWithLoadingBar
-                        breadcrumbLabel={translate('common.inbox')}
-                        shouldDisplaySearch={shouldUseNarrowLayout}
-                    />
+                    <TopBarWithLoadingBar breadcrumbLabel={translate('common.inbox')} />
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView

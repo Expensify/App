@@ -9,7 +9,7 @@ import Icon from '@components/Icon';
 import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
+// import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
@@ -72,7 +72,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
-    shouldDisplaySearchRouter = false,
+    // shouldDisplaySearchRouter = false,
     shouldDisplayHelpButton = false,
     progressBarPercentage,
     style,
@@ -362,7 +362,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplaySearchRouter && <SearchButton />}
+                {/* shouldDisplaySearchRouter && <SearchButton /> */}
                 {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.ml2} />}
             </View>
         </View>
