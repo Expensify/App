@@ -11641,36 +11641,45 @@ type PrepareOnboardingOnyxDataParams = {
 function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
     // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
     // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
-    const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm your Expensify setup specialist. ";
+    //
+    // Speaker is Concierge (was "Expensify setup specialist"). For TEAM 11+ users, the
+    // server-side append in queueAdminsRoomWelcome (Web-Expensify PR #52519) inserts a
+    // separate "you also have <guide name> assigned" paragraph with a book-a-call link
+    // before the followup-list — so the human onboarding specialist gets introduced
+    // distinctly from Concierge.
+    //
+    // PLACEHOLDER COPY — pending team review on lighter (~50w) vs. middle (~70w)
+    // variants and per-tier vs. uniform value-teaser language.
+    const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm Concierge — I'll help you get Expensify working for your team. ";
 
     let message = welcomeHeader;
     switch (companySize) {
         case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
         case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
             message +=
-                'For an organization your size, the fastest path to value is setting up approval workflows, ' +
-                'connecting your accounting software, and rolling out the Expensify Card to your team. ' +
-                "I'm here to walk you through each step — just ask!";
+                'For an organization your size, the fastest path to value is connecting your accounting software, ' +
+                'setting up multi-level approval workflows, and rolling out the Expensify Card across your team. ' +
+                'Pick a starting point below, or just ask me anything in chat.';
             break;
         case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
         case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
             message +=
-                'For a growing team like yours, the fastest way to get value is to set up expense categories, ' +
-                'configure approval workflows, and invite your team members. ' +
-                "I'm here to walk you through each step — just ask!";
+                'For a growing team like yours, the fastest path to value is connecting your accounting software, ' +
+                'setting up approval workflows, and inviting everyone. ' +
+                'Pick a suggestion below, or just ask me anything in chat.';
             break;
         default:
             message +=
                 'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
                 'invite your team members, and have them start snapping receipts right away. ' +
-                "I'm here to walk you through each step — just ask!";
+                'Pick a suggestion below, or just ask me anything in chat.';
             break;
     }
 
     if (userReportedIntegration && userReportedIntegration !== 'other') {
         const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
         if (friendlyName) {
-            message += `\n\nSince you use ${friendlyName}, I can help you connect it so your expenses sync automatically — just say the word!`;
+            message += `\n\nSince you use ${friendlyName}, I can help you connect it so your expenses sync automatically.`;
         }
     }
 
@@ -11702,11 +11711,20 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Phase 1 cohort (MANAGE_TEAM + micro company size) bypasses the beta gate — the backend
-    // handles gating via NVP, so all micro users get followups without needing the beta flag.
-    // Includes MICRO_SMALL, MICRO_MEDIUM, and the deprecated MICRO for backwards compatibility.
+    // All MANAGE_TEAM cohorts now go through the bespoke welcome path. The previous
+    // gate restricted to MICRO sizes (1-10) while we proved out the deterministic
+    // pregenerated followups; with the server-side guide-block append shipped on
+    // Web-Expensify (PR #52519) for non-Concierge guides, TEAM 11+ users also see
+    // the bespoke welcome — Concierge as the speaker plus an introduction to their
+    // assigned onboarding specialist with a book-a-call link.
     const isPhase1Cohort =
-        companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL ||
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM ||
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO ||
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.SMALL ||
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL ||
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.MEDIUM ||
+        companySize === CONST.ONBOARDING_COMPANY_SIZE.LARGE;
     // Followups path: MANAGE_TEAM + (Phase 1 cohort OR suggestedFollowups beta). Reaches every
     // MANAGE_TEAM cohort user, including `+` aliases and phone-primary sign-ups.
     const shouldUseFollowupsInsteadOfTasks =
