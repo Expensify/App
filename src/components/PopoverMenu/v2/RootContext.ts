@@ -19,18 +19,18 @@ RootStateContext.displayName = 'PopoverMenuRootStateContext';
 const RootActionsContext = createContext<RootActionsValue | null>(null);
 RootActionsContext.displayName = 'PopoverMenuRootActionsContext';
 
-function useRootState(consumerName = 'usePopoverMenuRootState'): RootStateValue {
+function useRootState(): RootStateValue {
     const value = use(RootStateContext);
     if (!value) {
-        throw new Error(`\`${consumerName}\` must be called inside <PopoverMenu.Root>`);
+        throw new Error('PopoverMenu hook used outside <PopoverMenu.Root>');
     }
     return value;
 }
 
-function useRootActions(consumerName = 'usePopoverMenuRootActions'): RootActionsValue {
+function useRootActions(): RootActionsValue {
     const value = use(RootActionsContext);
     if (!value) {
-        throw new Error(`\`${consumerName}\` must be called inside <PopoverMenu.Root>`);
+        throw new Error('PopoverMenu hook used outside <PopoverMenu.Root>');
     }
     return value;
 }

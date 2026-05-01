@@ -1,6 +1,5 @@
-import React, {useId, useLayoutEffect, useRef} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
-import type {View} from 'react-native';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +7,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {useContentActions, useContentState} from './ContentContext';
-import {useSubContext} from './SubContext';
+import {getParentSubId, useSubContext} from './SubContext';
+import useFocusableRow from './useFocusableRow';
 
 type SubContentProps = {
     children: ReactNode;
@@ -16,12 +16,7 @@ type SubContentProps = {
 };
 
 function BackButton({backButtonText, parentSubId}: {backButtonText?: string; parentSubId: string | null}): React.ReactElement {
-    const id = useId();
-    const ref = useRef<View>(null);
-    const {
-        state: {focusedId},
-    } = useContentState('PopoverMenu.SubContent.BackButton');
-    const {exitSub, registerItem, unregisterItem, setFocusedId} = useContentActions('PopoverMenu.SubContent.BackButton');
+    const {exitSub} = useContentActions();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -30,19 +25,10 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
     const hasLabel = !!backButtonText;
     const labelText = backButtonText ?? translate('common.goBack');
 
-    const handleActivateRef = useRef(() => exitSub(parentSubId));
-    useLayoutEffect(() => {
-        handleActivateRef.current = () => exitSub(parentSubId);
+    const {ref, focused, onPress, onFocus} = useFocusableRow({
+        visible: true,
+        onActivate: () => exitSub(parentSubId),
     });
-
-    useLayoutEffect(() => {
-        registerItem(id, {
-            ref,
-            isDisabled: false,
-            onActivate: () => handleActivateRef.current(),
-        });
-        return () => unregisterItem(id);
-    }, [id, registerItem, unregisterItem]);
 
     return (
         <FocusableMenuItem
@@ -59,9 +45,9 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
             titleStyle={hasLabel ? styles.createMenuHeaderText : undefined}
             shouldShowBasicTitle={hasLabel}
             shouldCheckActionAllowedOnPress={false}
-            onPress={() => exitSub(parentSubId)}
-            onFocus={() => setFocusedId(id)}
-            focused={focusedId === id}
+            onPress={onPress}
+            onFocus={onFocus}
+            focused={focused}
         />
     );
 }
@@ -69,18 +55,18 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement {
     const {
         state: {currentSubId},
-    } = useContentState('PopoverMenu.SubContent');
-    const {subId, parentSubId} = useSubContext('PopoverMenu.SubContent');
+    } = useContentState();
+    const subContext = useSubContext();
 
-    // Children always mount so nested `<Sub>` survives navigation. Items gate themselves via `useIsAtActiveLevel`; only the back button is gated here.
-    const isActiveLevel = currentSubId === subId;
+    // Children stay mounted so nested <Sub> survives navigation; only the back button is gated here.
+    const isActiveLevel = currentSubId === subContext.subId;
 
     return (
         <>
             {isActiveLevel && (
                 <BackButton
                     backButtonText={backButtonText}
-                    parentSubId={parentSubId}
+                    parentSubId={getParentSubId(subContext)}
                 />
             )}
             {children}

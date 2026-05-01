@@ -1,5 +1,5 @@
-import React, {useId, useLayoutEffect, useRef} from 'react';
-import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import React from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -8,7 +8,8 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useContentActions, useContentState} from './ContentContext';
-import {useSubContext} from './SubContext';
+import {getParentSubId, useSubContext} from './SubContext';
+import useFocusableRow from './useFocusableRow';
 
 type SubTriggerProps = {
     text: string;
@@ -25,42 +26,26 @@ type SubTriggerProps = {
 };
 
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
-    const id = useId();
-    const ref = useRef<View>(null);
     const {
-        state: {currentSubId, focusedId},
-    } = useContentState('PopoverMenu.SubTrigger');
-    const {enterSub, registerItem, unregisterItem, setFocusedId} = useContentActions('PopoverMenu.SubTrigger');
-    const {subId, parentSubId} = useSubContext('PopoverMenu.SubTrigger');
+        state: {currentSubId},
+    } = useContentState();
+    const {enterSub} = useContentActions();
+    const subContext = useSubContext();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    // Reachable when the user is at this Sub's parent level (root, or the outer Sub for nested cases).
-    const isVisible = currentSubId === parentSubId;
+    // Reachable when the user is at this Sub's parent level.
+    const isVisible = currentSubId === getParentSubId(subContext);
 
-    const handleActivate = () => {
-        if (disabled) {
-            return;
-        }
-        enterSub(subId);
-    };
-
-    // Mirrored so the registry's `onActivate` stays stable across renders.
-    const handleActivateRef = useRef(handleActivate);
-    useLayoutEffect(() => {
-        handleActivateRef.current = handleActivate;
+    const {ref, focused, onPress, onFocus} = useFocusableRow({
+        visible: isVisible,
+        isDisabled: disabled,
+        onActivate: () => {
+            if (disabled) {
+                return;
+            }
+            enterSub(subContext.subId);
+        },
     });
-
-    useLayoutEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        registerItem(id, {
-            ref,
-            isDisabled: disabled,
-            onActivate: () => handleActivateRef.current(),
-        });
-        return () => unregisterItem(id);
-    }, [isVisible, id, registerItem, unregisterItem, disabled]);
 
     if (!isVisible) {
         return null;
@@ -79,9 +64,9 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
             interactive
             iconRight={rightIcon ?? icons.ArrowRight}
             shouldShowRightIcon
-            onPress={handleActivate}
-            onFocus={() => setFocusedId(id)}
-            focused={focusedId === id}
+            onPress={onPress}
+            onFocus={onFocus}
+            focused={focused}
             shouldCheckActionAllowedOnPress={false}
             titleStyle={titleStyle}
             wrapperStyle={wrapperStyle}

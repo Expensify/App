@@ -67,8 +67,7 @@ jest.mock('@components/CompactMenuContext', () => {
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useTheme', () => () => ({border: 'borderColor', icon: 'iconColor', iconHovered: 'iconHovered'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false}));
-// Sync-resolving thenable so the measurement effect completes inside `render()`. The function reference must be stable
-// across renders — otherwise the effect re-runs every render and loops via setState.
+// Sync-thenable + stable function ref so the measurement effect resolves inside `render()` without looping via setState.
 jest.mock('@hooks/usePopoverPosition', () => {
     const calculatePopoverPosition = jest.fn(() => ({
         then: (onFulfilled: (v: {horizontal: number; vertical: number}) => void) => {
@@ -627,7 +626,7 @@ describe('PopoverMenu V2', () => {
         });
 
         it('pops to parent when an active <Sub> unmounts mid-flight', () => {
-            function ToggleableSubMenu({showSub}: {showSub: boolean}) {
+            function SubMenuWithToggle({showSub}: {showSub: boolean}) {
                 const anchorRef = useRef<RNViewType>(null);
                 return (
                     <>
@@ -659,15 +658,93 @@ describe('PopoverMenu V2', () => {
                 );
             }
 
-            const tree = render(<ToggleableSubMenu showSub />);
+            const tree = render(<SubMenuWithToggle showSub />);
             press('Open A');
             expect(findItemByTitle('A item')).toBeDefined();
             expect(findItemByTitle('Top')).toBeUndefined();
 
             menuItemPropsCapture.current = [];
-            tree.rerender(<ToggleableSubMenu showSub={false} />);
+            tree.rerender(<SubMenuWithToggle showSub={false} />);
             expect(findItemByTitle('Top')).toBeDefined();
             expect(findItemByTitle('A item')).toBeUndefined();
+        });
+
+        it('cascades back to root when both a nested <Sub> and its parent unmount together', () => {
+            function NestedTree({showSubs}: {showSubs: boolean}) {
+                const anchorRef = useRef<RNViewType>(null);
+                return (
+                    <>
+                        <View ref={anchorRef} />
+                        <PopoverMenu.Root
+                            open
+                            onOpenChange={() => {}}
+                            anchorRef={anchorRef}
+                        >
+                            <PopoverMenu.Content>
+                                <PopoverMenu.Item
+                                    text="Top"
+                                    onSelect={() => {}}
+                                />
+                                {showSubs && (
+                                    <PopoverMenu.Sub id="A">
+                                        <PopoverMenu.SubTrigger text="Open A" />
+                                        <PopoverMenu.SubContent backButtonText="Back to root">
+                                            <PopoverMenu.Sub id="B">
+                                                <PopoverMenu.SubTrigger text="Open B" />
+                                                <PopoverMenu.SubContent backButtonText="Back to A">
+                                                    <PopoverMenu.Item
+                                                        text="B item"
+                                                        onSelect={() => {}}
+                                                    />
+                                                </PopoverMenu.SubContent>
+                                            </PopoverMenu.Sub>
+                                        </PopoverMenu.SubContent>
+                                    </PopoverMenu.Sub>
+                                )}
+                            </PopoverMenu.Content>
+                        </PopoverMenu.Root>
+                    </>
+                );
+            }
+
+            const tree = render(<NestedTree showSubs />);
+            press('Open A');
+            press('Open B');
+            expect(findItemByTitle('B item')).toBeDefined();
+
+            menuItemPropsCapture.current = [];
+            tree.rerender(<NestedTree showSubs={false} />);
+            expect(findItemByTitle('Top')).toBeDefined();
+            expect(findItemByTitle('B item')).toBeUndefined();
+        });
+
+        it('resets focus when entering a submenu', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="Above"
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Sub>
+                            <PopoverMenu.SubTrigger text="Trigger" />
+                            <PopoverMenu.SubContent backButtonText="Back">
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+
+            const trigger = findItemByTitle<{onFocus?: () => void}>('Trigger');
+            act(() => trigger?.onFocus?.());
+            press('Trigger');
+
+            expect(findItemByTitle<{focused?: boolean}>('Back')?.focused).toBe(false);
+            expect(findItemByTitle<{focused?: boolean}>('Inner')?.focused).toBe(false);
         });
     });
 
@@ -733,7 +810,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </PopoverMenu.Content>,
                 ),
-            ).toThrow(/must be called inside <PopoverMenu\.Root>/);
+            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Root>/);
         });
 
         it('throws when Item is rendered outside Content', () => {
@@ -746,7 +823,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </ControlledHarness>,
                 ),
-            ).toThrow(/must be called inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Content>/);
         });
 
         it('throws when Sub is rendered outside Content', () => {
@@ -758,7 +835,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Sub>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/must be called inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Content>/);
         });
 
         it('throws when SubTrigger is rendered outside Sub', () => {
@@ -770,7 +847,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/must be called inside <PopoverMenu\.Sub>/);
+            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Sub>/);
         });
 
         it('throws when SubContent is rendered outside Sub', () => {
@@ -787,7 +864,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/must be called inside <PopoverMenu\.Sub>/);
+            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Sub>/);
         });
     });
 });

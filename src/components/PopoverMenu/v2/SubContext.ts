@@ -3,17 +3,17 @@ import {useContentState} from './ContentContext';
 
 type SubContextValue = {
     subId: string;
-    /** The level this `<Sub>` is rendered at: `null` for root, or the outer Sub's id when nested. */
-    parentSubId: string | null;
+    /** Ancestor subIds from outermost to immediate parent. Empty for root-level Subs. */
+    ancestorChain: readonly string[];
 };
 
 const SubContext = createContext<SubContextValue | null>(null);
 SubContext.displayName = 'PopoverMenuSubContext';
 
-function useSubContext(consumerName = 'usePopoverMenuSubContext'): SubContextValue {
+function useSubContext(): SubContextValue {
     const value = use(SubContext);
     if (!value) {
-        throw new Error(`\`${consumerName}\` must be called inside <PopoverMenu.Sub>`);
+        throw new Error('PopoverMenu hook used outside <PopoverMenu.Sub>');
     }
     return value;
 }
@@ -22,13 +22,18 @@ function useSubContextOptional(): SubContextValue | null {
     return use(SubContext);
 }
 
-function useIsAtActiveLevel(consumerName?: string): boolean {
+function useIsAtActiveLevel(): boolean {
     const {
         state: {currentSubId},
-    } = useContentState(consumerName);
+    } = useContentState();
     const subContext = useSubContextOptional();
     return currentSubId === (subContext?.subId ?? null);
 }
 
-export {SubContext, useSubContext, useSubContextOptional, useIsAtActiveLevel};
+/** Returns the immediate parent's subId, or `null` for root-level Subs. */
+function getParentSubId(ctx: SubContextValue): string | null {
+    return ctx.ancestorChain.at(-1) ?? null;
+}
+
+export {SubContext, useSubContext, useSubContextOptional, useIsAtActiveLevel, getParentSubId};
 export type {SubContextValue};

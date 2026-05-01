@@ -1,6 +1,6 @@
 import React, {useEffect, useId, useRef} from 'react';
 import type {ReactNode} from 'react';
-import {useContentActions, useContentState} from './ContentContext';
+import {useContentActions} from './ContentContext';
 import {SubContext, useSubContextOptional} from './SubContext';
 import type {SubContextValue} from './SubContext';
 
@@ -14,28 +14,21 @@ function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackId = useId();
     const subId = id ?? fallbackId;
     const outerSub = useSubContextOptional();
-    const parentSubId = outerSub?.subId ?? null;
-    const value = {subId, parentSubId} satisfies SubContextValue;
+    const ancestorChain = outerSub ? [...outerSub.ancestorChain, outerSub.subId] : [];
+    const value = {subId, ancestorChain} satisfies SubContextValue;
 
-    const {
-        state: {currentSubId},
-    } = useContentState('PopoverMenu.Sub');
-    const {exitSub} = useContentActions('PopoverMenu.Sub');
+    const {registerSub, unregisterSub} = useContentActions();
 
-    // If this Sub unmounts while it's the entered sub, pop to its parent so siblings re-emerge.
-    const currentSubIdRef = useRef(currentSubId);
+    // Mirrored so the unmount cleanup sees the latest chain.
+    const ancestorChainRef = useRef<readonly string[]>(ancestorChain);
     useEffect(() => {
-        currentSubIdRef.current = currentSubId;
+        ancestorChainRef.current = ancestorChain;
     });
-    useEffect(
-        () => () => {
-            if (currentSubIdRef.current !== subId) {
-                return;
-            }
-            exitSub(parentSubId);
-        },
-        [subId, parentSubId, exitSub],
-    );
+
+    useEffect(() => {
+        registerSub(subId);
+        return () => unregisterSub(subId, ancestorChainRef.current);
+    }, [subId, registerSub, unregisterSub]);
 
     return <SubContext.Provider value={value}>{children}</SubContext.Provider>;
 }

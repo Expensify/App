@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -10,11 +10,9 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -23,6 +21,9 @@ import {ContentActionsContext, ContentStateContext} from './ContentContext';
 import type {ContentActionsValue, ContentStateValue, FocusableItem} from './ContentContext';
 import {useRootActions, useRootState} from './RootContext';
 import type {AnchorRef} from './RootContext';
+import useAnchorMeasurement from './useAnchorMeasurement';
+import useOnValueChange from './useOnValueChange';
+import useOrderedIds from './useOrderedIds';
 import useSuppressSpaceScroll from './useSuppressSpaceScroll';
 
 type ContentProps = {
@@ -30,7 +31,7 @@ type ContentProps = {
     headerText?: string;
     headerStyles?: StyleProp<TextStyle>;
     anchorAlignment?: AnchorAlignment;
-    /** Pre-measured anchor position. When set, `<Content>` skips its own measurement. */
+    /** Pre-measured anchor; skips internal measurement when set. */
     anchorPosition?: AnchorPosition;
     containerStyles?: StyleProp<ViewStyle>;
     innerContainerStyle?: ViewStyle;
@@ -96,40 +97,58 @@ function Content({
     const {
         state: {isVisible},
         meta: {anchorRef},
-    } = useRootState('PopoverMenu.Content');
-    const {setIsVisible} = useRootActions('PopoverMenu.Content');
+    } = useRootState();
+    const {setIsVisible} = useRootActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
-    const {calculatePopoverPosition} = usePopoverPosition();
     const {windowHeight} = useWindowDimensions();
 
-    const [measuredAnchorPosition, setMeasuredAnchorPosition] = useState<AnchorPosition | null>(null);
-    const anchorPosition = anchorPositionProp ?? measuredAnchorPosition;
+    const anchorPosition = useAnchorMeasurement({anchorRef, anchorPositionProp, anchorAlignment, isVisible});
     const [currentSubId, setCurrentSubId] = useState<string | null>(null);
+    const mountedSubs = useRef<Set<string>>(new Set());
 
-    // Reset submenu state on every close so reopening the same Content starts at the top level (covers Item.onSelect, controlled close, overlay click).
-    const [prevIsVisible, setPrevIsVisible] = useState(isVisible);
-    if (prevIsVisible !== isVisible) {
-        setPrevIsVisible(isVisible);
-        if (!isVisible && currentSubId !== null) {
-            setCurrentSubId(null);
+    // Reset to top level on close so reopening doesn't preserve sub-menu state.
+    useOnValueChange(isVisible, (nextVisible) => {
+        if (nextVisible || currentSubId === null) {
+            return;
         }
-    }
+        setCurrentSubId(null);
+    });
+
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
-    const orderedIds = [...registry.keys()];
+    const orderedIds = useOrderedIds(registry);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIds.length - 1, isActive: isVisible, initialFocusedIndex: -1});
     // Guard the -1 sentinel — `.at(-1)` would return the last item.
     const focusedId = focusedIndex >= 0 ? (orderedIds.at(focusedIndex) ?? null) : null;
 
-    // Mirrored so the lazy-init `setFocusedId` can translate id↔index without going stale.
+    // Mirror so setFocusedId reads the latest order without going stale.
     const orderedIdsRef = useRef(orderedIds);
     useLayoutEffect(() => {
         orderedIdsRef.current = orderedIds;
     });
 
     const [actions] = useState<ContentActionsValue>(() => ({
-        enterSub: (id: string) => setCurrentSubId(id),
-        exitSub: (target: string | null = null) => setCurrentSubId(target),
+        // Reset focus on level change: the registry is replaced and the old numeric index would map to a different row.
+        enterSub: (id: string) => {
+            setCurrentSubId(id);
+            setFocusedIndex(-1);
+        },
+        exitSub: (target: string | null = null) => {
+            setCurrentSubId(target);
+            setFocusedIndex(-1);
+        },
+        registerSub: (subId: string) => {
+            mountedSubs.current.add(subId);
+        },
+        unregisterSub: (subId: string, ancestorChain: readonly string[]) => {
+            mountedSubs.current.delete(subId);
+            setCurrentSubId((prev) => {
+                if (prev !== subId) {
+                    return prev;
+                }
+                return ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
+            });
+        },
         registerItem: (id, item) =>
             setRegistry((prev) => {
                 const next = new Map(prev);
@@ -167,26 +186,6 @@ function Content({
     const handleClose = () => {
         setIsVisible(false);
     };
-
-    useEffect(() => {
-        if (anchorPositionProp || !anchorRef.current || !isVisible) {
-            return;
-        }
-        let cancelled = false;
-        calculatePopoverPosition(anchorRef, anchorAlignment)
-            .then((next) => {
-                if (cancelled) {
-                    return;
-                }
-                setMeasuredAnchorPosition(next);
-            })
-            .catch((error: unknown) => {
-                Log.warn('[PopoverMenu.Content] popover position calculation failed', {error: String(error)});
-            });
-        return () => {
-            cancelled = true;
-        };
-    }, [isVisible, anchorRef, calculatePopoverPosition, anchorAlignment, anchorPositionProp]);
 
     if (!anchorPosition) {
         return null;

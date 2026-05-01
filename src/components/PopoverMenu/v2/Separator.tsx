@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {useIsAtActiveLevel} from './SubContext';
 
 function Separator(): React.ReactElement | null {
-    const isAtActiveLevel = useIsAtActiveLevel('PopoverMenu.Separator');
+    const isAtActiveLevel = useIsAtActiveLevel();
     const styles = useThemeStyles();
     const theme = useTheme();
 
