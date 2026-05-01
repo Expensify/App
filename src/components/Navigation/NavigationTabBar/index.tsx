@@ -1,7 +1,6 @@
 import {StackActions} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
 import FloatingGPSButton from '@components/FloatingGPSButton';
@@ -12,29 +11,21 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
 import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import Navigation from '@libs/Navigation/Navigation';
-import {isDeletedAction} from '@libs/ReportActionsUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import navigationRef from '@navigation/navigationRef';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type {Report, ReportActions} from '@src/types/onyx';
-import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
@@ -46,34 +37,13 @@ type NavigationTabBarProps = {
     shouldShowFloatingButtons?: boolean;
 };
 
-function doesLastReportExistSelector(report: OnyxEntry<Report>) {
-    return !!report?.reportID;
-}
-
 function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
-
-    const lastReportRoute = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        return getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-    });
-    const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
-
-    const lastReportRouteReportActionID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
-    const doesLastReportActionExistSelector = (reportActions: OnyxEntry<ReportActions>) => {
-        const reportAction = lastReportRouteReportActionID ? reportActions?.[lastReportRouteReportActionID] : undefined;
-        return !!reportAction && !isDeletedAction(reportAction);
-    };
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -81,46 +51,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
 
     const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled && !isTopLevelBar;
 
-    let inboxStatusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        inboxStatusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        inboxStatusIndicatorColor = theme.danger;
-    }
-
-    const inboxAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.INBOX};
-
     const navigateToNewDotHome = () => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
         Navigation.navigate(ROUTES.HOME);
-    };
-
-    const navigateToChats = () => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
-            return;
-        }
-
-        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
-            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        });
-
-        if (!shouldUseNarrowLayout) {
-            if (doesLastReportExist && lastReportRoute) {
-                const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
-                return;
-            }
-
-            if (isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-                navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
-                return;
-            }
-        }
-
-        Navigation.navigate(ROUTES.INBOX);
     };
 
     const navigateToSettings = () => {
@@ -183,24 +118,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                 />
                             )}
                         </PressableWithFeedback>
-                        <PressableWithFeedback
-                            onPress={navigateToChats}
-                            role={CONST.ROLE.TAB}
-                            accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
-                            accessibilityState={inboxAccessibilityState}
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                        >
-                            {({hovered}) => (
-                                <TabBarItem
-                                    icon={expensifyIcons.Inbox}
-                                    label={translate('common.inbox')}
-                                    isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                                    isHovered={hovered}
-                                    statusIndicatorColor={inboxStatusIndicatorColor}
-                                />
-                            )}
-                        </PressableWithFeedback>
                         <SearchTabButton
                             selectedTab={selectedTab}
                             isWideLayout
@@ -247,23 +164,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
-                    />
-                </PressableWithFeedback>
-                <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.TAB}
-                    accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
-                    accessibilityState={inboxAccessibilityState}
-                    wrapperStyle={styles.flex1}
-                    style={styles.navigationTabBarItem}
-                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                >
-                    <TabBarItem
-                        icon={expensifyIcons.Inbox}
-                        label={translate('common.inbox')}
-                        isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                        statusIndicatorColor={inboxStatusIndicatorColor}
-                        numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <SearchTabButton

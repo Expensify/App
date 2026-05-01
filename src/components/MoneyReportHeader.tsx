@@ -129,7 +129,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab
             >
                 {shouldDisplayNarrowMoreButton && (
                     <MoneyReportHeaderActions

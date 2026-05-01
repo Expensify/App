@@ -17,7 +17,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {isSelfDM} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -90,7 +89,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
-    const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
     const shouldDisplayNarrowMoreButton = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -167,7 +165,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
                 shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
                 {shouldDisplayNarrowMoreButton && (
                     <MoneyRequestHeaderActions

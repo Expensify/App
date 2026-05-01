@@ -74,9 +74,6 @@ type AvatarWithDisplayNameProps = {
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
 
-    /** Whether to open the parent report link in the current tab if possible */
-    openParentReportInCurrentTab?: boolean;
-
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
 
@@ -178,7 +175,6 @@ function AvatarWithDisplayName({
     shouldEnableAvatarNavigation = true,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
-    openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
     customDisplayNameStyle = {},
@@ -333,11 +329,6 @@ function AvatarWithDisplayName({
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                reportID={report?.reportID}
-                                parentReportID={report?.parentReportID}
-                                parentReportActionID={report?.parentReportActionID}
-                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
-                                openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
                                 textStyles={parentNavigationSubtitleTextStyles}
                                 statusTextContainerStyles={parentNavigationStatusContainerStyles}

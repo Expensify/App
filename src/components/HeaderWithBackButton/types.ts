@@ -171,8 +171,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** If true, display the individual button instead of the three-dot menu when there's only one menu item */
     shouldMinimizeMenuButton?: boolean;
-    /** Whether to open the parent report link in the current tab if possible */
-    openParentReportInCurrentTab?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

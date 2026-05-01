@@ -340,10 +340,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                                 statusTextColor={statusColorForInvoiceReport?.textColor}
                                                 statusTextBackgroundColor={statusColorForInvoiceReport?.backgroundColor}
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                                reportID={parentNavigationReport?.reportID}
-                                                parentReportID={parentNavigationReport?.parentReportID}
-                                                parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
-                                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                                 humanAgentAccountID={humanAgentAccountID}
                                                 humanAgentName={humanAgentName}
                                             />

@@ -78,7 +78,6 @@ function HeaderWithBackButton({
     style,
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
-    openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
@@ -140,7 +139,6 @@ function HeaderWithBackButton({
                     policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
             );
         }
@@ -174,7 +172,6 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
-        openParentReportInCurrentTab,
         shouldDisplayStatus,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
