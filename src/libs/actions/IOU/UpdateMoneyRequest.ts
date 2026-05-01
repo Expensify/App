@@ -24,6 +24,7 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {
+    didReceiptScanSucceed,
     getAmount,
     getClearedPendingFields,
     getMerchant,
@@ -31,9 +32,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
     isOnHold,
-    isReceiptBeingScanned,
     isScanning,
-    isScanRequest,
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -905,15 +904,7 @@ function addOptimisticSmartScanModifiedAmountViolation({
     const scannedAmount = Math.abs(Number(transaction?.modifiedAmount));
     const editedAmount = Math.abs(Number(updatedTransaction.modifiedAmount));
 
-    if (
-        !transaction ||
-        !isScanRequest(transaction) ||
-        isReceiptBeingScanned(transaction) ||
-        !hasModifiedAmount ||
-        !scannedAmount ||
-        !Number.isFinite(editedAmount) ||
-        editedAmount <= scannedAmount
-    ) {
+    if (!transaction || !didReceiptScanSucceed(transaction) || !hasModifiedAmount || !scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
         return transactionViolations;
     }
 

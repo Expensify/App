@@ -4,8 +4,7 @@ import type {Transaction, TransactionViolation} from '@src/types/onyx';
 
 /**
  * Creates a minimal scan transaction for testing.
- * - iouRequestType = SCAN so isScanRequest() returns true
- * - receipt.state = SCAN_COMPLETE so isReceiptBeingScanned() returns false
+ * - receipt.state = SCAN_COMPLETE so didReceiptScanSucceed() returns true
  */
 function createScanTransaction(overrides: Partial<Transaction> = {}): Transaction {
     return {
@@ -15,7 +14,6 @@ function createScanTransaction(overrides: Partial<Transaction> = {}): Transactio
         merchant: 'Test',
         created: '2026-01-01',
         reportID: '1',
-        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
         receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
         modifiedAmount: 1000,
         ...overrides,
@@ -98,8 +96,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
         expect(result).toBe(violations);
     });
 
-    it('should return original violations when transaction is not a scan request', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+    it('should return original violations when receipt scan did not succeed', () => {
+        const transaction = createScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
         const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
