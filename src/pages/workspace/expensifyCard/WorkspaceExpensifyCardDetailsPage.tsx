@@ -349,20 +349,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             titleStyle={styles.walletCardLimit}
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.expensifyCard.cardLimit')}
-                            title={formattedLimit}
-                            shouldShowRightIcon
-                            onPress={() =>
-                                Navigation.navigate(
-                                    isWorkspaceCardRhp
-                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute())
-                                        : ROUTES.EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute()),
-                                )
-                            }
-                        />
-                    </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
                         <MenuItemWithTopDescription
                             description={translate('workspace.card.issueNewCard.limitType')}
@@ -376,6 +362,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 )
                             }
                             hintText={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, translate)}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.expensifyCard.cardLimit')}
+                            title={formattedLimit}
+                            shouldShowRightIcon
+                            onPress={() =>
+                                Navigation.navigate(
+                                    isWorkspaceCardRhp
+                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute())
+                                        : ROUTES.EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute()),
+                                )
+                            }
                         />
                     </OfflineWithFeedback>
                     {!isProduction && spendRulesSummary.length > 0 && (
