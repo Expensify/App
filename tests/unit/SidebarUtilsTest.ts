@@ -6,7 +6,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
@@ -38,6 +37,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAdmin: jest.fn(() => true),
 }));
 const CURRENT_USER_LOGIN = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 5;
+
 describe('SidebarUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -72,7 +73,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -197,7 +197,6 @@ describe('SidebarUtils', () => {
                 reportID: '1',
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -287,7 +286,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -426,7 +424,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -558,7 +555,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -686,7 +682,7 @@ describe('SidebarUtils', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =
@@ -718,7 +714,6 @@ describe('SidebarUtils', () => {
             const liveTransactionID = 'tx-live';
             const deletedTransactionID = 'tx-deleted';
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -732,7 +727,7 @@ describe('SidebarUtils', () => {
                         currency: CONST.CURRENCY.USD,
                     },
                 } as ReportAction,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 '2': {
                     reportActionID: '2',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -782,7 +777,6 @@ describe('SidebarUtils', () => {
             const liveTransactionID = 'tx-live';
             const deletedTransactionID = 'tx-deleted';
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -796,7 +790,7 @@ describe('SidebarUtils', () => {
                         currency: CONST.CURRENCY.USD,
                     },
                 } as ReportAction,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 '2': {
                     reportActionID: '2',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -851,7 +845,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -938,7 +931,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -2932,7 +2924,6 @@ describe('SidebarUtils', () => {
                     childReportNotificationPreference: 'always',
                 };
                 const MOCK_REPORT_ACTIONS: ReportActions = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     [lastAction.reportActionID]: lastAction,
                     [deletedAction.reportActionID]: deletedAction,
                 };

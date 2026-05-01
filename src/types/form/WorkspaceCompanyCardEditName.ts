@@ -14,5 +14,5 @@ type WorkspaceCompanyCardEditName = Form<
     }
 >;
 
+// eslint-disable-next-line import/prefer-default-export
 export type {WorkspaceCompanyCardEditName};
-export default INPUT_IDS;

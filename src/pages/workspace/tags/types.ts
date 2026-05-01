@@ -36,5 +36,4 @@ type PolicyTagList = {
     pendingAction?: PendingAction | null;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export type {TagListItem, PolicyTag, PolicyTagList};

@@ -95,7 +95,7 @@ To create a time expense:
 3. Select **Time**.
 4. Enter the number of hours.
 5. Click **Next**.
-6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
+6. Choose the recipient and add expense details like description, category, tags, date, and set whether the expense is reimbursable.
 7. Click **Create expense**.
 
 The total amount will be calculated automatically using the hourly rate set for the workspace.

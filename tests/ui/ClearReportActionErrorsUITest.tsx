@@ -101,7 +101,6 @@ describe('ClearReportActionErrors UI', () => {
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
-                                taskReport={undefined}
                                 clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}
                             />

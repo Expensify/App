@@ -211,7 +211,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
+    excludeHidden?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
     searchInputValue?: string;

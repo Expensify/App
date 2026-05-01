@@ -3,6 +3,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
