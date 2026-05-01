@@ -32,9 +32,12 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
     const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+
+    const [shouldShowError, setShouldShowError] = useState(false);
+    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.cardRuleID ?? '');
 
     const cardRuleListItems: CardRuleListItemType[] = cardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
@@ -45,9 +48,6 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
         isSelected: cardRule.ruleID === cardRuleID,
         accessibilityLabel: cardRule.accessibilityLabel,
     }));
-
-    const [shouldShowError, setShouldShowError] = useState(false);
-    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.cardRuleID ?? '');
 
     const filterCardRules = (cardRuleListItem: CardRuleListItemType, searchInput: string) => {
         const results = tokenizedSearch([cardRuleListItem], searchInput, (option) => option.searchTokens);
@@ -82,9 +82,7 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
             label={translate('workspace.card.searchRules')}
             inputValue={inputValue}
             onChangeText={setInputValue}
-            // inputValue={inputValue}
-            // onChangeText={setInputValue}
-            // shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
+            shouldShowEmptyState={!isLoadingCardRules && filteredCardRules.length === 0}
         />
     );
 
@@ -120,7 +118,7 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
                 {!isLoadingCardRules && (
                     <SelectionList
                         ListItem={CardRuleListItem}
-                        data={cardRuleListItems}
+                        data={filteredCardRules}
                         canSelectMultiple={false}
                         customListHeader={headerContent}
                         onSelectRow={onSelectCardRule}
