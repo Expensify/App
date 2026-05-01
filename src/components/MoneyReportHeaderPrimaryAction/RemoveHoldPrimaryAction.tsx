@@ -50,7 +50,14 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 if (!moneyRequestAction) {
                     return;
                 }
-                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID);
+                changeMoneyRequestHoldStatus(
+                    moneyRequestAction,
+                    getLinkedIOUTransaction(moneyRequestAction, transactions),
+                    isOffline,
+                    bankAccountList,
+                    currentUserLogin ?? '',
+                    currentUserAccountID,
+                );
             }}
         />
     );

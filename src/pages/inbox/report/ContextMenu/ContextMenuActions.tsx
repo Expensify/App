@@ -603,7 +603,14 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, bankAccountList, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        bankAccountList,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                    ),
                 );
                 return;
             }
@@ -633,7 +640,14 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, bankAccountList, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        bankAccountList,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                    ),
                 );
                 return;
             }

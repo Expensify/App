@@ -357,7 +357,15 @@ function putTransactionsOnHold(
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, currentUserLogin: string, currentUserAccountID: number) {
+function unholdRequest(
+    transactionID: string,
+    reportID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isOffline: boolean,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
