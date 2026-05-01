@@ -322,7 +322,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         }
                     />
                 ) : (
-                    <View style={[styles.flex1, styles.mb9, styles.mt9]}>
+                    <View style={[styles.flex1, styles.mb3, styles.mt9]}>
                         <CardPreview />
                     </View>
                 )}
