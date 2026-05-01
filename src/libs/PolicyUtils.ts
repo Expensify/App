@@ -17,6 +17,8 @@ import type {
     PolicyTagLists,
     PolicyTags,
     Report,
+    ReportAction,
+    ReportActions,
     TaxRate,
     Transaction,
     TravelSettings,
@@ -1244,12 +1246,66 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+function isReportLevelApproverOverrideAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REROUTE;
+}
+
+function isSubmittedOrReportLevelApproverOverrideAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || isReportLevelApproverOverrideAction(reportAction);
+}
+
+function isReportActionNewer(reportAction: ReportAction, latestReportAction: ReportAction): boolean {
+    if (reportAction.created !== latestReportAction.created) {
+        if (latestReportAction.created === undefined) {
+            return true;
+        }
+
+        if (reportAction.created === undefined) {
+            return false;
+        }
+
+        return reportAction.created > latestReportAction.created;
+    }
+
+    return reportAction.reportActionID > latestReportAction.reportActionID;
+}
+
+function getLatestSubmittedOrReportLevelApproverOverrideAction(reportActions: ReportActions | undefined): ReportAction | undefined {
+    if (!reportActions) {
+        return;
+    }
+
+    return Object.values(reportActions).reduce<ReportAction | undefined>((latestReportAction, reportAction) => {
+        if (!isSubmittedOrReportLevelApproverOverrideAction(reportAction)) {
+            return latestReportAction;
+        }
+
+        if (!latestReportAction || isReportActionNewer(reportAction, latestReportAction)) {
+            return reportAction;
+        }
+
+        return latestReportAction;
+    }, undefined);
+}
+
+function hasActiveReportLevelApproverOverride(reportActions: ReportActions | undefined): boolean {
+    return isReportLevelApproverOverrideAction(getLatestSubmittedOrReportLevelApproverOverrideAction(reportActions));
+}
+
+function hasReportActionsData(reportActions: ReportActions | undefined): boolean {
+    return Object.keys(reportActions ?? {}).length > 0;
+}
+
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, reportActions?: ReportActions): number {
     const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
+    const hasEmployeeData = !!policy?.employeeList?.[employeeLogin];
+    const hasValidExistingManager = existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID;
+    const hasLoadedReportActions = hasReportActionsData(reportActions);
 
-    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID) {
-        // Existing reports may already have a server-computed or manually changed approver.
+    if (hasValidExistingManager && (!hasEmployeeData || !hasLoadedReportActions || hasActiveReportLevelApproverOverride(reportActions))) {
+        // Preserve known-good report managers when policy employee data or report action history is missing, or when the report was explicitly rerouted.
         return existingManagerID;
     }
 
