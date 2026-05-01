@@ -5223,6 +5223,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     confirmText: 'Zgłoś problem',
                     cancelText: 'Pomiń',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                    confirmText: 'Got it',
+                },
                 csvColumns: {
                     cardNumber: 'Numer karty',
                     postedDate: 'Data',

@@ -5108,6 +5108,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     confirmText: '报告问题',
                     cancelText: '跳过',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                    confirmText: 'Got it',
+                },
                 csvColumns: {
                     cardNumber: '卡号',
                     postedDate: '日期',

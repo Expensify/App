@@ -5232,6 +5232,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     confirmText: 'Probleem melden',
                     cancelText: 'Overslaan',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                    confirmText: 'Got it',
+                },
                 csvColumns: {
                     cardNumber: 'Kaartnummer',
                     postedDate: 'Datum',

@@ -5262,6 +5262,11 @@ const translations = {
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                    confirmText: 'Got it',
+                },
                 csvColumns: {
                     cardNumber: 'Card number',
                     postedDate: 'Date',

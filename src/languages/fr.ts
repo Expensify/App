@@ -5268,6 +5268,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     confirmText: 'Signaler un problème',
                     cancelText: 'Ignorer',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                    confirmText: 'Got it',
+                },
                 csvColumns: {
                     cardNumber: 'Numéro de carte',
                     postedDate: 'Date',

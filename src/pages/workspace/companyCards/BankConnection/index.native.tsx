@@ -4,6 +4,7 @@ import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -75,6 +76,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
+    const [isDuplicateFeedDismissed, setIsDuplicateFeedDismissed] = useState(false);
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -140,6 +143,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
 
         // Handle add new card flow
         if (isNewFeedConnected) {
+            // Duplicate feed detected — modal is shown via render, skip navigation
+            if (isDuplicateFeed) {
+                return;
+            }
+
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
@@ -160,6 +168,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
     }, [
         isNewFeedConnected,
+        isDuplicateFeed,
         newFeed,
         policyID,
         url,
@@ -222,6 +231,18 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                     />
                 )}
             </FullPageOfflineBlockingView>
+            <ConfirmModal
+                isVisible={isDuplicateFeed && !isDuplicateFeedDismissed}
+                title={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
+                prompt={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
+                confirmText={translate('workspace.companyCards.addNewCard.duplicateFeedModal.confirmText')}
+                shouldShowCancelButton={false}
+                onConfirm={() => {
+                    setIsDuplicateFeedDismissed(true);
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                }}
+                onCancel={() => setIsDuplicateFeedDismissed(true)}
+            />
         </ScreenWrapper>
     );
 }
