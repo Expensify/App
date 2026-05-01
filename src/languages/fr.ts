@@ -7814,6 +7814,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
+        serverResults: 'Search results',
         searchIn: 'Rechercher dans',
         askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
         searchPlaceholder: 'Rechercher quelque chose...',
