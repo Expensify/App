@@ -10876,7 +10876,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  *
  * @warning Use `hasHeldExpensesFromTransactions` instead.
  */
-function hasHeldExpenses(allReportTransactions: Transaction[], _iouReportID?: string): boolean {
+function hasHeldExpenses(allReportTransactions: Transaction[]): boolean {
     return allReportTransactions.some((transaction) => isOnHoldTransactionUtils(transaction));
 }
 
@@ -10890,7 +10890,7 @@ function hasHeldExpensesFromTransactions(allReportTransactions: Transaction[]): 
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(allReportTransactions: Transaction[], _iouReportID?: string): boolean {
+function hasOnlyHeldExpenses(allReportTransactions: Transaction[]): boolean {
     return allReportTransactions.length > 0 && !allReportTransactions.some((transaction) => !isOnHoldTransactionUtils(transaction));
 }
 

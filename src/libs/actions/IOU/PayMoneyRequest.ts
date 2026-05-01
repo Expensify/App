@@ -393,8 +393,8 @@ function getPayMoneyRequestParams({
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const reportTransactions = getReportTransactions(iouReport?.reportID);
-        for (const transaction of reportTransactions) {
+        const iouReportTransactions = getReportTransactions(iouReport?.reportID);
+        for (const transaction of iouReportTransactions) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -415,7 +415,7 @@ function getPayMoneyRequestParams({
             });
         }
 
-        const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = reportTransactions.map(({transactionID}) => {
+        const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = iouReportTransactions.map(({transactionID}) => {
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -424,7 +424,7 @@ function getPayMoneyRequestParams({
         });
         onyxData.optimisticData?.push(...optimisticTransactionViolations);
 
-        const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = reportTransactions.map(({transactionID}) => {
+        const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = iouReportTransactions.map(({transactionID}) => {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
