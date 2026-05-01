@@ -200,6 +200,12 @@ function IOURequestStepDistanceManual({
         }
 
         handleMoneyRequestStepDistanceNavigation({
+            iouType,
+            report,
+            policy,
+            transaction,
+            reportID,
+            transactionID,
             reportAttributesDerived,
             personalDetails,
             manualDistance: distanceAsFloat,
