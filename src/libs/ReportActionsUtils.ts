@@ -20,6 +20,7 @@ import type {
     CompanyCardFeed,
     OnyxInputOrEntry,
     OriginalMessageIOU,
+    Pages,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -100,6 +101,18 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
+    },
+});
+
+let allReportActionPages: OnyxCollection<Pages>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+    waitForCollectionCallback: true,
+    callback: (pages) => {
+        if (!pages) {
+            return;
+        }
+        allReportActionPages = pages;
     },
 });
 
@@ -2006,6 +2019,10 @@ function doesReportHaveVisibleActions(
 
 function getAllReportActions(reportID: string | undefined): ReportActions {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
+}
+
+function getReportActionPages(reportID: string | undefined): Pages {
+    return allReportActionPages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`] ?? [];
 }
 
 /**
@@ -4557,6 +4574,7 @@ export {
     getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
     getAllReportActions,
+    getReportActionPages,
     getCombinedReportActions,
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
