@@ -10,21 +10,18 @@ import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
-import {navigateToAndOpenReportWithAccountIDs, navigateToConciergeChat} from '@libs/actions/Report';
-import getPlatform from '@libs/getPlatform';
+import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-
-const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
@@ -38,12 +35,11 @@ function HelpPage() {
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
     const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {openSidePanel} = useSidePanelActions();
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
     const menuItems = [
         {
@@ -52,7 +48,7 @@ function HelpPage() {
             description: translate('initialSettingsPage.helpPage.conciergeChatDescription'),
             icon: icons.ConciergeAvatar,
             iconType: CONST.ICON_TYPE_AVATAR,
-            onPress: () => (isWeb ? openSidePanel() : navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas)),
+            onPress: openConciergeAnywhere,
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,

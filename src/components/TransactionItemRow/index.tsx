@@ -33,6 +33,7 @@ import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
     getAttendees,
+    getConvertedAmount,
     getCurrency,
     getDescription,
     getExchangeRate,
@@ -258,7 +259,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 
@@ -583,6 +584,26 @@ function TransactionItemRow({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
+                const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
+                const hasConvertedAmount = transactionItem.convertedAmount != null;
+                // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
+                // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
+                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport, false, true) : getAmount(transactionItem, isFromExpenseReport, false, true);
+                // When converted, display in the report's output currency; otherwise use the transaction's own currency.
+                const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide})]}
+                    >
+                        <AmountCell
+                            total={totalAmount}
+                            currency={totalCurrency}
+                        />
+                    </View>
+                );
+            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
@@ -684,7 +705,7 @@ function TransactionItemRow({
         return (
             <>
                 <View
-                    style={[bgActiveStyles, styles.justifyContentEvenly, style]}
+                    style={[styles.expenseWidgetRadius, styles.overflowHidden, bgActiveStyles, styles.justifyContentEvenly, style]}
                     testID="transaction-item-row"
                 >
                     <View style={[styles.flexRow]}>
@@ -718,7 +739,7 @@ function TransactionItemRow({
                                         isDescription={!merchant}
                                     />
                                 ) : null}
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !merchantOrDescription && styles.mlAuto]}>
                                     {shouldRenderChatBubbleCell && (
                                         <ChatBubbleCell
                                             transaction={transactionItem}

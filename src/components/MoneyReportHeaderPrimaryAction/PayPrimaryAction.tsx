@@ -19,7 +19,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {hasHeldExpenses as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
@@ -39,7 +39,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -78,7 +78,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
     const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
@@ -128,6 +128,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
                 betas,

@@ -164,7 +164,7 @@ function MoneyRequestReportTransactionItem({
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={shouldUseNarrowLayout ? [styles.p4] : [styles.p3]}
+                        style={shouldUseNarrowLayout ? [styles.p4, styles.noBorderRadius] : [styles.p3]}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}

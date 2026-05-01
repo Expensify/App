@@ -111,11 +111,7 @@ type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFe
 type StyleFunction = (...args: any[]) => StyleObject;
 
 type StaticStyles = Record<string, StyleObject>;
-type DynamicStyles = Record<
-    string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    StyleFunction
->;
+type DynamicStyles = Record<string, StyleFunction>;
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -261,6 +257,13 @@ const webViewStyles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
         },
     }) satisfies WebViewStyle;
+
+const compactPopoverMenuItemBaseStyle = {
+    ...spacing.ph5,
+    ...spacing.pv1,
+    minHeight: variables.componentSizeLarge,
+    alignItems: 'center' as const,
+};
 
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
@@ -1807,6 +1810,13 @@ const staticStyles = (theme: ThemeColors) =>
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
+        },
+
+        compactPopoverMenuItemBase: compactPopoverMenuItemBaseStyle,
+
+        compactPopoverMenuItem: {
+            ...compactPopoverMenuItemBaseStyle,
+            height: variables.componentSizeLarge,
         },
 
         createMenuHeaderText: {
@@ -4010,6 +4020,12 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
         },
 
+        compactQuickReactionsContainer: {
+            ...spacing.ph4,
+            paddingTop: variables.spacing2,
+            gap: variables.spacing2,
+        },
+
         reactionListContainer: {
             maxHeight: variables.listItemHeightNormal * 5.75,
             ...spacing.pv2,
@@ -4201,8 +4217,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
-            minWidth: 320,
-            maxWidth: 375,
+            minWidth: variables.compactPopoverMenuWidth,
+            maxWidth: variables.compactPopoverMenuWidth,
         },
 
         formSpaceVertical: {

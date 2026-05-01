@@ -57,7 +57,6 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options.config;
     const shouldGoBackToSpecificRoute =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
         config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
 
@@ -147,6 +146,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             ],
         },
         {
+            type: 'menuitem',
+            title: travelPayableAccount?.name,
+            description: translate('workspace.common.travelInvoicing'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+            shouldHide: !isTravelInvoicingEnabled,
+        },
+        {
             type: 'divider',
             key: 'divider2',
         },
@@ -183,14 +190,6 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
             shouldHide: shouldHideTaxPostingAccountSelect(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary, config),
-        },
-        {
-            type: 'menuitem',
-            title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicing'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
-            shouldHide: !isTravelInvoicingEnabled,
         },
         {
             type: 'toggle',

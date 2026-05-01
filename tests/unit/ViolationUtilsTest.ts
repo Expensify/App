@@ -1615,14 +1615,20 @@ describe('getRBRMessages', () => {
 
     it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
+        const result = ViolationsUtils.getRBRMessages({
+            transaction: mockTransaction,
+            transactionViolations: mockViolations,
+            translate: translateLocal,
+            missingFieldError,
+            transactionThreadActions: [],
+        });
         const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
     });
 
     it('should filter out empty strings', () => {
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, undefined, []);
+        const result = ViolationsUtils.getRBRMessages({transaction: mockTransaction, transactionViolations: mockViolations, translate: translateLocal, transactionThreadActions: []});
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);

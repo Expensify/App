@@ -1242,6 +1242,19 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+    const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID) {
+        // Existing reports may already have a server-computed or manually changed approver.
+        return existingManagerID;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    return submitToAccountID > CONST.DEFAULT_NUMBER_ID ? submitToAccountID : existingManagerID;
+}
+
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
@@ -2257,6 +2270,7 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
+    getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,

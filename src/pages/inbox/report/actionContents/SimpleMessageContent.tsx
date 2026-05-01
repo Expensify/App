@@ -1,17 +1,20 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
+    getMessageOfOldDotReportAction,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
-    getReportActionMessageText,
+    getReportAction,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
     isUnapprovedAction,
+    wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -20,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type SimpleMessageContentProps = {
     action: OnyxTypes.ReportAction;
+    report: OnyxEntry<OnyxTypes.Report>;
 };
 
 const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
@@ -40,13 +44,14 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
     CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN,
+    CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
 ]);
 
 function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
     return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
 }
 
-function SimpleMessageContent({action}: SimpleMessageContentProps) {
+function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
@@ -89,8 +94,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        const htmlMessage = getReportActionMessageText(action) || translate('iou.receiptScanningFailed');
-        return <ReportActionItemBasicMessage message={htmlMessage} />;
+        // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
+        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)})} />;
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
@@ -106,6 +112,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
         return <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, action)} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)) {
+        return <ReportActionItemBasicMessage message={getMessageOfOldDotReportAction(translate, action)} />;
     }
 
     return null;

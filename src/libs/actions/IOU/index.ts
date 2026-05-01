@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -20,7 +19,6 @@ import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
@@ -91,7 +89,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BasePolicyParams from './types/BasePolicyParams';
@@ -1156,6 +1154,7 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
@@ -1343,6 +1342,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
             value: {
                 isOptimisticReport: true,
+            },
+        });
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iou.report?.reportID}`,
+            value: {
                 hasOnceLoadedReportActions: true,
             },
         });
@@ -1409,7 +1414,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     let iouAction = iou.action;
     let iouReport = iou.report;
     if (isMoneyRequestToManagerMcTest) {
-        const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -1434,11 +1438,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         };
 
         onyxData.optimisticData?.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
-                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {timestamp: DateUtils.getDBTime(date.valueOf()), dismissedMethod: 'click'}},
-            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
@@ -2165,9 +2164,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+
         const originalAmount = Number(existingTransaction.modifiedAmount) || existingTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+
         const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
@@ -2529,7 +2528,7 @@ const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredic
 
 //  Determines whether the current search results should be optimistically updated
 function shouldOptimisticallyUpdateSearch(
-    currentSearchQueryJSON: SearchQueryJSON,
+    currentSearchQueryJSON: Readonly<SearchQueryJSON>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     isInvoice: boolean | undefined,
     transaction?: OnyxEntry<OnyxTypes.Transaction>,
@@ -2575,17 +2574,23 @@ function shouldOptimisticallyUpdateSearch(
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
         (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
-    return (
-        shouldOptimisticallyUpdateByStatus &&
-        validSearchTypes &&
-        (currentSearchQueryJSON.flatFilters.length === 0 ||
-            (submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport)) ||
-            (approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) ||
-            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash &&
-                isExpenseReport(iouReport) &&
-                (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
-                transaction?.reimbursable))
-    );
+    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.length === 0;
+
+    const matchesSubmitQuery =
+        submitQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport);
+
+    const matchesApproveQuery =
+        approveQueryJSON?.similarSearchHash === currentSearchQueryJSON.similarSearchHash && expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport);
+
+    const matchesUnapprovedCashQuery =
+        unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash &&
+        isExpenseReport(iouReport) &&
+        (expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS](iouReport) || expenseReportStatusFilterMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING](iouReport)) &&
+        transaction?.reimbursable;
+
+    const matchesFilterQuery = hasNoFlatFilters || matchesSubmitQuery || matchesApproveQuery || matchesUnapprovedCashQuery;
+
+    return shouldOptimisticallyUpdateByStatus && validSearchTypes && matchesFilterQuery;
 }
 
 function getSearchOnyxUpdate({
@@ -2602,108 +2607,117 @@ function getSearchOnyxUpdate({
     const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
-    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
-            const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
-            const successData = [];
-            if (isOptimisticToAccountData) {
-                // The optimistic personal detail is removed on the API's success data but we can't change the managerID of the transaction in the snapshot.
-                // So we need to add the optimistic personal detail back to the snapshot in success data to prevent the flickering.
-                // After that, it will be cleared via Search API.
-                // See https://github.com/Expensify/App/issues/61310 for more information.
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                    value: {
-                        data: {
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                                [toAccountID]: {
-                                    accountID: toAccountID,
-                                    displayName: participant?.displayName,
-                                    login: participant?.login,
-                                },
+    if (!currentSearchQueryJSON || toAccountID === undefined || fromAccountID === undefined) {
+        return;
+    }
+
+    if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
+        const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
+        const successData = [];
+        if (isOptimisticToAccountData) {
+            // The optimistic personal detail is cleared from PERSONAL_DETAILS_LIST on API success, but the snapshot's report still references
+            // that optimistic accountID via report.managerID. Re-merging the personal detail into the snapshot in successData prevents the
+            // "To" column from briefly going blank before Search API delivers the real data.
+            // See https://github.com/Expensify/App/issues/61310 for more information.
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
                             },
                         },
                     },
-                });
-            }
-            const snapshotData = {
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [toAccountID]: {
-                        accountID: toAccountID,
-                        displayName: participant?.displayName,
-                        login: participant?.login,
-                    },
-                    [fromAccountID]: {
-                        accountID: fromAccountID,
-                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                        login: deprecatedCurrentUserPersonalDetails?.login,
-                    },
                 },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                    accountID: fromAccountID,
-                    managerID: toAccountID,
-                    ...(transactionThreadReportID && {transactionThreadReportID}),
-                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                    ...transaction,
-                },
-                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
-            };
-
-            const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                    value: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        data: snapshotData,
-                    },
-                },
-            ];
-
-            if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-                const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
-                newFlatFilters.push({
-                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
-                });
-
-                const groupTransactionsQueryJSON = buildSearchQueryJSON(
-                    buildSearchQueryString({
-                        ...currentSearchQueryJSON,
-                        groupBy: undefined,
-                        flatFilters: newFlatFilters,
-                    }),
-                );
-
-                if (groupTransactionsQueryJSON?.hash) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
-                        value: {
-                            search: {
-                                type: groupTransactionsQueryJSON.type,
-                                status: groupTransactionsQueryJSON.status,
-                                offset: 0,
-                                hasMoreResults: false,
-                                hasResults: true,
-                                isLoading: false,
-                            },
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            data: snapshotData,
-                        },
-                    });
-                }
-            }
-
-            return {
-                optimisticData,
-                successData,
-            };
+            });
         }
+        // Building this object sequentially resolves TypeScript type inference issues
+        const optimisticSnapshotData: SearchResultDataType = {};
+
+        optimisticSnapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+            [toAccountID]: {
+                accountID: toAccountID,
+                displayName: participant?.displayName,
+                login: participant?.login,
+            },
+            [fromAccountID]: {
+                accountID: fromAccountID,
+                avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                login: deprecatedCurrentUserPersonalDetails?.login,
+            },
+        };
+
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+            ...(transactionThreadReportID && {transactionThreadReportID}),
+            ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+            ...transaction,
+        };
+
+        if (policy) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+        }
+
+        if (iouReport) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
+        }
+
+        if (iouReport && iouAction) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+        }
+
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: optimisticSnapshotData,
+                },
+            },
+        ];
+
+        if (currentSearchQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+            const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+            newFlatFilters.push({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: fromAccountID}],
+            });
+
+            const groupTransactionsQueryJSON = buildSearchQueryJSON(
+                buildSearchQueryString({
+                    ...currentSearchQueryJSON,
+                    groupBy: undefined,
+                    flatFilters: newFlatFilters,
+                }),
+            );
+
+            if (groupTransactionsQueryJSON?.hash) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
+                    value: {
+                        search: {
+                            type: groupTransactionsQueryJSON.type,
+                            status: groupTransactionsQueryJSON.status,
+                            offset: 0,
+                            hasMoreResults: false,
+                            hasResults: true,
+                            isLoading: false,
+                        },
+                        data: optimisticSnapshotData,
+                    },
+                });
+            }
+        }
+
+        return {
+            optimisticData,
+            successData,
+        };
     }
 }
 

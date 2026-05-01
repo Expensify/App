@@ -85,7 +85,7 @@ jest.mock('@hooks/useOnyx', () => ({
         if (key.startsWith('reportActions_')) {
             return [mockLinkedAction, {status: 'loaded'}];
         }
-        if (key.startsWith('reportMetadata_')) {
+        if (key.startsWith('reportLoadingState_')) {
             return [mockIsLoadingInitialReportActions, {status: 'loaded'}];
         }
         if (key.startsWith('report_')) {
