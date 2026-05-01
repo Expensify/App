@@ -83,7 +83,7 @@ function useSelectionModeReportActions({
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -384,6 +384,7 @@ function useSelectionModeReportActions({
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
                 betas,

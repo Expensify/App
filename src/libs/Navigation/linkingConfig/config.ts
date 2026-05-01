@@ -359,6 +359,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.route,
+                        },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT,
                             exact: true,
@@ -443,6 +446,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
                             exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
+                            path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.route,
@@ -1949,7 +1955,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,
                             exact: true,
                         },
-                        [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: ROUTES.CHANGE_APPROVER_SEARCH_RHP,
+                        [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: {
+                            path: ROUTES.CHANGE_APPROVER_SEARCH_RHP.route,
+                            exact: true,
+                        },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
                     },
                 },
@@ -2016,9 +2025,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
+                [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: {
                     screens: {
-                        [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: ROUTES.ADD_UNREPORTED_EXPENSE.route,
+                        [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: ROUTES.ADD_EXISTING_EXPENSE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {

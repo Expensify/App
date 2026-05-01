@@ -3,9 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-// eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax -- this is needed to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -185,9 +183,11 @@ describe('actions/Policy', () => {
             // We do not pass tasks to `#admins` channel in favour of backed generated followup-list
             const expectedManageTeamDefaultTasksCount = 0;
 
-            // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
+            // The user has already completed onboarding (introSelected.choice is set), so the onboarding-tasks block
+            // in buildPolicyData is skipped — no signoff message is attached to the new workspace's #admins room.
+            // Only the default CREATED action remains.
             const expectedReportActionsOfTypeCreatedCount = 1;
-            const expectedSignOffMessagesCount = 1;
+            const expectedSignOffMessagesCount = 0;
             expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
 
             let reportActionsOfTypeCreatedCount = 0;
@@ -1219,16 +1219,16 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
-            // When creating a workspace with isSelfTourViewed set to true
-            // Use LOOKING_AROUND as introSelected.choice to ensure VIEW_TOUR task is included
-            // (VIEW_TOUR is filtered out when both introSelected.choice and engagementChoice are MANAGE_TEAM)
+            // When creating a workspace with isSelfTourViewed set to true.
+            // introSelected.choice is left undefined to simulate a user who hasn't completed onboarding yet —
+            // that's the only state in which the onboarding-tasks block runs (see buildPolicyData guard).
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: true,
@@ -1262,15 +1262,16 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const policyID = Policy.generatePolicyID();
 
-            // When creating a workspace with isSelfTourViewed set to false
-            // Use LOOKING_AROUND as introSelected.choice to ensure VIEW_TOUR task is included
+            // When creating a workspace with isSelfTourViewed set to false.
+            // introSelected.choice is left undefined to simulate a user who hasn't completed onboarding yet —
+            // that's the only state in which the onboarding-tasks block runs (see buildPolicyData guard).
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
@@ -1370,6 +1371,161 @@ describe('actions/Policy', () => {
                 expect.anything(),
             );
 
+            apiWriteSpy.mockRestore();
+        });
+
+        // The guard in buildPolicyData decides whether to attach onboarding tasks (guidedSetupData)
+        // to the new workspace. Users who already finished a Concierge-based onboarding flow
+        // (TRACK_WORKSPACE / EMPLOYER / SUBMIT / CHAT_SPLIT / LOOKING_AROUND / PERSONAL_SPEND)
+        // never have introSelected.createWorkspace set, so the previous `!introSelected?.createWorkspace`
+        // check evaluated truthy and leaked the tasks into the new workspace's #admins room.
+        // The fix swaps that for `!introSelected?.choice`, which is populated by every completeOnboarding call.
+        const onboardedChoices = [
+            CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            CONST.ONBOARDING_CHOICES.EMPLOYER,
+            CONST.ONBOARDING_CHOICES.SUBMIT,
+            CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+            CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+            CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        ] as const;
+
+        it.each(onboardedChoices)('should not add onboarding tasks when user already completed onboarding (choice=%s)', async (choice) => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace and the user has already completed a guided onboarding flow,
+            // introSelected.choice is populated but introSelected.createWorkspace is not (Concierge-based flows
+            // never set it; MANAGE_TEAM only sets it for the *first* workspace, not subsequent ones).
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then guidedSetupData should NOT be sent, so the #admins room of the new workspace stays empty of onboarding tasks.
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {guidedSetupData?: string};
+            expect(params.guidedSetupData).toBeUndefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should add onboarding tasks when the user has not yet selected an onboarding choice', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace before the user has gone through guided onboarding (introSelected.choice is undefined),
+            // the block should run so that onboarding tasks are attached to the new workspace.
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then guidedSetupData should be sent.
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {guidedSetupData?: string};
+            expect(params.guidedSetupData).toBeDefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should add onboarding tasks for TEST_DRIVE_RECEIVER even when choice is set', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // Even when introSelected.choice is populated, TEST_DRIVE_RECEIVER must still enter the block via
+            // the first disjunct so that the downstream Concierge createWorkspace task gets completed.
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {guidedSetupData?: string};
+            expect(params.guidedSetupData).toBeDefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should bail out of onboarding-tasks block if prepareOnboardingOnyxData returns undefined', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            // Force prepareOnboardingOnyxData to return undefined so the early-return path inside the guarded block runs.
+            // This mirrors the real-world case where the target chat (Concierge for non-MANAGE_TEAM flows) cannot be resolved.
+            const prepareSpy = jest.spyOn(ReportUtils, 'prepareOnboardingOnyxData').mockReturnValue(undefined);
+            const policyID = Policy.generatePolicyID();
+
+            // introSelected.choice is undefined so the block enters; engagementChoice is non-MANAGE_TEAM
+            // so prepareOnboardingOnyxData would normally route to Concierge — and since the mock returns undefined,
+            // buildPolicyData should return early without setting guidedSetupData.
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(prepareSpy).toHaveBeenCalled();
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {guidedSetupData?: string; bespokeWelcomeMessage?: string};
+            // Early-return path should not populate the onboarding fields.
+            expect(params.guidedSetupData).toBeUndefined();
+            expect(params.bespokeWelcomeMessage).toBeUndefined();
+
+            prepareSpy.mockRestore();
             apiWriteSpy.mockRestore();
         });
 
@@ -2636,7 +2792,7 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildNextStepNewSpy = jest
                 .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test covers legacy NextStep optimistic updates which still use the deprecated type.
+
                 .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
 
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
@@ -2662,9 +2818,9 @@ describe('actions/Policy', () => {
 
             const nextStepKey1 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport1.reportID}` as const;
             const nextStepKey2 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport2.reportID}` as const;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- We need a minimal ReportNextStepDeprecated shape to simulate rollback on failure.
+
             const currentNextStep1 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 1'}]} as never;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- We need a minimal ReportNextStepDeprecated shape to simulate rollback on failure.
+
             const currentNextStep2 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]} as never;
 
             Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, {
@@ -2708,7 +2864,7 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const buildNextStepNewSpy = jest
                 .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test covers legacy NextStep optimistic updates which still use the deprecated type.
+
                 .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
 
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
@@ -2734,7 +2890,7 @@ describe('actions/Policy', () => {
             const customEmail = 'custom@example.com';
 
             const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedReport.reportID}` as const;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- We need a minimal ReportNextStepDeprecated shape for the test.
+
             const currentNextStep = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step'}]} as never;
 
             Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, {
@@ -6427,7 +6583,6 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
             Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
@@ -6459,7 +6614,6 @@ describe('actions/Policy', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
             const result = Policy.createWorkspaceFromIOUPayment(
                 nonIOUReport,
@@ -6518,7 +6672,6 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
             const result = Policy.createWorkspaceFromIOUPayment(
                 iouReport,

@@ -31,7 +31,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -49,6 +49,7 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
+import useAskConcierge from './useAskConcierge';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
@@ -72,7 +73,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
+    const askConcierge = useAskConcierge();
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -125,7 +127,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
-                if (!contextualReport) {
+                if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
                     return undefined;
                 }
 
@@ -198,15 +200,26 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         ],
     );
 
-    const searchQueryItem = textInputValue
-        ? {
-              text: textInputValue,
-              singleIcon: expensifyIcons.MagnifyingGlass,
-              searchQuery: textInputValue,
-              itemStyle: styles.activeComponentBG,
-              keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
-              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-          }
+    const searchQueryItems = textInputValue
+        ? [
+              {
+                  text: textInputValue,
+                  singleIcon: expensifyIcons.MagnifyingGlass,
+                  searchQuery: textInputValue,
+                  itemStyle: styles.activeComponentBG,
+                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
+                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+              },
+              {
+                  text: translate('search.askConcierge', textInputValue),
+                  singleIcon: expensifyIcons.ConciergeAvatar,
+                  shouldIconApplyFill: false,
+                  searchQuery: textInputValue,
+                  itemStyle: styles.activeComponentBG,
+                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+              },
+          ]
         : undefined;
 
     const shouldScrollRef = useRef(false);
@@ -308,6 +321,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         setAutocompleteSubstitutions,
                     });
                     setFocusAndScrollToRight();
+                } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE) {
+                    const {searchQuery} = item;
+                    backHistory(() => {
+                        askConcierge(searchQuery);
+                    });
+                    onRouterClose();
                 } else {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
@@ -335,13 +354,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             betas,
             contextualPoliciesMap,
             contextualReportsMap,
+            askConcierge,
         ],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
-    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
+    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(searchQueryItems?.length ?? 1, true), [searchQueryItems?.length]);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -387,7 +407,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             <DeferredAutocompleteList
                 autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                 handleSearch={searchInServer}
-                searchQueryItem={searchQueryItem}
+                searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}
                 onHighlightFirstItem={updateAndScrollToFocusedIndex}

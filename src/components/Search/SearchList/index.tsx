@@ -1,6 +1,4 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -305,8 +303,6 @@ function SearchList({
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -363,7 +359,6 @@ function SearchList({
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
@@ -462,8 +457,6 @@ function SearchList({
                         personalPolicyID={personalPolicyID}
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
@@ -496,8 +489,6 @@ function SearchList({
             hash,
             columns,
             policies,
-            userWalletTierName,
-            isUserValidated,
             personalDetails,
             userBillingFundID,
             isOffline,
