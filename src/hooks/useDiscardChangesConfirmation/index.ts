@@ -40,6 +40,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
             confirmText: translate('discardChangesConfirmation.confirmText'),
             cancelText: translate('common.cancel'),
             shouldIgnoreBackHandlerDuringTransition: true,
+            shouldHandleNavigationBack: false,
         }).then((result) => {
             onVisibilityChange?.(false);
             if (result.action === ModalActions.CONFIRM) {
