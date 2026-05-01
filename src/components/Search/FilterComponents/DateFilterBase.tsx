@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
 import type {SearchDatePreset} from '@components/Search/types';
@@ -34,6 +35,8 @@ type DateFilterBaseProps = {
     onBackButtonPress?: () => void;
     /** Callback when the filter is submitted with the selected date values */
     onSubmit: (values: SearchDateValues) => void;
+    /** Callback when the filter is reset, used to persist cleared values without triggering navigation */
+    onReset?: (values: SearchDateValues) => void;
     /** Callback when a date value changes (e.g. preset click or calendar save) */
     onDateValuesChange?: (values: SearchDateValues) => void;
     /** Controlled selected date modifier */
@@ -58,6 +61,7 @@ function DateFilterBase({
     isSearchAdvancedFiltersFormLoading,
     onBackButtonPress,
     onSubmit,
+    onReset,
     onDateValuesChange,
     onDateModifierChange,
     shouldShowButtonsOnlyWithDateModifier = false,
@@ -156,15 +160,19 @@ function DateFilterBase({
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
             setSelectedDateModifier(null);
             setShouldShowRangeError(false);
             onDateModifierChange?.(false);
+            onReset?.(dateValues);
             return;
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         setShouldShowRangeError(false);
-    }, [onDateModifierChange, selectedDateModifier, setSelectedDateModifier]);
+        onReset?.(dateValues);
+    }, [onDateModifierChange, onReset, selectedDateModifier, setSelectedDateModifier]);
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -210,26 +218,34 @@ function DateFilterBase({
                     onSelectDateModifier={handleSelectDateModifier}
                     presets={presets}
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
-                    shouldShowRangeError={shouldShowRangeError}
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
                 />
-                {shouldShowRangeSummary && (
-                    <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
-                        {`${translate('common.range')}: `}
-                        <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
-                    </Text>
-                )}
             </ScrollView>
+            {shouldShowRangeError && (
+                <FormHelpMessage
+                    isError
+                    message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                    style={[styles.mh5, styles.mt2]}
+                />
+            )}
+            {shouldShowRangeSummary && (
+                <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
+                    {`${translate('common.range')}: `}
+                    <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
+                </Text>
+            )}
             {shouldShowActionButtons && (
                 <>
-                    <Button
-                        text={translate('common.reset')}
-                        onPress={reset}
-                        style={[styles.mh4, styles.mt4]}
-                        large
-                    />
+                    {!selectedDateModifier && (
+                        <Button
+                            text={translate('common.reset')}
+                            onPress={reset}
+                            style={[styles.mh4, styles.mt4]}
+                            large
+                        />
+                    )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}

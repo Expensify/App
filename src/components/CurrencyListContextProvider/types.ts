@@ -11,6 +11,9 @@ type CurrencyListActionsContextType = {
 
     /** Function to get number of digits after the decimal separator for a specific currency */
     getCurrencyDecimals: (currencyCode: string | undefined) => number;
+
+    /** Function to convert amount in cents to display string based on the currency and locale */
+    convertToDisplayString: (amount: number | undefined, currencyCode: string | undefined) => string;
 };
 
 export type {CurrencyListStateContextType, CurrencyListActionsContextType};

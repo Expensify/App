@@ -65,7 +65,8 @@ function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): nu
  */
 function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
     const currentBalance = cardSettings?.currentBalance ?? 0;
-    return currentBalance > 0;
+    const pendingSettlementAmount = cardSettings?.pendingSettlementAmount ?? 0;
+    return currentBalance > 0 || pendingSettlementAmount > 0;
 }
 
 /**

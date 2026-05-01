@@ -19,9 +19,10 @@ type SearchBarProps = {
     onSubmitEditing?: (text: string) => void;
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
+    emptyStateContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState}: SearchBarProps) {
+function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -51,7 +52,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                 />
             </View>
             {shouldAnnounceNoResults && (
-                <View style={[styles.ph5, styles.pt3, styles.pb5]}>
+                <View style={[styles.ph5, styles.pt3, styles.pb5, emptyStateContainerStyle]}>
                     <Text
                         style={[styles.textNormal, styles.colorMuted]}
                         aria-hidden

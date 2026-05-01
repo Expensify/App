@@ -34,18 +34,20 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     })),
 }));
 
-jest.mock('@components/OptionListContextProvider', () => {
-    const ActualReact = jest.requireActual<typeof React>('react');
-    return {
-        useOptionsList: jest.fn(() => ({
-            options: {},
-            areOptionsInitialized: true,
-        })),
-        OptionsListStateContext: ActualReact.createContext({
-            areOptionsInitialized: true,
-        }),
-    };
-});
+jest.mock('@hooks/useFilteredOptions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        options: {
+            reports: [],
+            personalDetails: [],
+        },
+        isLoading: false,
+        loadMore: jest.fn(),
+        hasMore: false,
+        isLoadingMore: false,
+    })),
+}));
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
@@ -116,10 +118,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -157,10 +155,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

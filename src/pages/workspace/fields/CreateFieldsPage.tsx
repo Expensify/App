@@ -18,7 +18,7 @@ import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
 import TypeSelector from '@pages/workspace/reports/TypeSelector';
@@ -101,6 +101,15 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
 
             if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && hasCircularReferences(formInitialValue, name, policy?.fieldList)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+            }
+
+            if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
+                const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
+                if (unsupportedFormulaParts.length > 0) {
+                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', {
+                        value: unsupportedFormulaParts.join(', '),
+                    });
+                }
             }
 
             if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {

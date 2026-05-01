@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
@@ -79,6 +80,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 }
 function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -90,7 +92,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName);
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
@@ -106,7 +108,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                     violationTranslation,
                 };
             });
-    }, [policy, report]);
+    }, [policy, report, currentUserAccountID]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,

@@ -78,7 +78,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldUseDefaultRightHandSideComponent,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
-    canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -181,7 +180,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const selectFocusedItem = () => {
         const focusedItem = getFocusedItem();
-        if (!focusedItem) {
+        if (!focusedItem || focusedItem.isInteractive === false) {
             return;
         }
         selectRow(focusedItem);
@@ -353,7 +352,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
-                        canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                         shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                         shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}
@@ -363,6 +361,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleNumberOfLines={titleNumberOfLines}
                         shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );
             }

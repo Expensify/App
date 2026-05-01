@@ -130,6 +130,7 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -224,6 +225,7 @@ import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
+import TablePencil from '@assets/images/table-pencil.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -455,6 +457,7 @@ const Expensicons = {
     Workflows,
     Workspace,
     XeroSquare,
+    GustoSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -491,6 +494,7 @@ const Expensicons = {
     UserPlus,
     Feed,
     Table,
+    TablePencil,
     SpreadsheetComputer,
     Bookmark,
     Sparkles,

@@ -114,7 +114,7 @@ function ScreenWrapperContainer({
     isFocused = true,
     shouldHideFromAccessibility = false,
     ref,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
 }: ScreenWrapperContainerProps) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
@@ -221,7 +221,6 @@ function ScreenWrapperContainer({
             aria-hidden={shouldHideFromAccessibility}
         >
             <View
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...keyboardDismissPanResponder.panHandlers}

@@ -1,5 +1,4 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
@@ -9,7 +8,7 @@ let mockGetLocalCredentialID: jest.Mock;
 let mockServerKnownCredentialIDs: string[];
 let mockHaveCredentialsEverBeenConfigured: boolean;
 
-jest.mock('@components/MultifactorAuthentication/biometrics/useNativeBiometrics', () => ({
+jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({

@@ -33,11 +33,6 @@ describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.NETWORK]: {
-                    isOffline: false,
-                },
-            },
         });
     });
     describe('renderIllustration', () => {

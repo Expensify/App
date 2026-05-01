@@ -8,6 +8,7 @@ import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {setHasRadio} from '@libs/NetworkState';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,9 +17,9 @@ import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock dynamic imports that break without --experimental-vm-modules
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flattenObject: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
 
     const cache = new Map<string, Record<string, unknown>>([['en', flattenObject(en)]]);
@@ -236,8 +237,8 @@ describe('LHNOptionsList', () => {
                 originalMessage: {},
             };
             mockUseIsFocused.mockReturnValue(true);
+            setHasRadio(false);
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
@@ -293,8 +294,8 @@ describe('LHNOptionsList', () => {
                 message: [{type: 'COMMENT', text: expectedLastMessage, html: expectedLastMessage}],
             };
             mockUseIsFocused.mockReturnValue(true);
+            setHasRadio(true);
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {

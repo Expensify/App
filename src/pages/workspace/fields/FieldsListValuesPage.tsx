@@ -5,9 +5,9 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -17,6 +17,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -77,9 +78,9 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
+    const {showConfirmModal} = useConfirmModal();
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
-    const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
     const shouldUseInvoiceRoutes = isInvoicePage || reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
@@ -191,8 +192,6 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             });
         }
 
-        setDeleteValuesConfirmModalVisible(false);
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
@@ -229,7 +228,21 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     icon: icons.Trashcan,
                     text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteValuesConfirmModalVisible(true),
+                    onSelected: () => {
+                        showConfirmModal({
+                            danger: true,
+                            title: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
+                            prompt: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+
+                            handleDeleteValues();
+                        });
+                    },
                 });
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
@@ -382,6 +395,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                             headerMedia={illustrations.FolderWithPapers}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                         />
                     </ScrollView>
@@ -407,16 +421,6 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                         shouldShowRightCaret
                     />
                 )}
-                <ConfirmModal
-                    isVisible={deleteValuesConfirmModalVisible}
-                    onConfirm={handleDeleteValues}
-                    onCancel={() => setDeleteValuesConfirmModalVisible(false)}
-                    title={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues')}
-                    prompt={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
