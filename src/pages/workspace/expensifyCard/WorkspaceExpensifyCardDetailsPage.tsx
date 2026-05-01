@@ -275,7 +275,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             frozenDate={card?.nameValuePairs?.frozen?.date}
                             onUnfreezePress={handleUnfreezePress}
                             cardPreview={
-                                <View style={[styles.pRelative, styles.alignSelfCenter, StyleUtils.getWidthStyle(variables.cardPreviewWidth)]}>
+                                <View
+                                    style={[
+                                        styles.pRelative,
+                                        styles.alignSelfCenter,
+                                        StyleUtils.getWidthStyle(variables.cardPreviewWidth),
+                                        StyleUtils.getHeight(variables.cardScarfOverlayHeight),
+                                    ]}
+                                >
                                     <View style={styles.walletCard}>{workspaceCardImage}</View>
                                     <View
                                         pointerEvents="none"

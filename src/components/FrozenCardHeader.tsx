@@ -100,29 +100,26 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 />
                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt2, styles.ph5, styles.w100]}>
-                <View style={secondaryAction ? [styles.flex1, styles.mw50] : undefined}>
+            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt2, styles.ph5, styles.w100]}>
+                <Button
+                    medium
+                    text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
+                    icon={icons.FreezeCard}
+                    iconFill={theme.icon}
+                    onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                    isDisabled={canUnfreezeCard && isOffline}
+                    style={styles.alignSelfStart}
+                />
+                {!!secondaryAction && (
                     <Button
                         medium
-                        text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
-                        icon={icons.FreezeCard}
+                        text={secondaryAction.text}
+                        icon={secondaryAction.icon}
                         iconFill={theme.icon}
-                        onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
-                        isDisabled={canUnfreezeCard && isOffline}
-                        style={secondaryAction ? undefined : styles.alignSelfStart}
+                        onPress={secondaryAction.onPress}
+                        isDisabled={secondaryAction.isDisabled}
+                        style={styles.alignSelfStart}
                     />
-                </View>
-                {!!secondaryAction && (
-                    <View style={[styles.flex1, styles.mw50]}>
-                        <Button
-                            medium
-                            text={secondaryAction.text}
-                            icon={secondaryAction.icon}
-                            iconFill={theme.icon}
-                            onPress={secondaryAction.onPress}
-                            isDisabled={secondaryAction.isDisabled}
-                        />
-                    </View>
                 )}
             </View>
         </View>

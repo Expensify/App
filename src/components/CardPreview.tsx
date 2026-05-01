@@ -35,6 +35,7 @@ function CardPreview({overlayImage, overlayContainerStyle}: CardPreviewProps) {
                 styles.alignSelfCenter,
                 {
                     width: variables.cardPreviewWidth,
+                    ...(overlayImage ? {height: variables.cardScarfOverlayHeight} : {}),
                 },
             ]}
         >
