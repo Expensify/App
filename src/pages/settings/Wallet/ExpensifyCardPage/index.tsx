@@ -52,6 +52,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CardDetailsActionButtons from '@pages/settings/Wallet/CardDetailsActionButtons';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
 import variables from '@styles/variables';
@@ -62,7 +63,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import CardDetailsActionButtons from '../CardDetailsActionButtons';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -180,10 +180,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);
 
     const spendRule = useMemo(() => getSpendRuleByCardID(cardSettings ? {privateExpensifyCardSettings: cardSettings} : undefined, cardID), [cardSettings, cardID]);
-    const spendRulesSummary = useMemo(
-        () => (spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate, convertToDisplayString) : []),
-        [currency, spendRule, translate, convertToDisplayString],
-    );
+    const spendRulesSummary = spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate, convertToDisplayString) : [];
 
     const navigateToSpendRulesPage = useCallback(() => {
         if (!policyIDForCurrentCard) {
