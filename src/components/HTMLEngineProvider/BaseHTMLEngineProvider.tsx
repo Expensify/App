@@ -235,7 +235,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 recognizeSelfClosing: true,
             }}
             domVisitors={{
-                // eslint-disable-next-line no-param-reassign
                 onText: (text) => {
                     // Avoid injecting LTR controls into whitespace-only nodes.
                     // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),

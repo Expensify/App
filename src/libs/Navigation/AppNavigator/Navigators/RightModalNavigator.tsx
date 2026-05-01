@@ -418,8 +418,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={MissingPersonalDetailsWithPINContext}
                                 />
                                 <Stack.Screen
-                                    name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
-                                    component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
+                                    name={SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE}
+                                    component={ModalStackNavigators.AddExistingExpenseModalStackNavigator}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}

@@ -5,6 +5,7 @@ import type {ActionableItem} from '@components/ReportActionItem/ActionableItemBu
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,6 +55,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
+    const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
         if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
@@ -95,6 +97,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                         option,
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                         personalDetail.accountID,
+                        delegateAccountID,
                     );
                 },
             }));
@@ -125,6 +128,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                         option,
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                         personalDetail.accountID,
+                        delegateAccountID,
                     );
                 },
             }));
@@ -146,6 +150,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                             personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                             personalDetail.accountID,
                             personalDetail.email,
+                            delegateAccountID,
                         );
                     },
                 }));

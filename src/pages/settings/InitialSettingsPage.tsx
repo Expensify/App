@@ -3,13 +3,12 @@ import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -39,7 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -49,7 +48,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import variables from '@styles/variables';
@@ -71,6 +69,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import SettingsMenuItem from './SettingsMenuItem';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -100,6 +99,8 @@ type MenuData = WithSentryLabel & {
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
+
+export type {MenuData};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {convertToDisplayString} = useCurrencyListActions();
@@ -144,7 +145,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
-    const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -179,7 +179,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -416,30 +416,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns the menu items for passed data
      */
     const getMenuItemsSection = (menuItemsData: Menu) => {
-        const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-            if (!isScreenFocused) {
-                return;
-            }
-
-            if (typeof link === 'function') {
-                link?.()?.then((url) =>
-                    showContextMenu({
-                        type: CONST.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        selection: url,
-                        contextMenuAnchor: popoverAnchor.current,
-                    }),
-                );
-            } else if (link) {
-                showContextMenu({
-                    type: CONST.CONTEXT_MENU_TYPES.LINK,
-                    event,
-                    selection: link,
-                    contextMenuAnchor: popoverAnchor.current,
-                });
-            }
-        };
-
         return (
             <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
                 <Text
@@ -453,34 +429,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
                     return (
-                        <MenuItem
+                        <SettingsMenuItem
                             key={keyTitle}
-                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                            title={keyTitle}
-                            icon={item.icon}
-                            iconType={item.iconType}
-                            disabled={isExecuting}
+                            item={item}
+                            keyTitle={keyTitle}
+                            isFocused={isFocused}
+                            isExecuting={isExecuting}
+                            isScreenFocused={isScreenFocused}
                             onPress={singleExecution(item.action)}
-                            iconStyles={item.iconStyles}
-                            badgeText={item.badgeText}
-                            badgeStyle={item.badgeStyle}
-                            isBadgeSuccess={item.isBadgeSuccess}
-                            isBadgeStrong={item.isBadgeStrong}
-                            isBadgeCondensed={item.isBadgeCondensed}
-                            fallbackIcon={item.fallbackIcon}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            shouldStackHorizontally={item.shouldStackHorizontally}
-                            ref={popoverAnchor}
-                            shouldBlockSelection={!!item.link}
-                            onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                            shouldShowContextMenuHint={!!item.link}
-                            focused={isFocused}
-                            role={CONST.ROLE.TAB}
-                            isPaneMenu
-                            sentryLabel={item.sentryLabel}
-                            iconRight={item.iconRight}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            shouldIconUseAutoWidthStyle
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                         />
                     );
                 })}
@@ -565,13 +522,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             bottomContent={tabBarContent}
             bottomContentStyle={styles.overflowVisible}
         >
-            {shouldUseNarrowLayout && (
-                <TopBarWithLoadingBar
-                    breadcrumbLabel={translate('initialSettingsPage.account')}
-                    shouldDisplaySearch
-                    shouldDisplayHelpButton
-                />
-            )}
+            <TopBarWithLoadingBar
+                breadcrumbLabel={translate('initialSettingsPage.account')}
+                shouldDisplaySearch={shouldUseNarrowLayout}
+                shouldDisplayHelpButton={shouldUseNarrowLayout}
+            />
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
