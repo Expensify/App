@@ -68,7 +68,7 @@ jobs:
 
       # Manually run Jekyll, bypassing Github Pages
       - name: Build Jekyll site
-        run: bundle exec jekyll build --source ./ --destination ./_site
+        run: JEKYLL_ENV=production bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./help  # Ensure Jekyll is building the site in /help
 
       # This will copy the contents of /help/_site to Cloudflare.  The pages-action will
