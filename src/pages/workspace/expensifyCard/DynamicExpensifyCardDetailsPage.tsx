@@ -21,6 +21,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -50,17 +51,15 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS
->;
+type DynamicExpensifyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS>;
 
-function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
+function DynamicExpensifyCardDetailsPage({route}: DynamicExpensifyCardDetailsPageProps) {
     const {isProduction} = useEnvironment();
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
-    const {policyID, cardID, backTo} = route.params;
+    const {policyID, cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -222,11 +221,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="WorkspaceExpensifyCardDetailsPage"
+                testID="DynamicExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.cardDetails')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     {canManageCardFreeze && isCardFrozen(card) ? (
@@ -412,4 +411,4 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     );
 }
 
-export default WorkspaceExpensifyCardDetailsPage;
+export default DynamicExpensifyCardDetailsPage;

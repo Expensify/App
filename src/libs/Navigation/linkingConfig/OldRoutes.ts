@@ -10,6 +10,8 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/connections/quickbooks-online/advanced/autosync/accounting-method':
         '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync/quickbooks-online-accounting-method',
     '/workspaces/*/connections/quickbooks-online/advanced/autosync': '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
+    '/workspaces/*/expensify-card/$1': '/workspaces/$1/expensify-card/details/$2',
+    '/settings/*/expensify-card/$1': '/workspaces/$1/expensify-card/details/$2',
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */

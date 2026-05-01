@@ -1357,17 +1357,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
+    [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
-        policyID: string;
-        cardID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: {
         policyID: string;

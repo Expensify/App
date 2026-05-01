@@ -863,9 +863,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
                         },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
-                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
@@ -1543,9 +1540,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: {
                     screens: {
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
-                            path: ROUTES.EXPENSIFY_CARD_DETAILS.route,
-                        },
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS]: DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path,
                         [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path,
                         [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path,
                         [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path,

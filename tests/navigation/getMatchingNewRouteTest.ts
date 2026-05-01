@@ -67,6 +67,25 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
 
+    it('redirects old expensify card details paths to the new dynamic route shape', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/expensify-card/123')).toBe('/workspaces/abc/expensify-card/details/123');
+        expect(getMatchingNewRoute('/settings/abc/expensify-card/123')).toBe('/workspaces/abc/expensify-card/details/123');
+    });
+
+    it('preserves query params when redirecting old expensify card details paths', () => {
+        expect(getMatchingNewRoute('/settings/abc/expensify-card/123?backTo=/home')).toBe('/workspaces/abc/expensify-card/details/123?backTo=/home');
+    });
+
+    it('does not duplicate details segment for already-migrated expensify card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/expensify-card/details/123')).toBe('/workspaces/abc/expensify-card/details/123');
+        expect(getMatchingNewRoute('/settings/abc/expensify-card/details/123')).toBe('/workspaces/abc/expensify-card/details/123');
+    });
+
+    it('normalizes duplicated details segment for expensify card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/expensify-card/details/details/123')).toBe('/workspaces/abc/expensify-card/details/123');
+        expect(getMatchingNewRoute('/settings/abc/expensify-card/details/details/123')).toBe('/workspaces/abc/expensify-card/details/123');
+    });
+
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);

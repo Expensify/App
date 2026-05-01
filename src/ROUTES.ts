@@ -277,17 +277,22 @@ const DYNAMIC_ROUTES = {
         getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
         queryParams: ['reportID'],
     },
+    EXPENSIFY_CARD_DETAILS: {
+        path: 'details/:cardID',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.MEMBER_DETAILS],
+        getRoute: (cardID: string) => `details/${encodeURIComponent(cardID)}`,
+    },
     EXPENSIFY_CARD_NAME: {
         path: 'edit/name',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     EXPENSIFY_CARD_LIMIT: {
         path: 'edit/limit',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
         path: 'edit/limit-type',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
@@ -2715,18 +2720,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/expensify-card` as const;
         },
-    },
-    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
-        route: 'workspaces/:policyID/expensify-card/:cardID',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}`, backTo),
-    },
-    EXPENSIFY_CARD_DETAILS: {
-        route: 'settings/:policyID/expensify-card/:cardID',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}`, backTo),
     },
     EXPENSIFY_CARD_EXPIRY_OPTIONS: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/expiry-options',

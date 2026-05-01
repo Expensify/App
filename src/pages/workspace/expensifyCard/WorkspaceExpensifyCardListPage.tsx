@@ -33,6 +33,7 @@ import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actio
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -41,7 +42,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import EmptyCardView from './EmptyCardView';
@@ -184,7 +185,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         accessibilityLabel="row"
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
                         hoverStyle={[styles.hoveredComponentBG]}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(item.cardID.toString())))}
                     >
                         {({hovered}) => (
                             <WorkspaceCardListRow
