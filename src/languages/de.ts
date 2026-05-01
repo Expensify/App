@@ -5260,9 +5260,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     cancelText: 'Überspringen',
                 },
                 duplicateFeedModal: {
-                    title: 'Card feed already connected',
-                    prompt: "You can't add the same card feed to the same workspace twice.",
-                    confirmText: 'Got it',
+                    title: 'Kartenfeed bereits verbunden',
+                    prompt: 'Du kannst denselben Kartenfeed nicht zweimal zu demselben Workspace hinzufügen.',
+                    confirmText: 'Verstanden',
                 },
                 csvColumns: {
                     cardNumber: 'Kartennummer',

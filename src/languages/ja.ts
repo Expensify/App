@@ -5192,11 +5192,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     confirmText: '問題を報告',
                     cancelText: 'スキップ',
                 },
-                duplicateFeedModal: {
-                    title: 'Card feed already connected',
-                    prompt: "You can't add the same card feed to the same workspace twice.",
-                    confirmText: 'Got it',
-                },
+                duplicateFeedModal: {title: 'カードフィードは既に接続されています', prompt: '同じカードフィードを同じワークスペースに2回追加することはできません。', confirmText: '了解です'},
                 csvColumns: {
                     cardNumber: 'カード番号',
                     postedDate: '日付',

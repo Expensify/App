@@ -5269,9 +5269,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     cancelText: 'Ignorer',
                 },
                 duplicateFeedModal: {
-                    title: 'Card feed already connected',
-                    prompt: "You can't add the same card feed to the same workspace twice.",
-                    confirmText: 'Got it',
+                    title: 'Flux de carte déjà connecté',
+                    prompt: 'Vous ne pouvez pas ajouter deux fois le même flux de carte au même espace de travail.',
+                    confirmText: 'Compris',
                 },
                 csvColumns: {
                     cardNumber: 'Numéro de carte',

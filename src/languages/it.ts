@@ -5242,9 +5242,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     cancelText: 'Salta',
                 },
                 duplicateFeedModal: {
-                    title: 'Card feed already connected',
-                    prompt: "You can't add the same card feed to the same workspace twice.",
-                    confirmText: 'Got it',
+                    title: 'Feed carta già connesso',
+                    prompt: 'Non puoi aggiungere due volte lo stesso flusso di carta allo stesso spazio di lavoro.',
+                    confirmText: 'Ricevuto',
                 },
                 csvColumns: {
                     cardNumber: 'Numero di carta',

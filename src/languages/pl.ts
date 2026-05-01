@@ -5224,9 +5224,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     cancelText: 'Pomiń',
                 },
                 duplicateFeedModal: {
-                    title: 'Card feed already connected',
-                    prompt: "You can't add the same card feed to the same workspace twice.",
-                    confirmText: 'Got it',
+                    title: 'Kanał karty jest już połączony',
+                    prompt: 'Nie możesz dodać tego samego źródła karty do tego samego obszaru roboczego dwukrotnie.',
+                    confirmText: 'Rozumiem',
                 },
                 csvColumns: {
                     cardNumber: 'Numer karty',
