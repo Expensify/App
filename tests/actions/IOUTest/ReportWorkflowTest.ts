@@ -1308,6 +1308,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     created: '2026-05-01T09:00:00.000Z',
                 },
             } as ReportActions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${expenseReport.reportID}`, [[CONST.PAGINATION_START_ID, 'createdAction', CONST.PAGINATION_END_ID]]);
             await waitForBatchedUpdates();
 
             submitReport({
@@ -1392,6 +1393,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     created: '2026-05-01T10:00:00.000Z',
                 },
             } as ReportActions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${expenseReport.reportID}`, [[CONST.PAGINATION_START_ID, 'rerouteAction', CONST.PAGINATION_END_ID]]);
             await waitForBatchedUpdates();
 
             submitReport({
@@ -1491,6 +1493,91 @@ describe('actions/IOU/ReportWorkflow', () => {
             apiWriteSpy.mockRestore();
         });
 
+        it('preserves the existing report manager when report action history is partial', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy.mockClear();
+            const policyID = '1';
+            const adminAccountID = 100;
+            const submitterAccountID = 101;
+            const policyApproverAccountID = 102;
+            const existingManagerAccountID = 103;
+            const adminEmail = 'admin@example.com';
+            const submitterEmail = 'submitter@example.com';
+            const policyApproverEmail = 'policy-approver@example.com';
+            const existingManagerEmail = 'existing-manager@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {accountID: adminAccountID, login: adminEmail},
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [policyApproverAccountID]: {accountID: policyApproverAccountID, login: policyApproverEmail},
+                [existingManagerAccountID]: {accountID: existingManagerAccountID, login: existingManagerEmail},
+            });
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: adminEmail,
+                owner: adminEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: policyApproverEmail,
+                    },
+                },
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: existingManagerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // A newest page without an older boundary can still be missing an older active reroute.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                commentAction: {
+                    reportActionID: 'commentAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: submitterAccountID,
+                    created: '2026-05-01T12:00:00.000Z',
+                },
+            } as ReportActions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${expenseReport.reportID}`, [[CONST.PAGINATION_START_ID, 'commentAction']]);
+            await waitForBatchedUpdates();
+
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            expect(parameters.managerAccountID).toBe(existingManagerAccountID);
+
+            const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(existingManagerAccountID);
+
+            apiWriteSpy.mockRestore();
+        });
+
         it('recomputes the approver when a later submitted action invalidates the report-level override', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
@@ -1556,6 +1643,9 @@ describe('actions/IOU/ReportWorkflow', () => {
                     created: '2026-05-01T11:00:00.000Z',
                 },
             } as ReportActions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${expenseReport.reportID}`, [
+                [CONST.PAGINATION_START_ID, 'submittedAction', 'rerouteAction', CONST.PAGINATION_END_ID],
+            ]);
             await waitForBatchedUpdates();
 
             submitReport({
