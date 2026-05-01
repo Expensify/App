@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -192,10 +192,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
             });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedValues({});
-        });
+        setSelectedValues({});
     };
 
     const openListValuePage = (valueItem: ValueListItem) => {
