@@ -11,6 +11,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
+import {SpendRuleForm} from '@src/types/form';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -356,6 +357,9 @@ type CardRuleListItemType = ListItem & {
 
     /** The summary parts for the card rule */
     summaryParts: SpendRuleSummaryPart[];
+
+    /** A list of relevant tokens for searching for specific card rules */
+    searchTokens: string[];
 };
 
 type SplitListItemType = ListItem &

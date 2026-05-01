@@ -1,5 +1,5 @@
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
@@ -40,21 +40,26 @@ export default function useExpensifyCardRules(policyID: string) {
                 return undefined;
             }
 
-            const cardDescriptions = activeCardIDs.map((cardID) => {
+            const cardNames: string[] = [];
+            const cardOwnerDisplayNames: string[] = [];
+
+            for (const cardID of activeCardIDs) {
                 const card = cardsList?.[cardID];
 
                 if (!card) {
-                    return cardID;
+                    continue;
                 }
 
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
-            });
+                cardNames.push(getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID);
+                cardOwnerDisplayNames.push(displayName);
+            }
 
             const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
             const summaryParts = getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString);
-            const cardSummary = getTruncatedSpendRuleSummary(cardDescriptions, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+            const cardSummary = getTruncatedSpendRuleSummary(cardNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+            const formattedAmount = convertToDisplayString(convertToBackendAmount(Number.parseFloat(formValues.maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD);
             const accessibilityLabel = `${summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${cardSummary}`;
 
             return {
@@ -67,6 +72,7 @@ export default function useExpensifyCardRules(policyID: string) {
                 action: formValues.restrictionAction,
                 pendingAction: cardRule.pendingAction,
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
+                searchTokens: [...cardNames, ...formValues.merchantNames, ...formValues.categories, formattedAmount],
             };
         })
         .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))

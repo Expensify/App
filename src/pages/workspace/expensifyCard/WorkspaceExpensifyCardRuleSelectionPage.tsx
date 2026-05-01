@@ -4,17 +4,20 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import CardRuleListItem from '@components/SelectionList/ListItem/CardRuleListItem';
 import {CardRuleListItemType} from '@components/SelectionList/ListItem/types';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -29,21 +32,29 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
     const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-
-    const [shouldShowError, setShouldShowError] = useState(false);
-    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.cardRuleID ?? '');
 
     const cardRuleListItems: CardRuleListItemType[] = cardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
         action: cardRule.action,
         summary: cardRule.cardSummary,
+        searchTokens: cardRule.searchTokens,
         summaryParts: cardRule.summaryParts,
         isSelected: cardRule.ruleID === cardRuleID,
         accessibilityLabel: cardRule.accessibilityLabel,
     }));
+
+    const [shouldShowError, setShouldShowError] = useState(false);
+    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.cardRuleID ?? '');
+
+    const filterCardRules = (cardRuleListItem: CardRuleListItemType, searchInput: string) => {
+        const results = tokenizedSearch([cardRuleListItem], searchInput, (option) => option.searchTokens);
+        return results.length > 0;
+    };
+
+    const [inputValue, setInputValue, filteredCardRules] = useSearchResults(cardRuleListItems, filterCardRules);
 
     const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
@@ -65,6 +76,17 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
             goBack();
         });
     };
+
+    const headerContent = cardRuleListItems.length > CONST.SEARCH_ITEM_LIMIT && (
+        <SearchBar
+            label={translate('workspace.card.searchRules')}
+            inputValue={inputValue}
+            onChangeText={setInputValue}
+            // inputValue={inputValue}
+            // onChangeText={setInputValue}
+            // shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
+        />
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -100,6 +122,7 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
                         ListItem={CardRuleListItem}
                         data={cardRuleListItems}
                         canSelectMultiple={false}
+                        customListHeader={headerContent}
                         onSelectRow={onSelectCardRule}
                         footerContent={
                             <FormAlertWithSubmitButton

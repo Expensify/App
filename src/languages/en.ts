@@ -6009,6 +6009,7 @@ const translations = {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
             chooseRule: 'Choose a rule',
+            searchRules: 'Find spend rule',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
                 inviteNewMember: 'Invite new member',
