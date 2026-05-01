@@ -949,7 +949,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({discountType}: {discountType: number}) => `${discountType}% Rabatt auf Ihr erstes Jahr`,
                 supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
                     `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s verbleibend`,
-                cta: 'Einlösen',
+                cta: 'Angebot einlösen',
             },
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             reviewCardFraud: {

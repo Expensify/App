@@ -918,7 +918,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({discountType}: {discountType: number}) => `首年 ${discountType}% 折扣`,
                 supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
                     `剩余 ${String(hours).padStart(2, '0')}小时 ${String(minutes).padStart(2, '0')}分 ${String(seconds).padStart(2, '0')}秒`,
-                cta: '领取',
+                cta: '领取优惠',
             },
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             reviewCardFraud: {

@@ -935,7 +935,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({discountType}: {discountType: number}) => `初年度 ${discountType}% オフ`,
                 supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
                     `残り ${String(hours).padStart(2, '0')}時間 ${String(minutes).padStart(2, '0')}分 ${String(seconds).padStart(2, '0')}秒`,
-                cta: '受け取る',
+                cta: 'オファーを受け取る',
             },
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
