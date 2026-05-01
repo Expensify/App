@@ -916,7 +916,7 @@ function addOptimisticSmartScanModifiedAmountViolation({
 
     // Add the violation only if the edited amount exceeds the scanned amount.
     if (!scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
-        return withoutSmartScanModifiedAmount;
+        return transactionViolations;
     }
 
     return [
