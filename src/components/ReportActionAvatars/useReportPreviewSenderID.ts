@@ -10,6 +10,7 @@ import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction,
 import {isDM, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
@@ -85,9 +86,20 @@ type GetReportPreviewSenderIDParams = {
     splits: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> | undefined;
     policy: OnyxEntry<Policy>;
     currentUserAccountID: number;
+    hasFinishedInitialReportActionsLoad?: boolean;
 };
 
-function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID}: GetReportPreviewSenderIDParams): number | undefined {
+function getReportPreviewSenderID({
+    iouReport,
+    action,
+    chatReport,
+    iouActions,
+    transactions,
+    splits,
+    policy,
+    currentUserAccountID,
+    hasFinishedInitialReportActionsLoad,
+}: GetReportPreviewSenderIDParams): number | undefined {
     const isOptimisticReportPreview = action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport);
 
     if (isOptimisticReportPreview) {
@@ -119,7 +131,7 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
     // After refresh, the preview action can hydrate before all active child transactions.
     // Avoid collapsing to one avatar unless the available IOU actions already prove the remaining
     // active requests all belong to the same sender.
-    if (activeMoneyRequestCount > loadedTransactionCount && !canInferFromIOUActionsDuringPartialHydration) {
+    if (!hasFinishedInitialReportActionsLoad && activeMoneyRequestCount > loadedTransactionCount && !canInferFromIOUActionsDuringPartialHydration) {
         return undefined;
     }
 
@@ -142,18 +154,21 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         const transactionsWithUnknownDirection = (transactions ?? []).filter((transaction, index) => transactionSigns.at(index) === undefined);
         const hasUnknownDirection = transactionSigns.some((sign) => sign === undefined);
         const unknownDirectionComesOnlyFromPendingScans = transactionsWithUnknownDirection.length > 0 && transactionsWithUnknownDirection.every(hasPendingScanStateAndUnknownDirection);
+        const hasOnlyUnknownDirections = transactionSigns.length > 0 && transactionSigns.every((sign) => sign === undefined);
+        const hasOnlyUnknownNonPendingScanDirections =
+            hasOnlyUnknownDirections && transactionsWithUnknownDirection.every((transaction) => !hasPendingScanStateAndUnknownDirection(transaction));
 
-        if (hasUnknownDirection && !unknownDirectionComesOnlyFromPendingScans) {
+        if (hasUnknownDirection && !unknownDirectionComesOnlyFromPendingScans && !hasOnlyUnknownNonPendingScanDirections) {
             return undefined;
         }
 
         const knownTransactionSigns = transactionSigns.filter((sign): sign is number => sign !== undefined);
 
-        if (knownTransactionSigns.length === 0) {
+        if (knownTransactionSigns.length === 0 && !hasOnlyUnknownNonPendingScanDirections) {
             return undefined;
         }
 
-        const areAmountsSignsTheSame = new Set(knownTransactionSigns).size < 2;
+        const areAmountsSignsTheSame = hasOnlyUnknownNonPendingScanDirections || new Set(knownTransactionSigns).size < 2;
 
         if (!areAmountsSignsTheSame) {
             return undefined;
@@ -199,6 +214,13 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
         selector: getIOUActionsSelector,
     });
+    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`, {
+        selector: hasOnceLoadedReportActionsSelector,
+    });
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const hasFinishedInitialReportActionsLoad = hasOnceLoadedReportActions === true || isLoadingInitialReportActions === false;
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
     const transactions = useMemo(() => {
@@ -225,7 +247,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    return getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID});
+    return getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID, hasFinishedInitialReportActionsLoad});
 }
 
 export default useReportPreviewSenderID;
