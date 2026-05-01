@@ -103,7 +103,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt4]}>
                 <Button
                     medium
-                    text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
+                    text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
                     icon={icons.FreezeCard}
                     iconFill={theme.icon}
                     onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
