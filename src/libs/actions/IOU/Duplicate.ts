@@ -46,7 +46,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {RequestMoneyInformation} from '.';
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail, getMoneyRequestParticipantsFromReport, getUserAccountID} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
@@ -983,6 +983,8 @@ type BulkDuplicateExpensesParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function bulkDuplicateExpenses({
@@ -1005,6 +1007,8 @@ function bulkDuplicateExpenses({
     betas,
     recentWaypoints,
     bankAccountList,
+    currentUserAccountID,
+    currentUserLogin,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1100,8 +1104,8 @@ function bulkDuplicateExpenses({
             shouldDeferAutoSubmit,
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
-            currentUserAccountID: getUserAccountID(),
-            currentUserLogin: getCurrentUserEmail(),
+            currentUserAccountID,
+            currentUserLogin,
             bankAccountList,
         });
 
@@ -1127,7 +1131,6 @@ type BulkDuplicateReportsParams = {
     defaultExpensePolicy: OnyxEntry<OnyxTypes.Policy>;
     activePolicyExpenseChat: OnyxEntry<OnyxTypes.Report>;
     ownerPersonalDetails: CurrentUserPersonalDetails;
-    currentUserLogin: string;
     isASAPSubmitBetaEnabled: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -1139,6 +1142,8 @@ type BulkDuplicateReportsParams = {
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function bulkDuplicateReports({
@@ -1151,7 +1156,6 @@ function bulkDuplicateReports({
     defaultExpensePolicy,
     activePolicyExpenseChat,
     ownerPersonalDetails,
-    currentUserLogin,
     isASAPSubmitBetaEnabled,
     betas,
     personalDetails,
@@ -1163,6 +1167,8 @@ function bulkDuplicateReports({
     translate,
     recentWaypoints,
     bankAccountList,
+    currentUserLogin,
+    currentUserAccountID,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1236,8 +1242,8 @@ function bulkDuplicateReports({
             translate,
             recentWaypoints,
             shouldPlaySound: false,
-            currentUserAccountID: getUserAccountID(),
-            currentUserLogin: getCurrentUserEmail(),
+            currentUserAccountID,
+            currentUserLogin,
             bankAccountList,
         });
     }

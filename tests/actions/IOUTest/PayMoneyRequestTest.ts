@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
@@ -8,7 +7,6 @@ import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -58,7 +56,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -123,6 +120,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
             const currentUserAccountID = 123;
+            const currentUserLogin = 'existing@example.com';
             let chatReport: OnyxEntry<Report>;
             let iouReport: OnyxEntry<Report>;
             let createIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
@@ -146,7 +144,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: 'existing@example.com',
+                currentUserEmailParam: currentUserLogin,
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 existingTransactionDraft: undefined,
@@ -242,6 +240,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID,
+                            currentUserLogin,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGracePeriodEnds: undefined,
@@ -451,6 +450,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
+                            currentUserLogin: CARLOS_EMAIL,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGracePeriodEnds: undefined,
@@ -614,6 +614,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
+                            currentUserLogin: CARLOS_EMAIL,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGracePeriodEnds: undefined,
@@ -666,6 +667,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
@@ -779,6 +781,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         iouReportCurrentNextStepDeprecated: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        currentUserLogin: CARLOS_EMAIL,
                         full: false,
                         betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
@@ -873,6 +876,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 full: false,
                 policy,
                 betas: [CONST.BETAS.ALL],
@@ -909,6 +913,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 userBillingGracePeriodEnds: undefined,
@@ -956,6 +961,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
@@ -1023,6 +1029,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
@@ -1057,6 +1064,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
@@ -1177,6 +1185,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             introSelected: undefined,
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
+                            currentUserLogin: CARLOS_EMAIL,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGracePeriodEnds: undefined,
@@ -1402,6 +1411,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected: undefined,
                     iouReportCurrentNextStepDeprecated: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
+                    currentUserLogin: CARLOS_EMAIL,
                     betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
@@ -1431,7 +1441,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
         let completeOnboardingSpy: jest.SpyInstance;
 
         beforeEach(async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
             await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {

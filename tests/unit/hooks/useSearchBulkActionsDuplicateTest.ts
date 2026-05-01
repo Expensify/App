@@ -266,7 +266,6 @@ describe('useSearchBulkActions - duplicate option', () => {
 
         const defaultReportIDs = ['report1', 'r0', 'r1', 'r2', 'r3'];
         for (const reportID of defaultReportIDs) {
-            // eslint-disable-next-line no-await-in-loop
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
                 ownerAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -491,7 +490,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         const transactionIDs = states.map((_, i) => `1900${i}`);
         for (const [i, txnID] of transactionIDs.entries()) {
             const txn = {...createRandomTransaction(i + 1), transactionID: txnID, managedCard: false};
-            // eslint-disable-next-line no-await-in-loop
+
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
         }
 
@@ -1135,7 +1134,6 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
 
         for (const reportID of ['rpt1', 'rpt2', 'rpt3']) {
-            // eslint-disable-next-line no-await-in-loop
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
                 policyID,
@@ -1304,7 +1302,6 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockDefaultExpensePolicy = teamPolicy;
 
         for (const reportID of ['rpt1', 'rpt2']) {
-            // eslint-disable-next-line no-await-in-loop
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
                 policyID,

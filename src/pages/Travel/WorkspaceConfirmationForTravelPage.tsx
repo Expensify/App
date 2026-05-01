@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -30,17 +31,15 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     };
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        createDraftWorkspace(
+        createDraftWorkspace({
             introSelected,
-            params.name,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.email ?? '',
-            '',
-            false,
-            params.policyID,
-            params.currency,
-            params.avatarFile as File,
-        );
+            workspaceName: params.name,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email ?? '',
+            policyID: params.policyID,
+            currency: params.currency || (currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD),
+            file: params.avatarFile as File,
+        });
         createWorkspace({
             policyName: params.name,
             policyID: params.policyID,

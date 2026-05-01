@@ -67,7 +67,6 @@ function IOURequestStepDate({
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
@@ -158,9 +157,8 @@ function IOURequestStepDate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
 
 export default IOURequestStepDateWithWritableReportOrNotFound;

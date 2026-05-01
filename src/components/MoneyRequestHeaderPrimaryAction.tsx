@@ -85,7 +85,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, bankAccountList);
+                        changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, bankAccountList, currentUserLogin ?? '', accountID);
                     }}
                 />
             );

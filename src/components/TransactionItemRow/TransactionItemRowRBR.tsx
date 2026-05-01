@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -61,23 +61,25 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
+    const iouAction = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID) : undefined;
+    const transactionThreadId = iouAction?.childReportID;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(
+    const canEdit = wasActionTakenByCurrentUser(iouAction);
+    const RBRMessages = ViolationsUtils.getRBRMessages({
         transaction,
-        isSettled(report) ? [] : (violations ?? []),
+        transactionViolations: isSettled(report) ? [] : (violations ?? []),
         translate,
         missingFieldError,
-        Object.values(transactionThreadActions ?? {}),
-        policyTags,
+        transactionThreadActions: Object.values(transactionThreadActions ?? {}),
+        tags: policyTags,
         companyCardPageURL,
-        undefined,
         cardList,
-        isMarkAsCash,
-    );
+        isMarkAsCash: isMarkAsCash || undefined,
+        canEdit,
+    });
     const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
 
     return (
