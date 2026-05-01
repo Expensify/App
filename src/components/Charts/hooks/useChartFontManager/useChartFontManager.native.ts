@@ -10,7 +10,7 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
             require('@assets/fonts/native/ExpensifyNeue-BoldItalic.otf') as DataModule,
         ],
         NotoSansSymbols: [require('@assets/fonts/NotoSans-Symbols.ttf') as DataModule],
-        NotoSansSC: [require('@assets/fonts/NotoSansSC.ttf') as DataModule],
+        NotoSansSCMonths: [require('@assets/fonts/NotoSansSC-Months.ttf') as DataModule],
     });
 }
 
