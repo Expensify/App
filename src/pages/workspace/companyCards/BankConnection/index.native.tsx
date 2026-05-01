@@ -76,7 +76,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
+    const [isConfirmedNewFeed, setIsConfirmedNewFeed] = useState(false);
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !isConfirmedNewFeed;
     const [isDuplicateFeedDismissed, setIsDuplicateFeedDismissed] = useState(false);
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -164,6 +165,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             return;
         }
         if (isPlaid) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the feed as new (not duplicate) before importing
+            setIsConfirmedNewFeed(true);
             onImportPlaidAccounts();
         }
     }, [

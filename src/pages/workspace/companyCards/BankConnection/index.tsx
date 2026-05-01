@@ -80,7 +80,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
+    const [isConfirmedNewFeed, setIsConfirmedNewFeed] = useState(false);
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !isConfirmedNewFeed;
     const [isDuplicateFeedDismissed, setIsDuplicateFeedDismissed] = useState(false);
 
     const onOpenBankConnectionFlow = useCallback(() => {
@@ -180,6 +181,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
         if (!shouldBlockWindowOpenRef.current) {
             if (isPlaid) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the feed as new (not duplicate) before importing
+                setIsConfirmedNewFeed(true);
                 onImportPlaidAccounts();
                 return;
             }
