@@ -10,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {
     OnyxInputOrEntry,
+    Pages,
     PersonalDetailsList,
     Policy,
     PolicyCategories,
@@ -17,7 +18,6 @@ import type {
     PolicyTagLists,
     PolicyTags,
     Report,
-    ReportAction,
     ReportActions,
     TaxRate,
     Transaction,
@@ -43,6 +43,7 @@ import type {
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -1254,58 +1255,42 @@ function isSubmittedOrReportLevelApproverOverrideAction(reportAction: OnyxEntry<
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || isReportLevelApproverOverrideAction(reportAction);
 }
 
-function isReportActionNewer(reportAction: ReportAction, latestReportAction: ReportAction): boolean {
-    if (reportAction.created !== latestReportAction.created) {
-        if (latestReportAction.created === undefined) {
-            return true;
-        }
-
-        if (reportAction.created === undefined) {
-            return false;
-        }
-
-        return reportAction.created > latestReportAction.created;
-    }
-
-    return reportAction.reportActionID > latestReportAction.reportActionID;
-}
-
-function getLatestSubmittedOrReportLevelApproverOverrideAction(reportActions: ReportActions | undefined): ReportAction | undefined {
-    if (!reportActions) {
+function getActiveReportLevelApproverOverrideStatus(reportActions: ReportActions | undefined, reportActionPages?: Pages): boolean | undefined {
+    const newestActionPage = reportActionPages?.find((page) => page.at(0) === CONST.PAGINATION_START_ID);
+    if (!newestActionPage) {
         return;
     }
 
-    return Object.values(reportActions).reduce<ReportAction | undefined>((latestReportAction, reportAction) => {
+    for (const reportActionID of newestActionPage) {
+        if (reportActionID === CONST.PAGINATION_START_ID || reportActionID === CONST.PAGINATION_END_ID) {
+            continue;
+        }
+
+        const reportAction = reportActions?.[reportActionID];
+        if (!reportAction) {
+            return;
+        }
+
         if (!isSubmittedOrReportLevelApproverOverrideAction(reportAction)) {
-            return latestReportAction;
+            continue;
         }
 
-        if (!latestReportAction || isReportActionNewer(reportAction, latestReportAction)) {
-            return reportAction;
-        }
+        return isReportLevelApproverOverrideAction(reportAction);
+    }
 
-        return latestReportAction;
-    }, undefined);
+    return newestActionPage.includes(CONST.PAGINATION_END_ID) ? false : undefined;
 }
 
-function hasActiveReportLevelApproverOverride(reportActions: ReportActions | undefined): boolean {
-    return isReportLevelApproverOverrideAction(getLatestSubmittedOrReportLevelApproverOverrideAction(reportActions));
-}
-
-function hasReportActionsData(reportActions: ReportActions | undefined): boolean {
-    return Object.keys(reportActions ?? {}).length > 0;
-}
-
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, reportActions?: ReportActions): number {
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, reportActions?: ReportActions, reportActionPages?: Pages): number {
     const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
     const hasEmployeeData = !!policy?.employeeList?.[employeeLogin];
     const hasValidExistingManager = existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID;
-    const hasLoadedReportActions = hasReportActionsData(reportActions);
+    const activeReportLevelApproverOverride = getActiveReportLevelApproverOverrideStatus(reportActions, reportActionPages);
 
-    if (hasValidExistingManager && (!hasEmployeeData || !hasLoadedReportActions || hasActiveReportLevelApproverOverride(reportActions))) {
-        // Preserve known-good report managers when policy employee data or report action history is missing, or when the report was explicitly rerouted.
+    if (hasValidExistingManager && (!hasEmployeeData || activeReportLevelApproverOverride !== false)) {
+        // Preserve known-good report managers when policy employee data is missing, when report action history may be incomplete, or when the report was explicitly rerouted.
         return existingManagerID;
     }
 
