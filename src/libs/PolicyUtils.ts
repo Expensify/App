@@ -1247,9 +1247,12 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
     const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
+    const hasEmployeeData = !!policy?.employeeList?.[employeeLogin];
 
-    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID) {
-        // Existing reports may already have a server-computed or manually changed approver.
+    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID && !hasEmployeeData) {
+        // When employeeList is stale/empty, preserve the existing report.managerID to avoid
+        // overwriting a correct server-set approver with a wrong default.
         return existingManagerID;
     }
 
