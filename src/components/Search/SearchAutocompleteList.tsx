@@ -377,29 +377,25 @@ function SearchAutocompleteList({
     // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
-    // We keep the latest recentReportsOptions in a ref so the effect below can snapshot
-    // without listing it as a dependency (which would defeat freezing).
+    // Uses the React-recommended "setState during render" pattern to avoid calling setState in
+    // an effect (which causes cascading renders) and to avoid reading refs during render.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(new Map());
-    const recentReportsOptionsRef = useRef(recentReportsOptions);
-    useEffect(() => {
-        recentReportsOptionsRef.current = recentReportsOptions;
-    }, [recentReportsOptions]);
-
-    useEffect(() => {
+    const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+    if (prevAutocompleteQuery !== autocompleteQueryValue) {
+        setPrevAutocompleteQuery(autocompleteQueryValue);
         if (autocompleteQueryValue.trim() === '') {
             setFrozenLocalRank(new Map());
-            return;
-        }
-        const options = recentReportsOptionsRef.current;
-        const rank = new Map<string, number>();
-        for (const [index, option] of options.entries()) {
-            const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
-            if (key) {
-                rank.set(key, index);
+        } else {
+            const rank = new Map<string, number>();
+            for (const [index, option] of recentReportsOptions.entries()) {
+                const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+                if (key) {
+                    rank.set(key, index);
+                }
             }
+            setFrozenLocalRank(rank);
         }
-        setFrozenLocalRank(rank);
-    }, [autocompleteQueryValue]);
+    }
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
