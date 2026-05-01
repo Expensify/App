@@ -4,7 +4,7 @@ import type {GestureResponderEvent, View} from 'react-native';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-/** Per-item registry entry — populated by `<Item>` / `<SubTrigger>` / SubContent's back button on mount. */
+/** Registry entry written by `<Item>`, `<SubTrigger>`, and SubContent's back button on mount. */
 type FocusableItem = {
     ref: RefObject<View | null>;
     isDisabled: boolean;
@@ -24,7 +24,8 @@ type ContentStateValue = {
 
 type ContentActionsValue = {
     enterSub: (id: string) => void;
-    exitSub: () => void;
+    /** Pop to the given sub id; default `null` pops to root. */
+    exitSub: (target?: string | null) => void;
     registerItem: (id: string, item: FocusableItem) => void;
     unregisterItem: (id: string) => void;
     setFocusedId: (id: string | null) => void;

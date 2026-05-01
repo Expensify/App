@@ -22,7 +22,7 @@ function createSelectEvent(): ItemSelectEvent {
     return event;
 }
 
-/** Distributive `Omit` that preserves discriminated union narrowing. */
+/** Preserves the discriminated MenuItemProps union — built-in `Omit` collapses it. */
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
 type MenuItemForwardProps = DistributiveOmit<
@@ -46,25 +46,21 @@ type MenuItemForwardProps = DistributiveOmit<
 
 type CheckmarkItemOwnProps = {
     text: string;
-    /** Whether this row is the currently selected option (renders the check icon). */
+    /** Renders the check icon when true. */
     isSelected?: boolean;
     /** Call `event.preventDefault()` to keep the menu open after select. */
     onSelect?: (event: ItemSelectEvent) => void;
     disabled?: boolean;
     pendingAction?: PendingAction;
-    /** Override the default `PopoverMenu.CheckmarkItem-${text}` testID. */
+    /** Defaults to `PopoverMenu.CheckmarkItem-${text}`. */
     testID?: string;
-    /** Optional right-side icon (replaces the check). Renders only when set. */
+    /** When set, replaces the check icon. */
     rightIcon?: IconAsset;
 };
 
 type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
 
-/**
- * Selectable menu row that renders a check icon when `isSelected`. Mirrors radix's
- * `DropdownMenu.CheckboxItem`. Use for "single selection" lists (currency picker, language
- * picker, etc.). For plain rows that don't track selection, use `<PopoverMenu.Item>`.
- */
+/** Selectable menu row that renders a check when `isSelected` — radix's `DropdownMenu.CheckboxItem` analogue. */
 function CheckmarkItem({
     text,
     isSelected = false,
@@ -98,6 +94,7 @@ function CheckmarkItem({
         setIsVisible(false);
     };
 
+    // Mirrored so the registry's `onActivate` stays stable across renders.
     const handleActivateRef = useRef(handleActivate);
     useLayoutEffect(() => {
         handleActivateRef.current = handleActivate;
@@ -122,7 +119,7 @@ function CheckmarkItem({
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <FocusableMenuItem
-                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards the discriminated MenuItemProps union; same pattern as FocusableMenuItem itself
+                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union; matches FocusableMenuItem
                 {...rest}
                 ref={ref}
                 title={text}
@@ -133,7 +130,8 @@ function CheckmarkItem({
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                shouldShowSelectedItemCheck
+                // MenuItem renders the check and right icon as independent slots — suppress the check when caller supplies a custom right icon.
+                shouldShowSelectedItemCheck={!rightIcon}
                 onPress={handleActivate}
                 onFocus={() => setFocusedId(id)}
                 focused={focusedId === id}

@@ -26,23 +26,20 @@ function createSelectEvent(): ItemSelectEvent {
     return event;
 }
 
-/** Props PopoverMenu.Item owns directly: the menu-row label, selection callback, and `disabled`. */
 type ItemOwnProps = {
     text: string;
     /** Call `event.preventDefault()` to keep the menu open after select. */
     onSelect?: (event: ItemSelectEvent) => void;
     disabled?: boolean;
     pendingAction?: PendingAction;
-    /** Override the default `PopoverMenu.Item-${text}` testID. */
+    /** Defaults to `PopoverMenu.Item-${text}`. */
     testID?: string;
-    /** Optional right-side icon. Renders only when set. */
     rightIcon?: IconAsset;
 };
 
-/** Distributive `Omit` that preserves discriminated union narrowing (built-in `Omit` collapses it). */
+/** Preserves the discriminated MenuItemProps union — built-in `Omit` collapses it. */
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
-/** Props inherited from MenuItem; PopoverMenu.Item controls these and the rest are forwarded. */
 type MenuItemForwardProps = DistributiveOmit<
     MenuItemProps,
     | 'title'
@@ -86,7 +83,7 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
         setIsVisible(false);
     };
 
-    // Latest handler mirrored so the registry's onActivate stays stable across renders.
+    // Mirrored so the registry's `onActivate` stays stable across renders.
     const handleActivateRef = useRef(handleActivate);
     useLayoutEffect(() => {
         handleActivateRef.current = handleActivate;
@@ -111,7 +108,7 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <FocusableMenuItem
-                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards the discriminated MenuItemProps union; same pattern as FocusableMenuItem itself
+                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union; matches FocusableMenuItem
                 {...rest}
                 ref={ref}
                 title={text}

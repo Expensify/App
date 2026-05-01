@@ -15,7 +15,7 @@ type SubContentProps = {
     backButtonText?: string;
 };
 
-function BackButton({backButtonText}: {backButtonText?: string}): React.ReactElement {
+function BackButton({backButtonText, parentSubId}: {backButtonText?: string; parentSubId: string | null}): React.ReactElement {
     const id = useId();
     const ref = useRef<View>(null);
     const {
@@ -30,9 +30,9 @@ function BackButton({backButtonText}: {backButtonText?: string}): React.ReactEle
     const hasLabel = !!backButtonText;
     const labelText = backButtonText ?? translate('common.goBack');
 
-    const handleActivateRef = useRef(() => exitSub());
+    const handleActivateRef = useRef(() => exitSub(parentSubId));
     useLayoutEffect(() => {
-        handleActivateRef.current = () => exitSub();
+        handleActivateRef.current = () => exitSub(parentSubId);
     });
 
     useLayoutEffect(() => {
@@ -59,26 +59,30 @@ function BackButton({backButtonText}: {backButtonText?: string}): React.ReactEle
             titleStyle={hasLabel ? styles.createMenuHeaderText : undefined}
             shouldShowBasicTitle={hasLabel}
             shouldCheckActionAllowedOnPress={false}
-            onPress={() => exitSub()}
+            onPress={() => exitSub(parentSubId)}
             onFocus={() => setFocusedId(id)}
             focused={focusedId === id}
         />
     );
 }
 
-function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
+function SubContent({children, backButtonText}: SubContentProps): React.ReactElement {
     const {
         state: {currentSubId},
     } = useContentState('PopoverMenu.SubContent');
-    const {subId} = useSubContext('PopoverMenu.SubContent');
+    const {subId, parentSubId} = useSubContext('PopoverMenu.SubContent');
 
-    if (currentSubId !== subId) {
-        return null;
-    }
+    // Children always mount so nested `<Sub>` survives navigation. Items gate themselves via `useIsAtActiveLevel`; only the back button is gated here.
+    const isActiveLevel = currentSubId === subId;
 
     return (
         <>
-            <BackButton backButtonText={backButtonText} />
+            {isActiveLevel && (
+                <BackButton
+                    backButtonText={backButtonText}
+                    parentSubId={parentSubId}
+                />
+            )}
             {children}
         </>
     );

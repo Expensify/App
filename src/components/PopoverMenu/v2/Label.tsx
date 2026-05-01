@@ -5,7 +5,7 @@ import type {MenuItemProps} from '@components/MenuItem';
 import variables from '@styles/variables';
 import {useIsAtActiveLevel} from './SubContext';
 
-/** Distributive `Omit` that preserves discriminated union narrowing (built-in `Omit` collapses it). */
+/** Preserves the discriminated MenuItemProps union — built-in `Omit` collapses it. */
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
 type MenuItemForwardProps = DistributiveOmit<
@@ -21,11 +21,7 @@ type LabelOwnProps = {
 
 type LabelProps = LabelOwnProps & MenuItemForwardProps;
 
-/**
- * Non-interactive header/label row inside a popover menu. Skipped by keyboard navigation —
- * arrow keys move past it. Use for section headings or contextual info; use `<Item>` for
- * anything clickable.
- */
+/** Non-interactive header row. Skipped by keyboard navigation; use `<Item>` for clickable rows. */
 function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}: LabelProps): React.ReactElement | null {
     const isAtActiveLevel = useIsAtActiveLevel('PopoverMenu.Label');
 
@@ -35,7 +31,7 @@ function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}:
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards the discriminated MenuItemProps union; same pattern as FocusableMenuItem
+            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union; matches FocusableMenuItem
             {...rest}
             title={text}
             titleStyle={titleStyle}

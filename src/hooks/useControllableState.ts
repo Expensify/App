@@ -15,13 +15,8 @@ function isUpdaterFn<T>(next: SetStateAction<T>): next is (prev: T) => T {
 }
 
 /**
- * Radix-style controlled/uncontrolled state hook. Mirrors `@radix-ui/react-use-controllable-state`.
- *
- * Returns the resolved current value plus a stable setter that:
- *   - in controlled mode, calls `onChange(resolvedNext)` only on real transitions and never mutates internal state — the parent owns it;
- *   - in uncontrolled mode, drives internal state via `setInternal`; a transition effect notifies `onChange` once per real change (StrictMode-safe).
- *
- * The setter is referentially stable (lazy-init via `useState`), so consumers can put it inside actions contexts without forcing children to re-render.
+ * Radix-style controlled/uncontrolled state. Returns the resolved value and a referentially-stable setter:
+ * controlled mode calls `onChange` on real transitions; uncontrolled mode drives internal state and fires `onChange` once per change (StrictMode-safe).
  */
 function useControllableState<T>({value, defaultValue, onChange}: UseControllableStateProps<T>): [T, Dispatch<SetStateAction<T>>] {
     const isControlled = value !== undefined;

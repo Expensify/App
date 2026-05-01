@@ -295,6 +295,26 @@ describe('PopoverMenu compound API', () => {
             expect(onSelect).toHaveBeenCalledTimes(1);
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
+
+        it('suppresses the check when rightIcon is supplied (rightIcon replaces it)', () => {
+            const customRightIcon = jest.fn();
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.CheckmarkItem
+                            text="Override"
+                            isSelected
+                            rightIcon={customRightIcon}
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            const item = findItemByTitle('Override') as {shouldShowSelectedItemCheck?: boolean; iconRight?: unknown; shouldShowRightIcon?: boolean} | undefined;
+            expect(item?.shouldShowSelectedItemCheck).toBe(false);
+            expect(item?.shouldShowRightIcon).toBe(true);
+            expect(item?.iconRight).toBe(customRightIcon);
+        });
     });
 
     describe('Label', () => {
@@ -397,6 +417,110 @@ describe('PopoverMenu compound API', () => {
             onOpenChange.mockClear();
             act(() => subItem?.onPress?.());
             expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        // Issue 1: closing while inside a submenu (via Item.onSelect or controlled `open={false}`)
+        // bypassed `handleClose`, leaving `currentSubId` stale. Reopening the same mounted Content showed the submenu.
+        it('resets to top level when the menu closes via item selection and reopens', () => {
+            function ExternallyControlledHarness({open}: {open: boolean}) {
+                const anchorRef = useRef<RNViewType>(null);
+                return (
+                    <>
+                        <View ref={anchorRef} />
+                        <PopoverMenu.Root
+                            open={open}
+                            onOpenChange={() => {}}
+                            anchorRef={anchorRef}
+                        >
+                            <PopoverMenu.Content>
+                                <PopoverMenu.Sub id="A">
+                                    <PopoverMenu.SubTrigger text="Open Sub" />
+                                    <PopoverMenu.SubContent backButtonText="Back">
+                                        <PopoverMenu.Item
+                                            text="Choose"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.SubContent>
+                                </PopoverMenu.Sub>
+                            </PopoverMenu.Content>
+                        </PopoverMenu.Root>
+                    </>
+                );
+            }
+
+            const tree = render(<ExternallyControlledHarness open />);
+
+            // Enter sub.
+            act(() => (findItemByTitle('Open Sub') as {onPress?: () => void} | undefined)?.onPress?.());
+            expect(findItemByTitle('Choose')).toBeDefined();
+
+            // Close the menu via controlled prop. Content stays mounted; only the popover children unmount via the mock.
+            tree.rerender(<ExternallyControlledHarness open={false} />);
+            // Reopen — same Content instance. Without the close-effect reset, `currentSubId` would still point at "A".
+            menuItemPropsCapture.current = [];
+            tree.rerender(<ExternallyControlledHarness open />);
+
+            expect(findItemByTitle('Open Sub')).toBeDefined();
+            expect(findItemByTitle('Choose')).toBeUndefined();
+        });
+
+        // Issue 2: nested SubTrigger only rendered while `currentSubId === null`, so deeper subs
+        // were unreachable. With `parentSubId` tracking, B's trigger appears while A is active.
+        it('renders a nested SubTrigger when its parent sub is the active level', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="A">
+                            <PopoverMenu.SubTrigger text="Open A" />
+                            <PopoverMenu.SubContent backButtonText="Back to root">
+                                <PopoverMenu.Item
+                                    text="A item"
+                                    onSelect={() => {}}
+                                />
+                                <PopoverMenu.Sub id="B">
+                                    <PopoverMenu.SubTrigger text="Open B" />
+                                    <PopoverMenu.SubContent backButtonText="Back to A">
+                                        <PopoverMenu.Item
+                                            text="B item"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.SubContent>
+                                </PopoverMenu.Sub>
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+
+            // At root: A's trigger visible, B's trigger hidden (parent A isn't active yet).
+            expect(findItemByTitle('Open A')).toBeDefined();
+            expect(findItemByTitle('Open B')).toBeUndefined();
+            expect(findItemByTitle('A item')).toBeUndefined();
+            expect(findItemByTitle('B item')).toBeUndefined();
+
+            // Enter A: A's items + B's trigger visible. Clear capture before press so we read the next render only.
+            const triggerA = findItemByTitle('Open A') as {onPress?: () => void} | undefined;
+            menuItemPropsCapture.current = [];
+            act(() => triggerA?.onPress?.());
+            expect(findItemByTitle('A item')).toBeDefined();
+            expect(findItemByTitle('Open B')).toBeDefined();
+            expect(findItemByTitle('B item')).toBeUndefined();
+
+            // Enter B: B's items visible, A's items hidden.
+            const triggerB = findItemByTitle('Open B') as {onPress?: () => void} | undefined;
+            menuItemPropsCapture.current = [];
+            act(() => triggerB?.onPress?.());
+            expect(findItemByTitle('B item')).toBeDefined();
+            expect(findItemByTitle('A item')).toBeUndefined();
+            expect(findItemByTitle('Open B')).toBeUndefined();
+
+            // Press B's back button: pops to A, not root.
+            const backToA = findItemByTitle('Back to A') as {onPress?: () => void} | undefined;
+            menuItemPropsCapture.current = [];
+            act(() => backToA?.onPress?.());
+            expect(findItemByTitle('A item')).toBeDefined();
+            expect(findItemByTitle('Open B')).toBeDefined();
+            expect(findItemByTitle('B item')).toBeUndefined();
         });
     });
 

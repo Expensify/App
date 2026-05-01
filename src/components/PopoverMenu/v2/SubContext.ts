@@ -3,6 +3,8 @@ import {useContentState} from './ContentContext';
 
 type SubContextValue = {
     subId: string;
+    /** The level this `<Sub>` is rendered at: `null` for root, or the outer Sub's id when nested. */
+    parentSubId: string | null;
 };
 
 const SubContext = createContext<SubContextValue | null>(null);

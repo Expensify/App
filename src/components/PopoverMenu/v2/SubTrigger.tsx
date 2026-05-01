@@ -13,7 +13,6 @@ import {useSubContext} from './SubContext';
 type SubTriggerProps = {
     text: string;
     description?: string;
-    /** Matches MenuItem's icon discriminated union. */
     icon?: AvatarSource | IconType[];
     iconWidth?: number;
     iconHeight?: number;
@@ -32,10 +31,11 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
         state: {currentSubId, focusedId},
     } = useContentState('PopoverMenu.SubTrigger');
     const {enterSub, registerItem, unregisterItem, setFocusedId} = useContentActions('PopoverMenu.SubTrigger');
-    const {subId} = useSubContext('PopoverMenu.SubTrigger');
+    const {subId, parentSubId} = useSubContext('PopoverMenu.SubTrigger');
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const isVisible = currentSubId === null;
+    // Reachable when the user is at this Sub's parent level (root, or the outer Sub for nested cases).
+    const isVisible = currentSubId === parentSubId;
 
     const handleActivate = () => {
         if (disabled) {
@@ -44,7 +44,7 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
         enterSub(subId);
     };
 
-    // Latest handler mirrored so the registry's onActivate stays stable across renders.
+    // Mirrored so the registry's `onActivate` stays stable across renders.
     const handleActivateRef = useRef(handleActivate);
     useLayoutEffect(() => {
         handleActivateRef.current = handleActivate;

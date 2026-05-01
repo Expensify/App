@@ -1,7 +1,7 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
@@ -14,7 +14,6 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -24,6 +23,7 @@ import {ContentActionsContext, ContentStateContext} from './ContentContext';
 import type {ContentActionsValue, ContentStateValue, FocusableItem} from './ContentContext';
 import {useRootActions, useRootState} from './RootContext';
 import type {AnchorRef} from './RootContext';
+import useSuppressSpaceScroll from './useSuppressSpaceScroll';
 
 type ContentProps = {
     children: ReactNode;
@@ -34,9 +34,8 @@ type ContentProps = {
     anchorPosition?: AnchorPosition;
     containerStyles?: StyleProp<ViewStyle>;
     innerContainerStyle?: ViewStyle;
-    /** Wrap menu items in a `<ScrollView>` for long menus that need to scroll. */
     shouldUseScrollView?: boolean;
-    /** Style applied to the scroll-view content container (only when `shouldUseScrollView`). */
+    /** Only applied when `shouldUseScrollView`. */
     scrollContainerStyle?: StyleProp<ViewStyle>;
     /** Cap popover height. Ignored in landscape so content stays reachable. */
     shouldEnableMaxHeight?: boolean;
@@ -109,12 +108,21 @@ function Content({
     const [measuredAnchorPosition, setMeasuredAnchorPosition] = useState<AnchorPosition | null>(JSDOM_FALLBACK_ANCHOR);
     const anchorPosition = anchorPositionProp ?? measuredAnchorPosition;
     const [currentSubId, setCurrentSubId] = useState<string | null>(null);
+
+    // Reset submenu state on every close so reopening the same Content starts at the top level (covers Item.onSelect, controlled close, overlay click).
+    const [prevIsVisible, setPrevIsVisible] = useState(isVisible);
+    if (prevIsVisible !== isVisible) {
+        setPrevIsVisible(isVisible);
+        if (!isVisible && currentSubId !== null) {
+            setCurrentSubId(null);
+        }
+    }
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIds = [...registry.keys()];
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIds.length - 1, isActive: isVisible, initialFocusedIndex: -1});
     const focusedId = orderedIds.at(focusedIndex) ?? null;
 
-    // Mirror the ordered IDs so the lazy-init `setFocusedId` action can translate id↔index without going stale.
+    // Mirrored so the lazy-init `setFocusedId` can translate id↔index without going stale.
     const orderedIdsRef = useRef(orderedIds);
     useLayoutEffect(() => {
         orderedIdsRef.current = orderedIds;
@@ -122,7 +130,7 @@ function Content({
 
     const [actions] = useState<ContentActionsValue>(() => ({
         enterSub: (id: string) => setCurrentSubId(id),
-        exitSub: () => setCurrentSubId(null),
+        exitSub: (target: string | null = null) => setCurrentSubId(target),
         registerItem: (id, item) =>
             setRegistry((prev) => {
                 const next = new Map(prev);
@@ -155,18 +163,9 @@ function Content({
         {isActive: isVisible},
     );
 
-    // Web: pressing Space after touching the parent view scrolls the page; swallow it while the menu is open.
-    const isWebPlatform = getPlatform() === CONST.PLATFORM.WEB;
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.SPACE,
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            event?.preventDefault();
-        },
-        {isActive: isWebPlatform && isVisible, shouldPreventDefault: false},
-    );
+    useSuppressSpaceScroll(isVisible);
 
     const handleClose = () => {
-        setCurrentSubId(null);
         setIsVisible(false);
     };
 
