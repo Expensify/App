@@ -9,6 +9,7 @@ import CardRuleListItem from '@components/SelectionList/ListItem/CardRuleListIte
 import {CardRuleListItemType} from '@components/SelectionList/ListItem/types';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData} from '@libs/actions/Card';
@@ -17,6 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -29,9 +31,10 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
+    const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const [cardRuleID, setCardRuleID] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.cardRuleID ?? '');
 
     const cardRuleListItems: CardRuleListItemType[] = cardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
@@ -51,15 +54,16 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
         setShouldShowError(false);
     };
 
-    const onSubmit = () => {
+    const onSubmit = async () => {
         if (!cardRuleID) {
             setShouldShowError(true);
             return;
         }
 
         setShouldShowError(false);
-        setIssueNewCardData(policyID, {cardRuleID});
-        goBack();
+        setIssueNewCardData(policyID, {cardRuleID}).then(() => {
+            goBack();
+        });
     };
 
     return (

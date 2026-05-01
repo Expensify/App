@@ -753,7 +753,7 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardData(policyID: string, data: Partial<IssueNewCardData>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data});
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {

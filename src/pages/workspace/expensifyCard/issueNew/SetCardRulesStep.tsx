@@ -54,6 +54,7 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
     }, [assigneeTimeZone]);
 
     const isEditing = issueNewCard?.isEditing;
+    const hasCardRuleID = !!issueNewCard?.data?.cardRuleID;
     const hasCardRuleData = !!issueNewCard?.data?.cardRuleID || !!issueNewCard?.data?.cardRuleValue;
 
     // JACK_TODO: Derive from state
@@ -160,7 +161,8 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
 
                         {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
-                                // title="Choose a rule"
+                                // JACK_TODO
+                                title={hasCardRuleID ? 'Has a card rule selected' : ''}
                                 shouldShowRightIcon
                                 description="Choose a rule"
                                 onPress={handleChooseSpendRule}
