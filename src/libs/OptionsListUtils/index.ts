@@ -2506,7 +2506,12 @@ function getValidOptions(
                 if (report.isThread && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
                     return false;
                 }
-                if (!report.isThread) {
+                if (
+                    !report.isThread &&
+                    report.item?.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM &&
+                    report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS &&
+                    !report.private_isArchived
+                ) {
                     const participant = report.item?.participants?.[currentUserAccountID];
                     if (participant && isHiddenForCurrentUser(participant.notificationPreference)) {
                         return false;
