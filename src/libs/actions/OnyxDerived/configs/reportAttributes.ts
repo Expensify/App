@@ -273,6 +273,8 @@ export default createOnyxDerivedValueConfig({
                     isReportArchived,
                     allTransactions: transactions,
                     reports,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserLogin: session?.email ?? '',
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
@@ -57,7 +55,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
@@ -546,7 +544,6 @@ describe('actions/IOU/BulkEdit', () => {
                             required: true,
                             orderWeight: 0,
                             tags: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
                                 Engineering: {name: 'Engineering', enabled: true},
                             },
                         },
@@ -1001,7 +998,6 @@ describe('actions/IOU/BulkEdit', () => {
                     required: true,
                     orderWeight: 0,
                     tags: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ValidTag: {name: 'ValidTag', enabled: true},
                     },
                 },

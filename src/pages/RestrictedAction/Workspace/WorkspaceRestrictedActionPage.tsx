@@ -58,7 +58,6 @@ function WorkspaceRestrictedActionPage({
             return;
         }
         openSubscriptionPage(gracePeriodsRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.

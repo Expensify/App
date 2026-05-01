@@ -166,7 +166,7 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [],
     );
 

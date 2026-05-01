@@ -86,7 +86,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -111,7 +110,6 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const unapprovedCashHash = 71801560;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -2617,9 +2615,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
     });
 
     it('should set navigate-back URL and use backward navigation pattern when reverse-split deletes the last transaction in expense report', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const Report = jest.requireMock('@src/libs/actions/Report');
 
         // Given an expense report that is the only transaction in its parent chat,
@@ -2731,23 +2728,22 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Then setDeleteTransactionNavigateBackUrl should be called with the parent chat route
         // because the expense report is being deleted and we need to suppress the "Not here" page
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
 
         // Then navigateBackOnDeleteTransaction should be used (which calls dismissToSuperWideRHP + goBack)
         // instead of dismissModalWithReport
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.dismissToSuperWideRHP).toHaveBeenCalled();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
     });
 
     it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const Report = jest.requireMock('@src/libs/actions/Report');
 
         // Given an expense report with two transactions (so it won't be deleted by the reverse split),
@@ -2866,11 +2862,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Then setDeleteTransactionNavigateBackUrl should not be called because the expense report
         // still has other transactions and won't be deleted
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Report.setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
 
         // Then navigation should go to the expense report since it still exists
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID});
     });
 });

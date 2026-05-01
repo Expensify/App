@@ -84,7 +84,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildNextStepNew} from '@libs/NextStepUtils';
@@ -1526,7 +1525,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             addressZip,
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
         };
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
         API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
     }
 }
@@ -3250,7 +3249,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.POLICY
@@ -4040,7 +4039,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
  *
  * @returns policyID of the workspace we have created
  */
-// eslint-disable-next-line rulesdir/no-call-actions-from-actions
+
 function createWorkspaceFromIOUPayment(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction | undefined,

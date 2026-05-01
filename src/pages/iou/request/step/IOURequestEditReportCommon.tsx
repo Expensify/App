@@ -264,7 +264,6 @@ function IOURequestEditReportCommon({
         );
     }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
         if (createReportOption) {
             return false;

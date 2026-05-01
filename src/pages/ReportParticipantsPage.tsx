@@ -312,7 +312,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             ? translate('common.members')
             : translate('common.details');
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const memberNotFoundMessage = isGroupChat
         ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
         : translate('roomMembersPage.memberNotFound');
@@ -338,7 +337,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>

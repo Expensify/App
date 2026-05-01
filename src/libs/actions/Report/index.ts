@@ -880,7 +880,6 @@ function addActions({
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             ...(action as OptimisticAddCommentReportAction),
             errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
@@ -1968,10 +1967,16 @@ function createTransactionThreadReport(
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const participantAccountIDsForDetails = [currentUserAccountID];
+    if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
+        participantAccountIDsForDetails.push(iouReportAction.actorAccountID);
+    }
+    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails);
+    const participants = buildParticipantInfoFromLogins(participantLogins);
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
-        participants: currentUserLogin ? [{login: currentUserLogin, accountID: currentUserAccountID}] : [],
+        participants,
         // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
         personalDetails: personalDetails ?? allPersonalDetails,
         newReportObject: optimisticTransactionThread,
@@ -5251,6 +5256,7 @@ async function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
         bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
+        selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
     };
 
     if (shouldWaitForRHPVariantInitialization) {
@@ -5417,7 +5423,7 @@ function buildParticipantsInviteData(
             if (accountID in (targetReport.participants ?? {})) {
                 return acc;
             }
-            // eslint-disable-next-line no-param-reassign -- Mutating the reduce accumulator is intentional
+
             acc[accountID] = {
                 notificationPreference: defaultPref,
                 role: CONST.REPORT.ROLE.MEMBER,
@@ -7536,6 +7542,14 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
+function setConciergeThinkingKickoff() {
+    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, true);
+}
+
+function clearConciergeThinkingKickoff() {
+    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo};
 
 export {
@@ -7654,4 +7668,6 @@ export {
     prepareOnyxDataForCleanUpOptimisticParticipants,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
+    setConciergeThinkingKickoff,
+    clearConciergeThinkingKickoff,
 };

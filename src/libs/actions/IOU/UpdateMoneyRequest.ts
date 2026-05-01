@@ -7,7 +7,6 @@ import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -94,7 +93,7 @@ function updateMoneyRequestDate({
         created: value,
     };
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
@@ -242,7 +241,7 @@ function updateMoneyRequestMerchant({
         merchant: value,
     };
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
@@ -515,7 +514,7 @@ function updateMoneyRequestDistance({
         ...(odometerEnd !== undefined && {odometerEnd}),
     };
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
@@ -668,7 +667,7 @@ function updateMoneyRequestDescription({
         comment: parsedComment,
     };
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
@@ -744,7 +743,7 @@ function updateMoneyRequestDistanceRate({
     }
 
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
@@ -821,7 +820,7 @@ function updateMoneyRequestAmountAndCurrency({
     };
 
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {

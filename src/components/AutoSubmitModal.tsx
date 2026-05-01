@@ -14,7 +14,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
 import Text from './Text';
 
 function AutoSubmitModal() {

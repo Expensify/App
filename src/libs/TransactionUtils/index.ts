@@ -16,7 +16,6 @@ import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@l
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -1293,17 +1292,35 @@ function getTagArrayFromName(tagName: string): string[] {
  */
 function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
     const fromCurrency = getCurrency(transaction);
-    const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
-    if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
-        return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
-    }
-
-    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
+    // On the report view, "unconverted" means the transaction currency matches the report currency.
+    // groupCurrency reflects the user's default workspace and is unrelated to the report being viewed,
+    // so we must gate on reportCurrency here to match Expensify Classic behavior.
+    if (reportCurrency && fromCurrency === reportCurrency) {
         return '';
     }
 
-    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
+    // groupExchangeRate: search-page rate (fromCurrency → groupCurrency).
+    if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
+        const groupRate = Number(transaction.groupExchangeRate);
+        if (groupRate !== 1) {
+            return `${transaction.groupExchangeRate} ${fromCurrency}/${transaction.groupCurrency}`;
+        }
+    }
+
+    // currencyConversionRate: report-layout rate (fromCurrency → reportCurrency).
+    // When no reportCurrency is provided (e.g. search sort), fall back to groupCurrency so we can still
+    // surface a meaningful rate. We intentionally do not use transaction.currency here, since it reflects
+    // the pre-modification currency and is almost never the correct conversion target.
+    const conversionToCurrency = reportCurrency ?? transaction.groupCurrency;
+    if (conversionToCurrency && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
+        const conversionRate = Number(transaction.currencyConversionRate);
+        if (conversionRate !== 1) {
+            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+        }
+    }
+
+    return '';
 }
 
 /**
@@ -2432,7 +2449,6 @@ function compareDuplicateTransactionFields(
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
                         if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             return getMerchant(item);
                         }
                         return keys.map((key) => item?.[key]);
@@ -2637,7 +2653,6 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
 
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((splits && splits.length > 0) || !originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return false;
     }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention  */
 import type {
     CommonActions,
     NavigationContainerRefWithCurrent,
@@ -117,6 +116,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
         newContactMethod: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
+        contactMethod: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -244,6 +248,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
+    [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
+        subPage?: string;
+    };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
@@ -1903,7 +1910,7 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
         iouType: IOUType;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
         action: IOUAction;
@@ -2930,7 +2937,7 @@ type SharedScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
-        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+
         exitTo?: Routes;
         shouldForceLogin: string;
         domain?: Routes;
@@ -2940,7 +2947,7 @@ type SharedScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
-        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+
         exitTo?: Routes;
     };
 };
