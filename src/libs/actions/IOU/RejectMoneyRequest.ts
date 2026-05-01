@@ -29,7 +29,7 @@ import {
     isIOUReport,
     isOpenReport,
 } from '@libs/ReportUtils';
-import {getAmount, getCurrency} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, getResolvedReportCurrency, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -141,6 +141,7 @@ function prepareRejectMoneyRequestData(
     let createdIOUReportActionID;
     let expenseMovedReportActionID;
     let expenseCreatedReportActionID;
+    let destinationReportCurrency: string | undefined;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
     const transactionCommentCleanup = (() => {
@@ -360,6 +361,7 @@ function prepareRejectMoneyRequestData(
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
             rejectedToReportID = existingOpenReport.reportID;
+            destinationReportCurrency = getResolvedReportCurrency({report: movedToReport, transaction});
 
             const [, , iouAction] = buildOptimisticMoneyRequestEntities({
                 iouReport: movedToReport,
@@ -452,6 +454,7 @@ function prepareRejectMoneyRequestData(
                 reportTransactions,
                 betas,
             });
+            destinationReportCurrency = getResolvedReportCurrency({report: newExpenseReport, transaction});
             const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
                 iouReport: newExpenseReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -603,6 +606,7 @@ function prepareRejectMoneyRequestData(
                 },
             );
         }
+        const shouldClearMovedTransactionConvertedAmount = shouldClearConvertedAmount(transaction, report.currency, destinationReportCurrency);
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -616,6 +620,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: rejectedToReportID,
+                    ...(shouldClearMovedTransactionConvertedAmount ? {convertedAmount: null} : {}),
                     ...(transactionCommentCleanup ?? {}),
                 },
             },
@@ -656,6 +661,7 @@ function prepareRejectMoneyRequestData(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID ?? reportID,
+                ...(shouldClearMovedTransactionConvertedAmount ? {convertedAmount: transaction?.convertedAmount} : {}),
             },
         });
     } else {

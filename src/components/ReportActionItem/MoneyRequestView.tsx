@@ -90,6 +90,7 @@ import {
     getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getResolvedReportCurrency,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -188,6 +189,7 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReportID}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
@@ -298,6 +300,7 @@ function MoneyRequestView({
     const isFromCardImport = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(translate, transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
     const shouldShowCard = isFromCardImport && cardProgramName;
+    const resolvedReportCurrency = getResolvedReportCurrency({report: moneyRequestReport, reportMetadata: parentReportMetadata, transaction});
 
     const taxRates = policy?.taxRates;
     const formattedTaxAmount =
@@ -487,7 +490,7 @@ function MoneyRequestView({
 
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
-        currency !== moneyRequestReport?.currency &&
+        currency !== resolvedReportCurrency &&
         !isFromCardImport &&
         transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID &&
         !isFromMergeTransaction &&
@@ -556,7 +559,7 @@ function MoneyRequestView({
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
     if (shouldShowConvertedAmount) {
-        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, resolvedReportCurrency)}`;
     }
 
     if (isFromMergeTransaction && !rateName) {

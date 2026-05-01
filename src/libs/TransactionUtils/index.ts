@@ -59,6 +59,7 @@ import type {
     PolicyTagLists,
     RecentWaypoint,
     Report,
+    ReportMetadata,
     ReviewDuplicates,
     TaxRate,
     TaxRates,
@@ -1031,6 +1032,26 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
         return currency;
     }
     return transaction?.currency ?? CONST.CURRENCY.USD;
+}
+
+function getResolvedReportCurrency({
+    report,
+    reportMetadata,
+    transaction,
+}: {
+    report: OnyxInputOrEntry<Report> | undefined;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    transaction?: OnyxInputOrEntry<Transaction>;
+}): string | undefined {
+    if (report?.currency) {
+        return report.currency;
+    }
+
+    if (!reportMetadata?.isOptimisticReport || !transaction) {
+        return undefined;
+    }
+
+    return getCurrency(transaction);
 }
 
 /**
@@ -2850,6 +2871,7 @@ export {
     getTaxAmount,
     getTaxCode,
     getCurrency,
+    getResolvedReportCurrency,
     shouldClearConvertedAmount,
     getDistanceInMeters,
     getCardID,
