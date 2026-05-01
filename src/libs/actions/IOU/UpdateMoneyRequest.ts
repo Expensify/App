@@ -896,15 +896,13 @@ function addOptimisticSmartScanModifiedAmountViolation({
     updatedTransaction,
     transactionViolations,
     hasModifiedAmount,
-    hasModifiedCurrency,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     updatedTransaction: OnyxTypes.Transaction;
     transactionViolations: OnyxTypes.TransactionViolation[];
     hasModifiedAmount: boolean;
-    hasModifiedCurrency: boolean;
 }): OnyxTypes.TransactionViolation[] {
-    if (!transaction || !isScanRequest(transaction) || isReceiptBeingScanned(transaction) || !(hasModifiedAmount || hasModifiedCurrency)) {
+    if (!transaction || !isScanRequest(transaction) || isReceiptBeingScanned(transaction) || !hasModifiedAmount) {
         return transactionViolations;
     }
 
@@ -916,12 +914,9 @@ function addOptimisticSmartScanModifiedAmountViolation({
 
     const withoutSmartScanModifiedAmount = transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
 
-    // When currency changes, amounts are incomparable across currencies, so always add the violation.
-    // When only amount changes, add the violation only if the edited amount exceeds the scanned amount.
-    if (!hasModifiedCurrency) {
-        if (!scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
-            return withoutSmartScanModifiedAmount;
-        }
+    // Add the violation only if the edited amount exceeds the scanned amount.
+    if (!scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
+        return withoutSmartScanModifiedAmount;
     }
 
     return [
@@ -1386,7 +1381,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             updatedTransaction,
             transactionViolations: (violationsOnyxData.value as OnyxTypes.TransactionViolation[]) ?? [],
             hasModifiedAmount,
-            hasModifiedCurrency,
         });
         const finalViolationsOnyxData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
             onyxMethod: Onyx.METHOD.SET,
