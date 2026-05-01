@@ -100,7 +100,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 />
                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
             </View>
-            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt2, styles.ph5, styles.w100]}>
+            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt2, styles.alignSelfStretch]}>
                 <Button
                     medium
                     text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
@@ -108,7 +108,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                     iconFill={theme.icon}
                     onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                     isDisabled={canUnfreezeCard && isOffline}
-                    style={styles.alignSelfStart}
+                    style={[styles.alignSelfStart, styles.flexShrink0]}
                 />
                 {!!secondaryAction && (
                     <Button
@@ -118,7 +118,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                         iconFill={theme.icon}
                         onPress={secondaryAction.onPress}
                         isDisabled={secondaryAction.isDisabled}
-                        style={styles.alignSelfStart}
+                        style={[styles.alignSelfStart, styles.flexShrink0]}
                     />
                 )}
             </View>
