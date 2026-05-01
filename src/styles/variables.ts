@@ -22,8 +22,6 @@ export default {
     inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
     spacing2: 8,
-    rulesDocumentThumbnailMaxWidth: 368,
-    rulesDocumentThumbnailHeight: 200,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,

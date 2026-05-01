@@ -6744,8 +6744,6 @@ ${amount} para ${merchant} - ${date}`,
             customRules: {
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
-                policyDocument: 'Documento de política',
-                policyText: 'Texto de política',
             },
             spendRules: {
                 title: 'Gastos',

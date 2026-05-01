@@ -45,8 +45,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
-import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -2141,32 +2139,6 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
-/**
- * Builds a source URL for rendering a policy document PDF.
- * Local blob/file URIs (from optimistic uploads) are returned directly.
- * Remote URLs are routed through the authenticated GetPolicyRulesDocument streaming endpoint.
- * The stored URL (which contains a unique timestamp per upload) is appended as a version
- * parameter so the browser treats each replacement as a distinct resource.
- */
-function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
-    if (!rulesDocumentURL || !policyID) {
-        return '';
-    }
-
-    const isLocalFile = rulesDocumentURL.startsWith('blob:') || rulesDocumentURL.startsWith('file:');
-    if (isLocalFile) {
-        return rulesDocumentURL;
-    }
-
-    return addEncryptedAuthTokenToURL(
-        // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
-        // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
-        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyRulesDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
-        encryptedAuthToken,
-        true,
-    );
-}
-
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
@@ -2341,7 +2313,6 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
-    getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
 };

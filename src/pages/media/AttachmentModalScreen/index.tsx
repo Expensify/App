@@ -9,7 +9,6 @@ import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import ShareDetailsAttachmentModalContent from './routes/ShareDetailsAttachmentModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
-import WorkspaceDocumentModalContent from './routes/WorkspaceDocumentModalContent';
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
 
 type RouteType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['route'];
@@ -71,15 +70,6 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
             <WorkspaceAvatarModalContent
                 route={routeWithContext as RouteType<typeof SCREENS.WORKSPACE_AVATAR>}
                 navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_AVATAR>}
-            />
-        );
-    }
-
-    if (route.name === SCREENS.WORKSPACE_DOCUMENT) {
-        return (
-            <WorkspaceDocumentModalContent
-                route={routeWithContext as RouteType<typeof SCREENS.WORKSPACE_DOCUMENT>}
-                navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_DOCUMENT>}
             />
         );
     }
