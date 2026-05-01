@@ -447,32 +447,32 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         <MenuItemWithTopDescription
                                             interactive={false}
                                             titleComponent={
-                                                <View style={styles.flexColumn}>
-                                                    <Text style={styles.textLabelSupporting}>{translate('cardPage.virtualCardNumber')}</Text>
-                                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mt1]}>
+                                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap5]}>
+                                                    <View style={styles.flexColumn}>
+                                                        <Text style={styles.textLabelSupporting}>{translate('cardPage.virtualCardNumber')}</Text>
                                                         <Text style={styles.walletCardNumber}>{maskCard('')}</Text>
-                                                        {!isSignedInAsDelegate && (
-                                                            <Button
-                                                                small
-                                                                text={translate('cardPage.cardDetails.reveal')}
-                                                                onPress={() => {
-                                                                    if (isAccountLocked) {
-                                                                        showLockedAccountModal();
-                                                                        return;
-                                                                    }
-
-                                                                    resetValidateActionCodeSent();
-                                                                    if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                                        Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
-                                                                        return;
-                                                                    }
-                                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
-                                                                }}
-                                                                isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                                isLoading={isCardDetailsLoading[card.cardID]}
-                                                            />
-                                                        )}
                                                     </View>
+                                                    {!isSignedInAsDelegate && (
+                                                        <Button
+                                                            small
+                                                            text={translate('cardPage.cardDetails.reveal')}
+                                                            onPress={() => {
+                                                                if (isAccountLocked) {
+                                                                    showLockedAccountModal();
+                                                                    return;
+                                                                }
+
+                                                                resetValidateActionCodeSent();
+                                                                if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                                    Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
+                                                                    return;
+                                                                }
+                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
+                                                            }}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                        />
+                                                    )}
                                                 </View>
                                             }
                                         />
