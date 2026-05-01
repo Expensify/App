@@ -29,7 +29,7 @@ import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
@@ -83,7 +83,7 @@ function useSelectionModeReportActions({
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -153,7 +153,7 @@ function useSelectionModeReportActions({
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const canAllowSettlement = hasUpdatedTotal(report, policy);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(report?.reportID, transactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
     const isInvoiceReport = isInvoiceReportUtil(report);
 
     const hasOnlyPendingTransactions = !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -384,6 +384,7 @@ function useSelectionModeReportActions({
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
                 betas,

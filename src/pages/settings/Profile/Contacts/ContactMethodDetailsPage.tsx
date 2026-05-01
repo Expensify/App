@@ -18,7 +18,6 @@ import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +31,6 @@ import {
     deleteContactMethod,
     requestContactMethodValidateCode,
     resetContactMethodValidateCodeSentState,
-    setContactMethodAsDefault,
     validateSecondaryLogin,
 } from '@libs/actions/User';
 import {isMobileSafari} from '@libs/Browser';
@@ -60,14 +58,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
@@ -92,11 +88,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
 
     /**
-     * Attempt to set this contact method as user's "Default contact method"
+     * Navigate to the magic code verification page before setting contact method as default
      */
-    const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, contactMethod, formatPhoneNumber, backTo);
-    }, [currentUserPersonalDetails, allPolicies, contactMethod, formatPhoneNumber, backTo]);
+    const navigateToSetDefaultConfirm = useCallback(() => {
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
+    }, [contactMethod, backTo]);
 
     /**
      * Determines whether the user's primary login switching is restricted
@@ -276,7 +272,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
-                        onPress={isAccountLocked ? showLockedAccountModal : setAsDefault}
+                        onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
                     />
                 </OfflineWithFeedback>
             ) : null}

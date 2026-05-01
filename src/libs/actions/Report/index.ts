@@ -5256,6 +5256,7 @@ async function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
         bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
+        selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
     };
 
     if (shouldWaitForRHPVariantInitialization) {
@@ -7541,6 +7542,14 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
+function setConciergeThinkingKickoff() {
+    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, true);
+}
+
+function clearConciergeThinkingKickoff() {
+    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo};
 
 export {
@@ -7659,4 +7668,6 @@ export {
     prepareOnyxDataForCleanUpOptimisticParticipants,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
+    setConciergeThinkingKickoff,
+    clearConciergeThinkingKickoff,
 };

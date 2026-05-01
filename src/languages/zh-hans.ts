@@ -2028,6 +2028,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: '将 Sentry 请求记录到控制台',
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
+            showBranchNameInTitle: '在浏览器标题中显示分支名称',
         },
         security: '安全',
         signOut: '退出登录',
@@ -3394,6 +3395,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
+        updatePersonalInfo: '更新银行账户',
+        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
+        updateSuccessTitle: '银行账户已更新!',
+        updateSuccessHeader: '银行账户已更新',
+        updateSuccessMessage: '恭喜,您的银行账户已设置完成,可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -4684,6 +4690,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
 
                             如果你希望为每张卡设置特定供应商，请前往 *设置 > 域 > 公司卡*。
                         `),
+                        travelDescription: '差旅报销将作为日记账分录导出到下方指定的 NetSuite 账户。',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5245,6 +5252,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             oneMoreStepDescription: '看起来我们需要手动验证您的银行账户。请前往 Concierge 查看为您准备的操作说明。',
             gotIt: '明白了',
             goToConcierge: '前往 Concierge',
+            exportAsCSV: '导出为 CSV',
+            csvColumnType: '类型',
+            csvColumnLimitType: '限额类型',
+            csvColumnLimit: '限额',
         },
         categories: {
             deleteCategories: '删除类别',
@@ -6634,8 +6645,6 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
-                policyDocument: '政策文件',
-                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',
@@ -7544,6 +7553,7 @@ ${reportName}
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',
+        askConcierge: (message: string) => `询问 Concierge“${message}”`,
         searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (

@@ -84,6 +84,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 introSelected,
                 iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
+                currentUserLogin: currentUserDetails.login ?? '',
                 full,
                 activePolicy,
                 policy,

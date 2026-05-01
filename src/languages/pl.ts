@@ -2079,6 +2079,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
+            showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
         },
         security: 'Bezpieczeństwo',
         signOut: 'Wyloguj się',
@@ -3466,6 +3467,11 @@ ${amount} dla ${merchant} - ${date}`,
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
         toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty wydatków, opłacać faktury lub włączyć Portfel Expensify.',
+        updatePersonalInfo: 'Aktualizuj konto bankowe',
+        updatePersonalInfoFailure: 'Nie można zaktualizować informacji o koncie bankowym. Spróbuj ponownie później.',
+        updateSuccessTitle: 'Konto bankowe zaktualizowane!',
+        updateSuccessHeader: 'Konto bankowe zaktualizowane',
+        updateSuccessMessage: 'Gratulacje, Twoje konto bankowe jest skonfigurowane i gotowe do przyjmowania zwrotów.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wpisz hasło do Expensify',
@@ -4790,6 +4796,7 @@ ${amount} dla ${merchant} - ${date}`,
 
                             Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Ustawienia > Domeny > Karty firmowe*.
                         `),
+                        travelDescription: 'Wydatki na podróże służbowe zostaną wyeksportowane jako zapisy księgowe na konto NetSuite wskazane poniżej.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5362,6 +5369,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             oneMoreStepDescription: 'Wygląda na to, że musimy ręcznie zweryfikować Twoje konto bankowe. Przejdź do Concierge, gdzie czekają na Ciebie dalsze instrukcje.',
             gotIt: 'Rozumiem',
             goToConcierge: 'Przejdź do Concierge',
+            exportAsCSV: 'Eksportuj jako CSV',
+            csvColumnType: 'Typ',
+            csvColumnLimitType: 'Typ limitu',
+            csvColumnLimit: 'Limit',
         },
         categories: {
             deleteCategories: 'Usuń kategorie',
@@ -6801,8 +6812,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             customRules: {
                 title: 'Polityka wydatków',
                 cardSubtitle: 'To tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność co do tego, co jest objęte.',
-                policyDocument: 'Dokument polityki',
-                policyText: 'Tekst polityki',
             },
             spendRules: {
                 title: 'Wydatki',
@@ -7742,6 +7751,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
+        askConcierge: (message: string) => `Zapytaj Concierge: „${message}”`,
         searchPlaceholder: 'Wyszukaj coś...',
         suggestions: 'Sugestie',
         suggestionsAvailable: (

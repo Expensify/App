@@ -454,6 +454,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
+            const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
                 translationKey: 'actionableMentionTrackExpense.submit',
@@ -476,6 +477,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                         transaction: iouTransaction,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
+                        currentUserLocalCurrency,
                     });
                 },
             });
@@ -500,6 +502,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                             transaction: iouTransaction,
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
                         });
                     },
                 });
@@ -523,6 +526,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                             transaction: iouTransaction,
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
                         });
                     },
                 });
@@ -638,6 +642,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         moneyRequestReport?.reportID,
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
+        currentUserPersonalDetails.localCurrencyCode,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -953,6 +958,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         hasOutstandingChildTask,
         parentReportAction,
         ancestors,

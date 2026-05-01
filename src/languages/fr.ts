@@ -2091,6 +2091,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Journaliser les requêtes Sentry dans la console',
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
+            showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',
@@ -3497,6 +3498,11 @@ ${amount} pour ${merchant} - ${date}`,
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez attentivement les détails ci-dessous et cochez la case des conditions pour confirmer.',
         toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le Portefeuille Expensify.',
+        updatePersonalInfo: 'Mettre à jour le compte bancaire',
+        updatePersonalInfoFailure: 'Impossible de mettre à jour les informations du compte bancaire. Veuillez réessayer plus tard.',
+        updateSuccessTitle: 'Compte bancaire mis à jour !',
+        updateSuccessHeader: 'Compte bancaire mis à jour',
+        updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -4832,6 +4838,7 @@ ${amount} pour ${merchant} - ${date}`,
 
                             Si vous souhaitez définir un fournisseur spécifique pour chaque carte, accédez à *Paramètres > Domaines > Cartes d’entreprise*.
                         `),
+                        travelDescription: 'Les frais de voyage seront exportés sous forme d’écritures de journal vers le compte NetSuite indiqué ci-dessous.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5412,6 +5419,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             oneMoreStepDescription: 'Il semble que nous devions vérifier votre compte bancaire manuellement. Rendez-vous dans Concierge, où vos instructions vous attendent.',
             gotIt: 'Compris',
             goToConcierge: 'Aller à Concierge',
+            exportAsCSV: 'Exporter en CSV',
+            csvColumnType: 'Type',
+            csvColumnLimitType: 'Type de limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',
@@ -6866,8 +6877,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
-                policyDocument: 'Document de politique',
-                policyText: 'Texte de politique',
             },
             spendRules: {
                 title: 'Dépenser',
@@ -7810,6 +7819,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
+        askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
         searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',
         suggestionsAvailable: (

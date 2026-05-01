@@ -43,9 +43,9 @@ function useOnboardingFlowRouter() {
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
-    useEffect(() => {
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
+    useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const handle = InteractionManager.runAfterInteractions(() => {
@@ -63,11 +63,6 @@ function useOnboardingFlowRouter() {
             }
 
             if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
-                return;
-            }
-
-            if (currentUrl.endsWith('/r')) {
-                // Don't trigger onboarding if we are in the middle of a redirect to a report
                 return;
             }
 
@@ -134,6 +129,7 @@ function useOnboardingFlowRouter() {
         hasBeenAddedToNudgeMigration,
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
+        isOnboardingCompleted,
     ]);
 
     return {
