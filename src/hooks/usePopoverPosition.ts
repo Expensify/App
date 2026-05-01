@@ -1,5 +1,4 @@
 import {useCallback} from 'react';
-import type {View} from 'react-native';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -10,6 +9,13 @@ const defaultAnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
+type MeasurableElement = {measureInWindow: (callback: MeasureInWindowCallback) => void};
+
+function isMeasurable(element: unknown): element is MeasurableElement {
+    return element !== null && typeof element === 'object' && 'measureInWindow' in element && typeof (element as MeasurableElement).measureInWindow === 'function';
+}
 
 /**
  * Hook for calculating the position of a popover relative to an anchor element.
@@ -36,12 +42,13 @@ function usePopoverPosition() {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const calculatePopoverPosition = useCallback(
-        (anchorRef: React.RefObject<View | null>, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
-            if (isSmallScreenWidth || !anchorRef.current || !('measureInWindow' in anchorRef.current)) {
+        (anchorRef: React.RefObject<unknown>, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
+            const element = anchorRef.current;
+            if (isSmallScreenWidth || !isMeasurable(element)) {
                 return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
             }
             return new Promise<AnchorPosition & Dimensions>((resolve) => {
-                anchorRef.current?.measureInWindow((x, y, width, height) => {
+                element.measureInWindow((x, y, width, height) => {
                     let horizontal = x + width;
                     if (anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
                         horizontal = x;
