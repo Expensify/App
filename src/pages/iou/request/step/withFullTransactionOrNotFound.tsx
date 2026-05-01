@@ -65,7 +65,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     WrappedComponent: ComponentType<TProps>,
     shouldShowLoadingIndicator = false,
 ): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
         const {route} = props;
         const transactionID = route.params.transactionID;

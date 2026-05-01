@@ -353,7 +353,6 @@ function openReportFromDeepLink(
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);

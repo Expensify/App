@@ -22,7 +22,6 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     const source = getFullSizeAvatar({avatarSource: avatarURL, defaultAvatars});
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = policyKeysLength === 0 && !isLoadingApp && (!policyID || !fallbackLetter);
     const isLoading = policyKeysLength === 0 && !!isLoadingApp;
     const originalFileName = policy?.originalFileName ?? policy?.id ?? policyID;

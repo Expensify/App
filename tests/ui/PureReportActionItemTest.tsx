@@ -55,7 +55,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         avatar: '',
         person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
         message: [{type: 'COMMENT', html: 'some message', text: 'some message'}],
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         originalMessage: {
             ...originalMessageExtras,
         },
@@ -902,27 +902,99 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal(translationKey))).toBeOnTheScreen();
         });
 
-        it('RECEIPT_SCAN_FAILED action shows message from action data', async () => {
-            // Given a RECEIPT_SCAN_FAILED message with a html message from server.
-            // Then verify server message is rendered.
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
-            action.message = [
-                {
-                    type: 'COMMENT',
-                    html: "the date couldn't be read from this receipt. Please enter it manually.",
-                    text: "the date couldn't be read from this receipt. Please enter it manually.",
-                },
-            ];
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText("the date couldn't be read from this receipt. Please enter it manually.")).toBeOnTheScreen();
+        it('RECEIPT_SCAN_FAILED action shows submitter message when current user is the expense submitter', async () => {
+            const parentReportID = 'parentReport1';
+            const parentReportActionID = 'iouAction1';
 
-            // Given an RECEIPT_SCAN_FAILED with no server side message
-            // Then verify generic translation phrase is rendered
-            action.message = [{type: 'COMMENT', html: '', text: ''}];
-            renderItemWithAction(action);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: ACTOR_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText(translateLocal('iou.receiptScanningFailed'))).toBeOnTheScreen();
+
+            const report = {reportID: 'scanReport1', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: true}))).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action shows non-submitter message when current user is not the expense submitter', async () => {
+            const parentReportID = 'parentReport2';
+            const parentReportActionID = 'iouAction2';
+            const OTHER_ACCOUNT_ID = 999999;
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentReportActionID]: {
+                        reportActionID: parentReportActionID,
+                        actorAccountID: OTHER_ACCOUNT_ID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2025-07-12 09:03:17.653',
+                        message: [{type: 'COMMENT', html: '', text: ''}],
+                        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const report = {reportID: 'scanReport2', parentReportID, parentReportActionID};
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('violations.smartscanFailed', {canEdit: false}))).toBeOnTheScreen();
         });
 
         it('HOLD_COMMENT action renders via ReportActionItemBasicMessage', async () => {

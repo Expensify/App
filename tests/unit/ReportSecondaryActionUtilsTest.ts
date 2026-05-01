@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getSecondaryExportReportActions,
@@ -3772,10 +3771,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             isChangeWorkspaceAction(report, policies, testLogin);
 
-            const callsWithLogin = mockedIsPolicyAdmin.mock.calls.filter(
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                (call: unknown[]) => call.at(1) === testLogin,
-            );
+            const callsWithLogin = mockedIsPolicyAdmin.mock.calls.filter((call: unknown[]) => call.at(1) === testLogin);
             expect(callsWithLogin.length).toBeGreaterThan(0);
         });
     });

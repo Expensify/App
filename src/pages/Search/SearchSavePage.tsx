@@ -21,7 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,8 +93,9 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
 function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
     const appliedDisplays = [];
-    if (searchAdvancedFiltersForm.groupBy) {
-        appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${searchAdvancedFiltersForm.groupBy}`)});
+    const groupBy = searchAdvancedFiltersForm.groupBy;
+    if (groupBy) {
+        appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }
 
     if (searchAdvancedFiltersForm.groupCurrency) {
@@ -118,7 +119,14 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
     }
 
     if (searchAdvancedFiltersForm.columns?.length) {
-        appliedDisplays.push({label: translate('search.columns'), value: searchAdvancedFiltersForm.columns?.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+        const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const defaultCustomColumns = [...getCustomColumnDefault(groupBy), ...getCustomColumnDefault(queryType)];
+        const columns = searchAdvancedFiltersForm.columns;
+
+        const isDefaultState = columns.length === defaultCustomColumns.length && columns.every((col, index) => col === defaultCustomColumns.at(index));
+        if (!isDefaultState) {
+            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+        }
     }
 
     return appliedDisplays;

@@ -40,7 +40,6 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, shouldEnableMaxHeight = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
         if (!account) {
             return true;

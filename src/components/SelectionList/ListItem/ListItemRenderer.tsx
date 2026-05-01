@@ -93,7 +93,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
                 titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }

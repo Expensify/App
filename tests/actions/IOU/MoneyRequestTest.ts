@@ -1231,7 +1231,7 @@ describe('MoneyRequest', () => {
                         enabled: true,
                         name: 'Distance',
                         rates: {
-                            // eslint-disable-next-line camelcase, @typescript-eslint/naming-convention
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             '4542B77F7C3F8': {
                                 currency: 'ETB',
                                 customUnitRateID: '4542B77F7C3F8',

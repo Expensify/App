@@ -138,7 +138,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
     // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+
     const confirmUpgrade = useCallback(() => {
         if (!policyID) {
             return;

@@ -35,6 +35,23 @@ const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<Navi
 const TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = TAB_SCREENS.map((name) => ({name}));
 
 /**
+ * Screens that are registered in PublicScreens (unauthenticated navigator) and should not
+ * have TabNavigator prepended, because when the user is unauthenticated TabNavigator does
+ * not exist in the navigator tree and the RESET action would fail.
+ *
+ * Keep in sync with the screens registered in PublicScreens.tsx (excluding SCREENS.HOME,
+ * which doubles as the authenticated home tab, and navigator entries).
+ */
+const PUBLIC_SCREENS = new Set<string>([
+    SCREENS.VALIDATE_LOGIN,
+    SCREENS.TRANSITION_BETWEEN_APPS,
+    SCREENS.CONNECTION_COMPLETE,
+    SCREENS.BANK_CONNECTION_COMPLETE,
+    SCREENS.UNLINK_LOGIN,
+    SCREENS.SAML_SIGN_IN,
+]);
+
+/**
  * Builds TabNavigator state with all tabs and the correct selected tab.
  * Tab navigators require all routes in the state for proper rendering.
  */
@@ -353,6 +370,14 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
         if (isRightModalNavigator) {
             return getRoutesWithIndex([getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...currentState.routes]);
+        }
+
+        // Public screens (e.g. ValidateLogin) exist in both PublicScreens and AuthScreens navigators.
+        // Don't prepend TabNavigator because when the user is unauthenticated, PublicScreens is active
+        // and TabNavigator doesn't exist — causing the RESET action to fail.
+        const hasOnlyPublicScreens = currentState.routes.every((route) => PUBLIC_SCREENS.has(route.name));
+        if (hasOnlyPublicScreens) {
+            return currentState;
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);

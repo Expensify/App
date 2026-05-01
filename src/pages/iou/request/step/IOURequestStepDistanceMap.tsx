@@ -168,7 +168,7 @@ function IOURequestStepDistanceMap({
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -189,8 +189,7 @@ function IOURequestStepDistanceMap({
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                : (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = getDistanceInMeters(transaction, unit);
@@ -595,9 +594,9 @@ function IOURequestStepDistanceMap({
 }
 
 const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMap);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceMapWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceMapWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceMapWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceMapWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceMapWithFullTransactionOrNotFound;

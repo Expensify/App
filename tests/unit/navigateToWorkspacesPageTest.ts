@@ -2,7 +2,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';

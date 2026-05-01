@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';

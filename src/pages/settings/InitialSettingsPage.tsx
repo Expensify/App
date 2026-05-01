@@ -38,7 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -179,7 +179,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList) || hasPendingCardAction) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
@@ -522,13 +522,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             bottomContent={tabBarContent}
             bottomContentStyle={styles.overflowVisible}
         >
-            {shouldUseNarrowLayout && (
-                <TopBarWithLoadingBar
-                    breadcrumbLabel={translate('initialSettingsPage.account')}
-                    shouldDisplaySearch
-                    shouldDisplayHelpButton
-                />
-            )}
+            <TopBarWithLoadingBar
+                breadcrumbLabel={translate('initialSettingsPage.account')}
+                shouldDisplaySearch={shouldUseNarrowLayout}
+                shouldDisplayHelpButton={shouldUseNarrowLayout}
+            />
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
