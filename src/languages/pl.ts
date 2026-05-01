@@ -5226,6 +5226,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 duplicateFeedModal: {
                     title: 'Kanał karty jest już połączony',
                     prompt: 'Nie możesz dodać tego samego źródła karty do tego samego obszaru roboczego dwukrotnie.',
+                    confirmText: 'Got it',
                 },
                 csvColumns: {
                     cardNumber: 'Numer karty',
