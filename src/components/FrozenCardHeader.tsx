@@ -92,7 +92,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     return (
         <View style={[styles.ph5, styles.pb5]}>
             {cardPreview}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt9]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.mt9]}>
                 <Icon
                     src={icons.FreezeCard}
                     fill={theme.icon}
@@ -100,7 +100,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 />
                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt4]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt4]}>
                 <Button
                     medium
                     text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
