@@ -264,7 +264,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 testID="WorkspaceExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.expensifyCard.cardDetails')}
+                    title={translate('cardPage.expensifyCard')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <ScrollView addBottomSafeAreaPadding>

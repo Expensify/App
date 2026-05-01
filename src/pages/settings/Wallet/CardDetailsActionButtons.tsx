@@ -29,7 +29,7 @@ function CardDetailsActionButtons({actions, style}: CardDetailsActionButtonsProp
     }
 
     return (
-        <View style={[styles.flexRow, styles.ph5, styles.mb3, styles.gap2, styles.w100, style]}>
+        <View style={[styles.flexRow, styles.ph10, styles.pt2, styles.mb6, styles.gap2, styles.w100, style]}>
             {actions.map((action) => (
                 <View
                     key={action.key}

@@ -92,7 +92,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     return (
         <View style={[styles.ph5, styles.pb5]}>
             {cardPreview}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.mt9]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.mt2]}>
                 <Icon
                     src={icons.FreezeCard}
                     fill={theme.icon}
@@ -100,26 +100,29 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 />
                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt4]}>
-                <Button
-                    medium
-                    text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
-                    icon={icons.FreezeCard}
-                    iconFill={theme.icon}
-                    onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
-                    isDisabled={canUnfreezeCard && isOffline}
-                    style={styles.alignSelfStart}
-                />
-                {!!secondaryAction && (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt2, styles.ph5, styles.w100]}>
+                <View style={secondaryAction ? [styles.flex1, styles.mw50] : undefined}>
                     <Button
                         medium
-                        text={secondaryAction.text}
-                        icon={secondaryAction.icon}
+                        text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
+                        icon={icons.FreezeCard}
                         iconFill={theme.icon}
-                        onPress={secondaryAction.onPress}
-                        isDisabled={secondaryAction.isDisabled}
-                        style={styles.alignSelfStart}
+                        onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                        isDisabled={canUnfreezeCard && isOffline}
+                        style={secondaryAction ? undefined : styles.alignSelfStart}
                     />
+                </View>
+                {!!secondaryAction && (
+                    <View style={[styles.flex1, styles.mw50]}>
+                        <Button
+                            medium
+                            text={secondaryAction.text}
+                            icon={secondaryAction.icon}
+                            iconFill={theme.icon}
+                            onPress={secondaryAction.onPress}
+                            isDisabled={secondaryAction.isDisabled}
+                        />
+                    </View>
                 )}
             </View>
         </View>

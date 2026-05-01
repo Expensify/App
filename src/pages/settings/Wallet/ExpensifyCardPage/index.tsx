@@ -72,20 +72,19 @@ type ExpensifyCardPageProps =
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
 
 type LimitTypeTranslationKeys = {
-    limitNameKey: TranslationPaths | undefined;
     limitTitleKey: PossibleTitles | undefined;
 };
 
 function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): LimitTypeTranslationKeys {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
-            return {limitNameKey: 'cardPage.smartLimit.name', limitTitleKey: 'cardPage.smartLimit.title'};
+            return {limitTitleKey: 'cardPage.smartLimit.title'};
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
-            return {limitNameKey: 'cardPage.monthlyLimit.name', limitTitleKey: 'cardPage.monthlyLimit.title'};
+            return {limitTitleKey: 'cardPage.monthlyLimit.title'};
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
-            return {limitNameKey: 'cardPage.fixedLimit.name', limitTitleKey: 'cardPage.fixedLimit.title'};
+            return {limitTitleKey: 'cardPage.fixedLimit.title'};
         default:
-            return {limitNameKey: undefined, limitTitleKey: undefined};
+            return {limitTitleKey: undefined};
     }
 }
 
@@ -152,7 +151,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = canChangePIN && revealedPIN === undefined;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
-    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
+    const {limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
+    const currentCardLimitTypeTranslationKey = getTranslationKeyForLimitType(currentCard?.nameValuePairs?.limitType);
+    const remainingLimitHint = limitTitleKey ? translate(limitTitleKey, formattedAvailableSpendAmount) : undefined;
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
@@ -358,15 +359,66 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             title={formattedAvailableSpendAmount}
                             interactive={false}
                             titleStyle={styles.walletCardLimit}
+                            hintText={remainingLimitHint}
                         />
-                        {!!limitNameKey && !!limitTitleKey && (
-                            <MenuItemWithTopDescription
-                                description={translate(limitNameKey)}
-                                title={translate(limitTitleKey, formattedAvailableSpendAmount)}
-                                interactive={false}
-                                titleStyle={styles.walletCardLimit}
-                                numberOfLinesTitle={3}
-                            />
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.card.issueNewCard.limitType')}
+                            title={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
+                            interactive={false}
+                            hintText={getCardHintText(
+                                currentCard?.nameValuePairs?.validFrom,
+                                currentCard?.nameValuePairs?.validThru,
+                                personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                translate,
+                            )}
+                        />
+                        {shouldShowReportLostCardButton && (
+                            <>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.physicalCardNumber')}
+                                    title={maskCard(currentPhysicalCard?.lastFourPAN)}
+                                    interactive={false}
+                                    titleStyle={styles.walletCardNumber}
+                                />
+                                {shouldShowPIN && (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.physicalCardPin')}
+                                        title={maskPin(revealedPIN)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent={canRevealPIN}
+                                        rightComponent={
+                                            canRevealPIN ? (
+                                                <Button
+                                                    icon={expensifyIcons.Eye}
+                                                    text={translate('cardPage.revealPin')}
+                                                    onPress={() => {
+                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
+                                                            cardID: String(currentPhysicalCard?.cardID),
+                                                        });
+                                                    }}
+                                                    isDisabled={isOffline}
+                                                />
+                                            ) : undefined
+                                        }
+                                    />
+                                )}
+                                {canChangePIN && (
+                                    <MenuItem
+                                        title={translate('cardPage.changePin')}
+                                        icon={expensifyIcons.Key}
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            const physicalCardID = String(currentPhysicalCard?.cardID);
+                                            if (currentPhysicalCard?.isOfflinePINMarket) {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                            } else {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </>
                         )}
                         {virtualCards.map((card) => (
                             <React.Fragment key={card.cardID}>
@@ -422,19 +474,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 ) : undefined
                                             }
                                         />
-
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.card.issueNewCard.limitType')}
-                                            title={translate(getTranslationKeyForLimitType(card?.nameValuePairs?.limitType))}
-                                            interactive={false}
-                                            hintText={getCardHintText(
-                                                card?.nameValuePairs?.validFrom,
-                                                card?.nameValuePairs?.validThru,
-                                                personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                                translate,
-                                            )}
-                                        />
-
                                         <DotIndicatorMessage
                                             messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
                                             type="error"
@@ -507,64 +546,18 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 </React.Fragment>
                             ))}
                         {shouldShowReportLostCardButton && (
-                            <>
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardNumber')}
-                                    title={maskCard(currentPhysicalCard?.lastFourPAN)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
-                                />
-                                {shouldShowPIN && (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin(revealedPIN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent={canRevealPIN}
-                                        rightComponent={
-                                            canRevealPIN ? (
-                                                <Button
-                                                    icon={expensifyIcons.Eye}
-                                                    text={translate('cardPage.revealPin')}
-                                                    onPress={() => {
-                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
-                                                            cardID: String(currentPhysicalCard?.cardID),
-                                                        });
-                                                    }}
-                                                    isDisabled={isOffline}
-                                                />
-                                            ) : undefined
-                                        }
-                                    />
-                                )}
-                                {canChangePIN && (
-                                    <MenuItem
-                                        title={translate('cardPage.changePin')}
-                                        icon={expensifyIcons.Key}
-                                        shouldShowRightIcon
-                                        onPress={() => {
-                                            const physicalCardID = String(currentPhysicalCard?.cardID);
-                                            if (currentPhysicalCard?.isOfflinePINMarket) {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
-                                            } else {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
-                                            }
-                                        }}
-                                    />
-                                )}
-                                <MenuItem
-                                    title={translate('reportCardLostOrDamaged.screenTitle')}
-                                    icon={expensifyIcons.Flag}
-                                    shouldShowRightIcon
-                                    onPress={() => {
-                                        if (isAccountLocked) {
-                                            showLockedAccountModal();
-                                            return;
-                                        }
-                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
-                                    }}
-                                />
-                            </>
+                            <MenuItem
+                                title={translate('reportCardLostOrDamaged.screenTitle')}
+                                icon={expensifyIcons.Flag}
+                                shouldShowRightIcon
+                                onPress={() => {
+                                    if (isAccountLocked) {
+                                        showLockedAccountModal();
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                }}
+                            />
                         )}
 
                         {!isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0 && (
