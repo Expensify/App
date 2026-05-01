@@ -12,31 +12,23 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Icon from './Icon';
 import Text from './Text';
 import TextLink from './TextLink';
 
-type FrozenCardHeaderAction = {
-    text: string;
-    icon: IconAsset;
-    onPress: () => void;
-    isDisabled?: boolean;
-};
-
 type FrozenCardHeaderProps = {
     cardPreview: React.ReactNode;
+    children?: React.ReactNode;
     onUnfreezePress: () => void;
     onAskToUnfreezePress: () => void;
     canUnfreezeCard: boolean;
     isWorkspaceAdmin: boolean;
-    secondaryAction?: FrozenCardHeaderAction;
     frozenByAccountID?: number;
     frozenDate?: string;
 };
 
-function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, secondaryAction, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -110,17 +102,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                     isDisabled={canUnfreezeCard && isOffline}
                     style={[styles.alignSelfStart, styles.flexShrink0]}
                 />
-                {!!secondaryAction && (
-                    <Button
-                        medium
-                        text={secondaryAction.text}
-                        icon={secondaryAction.icon}
-                        iconFill={theme.icon}
-                        onPress={secondaryAction.onPress}
-                        isDisabled={secondaryAction.isDisabled}
-                        style={[styles.alignSelfStart, styles.flexShrink0]}
-                    />
-                )}
+                {children}
             </View>
         </View>
     );

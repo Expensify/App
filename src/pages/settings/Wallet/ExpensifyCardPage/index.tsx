@@ -28,9 +28,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
+import {navigateToCardTransactions} from '@libs/CardNavigationUtils';
 import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
 import {
     formatCardExpiration,
@@ -49,7 +51,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CardDetailsActionButtons from '@pages/settings/Wallet/CardDetailsActionButtons';
@@ -96,6 +97,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
@@ -259,37 +261,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         handleDismissUnfreezeModal();
     }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
-    const navigateToTransactions = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-            }),
-        );
-    };
+    const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
     if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
-
-    const actionButtons = [
-        ...(canManageCardFreeze && !isCardFrozen(currentCard)
-            ? [
-                  {
-                      key: 'freezeCard',
-                      text: translate('cardPage.freezeCard'),
-                      icon: expensifyIcons.FreezeCard,
-                      onPress: handleFreezePress,
-                      isDisabled: isOffline,
-                  },
-              ]
-            : []),
-        {
-            key: 'viewTransactions',
-            text: translate('workspace.common.viewTransactions'),
-            icon: expensifyIcons.MoneySearch,
-            onPress: navigateToTransactions,
-        },
-    ];
 
     return (
         <ScreenWrapper testID="ExpensifyCardPage">
@@ -306,18 +282,22 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         canUnfreezeCard={canUnfreezeCard}
                         onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
-                        secondaryAction={{
-                            text: translate('workspace.common.viewTransactions'),
-                            icon: expensifyIcons.MoneySearch,
-                            onPress: navigateToTransactions,
-                        }}
                         cardPreview={
                             <CardPreview
                                 overlayImage={cardScarf}
                                 overlayContainerStyle={scarfOverlayStyle}
                             />
                         }
-                    />
+                    >
+                        <Button
+                            medium
+                            text={translate('workspace.common.viewTransactions')}
+                            icon={expensifyIcons.MoneySearch}
+                            iconFill={theme.icon}
+                            onPress={navigateToTransactions}
+                            style={[styles.alignSelfStart, styles.flexShrink0]}
+                        />
+                    </FrozenCardHeader>
                 ) : (
                     <View style={[styles.flex1, styles.mb3, styles.mt9]}>
                         <CardPreview />
@@ -350,7 +330,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
                 {!hasDetectedDomainFraud && (
                     <>
-                        {!isCardFrozen(currentCard) && <CardDetailsActionButtons actions={actionButtons} />}
+                        {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
+                            <CardDetailsActionButtons>
+                                {canManageCardFreeze && !isCardFrozen(currentCard) && (
+                                    <Button
+                                        text={translate('cardPage.freezeCard')}
+                                        icon={expensifyIcons.FreezeCard}
+                                        iconFill={theme.icon}
+                                        onPress={handleFreezePress}
+                                        isDisabled={isOffline}
+                                        style={styles.flexShrink0}
+                                    />
+                                )}
+                                <Button
+                                    text={translate('workspace.common.viewTransactions')}
+                                    icon={expensifyIcons.MoneySearch}
+                                    iconFill={theme.icon}
+                                    onPress={navigateToTransactions}
+                                    style={styles.flexShrink0}
+                                />
+                            </CardDetailsActionButtons>
+                        )}
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
                             title={formattedAvailableSpendAmount}

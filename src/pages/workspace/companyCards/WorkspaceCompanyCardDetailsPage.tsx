@@ -1,6 +1,7 @@
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -21,16 +22,17 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import {navigateToCardTransactions} from '@libs/CardNavigationUtils';
 import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CardDetailsActionButtons from '@pages/settings/Wallet/CardDetailsActionButtons';
@@ -54,6 +56,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const bank = getCompanyCardFeed(feedName);
 
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
@@ -121,30 +124,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
     };
 
-    const navigateToTransactions = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-            }),
-        );
-    };
-
-    const actionButtons = [
-        {
-            key: 'updateCard',
-            text: translate('workspace.moreFeatures.companyCards.updateCard'),
-            icon: expensifyIcons.Sync,
-            onPress: updateCard,
-            isDisabled: isOffline || card?.isLoadingLastUpdated,
-            isLoading: card?.isLoadingLastUpdated,
-        },
-        {
-            key: 'viewTransactions',
-            text: translate('workspace.common.viewTransactions'),
-            icon: expensifyIcons.MoneySearch,
-            onPress: navigateToTransactions,
-        },
-    ];
+    const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
     // Don't show NotFoundPage if the card is being unassigned or data is still loading.
     if ((!card && !isUnassigning && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigning)) {
@@ -197,7 +177,24 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         errors={getLatestErrorField(card ?? {}, 'lastScrape')}
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
                     >
-                        <CardDetailsActionButtons actions={actionButtons} />
+                        <CardDetailsActionButtons>
+                            <Button
+                                text={translate('workspace.moreFeatures.companyCards.updateCard')}
+                                icon={expensifyIcons.Sync}
+                                iconFill={theme.icon}
+                                onPress={updateCard}
+                                isDisabled={isOffline || card?.isLoadingLastUpdated}
+                                isLoading={card?.isLoadingLastUpdated}
+                                style={styles.flexShrink0}
+                            />
+                            <Button
+                                text={translate('workspace.common.viewTransactions')}
+                                icon={expensifyIcons.MoneySearch}
+                                iconFill={theme.icon}
+                                onPress={navigateToTransactions}
+                                style={styles.flexShrink0}
+                            />
+                        </CardDetailsActionButtons>
                     </OfflineWithFeedback>
                     {!cardholder?.validated && (
                         <MenuItem

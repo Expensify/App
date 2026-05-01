@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FrozenCardHeader from '@components/FrozenCardHeader';
@@ -29,14 +30,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
+import {navigateToCardTransactions} from '@libs/CardNavigationUtils';
 import {getAllCardsForWorkspace, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -67,6 +69,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -167,17 +170,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_EDIT, {policyID, ruleID: spendRule.ruleID});
     };
 
-    const navigateToTransactions = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildCannedSearchQuery({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                    cardID,
-                }),
-            }),
-        );
-    };
+    const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
     const spendRulesTitleComponent = useMemo(
         () => (
@@ -229,26 +222,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             />
         </>
     );
-    const actionButtons = [
-        ...(canManageCardFreeze && !isCardFrozen(card)
-            ? [
-                  {
-                      key: 'freezeCard',
-                      text: translate('cardPage.freezeCard'),
-                      icon: expensifyIcons.FreezeCard,
-                      onPress: handleFreezePress,
-                      isDisabled: isOffline,
-                  },
-              ]
-            : []),
-        {
-            key: 'viewTransactions',
-            text: translate('workspace.common.viewTransactions'),
-            icon: expensifyIcons.MoneySearch,
-            onPress: navigateToTransactions,
-        },
-    ];
-
     if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
         return <NotFoundPage />;
     }
@@ -299,16 +272,40 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                             canUnfreezeCard={canManageCardFreeze}
                             onAskToUnfreezePress={() => {}}
-                            secondaryAction={{
-                                text: translate('workspace.common.viewTransactions'),
-                                icon: expensifyIcons.MoneySearch,
-                                onPress: navigateToTransactions,
-                            }}
-                        />
+                        >
+                            <Button
+                                medium
+                                text={translate('workspace.common.viewTransactions')}
+                                icon={expensifyIcons.MoneySearch}
+                                iconFill={theme.icon}
+                                onPress={navigateToTransactions}
+                                style={[styles.alignSelfStart, styles.flexShrink0]}
+                            />
+                        </FrozenCardHeader>
                     ) : (
                         <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
                     )}
-                    {!isCardFrozen(card) && <CardDetailsActionButtons actions={actionButtons} />}
+                    {(!isCardFrozen(card) || !canManageCardFreeze) && (
+                        <CardDetailsActionButtons>
+                            {canManageCardFreeze && !isCardFrozen(card) && (
+                                <Button
+                                    text={translate('cardPage.freezeCard')}
+                                    icon={expensifyIcons.FreezeCard}
+                                    iconFill={theme.icon}
+                                    onPress={handleFreezePress}
+                                    isDisabled={isOffline}
+                                    style={styles.flexShrink0}
+                                />
+                            )}
+                            <Button
+                                text={translate('workspace.common.viewTransactions')}
+                                icon={expensifyIcons.MoneySearch}
+                                iconFill={theme.icon}
+                                onPress={navigateToTransactions}
+                                style={styles.flexShrink0}
+                            />
+                        </CardDetailsActionButtons>
+                    )}
 
                     {!cardholder?.validated && (
                         <MenuItem
