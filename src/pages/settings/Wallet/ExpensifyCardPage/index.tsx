@@ -62,6 +62,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import CardDetailsActionButtons from '../CardDetailsActionButtons';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -260,9 +261,37 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         handleDismissUnfreezeModal();
     }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
+    const navigateToTransactions = useCallback(() => {
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+            }),
+        );
+    }, [cardID]);
+
     if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
+
+    const actionButtons = [
+        ...(canManageCardFreeze && !isCardFrozen(currentCard)
+            ? [
+                  {
+                      key: 'freezeCard',
+                      text: translate('cardPage.freezeCard'),
+                      icon: expensifyIcons.FreezeCard,
+                      onPress: handleFreezePress,
+                      isDisabled: isOffline,
+                  },
+              ]
+            : []),
+        {
+            key: 'viewTransactions',
+            text: translate('workspace.common.viewTransactions'),
+            icon: expensifyIcons.MoneySearch,
+            onPress: navigateToTransactions,
+        },
+    ];
 
     return (
         <ScreenWrapper testID="ExpensifyCardPage">
@@ -318,11 +347,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
                 {!hasDetectedDomainFraud && (
                     <>
+                        <CardDetailsActionButtons actions={actionButtons} />
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
                             title={formattedAvailableSpendAmount}
                             interactive={false}
-                            titleStyle={styles.newKansasLarge}
+                            titleStyle={styles.walletCardLimit}
                         />
                         {!!limitNameKey && !!limitTitleKey && (
                             <MenuItemWithTopDescription
@@ -542,31 +572,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             />
                         )}
 
-                        <MenuItem
-                            icon={expensifyIcons.MoneySearch}
-                            title={translate('workspace.common.viewTransactions')}
-                            style={styles.mt3}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.SEARCH_ROOT.getRoute({
-                                        query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-                                    }),
-                                );
-                            }}
-                        />
                         {!isProduction && isWorkspaceAdmin && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
                                 onPress={navigateToSpendRulesPage}
-                            />
-                        )}
-                        {canManageCardFreeze && !isCardFrozen(currentCard) && (
-                            <MenuItem
-                                icon={expensifyIcons.FreezeCard}
-                                title={translate('cardPage.freezeCard')}
-                                disabled={isOffline}
-                                onPress={handleFreezePress}
                             />
                         )}
                     </>

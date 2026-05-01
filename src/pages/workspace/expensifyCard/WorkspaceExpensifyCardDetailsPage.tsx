@@ -1,7 +1,6 @@
 import type {NavigationProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import {cardByIdSelector} from '@selectors/Card';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
@@ -41,6 +40,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CardDetailsActionButtons from '@pages/settings/Wallet/CardDetailsActionButtons';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
@@ -67,7 +67,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -167,6 +167,18 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_EDIT, {policyID, ruleID: spendRule.ruleID});
     };
 
+    const navigateToTransactions = () => {
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildCannedSearchQuery({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                    cardID,
+                }),
+            }),
+        );
+    };
+
     const spendRulesTitleComponent = useMemo(
         () => (
             <View>
@@ -203,6 +215,13 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 height={variables.cardPreviewHeight}
                 width={variables.cardPreviewWidth}
             />
+            <Text
+                style={styles.walletCardHolder}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+            >
+                {displayName}
+            </Text>
             <Badge
                 badgeStyles={styles.cardBadge}
                 textStyles={styles.cardBadgeText}
@@ -210,6 +229,25 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             />
         </>
     );
+    const actionButtons = [
+        ...(canManageCardFreeze && !isCardFrozen(card)
+            ? [
+                  {
+                      key: 'freezeCard',
+                      text: translate('cardPage.freezeCard'),
+                      icon: expensifyIcons.FreezeCard,
+                      onPress: handleFreezePress,
+                      isDisabled: isOffline,
+                  },
+              ]
+            : []),
+        {
+            key: 'viewTransactions',
+            text: translate('workspace.common.viewTransactions'),
+            icon: expensifyIcons.MoneySearch,
+            onPress: navigateToTransactions,
+        },
+    ];
 
     if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
         return <NotFoundPage />;
@@ -258,6 +296,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     ) : (
                         <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
                     )}
+                    <CardDetailsActionButtons actions={actionButtons} />
 
                     {!cardholder?.validated && (
                         <MenuItem
@@ -270,14 +309,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         />
                     )}
 
-                    <MenuItem
-                        label={translate('workspace.card.issueNewCard.cardholder')}
-                        title={displayName}
-                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
-                        interactive={false}
-                    />
+                    <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.card.issueNewCard.cardName')}
+                            title={card?.nameValuePairs?.cardTitle}
+                            shouldShowRightIcon
+                            onPress={() =>
+                                Navigation.navigate(
+                                    isWorkspaceCardRhp
+                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute())
+                                        : ROUTES.EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute()),
+                                )
+                            }
+                        />
+                    </OfflineWithFeedback>
                     <MenuItemWithTopDescription
                         description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
                         title={maskCard(card?.lastFourPAN)}
@@ -289,7 +334,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('cardPage.availableSpend')}
                             title={formattedAvailableSpendAmount}
                             interactive={false}
-                            titleStyle={styles.newKansasLarge}
+                            titleStyle={styles.walletCardLimit}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
@@ -321,20 +366,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             hintText={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, translate)}
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.card.issueNewCard.cardName')}
-                            title={card?.nameValuePairs?.cardTitle}
-                            shouldShowRightIcon
-                            onPress={() =>
-                                Navigation.navigate(
-                                    isWorkspaceCardRhp
-                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute())
-                                        : ROUTES.EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute()),
-                                )
-                            }
-                        />
-                    </OfflineWithFeedback>
                     {!isProduction && spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             description={translate('cardPage.spendRules')}
@@ -344,35 +375,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             accessibilityLabel={spendRulesSummary.join('. ')}
                         />
                     )}
-                    <MenuItem
-                        icon={expensifyIcons.MoneySearch}
-                        title={translate('workspace.common.viewTransactions')}
-                        style={styles.mt3}
-                        onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_ROOT.getRoute({
-                                    query: buildCannedSearchQuery({
-                                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                        cardID,
-                                    }),
-                                }),
-                            );
-                        }}
-                    />
                     {!isProduction && isAdmin && (
                         <MenuItem
                             icon={expensifyIcons.CreditCardLock}
                             title={translate('cardPage.editSpendRules')}
                             onPress={navigateToSpendRules}
-                        />
-                    )}
-                    {canManageCardFreeze && !isCardFrozen(card) && (
-                        <MenuItem
-                            icon={expensifyIcons.FreezeCard}
-                            title={translate('cardPage.freezeCard')}
-                            disabled={isOffline}
-                            onPress={handleFreezePress}
                         />
                     )}
                     <MenuItem

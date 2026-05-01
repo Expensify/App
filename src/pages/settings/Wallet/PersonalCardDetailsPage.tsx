@@ -9,6 +9,7 @@ import ImageSVG from '@components/ImageSVG';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,6 +23,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
@@ -34,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import CardDetailsActionButtons from './CardDetailsActionButtons';
 import PersonalCardDetailsHeaderMenu from './PersonalCardDetailsHeaderMenu';
 
 type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS>;
@@ -47,7 +50,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers', 'Sync']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'RemoveMembers', 'Sync']);
 
     const {isOffline} = useNetwork();
 
@@ -100,6 +103,35 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
     };
 
+    const navigateToTransactions = () => {
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+            }),
+        );
+    };
+
+    const actionButtons = [
+        ...(!isCSVImportedPersonalCard
+            ? [
+                  {
+                      key: 'updateCard',
+                      text: translate('workspace.moreFeatures.companyCards.updateCard'),
+                      icon: expensifyIcons.Sync,
+                      onPress: updateCard,
+                      isDisabled: isOffline || card?.isLoadingLastUpdated,
+                      isLoading: card?.isLoadingLastUpdated,
+                  },
+              ]
+            : []),
+        {
+            key: 'viewTransactions',
+            text: translate('workspace.common.viewTransactions'),
+            icon: expensifyIcons.MoneySearch,
+            onPress: navigateToTransactions,
+        },
+    ];
+
     // Don't show NotFoundPage if data is still loading
     if (!card && !isLoadingOnyxValue(cardListMetadata)) {
         return <NotFoundPage />;
@@ -128,7 +160,30 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         height={variables.cardPreviewHeight}
                         width={variables.cardPreviewWidth}
                     />
+                    <Text
+                        style={styles.walletCardHolder}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {displayName}
+                    </Text>
                 </View>
+                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.ph5, styles.mb3]}>
+                    {`${translate('workspace.moreFeatures.companyCards.lastUpdated')}: ${card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}`}
+                </Text>
+                <OfflineWithFeedback
+                    pendingAction={card?.pendingFields?.lastScrape}
+                    errorRowStyles={[styles.ph5, styles.mb3]}
+                    errors={getLatestErrorField(card ?? {}, 'lastScrape')}
+                    onClose={() => {
+                        if (!card) {
+                            return;
+                        }
+                        clearCardErrorField(card.cardID, 'lastScrape');
+                    }}
+                >
+                    <CardDetailsActionButtons actions={actionButtons} />
+                </OfflineWithFeedback>
                 {isCardBroken && (
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.lastScrape}
@@ -141,18 +196,18 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             clearCardErrorField(card.cardID, 'lastScrape');
                         }}
                     >
-                        <View style={[styles.ph5, styles.mb3]}>
+                        <View style={[styles.ph5, styles.mb3, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <FormHelpMessage
                                 isError
                                 shouldShowRedDotIndicator
                                 message={translate('personalCard.brokenConnection')}
-                                style={styles.mb3}
+                                style={[styles.flex1, styles.mb0]}
                             />
                             <Button
                                 text={translate('personalCard.fixCard')}
                                 onPress={() => openOldDotLink(CONST.OLDDOT_URLS.SETTINGS_WALLET_URL)}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
-                                style={styles.mb0}
+                                style={[styles.mb0, styles.alignSelfStart]}
                             />
                         </View>
                     </OfflineWithFeedback>
@@ -167,10 +222,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         expensifyIcons={expensifyIcons}
                         isCSVImportedPersonalCard={isCSVImportedPersonalCard}
                         reimbursableSetting={reimbursableSetting}
-                        lastScrape={lastScrape}
                         isOffline={isOffline}
                         shouldShowBreakConnection={shouldShowBreakConnection}
-                        onUpdateCard={updateCard}
                         onBreakConnection={breakConnection}
                         onUnassignCard={() => setIsUnassignModalVisible(true)}
                     />
