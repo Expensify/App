@@ -96,7 +96,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
                 onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                 isDisabled={canUnfreezeCard && isOffline}
-                style={[styles.mt4]}
+                style={[styles.mt4, styles.alignSelfStart]}
             />
         </View>
     );
