@@ -377,21 +377,21 @@ function SearchAutocompleteList({
     // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
-    const recentReportsOptionsRef = useRef(recentReportsOptions);
-    recentReportsOptionsRef.current = recentReportsOptions;
-    const frozenLocalRank = useMemo<ReadonlyMap<string, number>>(() => {
+    const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(new Map());
+    useEffect(() => {
         if (autocompleteQueryValue.trim() === '') {
-            return new Map();
+            setFrozenLocalRank(new Map());
+            return;
         }
         const rank = new Map<string, number>();
-        recentReportsOptionsRef.current.forEach((option, index) => {
+        recentReportsOptions.forEach((option, index) => {
             const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             if (key) {
                 rank.set(key, index);
             }
         });
-        return rank;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        setFrozenLocalRank(rank);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autocompleteQueryValue]);
 
     const debounceHandleSearch = useDebounce(() => {
