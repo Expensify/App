@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
@@ -306,7 +307,7 @@ function MoneyRequestConfirmationListFooter({
     // and it is not a distance request.
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
-    const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
 

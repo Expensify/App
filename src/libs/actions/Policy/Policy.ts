@@ -4974,6 +4974,7 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
     }
 
     const policyID = policy.id;
+    const shouldEnableBillableTracking = enabled && policy.disabledFields?.defaultBillable === true;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5042,6 +5043,10 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
 
     // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the expense rule values are also changed when disabling/enabling this feature
     API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
+
+    if (shouldEnableBillableTracking) {
+        setPolicyBillableMode(policyID, policy.defaultBillable ?? false, policy.defaultBillable, policy.disabledFields?.defaultBillable);
+    }
 
     if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature();
