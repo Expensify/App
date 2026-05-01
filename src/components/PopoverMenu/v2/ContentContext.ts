@@ -14,6 +14,8 @@ type FocusableItem = {
 type ContentStateValue = {
     state: {
         currentSubId: string | null;
+        /** Ancestor chain of `currentSubId`; empty at root. */
+        currentSubAncestorChain: readonly string[];
         focusedId: string | null;
     };
     meta: {
@@ -23,7 +25,8 @@ type ContentStateValue = {
 };
 
 type ContentActionsValue = {
-    enterSub: (id: string) => void;
+    /** Caller passes the entered Sub's own ancestor chain so `currentSubAncestorChain` stays in sync. */
+    enterSub: (id: string, ancestorChain: readonly string[]) => void;
     /** Pop to the given sub id; default `null` pops to root. */
     exitSub: (target?: string | null) => void;
     registerSub: (subId: string) => void;

@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import FocusableMenuItem from '@components/FocusableMenuItem';
+import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
@@ -43,7 +43,7 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
             if (disabled) {
                 return;
             }
-            enterSub(subContext.subId);
+            enterSub(subContext.subId, subContext.ancestorChain);
         },
     });
 
@@ -52,7 +52,7 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
     }
 
     return (
-        <FocusableMenuItem
+        <MenuItem
             ref={ref}
             title={text}
             description={description}

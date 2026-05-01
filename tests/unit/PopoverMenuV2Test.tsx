@@ -718,6 +718,76 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('B item')).toBeUndefined();
         });
 
+        it('keeps custom non-primitive children gated to the active level', () => {
+            const renderSpy = jest.fn();
+            function CustomRow() {
+                renderSpy();
+                return null;
+            }
+
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub>
+                            <PopoverMenu.SubTrigger text="Trigger" />
+                            <PopoverMenu.SubContent backButtonText="Back">
+                                <CustomRow />
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+
+            // Custom content would otherwise leak — built-in Items self-gate, this doesn't.
+            expect(renderSpy).not.toHaveBeenCalled();
+
+            press('Trigger');
+
+            expect(renderSpy).toHaveBeenCalled();
+            expect(findItemByTitle('Inner')).toBeDefined();
+        });
+
+        it('keeps a parent-level <SubContent> mounted while a nested sub is active', () => {
+            const innerRenderSpy = jest.fn();
+            function InnerCustomRow() {
+                innerRenderSpy();
+                return null;
+            }
+
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="outer">
+                            <PopoverMenu.SubTrigger text="Open outer" />
+                            <PopoverMenu.SubContent backButtonText="Back to root">
+                                <PopoverMenu.Sub id="inner">
+                                    <PopoverMenu.SubTrigger text="Open inner" />
+                                    <PopoverMenu.SubContent backButtonText="Back to outer">
+                                        <InnerCustomRow />
+                                        <PopoverMenu.Item
+                                            text="Innermost"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.SubContent>
+                                </PopoverMenu.Sub>
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+
+            press('Open outer');
+            expect(innerRenderSpy).not.toHaveBeenCalled();
+
+            press('Open inner');
+            expect(innerRenderSpy).toHaveBeenCalled();
+            expect(findItemByTitle('Innermost')).toBeDefined();
+        });
+
         it('resets focus when entering a submenu', () => {
             render(
                 <ControlledHarness initialOpen>

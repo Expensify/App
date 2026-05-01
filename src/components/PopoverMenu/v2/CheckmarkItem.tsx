@@ -1,5 +1,5 @@
 import React from 'react';
-import FocusableMenuItem from '@components/FocusableMenuItem';
+import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import variables from '@styles/variables';
@@ -67,7 +67,7 @@ function CheckmarkItem({
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
-            <FocusableMenuItem
+            <MenuItem
                 // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union; matches FocusableMenuItem
                 {...rest}
                 ref={ref}

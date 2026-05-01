@@ -1,6 +1,7 @@
 import {useId, useLayoutEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
+import useSyncFocus from '@hooks/useSyncFocus';
 import {useContentActions, useContentState} from './ContentContext';
 import {useRootActions} from './RootContext';
 import {useIsAtActiveLevel} from './SubContext';
@@ -50,9 +51,13 @@ function useFocusableRow({visible, onActivate, isDisabled = false}: {visible: bo
         return () => unregisterItem(id);
     }, [visible, id, registerItem, unregisterItem, isDisabled]);
 
+    const focused = focusedId === id;
+    // Imperatively sync DOM focus when arrow-key nav lands here.
+    useSyncFocus(ref, focused);
+
     return {
         ref,
-        focused: focusedId === id,
+        focused,
         onPress: () => onActivateRef.current(),
         onFocus: () => setFocusedId(id),
     };

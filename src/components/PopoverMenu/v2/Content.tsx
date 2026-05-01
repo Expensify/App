@@ -104,15 +104,15 @@ function Content({
     const {windowHeight} = useWindowDimensions();
 
     const anchorPosition = useAnchorMeasurement({anchorRef, anchorPositionProp, anchorAlignment, isVisible});
-    const [currentSubId, setCurrentSubId] = useState<string | null>(null);
+    const [currentSub, setCurrentSub] = useState<{id: string | null; ancestorChain: readonly string[]}>({id: null, ancestorChain: []});
     const mountedSubs = useRef<Set<string>>(new Set());
 
     // Reset to top level on close so reopening doesn't preserve sub-menu state.
     useOnValueChange(isVisible, (nextVisible) => {
-        if (nextVisible || currentSubId === null) {
+        if (nextVisible || currentSub.id === null) {
             return;
         }
-        setCurrentSubId(null);
+        setCurrentSub({id: null, ancestorChain: []});
     });
 
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
@@ -129,24 +129,38 @@ function Content({
 
     const [actions] = useState<ContentActionsValue>(() => ({
         // Reset focus on level change: the registry is replaced and the old numeric index would map to a different row.
-        enterSub: (id: string) => {
-            setCurrentSubId(id);
+        enterSub: (id, ancestorChain) => {
+            setCurrentSub({id, ancestorChain});
             setFocusedIndex(-1);
         },
-        exitSub: (target: string | null = null) => {
-            setCurrentSubId(target);
+        exitSub: (target = null) => {
+            setCurrentSub((prev) => {
+                if (target === null) {
+                    return {id: null, ancestorChain: []};
+                }
+                // Target's chain is the prefix of the current chain up to target.
+                const idx = prev.ancestorChain.indexOf(target);
+                const newChain = idx >= 0 ? prev.ancestorChain.slice(0, idx) : [];
+                return {id: target, ancestorChain: newChain};
+            });
             setFocusedIndex(-1);
         },
-        registerSub: (subId: string) => {
+        registerSub: (subId) => {
             mountedSubs.current.add(subId);
         },
-        unregisterSub: (subId: string, ancestorChain: readonly string[]) => {
+        unregisterSub: (subId, ancestorChain) => {
             mountedSubs.current.delete(subId);
-            setCurrentSubId((prev) => {
-                if (prev !== subId) {
+            setCurrentSub((prev) => {
+                if (prev.id !== subId) {
                     return prev;
                 }
-                return ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
+                const newId = ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
+                if (newId === null) {
+                    return {id: null, ancestorChain: []};
+                }
+                const idx = ancestorChain.indexOf(newId);
+                const newChain = idx >= 0 ? ancestorChain.slice(0, idx) : [];
+                return {id: newId, ancestorChain: newChain};
             });
         },
         registerItem: (id, item) =>
@@ -192,7 +206,7 @@ function Content({
     }
 
     const stateValue = {
-        state: {currentSubId, focusedId},
+        state: {currentSubId: currentSub.id, currentSubAncestorChain: currentSub.ancestorChain, focusedId},
         meta: {anchorPosition, anchorAlignment},
     } satisfies ContentStateValue;
 
@@ -241,7 +255,7 @@ function Content({
                                     containerStyles,
                                 ]}
                             >
-                                {!!headerText && currentSubId === null && (
+                                {!!headerText && currentSub.id === null && (
                                     <Text
                                         key="header-text"
                                         style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}

@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import FocusableMenuItem from '@components/FocusableMenuItem';
+import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -31,7 +31,7 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
     });
 
     return (
-        <FocusableMenuItem
+        <MenuItem
             ref={ref}
             icon={icons.BackArrow}
             iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
@@ -52,14 +52,19 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
     );
 }
 
-function SubContent({children, backButtonText}: SubContentProps): React.ReactElement {
+function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
     const {
-        state: {currentSubId},
+        state: {currentSubId, currentSubAncestorChain},
     } = useContentState();
     const subContext = useSubContext();
 
-    // Children stay mounted so nested <Sub> survives navigation; only the back button is gated here.
     const isActiveLevel = currentSubId === subContext.subId;
+    // Keep children mounted while a descendant is active so nested <Sub> registration survives navigation.
+    const isAncestorOfActive = currentSubAncestorChain.includes(subContext.subId);
+
+    if (!isActiveLevel && !isAncestorOfActive) {
+        return null;
+    }
 
     return (
         <>
