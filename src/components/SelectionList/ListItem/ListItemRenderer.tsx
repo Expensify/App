@@ -30,7 +30,6 @@ function ListItemRenderer<TItem extends ListItem>({
     isDisabled,
     showTooltip,
     canSelectMultiple,
-    canShowProductTrainingTooltip,
     onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
@@ -94,7 +93,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
                 titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }
@@ -107,7 +105,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
-                canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                 titleContainerStyles={titleContainerStyles}
                 errorRowStyles={errorRowStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}

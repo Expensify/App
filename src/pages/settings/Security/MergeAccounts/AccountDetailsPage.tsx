@@ -2,6 +2,7 @@ import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native'
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';

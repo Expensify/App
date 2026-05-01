@@ -2,6 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import type {ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
@@ -14,6 +15,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -70,10 +72,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             if (!shouldDeferNonEssentials) {
                 return;
             }
-            let animationFrameId: number;
+            const animationFrameRef = {current: 0};
             const handle = TransitionTracker.runAfterTransitions({
                 callback: () => {
-                    animationFrameId = requestAnimationFrame(() => setShouldDeferNonEssentials(false));
+                    animationFrameRef.current = requestAnimationFrame(() => setShouldDeferNonEssentials(false));
                 },
                 waitForUpcomingTransition: true,
             });
@@ -82,7 +84,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const safetyTimeout = setTimeout(() => setShouldDeferNonEssentials(false), CONST.MAX_TRANSITION_DURATION_MS * 3);
             return () => {
                 handle.cancel();
-                cancelAnimationFrame(animationFrameId);
+                cancelAnimationFrame(animationFrameRef.current);
                 clearTimeout(safetyTimeout);
             };
         }, [shouldDeferNonEssentials]),

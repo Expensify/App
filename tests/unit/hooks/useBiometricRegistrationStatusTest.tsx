@@ -1,5 +1,4 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 

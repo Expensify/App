@@ -869,6 +869,7 @@ const CONST = {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
         CSV_CARD_IMPORT: 'csvCardImport',
+        CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -880,7 +881,6 @@ const CONST = {
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
-        UBER_FOR_BUSINESS: 'uberForBusiness',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         GUSTO: 'gustoNewDot',
@@ -1400,7 +1400,7 @@ const CONST = {
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
-            ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
+            ADD_EXISTING_EXPENSE: 'addExistingExpense',
             TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
         },
         ACTION_BADGE: {
@@ -1468,7 +1468,7 @@ const CONST = {
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
                 MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
-                MARK_REIMBURSED_FROM_INTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
+                MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
@@ -1901,6 +1901,7 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     DEFERRED_LAYOUT_WRITE_KEYS: {
@@ -2590,7 +2591,6 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
-    SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL: 96,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
@@ -4460,11 +4460,11 @@ const CONST = {
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
-        // eslint-disable-next-line max-len, no-misleading-character-class
+        // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
+
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
-        // eslint-disable-next-line max-len, no-misleading-character-class
+
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
@@ -6142,6 +6142,8 @@ const CONST = {
     ROLE: {
         /** Use for elements with important, time-sensitive information. */
         ALERT: 'alert',
+        /** Use for elements with advisory information that should be announced without interrupting the user. */
+        STATUS: 'status',
         /** Use for elements that act as buttons. */
         BUTTON: 'button',
         /** Use for elements representing checkboxes. */
@@ -7661,12 +7663,12 @@ const CONST = {
                 CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                 TAG: this.TABLE_COLUMNS.TAG,
                 EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
                 REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
                 BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                 TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                 TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                 AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                TOTAL: this.TABLE_COLUMNS.TOTAL,
             };
         },
         get GROUP_CUSTOM_COLUMNS() {
@@ -8232,6 +8234,7 @@ const CONST = {
         },
     },
     DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
+    DEFAULT_REPORT_LOADING_STATE: {isLoadingInitialReportActions: true},
     UPGRADE_PATHS: {
         CATEGORIES: 'categories',
         REPORTS: 'reports',
@@ -8576,9 +8579,6 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'training_scan_test_tooltip_shown',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'training_scan_test_tooltip_dismissed',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'training_scan_test_tooltip_confirmed',
         },
     },
 
@@ -8637,9 +8637,6 @@ const CONST = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        SCAN_TEST_TOOLTIP: 'scanTestTooltip',
-        SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
-        SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSTANDING_FILTER: 'outstandingFilter',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
@@ -8828,6 +8825,11 @@ const CONST = {
         ATTACHMENT_MODAL: {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        ATTACHMENT_PREVIEW: {
+            VIDEO_THUMBNAIL: 'AttachmentPreview-VideoThumbnail',
+            IMAGE_THUMBNAIL: 'AttachmentPreview-ImageThumbnail',
+            PDF_THUMBNAIL: 'AttachmentPreview-PDFThumbnail',
         },
         HEADER: {
             BACK_BUTTON: 'Header-BackButton',
@@ -9044,7 +9046,7 @@ const CONST = {
             ADD_EXPENSE: 'MoreMenu-AddExpense',
             ADD_EXPENSE_CREATE: 'MoreMenu-AddExpenseCreate',
             ADD_EXPENSE_TRACK_DISTANCE: 'MoreMenu-AddExpenseTrackDistance',
-            ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
+            ADD_EXPENSE_EXISTING: 'MoreMenu-AddExpenseExisting',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
@@ -9307,6 +9309,7 @@ const CONST = {
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',
                 SHARE: 'WorkspaceOverview-Share',
                 CUSTOM_RULES: 'WorkspaceOverview-CustomRules',
+                RULES_DOCUMENT: 'WorkspaceOverview-RulesDocument',
                 INVITE_BUTTON: 'WorkspaceOverview-InviteButton',
                 MORE_DROPDOWN: 'WorkspaceOverview-MoreDropdown',
             },
@@ -9584,6 +9587,9 @@ const CONST = {
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },
+        BASE_AUTO_COMPLETE_SUGGESTIONS: {
+            MENU_ITEM: 'BaseAutoCompleteSuggestions-MenuItem',
+        },
         SAFE_AREA: {
             DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
         },
@@ -9620,12 +9626,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'More power, right where you need it',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
-                publishedDate: '2026-03-23',
-            },
-            {
                 title: 'New global partnerships: banking, travel, accounting, & more',
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
@@ -9636,6 +9636,12 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
                 publishedDate: '2026-04-15',
+            },
+            {
+                title: 'New BYOC partnership: Institute of Commercial Payments',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
+                publishedDate: '2026-04-21',
             },
         ],
     },

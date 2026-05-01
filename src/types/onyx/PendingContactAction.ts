@@ -30,5 +30,5 @@ type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Record of user login data, indexed by partnerUserID */
 type PendingContactAction = ContactAction;
 
-export default ContactAction;
+// eslint-disable-next-line import/prefer-default-export
 export type {PendingContactAction};
