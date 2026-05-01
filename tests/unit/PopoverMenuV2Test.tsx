@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React, {useRef, useState} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
@@ -67,7 +67,17 @@ jest.mock('@components/CompactMenuContext', () => {
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useTheme', () => () => ({border: 'borderColor', icon: 'iconColor', iconHovered: 'iconHovered'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false}));
-jest.mock('@hooks/usePopoverPosition', () => () => ({calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0}))}));
+// Sync-resolving thenable so the measurement effect completes inside `render()`. The function reference must be stable
+// across renders — otherwise the effect re-runs every render and loops via setState.
+jest.mock('@hooks/usePopoverPosition', () => {
+    const calculatePopoverPosition = jest.fn(() => ({
+        then: (onFulfilled: (v: {horizontal: number; vertical: number}) => void) => {
+            onFulfilled({horizontal: 0, vertical: 0});
+            return {catch: () => undefined};
+        },
+    }));
+    return () => ({calculatePopoverPosition});
+});
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({BackArrow: 'BackArrowIcon', ArrowRight: 'ArrowRightIcon'}),
 }));
@@ -413,6 +423,43 @@ describe('PopoverMenu V2', () => {
             );
             expect(findItemByTitle<{interactive?: boolean}>('Section heading')?.interactive).toBe(false);
             expect(findItemByTitle('Below')).toBeDefined();
+        });
+    });
+
+    describe('Content', () => {
+        it('renders headerText at the root level', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content headerText="Pick a payment">
+                        <PopoverMenu.Item
+                            text="Wallet"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            expect(screen.getByText('Pick a payment')).toBeTruthy();
+        });
+
+        it('hides headerText once a sub is entered', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content headerText="Pick a payment">
+                        <PopoverMenu.Sub>
+                            <PopoverMenu.SubTrigger text="Pay as business" />
+                            <PopoverMenu.SubContent backButtonText="Business">
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            expect(screen.getByText('Pick a payment')).toBeTruthy();
+            press('Pay as business');
+            expect(screen.queryByText('Pick a payment')).toBeNull();
         });
     });
 

@@ -63,9 +63,6 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-// jsdom skips anchor measurement; seed a position so PopoverMenu mounts in tests.
-const JSDOM_FALLBACK_ANCHOR: AnchorPosition = {horizontal: 0, vertical: 0};
-
 function Content({
     children,
     headerText,
@@ -106,7 +103,7 @@ function Content({
     const {calculatePopoverPosition} = usePopoverPosition();
     const {windowHeight} = useWindowDimensions();
 
-    const [measuredAnchorPosition, setMeasuredAnchorPosition] = useState<AnchorPosition | null>(JSDOM_FALLBACK_ANCHOR);
+    const [measuredAnchorPosition, setMeasuredAnchorPosition] = useState<AnchorPosition | null>(null);
     const anchorPosition = anchorPositionProp ?? measuredAnchorPosition;
     const [currentSubId, setCurrentSubId] = useState<string | null>(null);
 
@@ -245,7 +242,7 @@ function Content({
                                     containerStyles,
                                 ]}
                             >
-                                {!!headerText && (
+                                {!!headerText && currentSubId === null && (
                                     <Text
                                         key="header-text"
                                         style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
