@@ -286,15 +286,5 @@ function isTracking(): boolean {
     return trackingState !== null;
 }
 
-export {
-    endSubmitFollowUpActionSpan,
-    setPendingSubmitFollowUpAction,
-    getPendingSubmitFollowUpAction,
-    cancelSubmitFollowUpActionSpan,
-    startTracking,
-    setFastPath,
-    addOptimization,
-    cancelTracking,
-    isTracking,
-};
+export {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction, getPendingSubmitFollowUpAction, cancelSubmitFollowUpActionSpan, startTracking, setFastPath, addOptimization, isTracking};
 export type {SubmitFollowUpAction, PendingSubmitFollowUpAction, FastPathType, Optimization, SubmitExpenseContext, StartTrackingOptions};

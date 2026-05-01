@@ -138,6 +138,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             existingCardsList,
             lastSelectedFeed: lastSelectedFeed ?? undefined,
             workspaceCardFeeds,
+            existingInstanceID: addNewCard?.data?.existingInstanceID,
         });
     };
 

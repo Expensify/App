@@ -1,5 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';

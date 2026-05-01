@@ -113,6 +113,7 @@ import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustra
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
+import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -155,6 +156,7 @@ import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illus
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import NewUser from '@assets/images/simple-illustrations/simple-illustration__newuser.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
@@ -380,6 +382,7 @@ const Illustrations = {
     LockClosedOrange,
     LockOpen,
     Mailbox,
+    NewUser,
     ShieldYellow,
     Clock,
     Members,
@@ -398,6 +401,7 @@ const Illustrations = {
     Trophy,
     Trophy1,
     FoodTruck,
+    Chalkboard,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,

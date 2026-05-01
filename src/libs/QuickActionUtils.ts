@@ -137,4 +137,4 @@ const isQuickActionAllowed = (
     return true;
 };
 
-export {getQuickActionIcon, getQuickActionTitle, getIOUType, isQuickActionAllowed};
+export {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed};

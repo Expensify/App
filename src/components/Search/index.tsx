@@ -1,6 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,6 +31,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -330,7 +331,6 @@ function Search({
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        canEvict: false,
         selector: selectFilteredReportActions,
     });
 
@@ -454,7 +454,6 @@ function Search({
             return;
         }
         return deferHeavySearchWork();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, deferHeavySearchWork, isDataLoaded]);
 
     useFocusEffect(
@@ -765,7 +764,7 @@ function Search({
                 // Also check if the report itself was selected (when it was empty) by checking the reportID key
                 const reportKey = transactionGroup.keyForList;
                 const wasReportSelected = reportKey && reportKey in selectedTransactions;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 const hasAnySelected = isExpenseReportType && (wasReportSelected || transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions));
 
                 for (const transactionItem of transactionGroup.transactions) {
@@ -809,7 +808,7 @@ function Search({
                             report: transactionItem.report,
                             policy: transactionItem.policy,
                         }),
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
@@ -865,7 +864,7 @@ function Search({
                         report: transactionItem.report,
                         policy: transactionItem.policy,
                     }),
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
@@ -1135,17 +1134,6 @@ function Search({
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
-
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-
-                startTransition(() => {
-                    if (item.transactions.length > 1) {
-                        markReportIDAsMultiTransactionExpense(reportID);
-                    } else {
-                        unmarkReportIDAsMultiTransactionExpense(reportID);
-                    }
-                });
-
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(
@@ -1164,6 +1152,13 @@ function Search({
                     }
                 }
 
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                } else {
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                }
+
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
@@ -1179,19 +1174,17 @@ function Search({
             }
 
             if (isTaskListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
-
-            startTransition(() => {
-                markReportIDAsExpense(reportID);
-            });
+            markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
+
+            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [
             isMobileSelectionModeEnabled,
@@ -1361,7 +1354,6 @@ function Search({
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
@@ -1488,7 +1480,7 @@ function Search({
     didBailToFallbackState.current = false;
 
     const isAnyVisibleActionLoading = useMemo(
-        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`)),
+        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${item.reportID}`)),
         [filteredData, isActionLoadingSet],
     );
 
@@ -1719,7 +1711,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
-                                isLoadMore
+                                isLoadMore={shouldShowLoadingMoreItems}
                             />
                         ) : undefined
                     }

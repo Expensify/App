@@ -91,7 +91,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     });
 
     const clearComposer = () => {
-        const clearWorklet = composerRefShared.get().clearWorklet;
+        const clearWorklet = composerRef.current?.clearWorklet;
         if (!clearWorklet) {
             throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
         }

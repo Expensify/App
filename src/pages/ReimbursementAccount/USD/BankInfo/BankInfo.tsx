@@ -39,7 +39,7 @@ const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
 
     const redirectedFromPlaidToManualRef = useRef(false);

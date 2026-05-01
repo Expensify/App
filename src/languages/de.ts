@@ -21,16 +21,12 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
@@ -57,17 +53,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
@@ -324,6 +311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Lass uns anfangen`,
         showMore: 'Mehr anzeigen',
         showLess: 'Weniger anzeigen',
+        plusMore: ({count}: {count: number}) => `+${count} weitere`,
         merchant: 'Händler',
         change: 'Ändern',
         category: 'Kategorie',
@@ -877,6 +865,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'Nur Admins können Nachrichten in diesem Raum senden.',
+    readOnlyConversation: 'Diese Konversation ist schreibgeschützt.',
     reportAction: {
         asCopilot: 'als Copilot für',
         assistedBy: (agentName: string) => `unterstützt von ${agentName}`,
@@ -1486,11 +1475,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'hat diese Ausgabe zurückgehalten',
         unheldExpense: 'Zurückgehaltene Ausgabe freigegeben',
         moveUnreportedExpense: 'Nicht gemeldete Ausgabe verschieben',
-        addUnreportedExpense: 'Nicht gemeldete Ausgabe hinzufügen',
-        selectUnreportedExpense: 'Wähle mindestens eine Ausgabe aus, um sie dem Bericht hinzuzufügen.',
-        emptyStateUnreportedExpenseTitle: 'Keine nicht gemeldeten Ausgaben',
-        emptyStateUnreportedExpenseSubtitle: 'Sie scheinen keine nicht eingereichten Ausgaben zu haben. Erstellen Sie unten eine.',
-        addUnreportedExpenseConfirm: 'Zu Bericht hinzufügen',
+        addExistingExpense: 'Vorhandene Ausgabe hinzufügen',
+        selectExistingExpense: 'Wähle mindestens eine Ausgabe aus, um sie dem Bericht hinzuzufügen.',
+        emptyStateExistingExpenseTitle: 'Keine vorhandenen Ausgaben',
+        emptyStateExistingExpenseSubtitle: 'Es scheint, dass du keine vorhandenen Ausgaben hast. Erstelle unten eine neue.',
+        addExistingExpenseConfirm: 'Zu Bericht hinzufügen',
         newReport: 'Neuer Bericht',
         explainHold: () => ({
             one: 'Erkläre, warum du diese Ausgabe zurückhältst.',
@@ -2098,6 +2087,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
+            showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
         },
         security: 'Sicherheit',
         signOut: 'Abmelden',
@@ -2111,8 +2101,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Konto',
         general: 'Allgemein',
         helpPage: {
-            title: 'Hilfe und Support',
-            description: 'Wir sind rund um die Uhr für Sie da',
+            title: 'Fragen?',
+            description: 'Wir sind rund um die Uhr für Sie da.',
             helpSite: 'Hilfeseite',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
@@ -2533,6 +2523,8 @@ ${amount} für ${merchant} – ${date}`,
         frozenByAdminNeedsUnfreezePrefix: 'Diese Karte wurde von ',
         frozenByAdminNeedsUnfreezeSuffix: ' gesperrt. Bitte kontaktiere einen Admin, um sie zu entsperren.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Diese Karte wurde von ${person} gesperrt. Bitte kontaktiere einen Admin, um sie zu entsperren.`,
+        spendRules: 'Ausgaberichtlinien',
+        editSpendRules: 'Ausgaberegeln bearbeiten',
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
@@ -3497,6 +3489,11 @@ ${amount} für ${merchant} – ${date}`,
         confirmationStepHeader: 'Überprüfe deine Angaben.',
         confirmationStepSubHeader: 'Prüfen Sie die untenstehenden Angaben sorgfältig und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
         toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
+        updatePersonalInfo: 'Bankkonto aktualisieren',
+        updatePersonalInfoFailure: 'Die Bankkontoinformationen konnten nicht aktualisiert werden. Bitte versuchen Sie es später erneut.',
+        updateSuccessTitle: 'Bankkonto aktualisiert!',
+        updateSuccessHeader: 'Bankkonto aktualisiert',
+        updateSuccessMessage: 'Glückwunsch, dein Bankkonto ist eingerichtet und bereit, Rückerstattungen zu empfangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -4831,6 +4828,7 @@ ${amount} für ${merchant} – ${date}`,
 
                             Wenn du für jede Karte einen bestimmten Lieferanten festlegen möchtest, gehe zu *Einstellungen > Domains > Firmenkarten*.
                         `),
+                        travelDescription: 'Reisekosten werden als Journaleinträge in das unten angegebene NetSuite-Konto exportiert.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -6851,6 +6849,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
+                policyDocument: 'Richtliniendokument',
+                policyText: 'Richtlinientext',
             },
             spendRules: {
                 title: 'Ausgaben',
@@ -6895,7 +6895,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 currencyMismatchTitle: 'Währungsinkonsistenz',
                 currencyMismatchPrompt: 'Um einen Höchstbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
                 reviewSelectedCards: 'Ausgewählte Karten prüfen',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} weitere`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} weitere` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Wenden Sie mindestens eine Ausgabenregel auf eine Karte an',
                 confirmErrorCardRequired: 'Feld „Karte“ ist erforderlich',
                 confirmErrorApplyAtLeastOneSpendRule: 'Wenden Sie mindestens eine Ausgabenregel an',
@@ -6903,6 +6903,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 merchants: 'Händler',
                 noAvailableCards: 'Alle Karten haben bereits eine Regel',
                 noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
+                noCardsIssuedTitle: 'Keine Expensify Karten ausgestellt',
+                noCardsIssuedSubtitle: 'Geben Sie Expensify Karten aus, um Ausgabelimits festzulegen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',
@@ -6930,6 +6932,30 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Händler' : 'Händler'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
             },
         },
         planTypePage: {
@@ -6974,7 +7000,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: 'Genehmigungsmodus', finalApprover: 'Endgültige:r Genehmiger:in'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Genehmigungsmodus',
+                finalApprover: 'Endgültige:r Genehmiger:in',
+                connect: 'Verbinden',
+                connectionDescription: 'Verbinde Gusto, um Mitarbeitergenehmigungen mit deinem Workspace zu synchronisieren.',
+            },
         },
     },
     getAssistancePage: {
@@ -7066,7 +7098,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `${approverName} (${approverEmail}) als Genehmiger:in für das Feld ${field} „${name}“ hinzugefügt`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${approverName} (${approverEmail}) als Genehmiger:in für das Feld ${field} „${name}“ entfernt`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `Genehmigende Person für ${field} „${name}“ auf ${formatApprover(newApproverName, newApproverEmail)} geändert (zuvor ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -7115,7 +7147,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }
             return `hat die Kategorie „${categoryName}“ zu ${newValue} geändert (zuvor ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `hat die Kategorie „${categoryName}“ aktualisiert, indem Einzelpostenbelege in ${newValue} geändert wurden`;
             }
@@ -7143,7 +7175,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }
             return `hat das Tag „${tagName}“ in der Liste „${tagListName}“ aktualisiert, indem ein(e) ${updatedField} mit dem Wert „${newValue}“ hinzugefügt wurde`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `hat ${updatedField} der benutzerdefinierten Einheit ${customUnitName} von „${oldValue}“ auf „${newValue}“ geändert`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung bei Entfernungsraten`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `hat einen neuen ${customUnitName}-Satz „${rateName}“ hinzugefügt`,
@@ -7164,7 +7196,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'aktiviert' : 'deaktiviert'} den ${customUnitName}-Satz „${customUnitRateName}“`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den „${customUnitName}“-Satz „${rateName}“ entfernt`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `hat den „${customUnitName}“-Satz „${rateName}“ entfernt`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `Standardwert des Berichts­feldes „${fieldName}“ auf „${defaultValue}“ festlegen`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `die Option „${optionName}“ zum Berichtsfeld „${fieldName}“ hinzugefügt`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `hat die Option „${optionName}“ aus dem Berichtsfeld „${fieldName}“ entfernt`,
@@ -7218,8 +7250,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         downgradedWorkspace: 'hat diesen Workspace auf den Collect-Tarif heruntergestuft',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `hat die Rate der Berichte, die zufällig zur manuellen Genehmigung zugewiesen werden, auf ${Math.round(newAuditRate * 100)}% geändert (zuvor ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (zuvor ${oldLimit})`,
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) => `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (zuvor ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
@@ -7323,10 +7354,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 ? `hat die/den autorisierte:n Zahler:in in „${newReimburser}“ geändert (zuvor „${previousReimburser}“)`
                 : `den/die autorisierte/n Zahler/in in „${newReimburser}“ geändert`,
         updateReimbursementEnabled: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Rückerstattungen`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `benutzerdefinierten Steuernamen in „${newName}" geändert (zuvor „${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `Standard-Steuerbetrag der Workspace-Währung auf „${newName}" geändert (zuvor „${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `den Standardsteuersatz für Fremdwährungen in „${newName}" geändert (zuvor „${oldName}")`,
+        updateCustomTaxName: (oldName: string, newName: string) => `benutzerdefinierten Steuernamen in „${newName}" geändert (zuvor „${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) => `Standard-Steuerbetrag der Workspace-Währung auf „${newName}" geändert (zuvor „${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `den Standardsteuersatz für Fremdwährungen in „${newName}" geändert (zuvor „${oldName}")`,
         addTax: (taxName: string) => `die Steuer „${taxName}" hinzugefügt`,
         deleteTax: (taxName: string) => `hat die Steuer „${taxName}“ entfernt`,
         updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
@@ -7364,14 +7394,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updateTagListRequired: (tagListsName: string, isRequired: boolean) => `Tag-Liste „${tagListsName}“ in ${isRequired ? 'erforderlich' : 'nicht erforderlich'} geändert`,
         importTags: 'Tags aus einer Tabelle importiert',
         deletedAllTags: 'alle Tags gelöscht',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `hat die Standardkategorie für ${customUnitName} in „${newValue}“ geändert ${oldValue ? `(zuvor „${oldValue}“)` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `importierte Preise für benutzerdefinierte Einheit „${customUnitName}“`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `hat Tarif „${customUnitName}“ mit Satz „${customUnitRateName}“ und Untersatz „${customUnitSubRateName}“ ${updatedField} auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
         removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `entfernte „${customUnitName}“-Rate „${customUnitRateName}“ Unterrate „${removedSubRateName}“`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `mit Benachrichtigungsschwelle von „${notificationThreshold}%“` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `${frequency} individuelles Budget „${individual}“ und ${frequency} gemeinsames Budget „${shared}“${thresholdSuffix} zum/zur ${entityType} „${entityName}“ hinzugefügt`;
@@ -7381,18 +7411,18 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }
             return `${frequency} gemeinsames Budget „${shared}“${thresholdSuffix} zum ${entityType} „${entityName}“ hinzugefügt`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7427,7 +7457,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }
             return `Budget für ${entityType} „${entityName}“ aktualisiert: ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `mit Benachrichtigungsschwelle von „${notificationThreshold}%“` : '';
             if (shared && individual) {
                 return `hat ${frequency} gemeinsames Budget von „${shared}“ und individuelles Budget von „${individual}“${thresholdSuffix} aus dem/der ${entityType} „${entityName}“ entfernt`;
@@ -7493,7 +7523,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `${enabled ? 'aktiviert' : 'deaktiviert'} Karteninhaber:innen können Kartentransaktionen für Kartenfeed „${feedName}“ löschen`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `Kartenfeed-Tag für das Abrechnungsperiodenende von „${feedName}“ geändert${newValue ? ` in „${newValue}“` : ''}${previousValue ? ` (zuvor „${previousValue}“)` : ''}`,
-        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+        addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}-Berichtsfeld „${fieldName}“${defaultValue ? ` mit Standardwert „${defaultValue}“` : ''} hinzugefügt`,
     },
     roomMembersPage: {
@@ -7641,6 +7671,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
             undelete: 'Wiederherstellen',
+            duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'Bericht' : 'Berichte'}`,
         },
         filtersHeader: 'Filter',
         filters: {
@@ -7680,6 +7711,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Zentrale Rechnungsstellung',
             },
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
@@ -7761,6 +7793,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',
+        askConcierge: (message: string) => `Frage Concierge „${message}“`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (
@@ -7789,8 +7822,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         spendOverTime: 'Ausgaben im Zeitverlauf',
         tabs: {
             expenseReports: 'Spesenabrechnungen',
-            reports: 'Alle Berichte',
-            expenses: 'Alle Ausgaben',
+            reports: 'Berichte',
+            expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
             pay: 'Zahlungsbereit',
@@ -8720,9 +8753,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             collectBillingDescription: 'Collect-Arbeitsbereiche werden monatlich pro Mitglied ohne jährliche Verpflichtung abgerechnet.',
             pricing: 'Preise',
         },
-        requestEarlyCancellation: {
-            title: 'Frühzeitige Kündigung anfordern',
-            subtitle: 'Was ist der Hauptgrund, warum du eine vorzeitige Kündigung beantragst?',
+        cancelSubscription: {
+            title: 'Abonnement kündigen',
+            subtitle: 'Was ist der Hauptgrund, warum du dein Abonnement kündigst?',
             subscriptionCanceled: {
                 title: 'Abonnement gekündigt',
                 subtitle: 'Dein Jahresabonnement wurde gekündigt.',
@@ -8735,7 +8768,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle:
                     'Danke, dass du uns mitgeteilt hast, dass du dein Abonnement kündigen möchtest. Wir prüfen deine Anfrage und melden uns in Kürze über deinen Chat mit <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `Mit dem Antrag auf vorzeitige Kündigung erkenne ich an und stimme zu, dass Expensify gemäß den Expensify-<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a> oder einer sonstigen anwendbaren Servicevereinbarung zwischen mir und Expensify nicht verpflichtet ist, einem solchen Antrag stattzugeben, und dass Expensify das alleinige Ermessen in Bezug auf die Genehmigung eines solchen Antrags behält.`,
+            acknowledgement: `Mit dem Antrag auf Kündigung erkenne ich an und stimme zu, dass Expensify gemäß den Expensify-<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a> oder einer sonstigen anwendbaren Servicevereinbarung zwischen mir und Expensify nicht verpflichtet ist, einem solchen Antrag stattzugeben, und dass Expensify das alleinige Ermessen in Bezug auf die Genehmigung eines solchen Antrags behält.`,
         },
     },
     feedbackSurvey: {
@@ -8899,12 +8932,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benenne deine gespeicherten Suchen um</strong> – hier!</tooltip>',
         accountSwitcher: '<tooltip>Greifen Sie hier auf Ihre <strong>Copilot-Konten</strong> zu</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scanne unseren Testbeleg</strong>, um zu sehen, wie es funktioniert!</tooltip>',
-            manager: '<tooltip>Wähle unseren <strong>Testmanager</strong>, um es auszuprobieren!</tooltip>',
-            confirmation: '<tooltip>Jetzt <strong>reiche deine Ausgabe ein</strong> und sieh zu, wie die Magie passiert!</tooltip>',
-            tryItOut: 'Probiere es aus',
-        },
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Sende diese Quittung, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
@@ -9082,7 +9109,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             resetDomain: 'Domain zurücksetzen',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Bitte gib zur Bestätigung des Zurücksetzens der Domain <strong>${domainName}</strong> ein.`,
             enterDomainName: 'Gib hier deinen Domainnamen ein',
-            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <bullet-list><bullet-item>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</bullet-item><bullet-item>SAML- und Gruppeneinstellungen</bullet-item></bullet-list> Alle Konten, Workspaces, Berichte, Ausgaben und andere Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> entfernen.`,
+            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <bullet-list><bullet-item>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</bullet-item><bullet-item>SAML- und Gruppeneinstellungen</bullet-item><bullet-item>Reisedaten und Zugang zu Expensify Travel</bullet-item></bullet-list> Alle Konten, Arbeitsbereiche, Berichte, Ausgaben und anderen Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail-Adresse aus Ihren <a href="#">Kontaktmethoden</a> löschen.`,
         },
         domainMembers: 'Domänenmitglieder',
         members: {
@@ -9127,8 +9154,17 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             forceTwoFactorAuthDescription: `<muted-text>Zwei-Faktor-Authentifizierung für alle Mitglieder dieser Domain verlangen. Domänenmitglieder werden beim Anmelden aufgefordert, die Zwei-Faktor-Authentifizierung für ihr Konto einzurichten.</muted-text>`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
             resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
+            error: 'Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
-        groups: {title: 'Gruppen', memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`})},
+        groups: {
+            title: 'Gruppen',
+            memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`}),
+            defaultGroup: 'Standardgruppe für neue Mitglieder',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
+            makeDefault: 'Als Standard festlegen',
+            neverMind: 'Vergiss es',
+        },
     },
     proactiveAppReview: {
         title: 'Gefällt dir das neue Expensify?',
