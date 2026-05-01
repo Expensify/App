@@ -92,7 +92,7 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     };
 
     it('should return false when field name does not exist', () => {
-        expect(isReportFieldNameExisting(fieldList, 'Field3')).toBe(false);
+        expect(isReportFieldNameExisting(fieldList, 'Field5')).toBe(false);
     });
 
     it('should return true when field name exists with exact case match', () => {
