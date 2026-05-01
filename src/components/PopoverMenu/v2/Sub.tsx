@@ -10,6 +10,11 @@ type SubProps = {
     id?: string;
 };
 
+/**
+ * Drill-down sub-menu (single panel + back button), not Radix-style cascading panels —
+ * deliberate UX choice for touch/small-screen. Don't "fix" this back to multi-panel.
+ */
+
 function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackId = useId();
     const subId = id ?? fallbackId;

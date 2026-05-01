@@ -2,6 +2,8 @@ import CheckmarkItem from './CheckmarkItem';
 import type {CheckmarkItemProps} from './CheckmarkItem';
 import Content from './Content';
 import type {ContentProps} from './Content';
+import Group from './Group';
+import type {GroupProps} from './Group';
 import Item from './Item';
 import type {ItemProps, ItemSelectEvent} from './Item';
 import Label from './Label';
@@ -23,6 +25,7 @@ const PopoverMenu = {
     Item,
     CheckmarkItem,
     Label,
+    Group,
     Sub,
     SubTrigger,
     SubContent,
@@ -30,4 +33,4 @@ const PopoverMenu = {
 };
 
 export default PopoverMenu;
-export type {AnchorRef, CheckmarkItemProps, ContentProps, ItemProps, ItemSelectEvent, LabelProps, RootProps, SubContentProps, SubProps, SubTriggerProps};
+export type {AnchorRef, CheckmarkItemProps, ContentProps, GroupProps, ItemProps, ItemSelectEvent, LabelProps, RootProps, SubContentProps, SubProps, SubTriggerProps};

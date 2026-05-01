@@ -793,6 +793,53 @@ describe('PopoverMenu V2', () => {
         });
     });
 
+    describe('Group', () => {
+        it('renders its children at the top level', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Group>
+                            <PopoverMenu.Label text="Currency" />
+                            <PopoverMenu.Item
+                                text="USD"
+                                onSelect={() => {}}
+                            />
+                        </PopoverMenu.Group>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            expect(findItemByTitle('Currency')).toBeDefined();
+            expect(findItemByTitle('USD')).toBeDefined();
+        });
+
+        it('hides its children when a sub is entered', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Group>
+                            <PopoverMenu.Item
+                                text="USD"
+                                onSelect={() => {}}
+                            />
+                        </PopoverMenu.Group>
+                        <PopoverMenu.Sub>
+                            <PopoverMenu.SubTrigger text="More" />
+                            <PopoverMenu.SubContent>
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            press('More');
+            expect(findItemByTitle('USD')).toBeUndefined();
+            expect(findItemByTitle('Inner')).toBeDefined();
+        });
+    });
+
     describe('Composition invariants', () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
