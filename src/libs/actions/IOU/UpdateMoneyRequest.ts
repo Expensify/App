@@ -902,22 +902,25 @@ function addOptimisticSmartScanModifiedAmountViolation({
     transactionViolations: OnyxTypes.TransactionViolation[];
     hasModifiedAmount: boolean;
 }): OnyxTypes.TransactionViolation[] {
-    if (!transaction || !isScanRequest(transaction) || isReceiptBeingScanned(transaction) || !hasModifiedAmount) {
+    const scannedAmount = Math.abs(Number(transaction?.modifiedAmount));
+    const editedAmount = Math.abs(Number(updatedTransaction.modifiedAmount));
+
+    if (
+        !transaction ||
+        !isScanRequest(transaction) ||
+        isReceiptBeingScanned(transaction) ||
+        !hasModifiedAmount ||
+        !scannedAmount ||
+        !Number.isFinite(editedAmount) ||
+        editedAmount <= scannedAmount
+    ) {
         return transactionViolations;
     }
-
-    const scannedAmount = Math.abs(Number(transaction.modifiedAmount));
-    const editedAmount = Math.abs(Number(updatedTransaction.modifiedAmount));
 
     const isSmartScanModifiedAmount = (v: OnyxTypes.TransactionViolation) =>
         v.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (!v.data?.type || v.data.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.SMARTSCAN);
 
     const withoutSmartScanModifiedAmount = transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
-
-    // Add the violation only if the edited amount exceeds the scanned amount.
-    if (!scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
-        return transactionViolations;
-    }
 
     return [
         ...withoutSmartScanModifiedAmount,
