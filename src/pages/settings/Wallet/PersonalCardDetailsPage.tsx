@@ -182,7 +182,11 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         clearCardErrorField(card.cardID, 'lastScrape');
                     }}
                 >
-                    <CardDetailsActionButtons actions={actionButtons} />
+                    <CardDetailsActionButtons
+                        actions={actionButtons}
+                        shouldFillAvailableWidth
+                        style={isCardBroken ? styles.mb0 : undefined}
+                    />
                 </OfflineWithFeedback>
                 {isCardBroken && (
                     <OfflineWithFeedback
@@ -196,7 +200,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             clearCardErrorField(card.cardID, 'lastScrape');
                         }}
                     >
-                        <View style={[styles.ph5, styles.mb3, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        <View style={[styles.ph5, styles.pv3, styles.mt1, styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <FormHelpMessage
                                 isError
                                 shouldShowRedDotIndicator
@@ -204,6 +208,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                                 style={[styles.flex1, styles.mb0]}
                             />
                             <Button
+                                small
+                                danger
                                 text={translate('personalCard.fixCard')}
                                 onPress={() => openOldDotLink(CONST.OLDDOT_URLS.SETTINGS_WALLET_URL)}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}

@@ -18,9 +18,10 @@ type CardDetailsAction = {
 type CardDetailsActionButtonsProps = {
     actions: CardDetailsAction[];
     style?: StyleProp<ViewStyle>;
+    shouldFillAvailableWidth?: boolean;
 };
 
-function CardDetailsActionButtons({actions, style}: CardDetailsActionButtonsProps) {
+function CardDetailsActionButtons({actions, style, shouldFillAvailableWidth = false}: CardDetailsActionButtonsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -30,20 +31,48 @@ function CardDetailsActionButtons({actions, style}: CardDetailsActionButtonsProp
 
     return (
         <View
-            style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph5, styles.pt2, styles.mb6, styles.gap2, styles.alignSelfStretch, style]}
+            style={[
+                styles.flexRow,
+                styles.flexWrap,
+                styles.alignItemsCenter,
+                styles.justifyContentCenter,
+                shouldFillAvailableWidth ? styles.ph10 : styles.ph5,
+                styles.pt2,
+                styles.mb6,
+                styles.gap2,
+                styles.alignSelfStretch,
+                style,
+            ]}
         >
-            {actions.map((action) => (
-                <Button
-                    key={action.key}
-                    text={action.text}
-                    icon={action.icon}
-                    iconFill={theme.icon}
-                    onPress={action.onPress}
-                    isDisabled={action.isDisabled}
-                    isLoading={action.isLoading}
-                    style={styles.flexShrink0}
-                />
-            ))}
+            {actions.map((action) =>
+                shouldFillAvailableWidth ? (
+                    <View
+                        key={action.key}
+                        style={styles.flex1}
+                    >
+                        <Button
+                            text={action.text}
+                            icon={action.icon}
+                            iconFill={theme.icon}
+                            onPress={action.onPress}
+                            isDisabled={action.isDisabled}
+                            isLoading={action.isLoading}
+                            style={styles.w100}
+                        />
+                    </View>
+                ) : (
+                    <Button
+                        key={action.key}
+                        text={action.text}
+                        icon={action.icon}
+                        iconFill={theme.icon}
+                        onPress={action.onPress}
+                        isDisabled={action.isDisabled}
+                        isLoading={action.isLoading}
+                        style={styles.flexShrink0}
+                    />
+                ),
+            )}
         </View>
     );
 }
