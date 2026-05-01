@@ -13,7 +13,6 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {
-    getReportOrDraftReport,
     isAdminRoom,
     isAnnounceRoom,
     isGroupChat,
