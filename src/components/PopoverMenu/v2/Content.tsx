@@ -101,7 +101,8 @@ function Content({
         meta: {anchorRef},
     } = useRootState('PopoverMenu.Content');
     const {setIsVisible} = useRootActions('PopoverMenu.Content');
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {calculatePopoverPosition} = usePopoverPosition();
     const {windowHeight} = useWindowDimensions();
 
@@ -120,7 +121,8 @@ function Content({
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIds = [...registry.keys()];
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIds.length - 1, isActive: isVisible, initialFocusedIndex: -1});
-    const focusedId = orderedIds.at(focusedIndex) ?? null;
+    // Guard the -1 sentinel — `.at(-1)` would return the last item.
+    const focusedId = focusedIndex >= 0 ? (orderedIds.at(focusedIndex) ?? null) : null;
 
     // Mirrored so the lazy-init `setFocusedId` can translate id↔index without going stale.
     const orderedIdsRef = useRef(orderedIds);
@@ -163,7 +165,7 @@ function Content({
         {isActive: isVisible},
     );
 
-    useSuppressSpaceScroll(isVisible);
+    useSuppressSpaceScroll(isVisible && !shouldUseScrollView);
 
     const handleClose = () => {
         setIsVisible(false);
@@ -198,7 +200,7 @@ function Content({
         meta: {anchorPosition, anchorAlignment},
     } satisfies ContentStateValue;
 
-    const maxHeightStyle = resolveMaxHeightStyle({shouldEnableMaxHeight, shouldUseScrollView, shouldUseNarrowLayout, isInLandscapeMode, windowHeight});
+    const maxHeightStyle = resolveMaxHeightStyle({shouldEnableMaxHeight, shouldUseScrollView, isSmallScreenWidth, isInLandscapeMode, windowHeight});
 
     return (
         <ContentStateContext.Provider value={stateValue}>
@@ -225,6 +227,8 @@ function Content({
                     fromSidebarMediumScreen={fromSidebarMediumScreen}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
+                    // Avoid nested ScrollViews when we already wrap children ourselves.
+                    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
                     testID={testID}
                 >
                     <FocusTrapForModal
@@ -235,8 +239,8 @@ function Content({
                             <View
                                 onLayout={onLayout}
                                 style={[
-                                    shouldUseNarrowLayout ? undefined : {width: variables.compactPopoverMenuWidth},
-                                    shouldUseNarrowLayout ? undefined : styles.pv2,
+                                    isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
+                                    isSmallScreenWidth ? undefined : styles.pv2,
                                     maxHeightStyle,
                                     containerStyles,
                                 ]}
@@ -262,20 +266,20 @@ function Content({
 function resolveMaxHeightStyle({
     shouldEnableMaxHeight,
     shouldUseScrollView,
-    shouldUseNarrowLayout,
+    isSmallScreenWidth,
     isInLandscapeMode,
     windowHeight,
 }: {
     shouldEnableMaxHeight: boolean;
     shouldUseScrollView: boolean;
-    shouldUseNarrowLayout: boolean;
+    isSmallScreenWidth: boolean;
     isInLandscapeMode: boolean;
     windowHeight: number;
 }): ViewStyle | undefined {
     if (!shouldEnableMaxHeight || isInLandscapeMode) {
         return undefined;
     }
-    if (shouldUseNarrowLayout) {
+    if (isSmallScreenWidth) {
         return {maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE};
     }
     if (shouldUseScrollView) {

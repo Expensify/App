@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 import React, {useRef, useState} from 'react';
-import type {ReactElement} from 'react';
+import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import PopoverMenu from '@components/PopoverMenu/v2';
@@ -13,7 +13,7 @@ type MenuItemMockProps = Record<string, unknown> & {
 const menuItemPropsCapture: {current: MenuItemMockProps[]} = {current: []};
 
 jest.mock('@components/PopoverWithMeasuredContent', () => {
-    function MockPopoverWithMeasuredContent({isVisible, children}: {isVisible?: boolean; children?: React.ReactNode}) {
+    function MockPopoverWithMeasuredContent({isVisible, children}: {isVisible?: boolean; children?: ReactNode}) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
         const {View: RNView} = jest.requireActual('react-native');
         if (!isVisible) {
@@ -25,7 +25,7 @@ jest.mock('@components/PopoverWithMeasuredContent', () => {
 });
 
 jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
-    function MockFocusTrap({children}: {children?: React.ReactNode}) {
+    function MockFocusTrap({children}: {children?: ReactNode}) {
         return children;
     }
     return MockFocusTrap;
@@ -46,7 +46,7 @@ jest.mock('@components/MenuItem', () => {
 });
 
 jest.mock('@components/OfflineWithFeedback', () => {
-    function MockOfflineWithFeedback({children}: {children?: React.ReactNode}) {
+    function MockOfflineWithFeedback({children}: {children?: ReactNode}) {
         return children;
     }
     return MockOfflineWithFeedback;
@@ -78,9 +78,17 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-const findItemByTitle = (title: string) => menuItemPropsCapture.current.find((p) => p.title === title);
+function findItemByTitle<T = MenuItemMockProps>(title: string): T | undefined {
+    return menuItemPropsCapture.current.find((p) => p.title === title) as T | undefined;
+}
 
-function ControlledHarness({initialOpen = false, onOpenChange, children}: {initialOpen?: boolean; onOpenChange?: (open: boolean) => void; children: React.ReactNode}) {
+function press(title: string): void {
+    const item = findItemByTitle<{onPress?: () => void}>(title);
+    menuItemPropsCapture.current = [];
+    act(() => item?.onPress?.());
+}
+
+function ControlledHarness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
     const [open, setOpen] = useState(initialOpen);
     const anchorRef = useRef<RNViewType>(null);
     return (
@@ -100,7 +108,7 @@ function ControlledHarness({initialOpen = false, onOpenChange, children}: {initi
     );
 }
 
-function UncontrolledHarness({defaultOpen = false, children}: {defaultOpen?: boolean; children: React.ReactNode}) {
+function UncontrolledHarness({defaultOpen = false, children}: PropsWithChildren<{defaultOpen?: boolean}>) {
     const anchorRef = useRef<RNViewType>(null);
     return (
         <>
@@ -115,9 +123,9 @@ function UncontrolledHarness({defaultOpen = false, children}: {defaultOpen?: boo
     );
 }
 
-describe('PopoverMenu compound API', () => {
+describe('PopoverMenu V2', () => {
     describe('Root', () => {
-        it('does not render Content when closed', () => {
+        it('renders nothing when closed', () => {
             render(
                 <ControlledHarness>
                     <PopoverMenu.Content>
@@ -145,7 +153,7 @@ describe('PopoverMenu compound API', () => {
             expect(findItemByTitle('Visible')).toBeDefined();
         });
 
-        it('uncontrolled `defaultOpen` mounts the menu visible', () => {
+        it('mounts visible with `defaultOpen` (uncontrolled)', () => {
             render(
                 <UncontrolledHarness defaultOpen>
                     <PopoverMenu.Content>
@@ -173,8 +181,7 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle('Pay') as {onPress?: () => void} | undefined;
-            act(() => item?.onPress?.());
+            press('Pay');
             expect(onSelect).toHaveBeenCalledTimes(1);
         });
 
@@ -194,8 +201,7 @@ describe('PopoverMenu compound API', () => {
                 </ControlledHarness>,
             );
             onOpenChange.mockClear();
-            const item = findItemByTitle('Pay') as {onPress?: () => void} | undefined;
-            act(() => item?.onPress?.());
+            press('Pay');
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
@@ -215,8 +221,7 @@ describe('PopoverMenu compound API', () => {
                 </ControlledHarness>,
             );
             onOpenChange.mockClear();
-            const item = findItemByTitle('Stay') as {onPress?: () => void} | undefined;
-            act(() => item?.onPress?.());
+            press('Stay');
             expect(onOpenChange).not.toHaveBeenCalled();
         });
 
@@ -233,14 +238,54 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle('Disabled') as {onPress?: () => void} | undefined;
-            act(() => item?.onPress?.());
+            press('Disabled');
             expect(onSelect).not.toHaveBeenCalled();
+        });
+
+        it('still closes the menu when no onSelect is provided', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <ControlledHarness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item text="Plain" />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            onOpenChange.mockClear();
+            press('Plain');
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('does not mark the last item as focused when no row is focused', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Item
+                            text="B"
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Item
+                            text="Last"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            expect(findItemByTitle<{focused?: boolean}>('A')?.focused).toBe(false);
+            expect(findItemByTitle<{focused?: boolean}>('B')?.focused).toBe(false);
+            expect(findItemByTitle<{focused?: boolean}>('Last')?.focused).toBe(false);
         });
     });
 
     describe('CheckmarkItem', () => {
-        it('renders the check icon when isSelected', () => {
+        it('renders the check when isSelected', () => {
             render(
                 <ControlledHarness initialOpen>
                     <PopoverMenu.Content>
@@ -252,12 +297,12 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle('Wallet') as {shouldShowSelectedItemCheck?: boolean; isSelected?: boolean} | undefined;
+            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; isSelected?: boolean}>('Wallet');
             expect(item?.shouldShowSelectedItemCheck).toBe(true);
             expect(item?.isSelected).toBe(true);
         });
 
-        it('renders without the check when isSelected is false', () => {
+        it('does not render the check when isSelected is false', () => {
             render(
                 <ControlledHarness initialOpen>
                     <PopoverMenu.Content>
@@ -268,7 +313,7 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle('Wallet') as {shouldShowSelectedItemCheck?: boolean; isSelected?: boolean} | undefined;
+            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; isSelected?: boolean}>('Wallet');
             expect(item?.shouldShowSelectedItemCheck).toBe(true);
             expect(item?.isSelected).toBe(false);
         });
@@ -290,13 +335,12 @@ describe('PopoverMenu compound API', () => {
                 </ControlledHarness>,
             );
             onOpenChange.mockClear();
-            const item = findItemByTitle('Pick') as {onPress?: () => void} | undefined;
-            act(() => item?.onPress?.());
+            press('Pick');
             expect(onSelect).toHaveBeenCalledTimes(1);
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
-        it('suppresses the check when rightIcon is supplied (rightIcon replaces it)', () => {
+        it('replaces the check with rightIcon when supplied (selected)', () => {
             const customRightIcon = jest.fn();
             render(
                 <ControlledHarness initialOpen>
@@ -310,10 +354,47 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle('Override') as {shouldShowSelectedItemCheck?: boolean; iconRight?: unknown; shouldShowRightIcon?: boolean} | undefined;
+            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; iconRight?: unknown; shouldShowRightIcon?: boolean}>('Override');
             expect(item?.shouldShowSelectedItemCheck).toBe(false);
             expect(item?.shouldShowRightIcon).toBe(true);
             expect(item?.iconRight).toBe(customRightIcon);
+        });
+
+        it('renders rightIcon (no check) when not selected', () => {
+            const customRightIcon = jest.fn();
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.CheckmarkItem
+                            text="Plain"
+                            rightIcon={customRightIcon}
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; iconRight?: unknown; shouldShowRightIcon?: boolean}>('Plain');
+            expect(item?.shouldShowSelectedItemCheck).toBe(false);
+            expect(item?.shouldShowRightIcon).toBe(true);
+            expect(item?.iconRight).toBe(customRightIcon);
+        });
+
+        it('skips onSelect when disabled', () => {
+            const onSelect = jest.fn();
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.CheckmarkItem
+                            text="Disabled"
+                            disabled
+                            isSelected
+                            onSelect={onSelect}
+                        />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            press('Disabled');
+            expect(onSelect).not.toHaveBeenCalled();
         });
     });
 
@@ -330,14 +411,13 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const label = findItemByTitle('Section heading') as {interactive?: boolean; onPress?: () => void} | undefined;
-            expect(label?.interactive).toBe(false);
+            expect(findItemByTitle<{interactive?: boolean}>('Section heading')?.interactive).toBe(false);
             expect(findItemByTitle('Below')).toBeDefined();
         });
     });
 
     describe('Sub', () => {
-        const renderTwoLevelMenu = (): ReactElement => (
+        const renderTwoLevelMenu = () => (
             <ControlledHarness initialOpen>
                 <PopoverMenu.Content>
                     <PopoverMenu.Item
@@ -371,9 +451,7 @@ describe('PopoverMenu compound API', () => {
 
         it('hides top-level items and shows back button + sub items when entered', () => {
             render(renderTwoLevelMenu());
-            const subTrigger = findItemByTitle('Pay as business') as {onPress?: () => void} | undefined;
-            menuItemPropsCapture.current = [];
-            act(() => subTrigger?.onPress?.());
+            press('Pay as business');
             expect(findItemByTitle('Top 1')).toBeUndefined();
             expect(findItemByTitle('Top 2')).toBeUndefined();
             expect(findItemByTitle('Pay as business')).toBeUndefined();
@@ -383,10 +461,8 @@ describe('PopoverMenu compound API', () => {
 
         it('back-button press exits the sub and restores top-level items', () => {
             render(renderTwoLevelMenu());
-            act(() => (findItemByTitle('Pay as business') as {onPress?: () => void} | undefined)?.onPress?.());
-            const backButton = findItemByTitle('Business') as {onPress?: () => void} | undefined;
-            menuItemPropsCapture.current = [];
-            act(() => backButton?.onPress?.());
+            press('Pay as business');
+            press('Business');
             expect(findItemByTitle('Top 1')).toBeDefined();
             expect(findItemByTitle('Top 2')).toBeDefined();
             expect(findItemByTitle('Sub option')).toBeUndefined();
@@ -412,15 +488,12 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            act(() => (findItemByTitle('Sub') as {onPress?: () => void} | undefined)?.onPress?.());
-            const subItem = findItemByTitle('Choose') as {onPress?: () => void} | undefined;
+            press('Sub');
             onOpenChange.mockClear();
-            act(() => subItem?.onPress?.());
+            press('Choose');
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
-        // Issue 1: closing while inside a submenu (via Item.onSelect or controlled `open={false}`)
-        // bypassed `handleClose`, leaving `currentSubId` stale. Reopening the same mounted Content showed the submenu.
         it('resets to top level when the menu closes via item selection and reopens', () => {
             function ExternallyControlledHarness({open}: {open: boolean}) {
                 const anchorRef = useRef<RNViewType>(null);
@@ -449,23 +522,17 @@ describe('PopoverMenu compound API', () => {
             }
 
             const tree = render(<ExternallyControlledHarness open />);
-
-            // Enter sub.
-            act(() => (findItemByTitle('Open Sub') as {onPress?: () => void} | undefined)?.onPress?.());
+            press('Open Sub');
             expect(findItemByTitle('Choose')).toBeDefined();
 
-            // Close the menu via controlled prop. Content stays mounted; only the popover children unmount via the mock.
-            tree.rerender(<ExternallyControlledHarness open={false} />);
-            // Reopen — same Content instance. Without the close-effect reset, `currentSubId` would still point at "A".
             menuItemPropsCapture.current = [];
+            tree.rerender(<ExternallyControlledHarness open={false} />);
             tree.rerender(<ExternallyControlledHarness open />);
 
             expect(findItemByTitle('Open Sub')).toBeDefined();
             expect(findItemByTitle('Choose')).toBeUndefined();
         });
 
-        // Issue 2: nested SubTrigger only rendered while `currentSubId === null`, so deeper subs
-        // were unreachable. With `parentSubId` tracking, B's trigger appears while A is active.
         it('renders a nested SubTrigger when its parent sub is the active level', () => {
             render(
                 <ControlledHarness initialOpen>
@@ -492,35 +559,68 @@ describe('PopoverMenu compound API', () => {
                 </ControlledHarness>,
             );
 
-            // At root: A's trigger visible, B's trigger hidden (parent A isn't active yet).
             expect(findItemByTitle('Open A')).toBeDefined();
             expect(findItemByTitle('Open B')).toBeUndefined();
             expect(findItemByTitle('A item')).toBeUndefined();
-            expect(findItemByTitle('B item')).toBeUndefined();
 
-            // Enter A: A's items + B's trigger visible. Clear capture before press so we read the next render only.
-            const triggerA = findItemByTitle('Open A') as {onPress?: () => void} | undefined;
-            menuItemPropsCapture.current = [];
-            act(() => triggerA?.onPress?.());
+            press('Open A');
             expect(findItemByTitle('A item')).toBeDefined();
             expect(findItemByTitle('Open B')).toBeDefined();
             expect(findItemByTitle('B item')).toBeUndefined();
 
-            // Enter B: B's items visible, A's items hidden.
-            const triggerB = findItemByTitle('Open B') as {onPress?: () => void} | undefined;
-            menuItemPropsCapture.current = [];
-            act(() => triggerB?.onPress?.());
+            press('Open B');
             expect(findItemByTitle('B item')).toBeDefined();
             expect(findItemByTitle('A item')).toBeUndefined();
             expect(findItemByTitle('Open B')).toBeUndefined();
 
-            // Press B's back button: pops to A, not root.
-            const backToA = findItemByTitle('Back to A') as {onPress?: () => void} | undefined;
-            menuItemPropsCapture.current = [];
-            act(() => backToA?.onPress?.());
+            press('Back to A');
             expect(findItemByTitle('A item')).toBeDefined();
             expect(findItemByTitle('Open B')).toBeDefined();
             expect(findItemByTitle('B item')).toBeUndefined();
+        });
+
+        it('pops to parent when an active <Sub> unmounts mid-flight', () => {
+            function ToggleableSubMenu({showSub}: {showSub: boolean}) {
+                const anchorRef = useRef<RNViewType>(null);
+                return (
+                    <>
+                        <View ref={anchorRef} />
+                        <PopoverMenu.Root
+                            open
+                            onOpenChange={() => {}}
+                            anchorRef={anchorRef}
+                        >
+                            <PopoverMenu.Content>
+                                <PopoverMenu.Item
+                                    text="Top"
+                                    onSelect={() => {}}
+                                />
+                                {showSub && (
+                                    <PopoverMenu.Sub id="A">
+                                        <PopoverMenu.SubTrigger text="Open A" />
+                                        <PopoverMenu.SubContent>
+                                            <PopoverMenu.Item
+                                                text="A item"
+                                                onSelect={() => {}}
+                                            />
+                                        </PopoverMenu.SubContent>
+                                    </PopoverMenu.Sub>
+                                )}
+                            </PopoverMenu.Content>
+                        </PopoverMenu.Root>
+                    </>
+                );
+            }
+
+            const tree = render(<ToggleableSubMenu showSub />);
+            press('Open A');
+            expect(findItemByTitle('A item')).toBeDefined();
+            expect(findItemByTitle('Top')).toBeUndefined();
+
+            menuItemPropsCapture.current = [];
+            tree.rerender(<ToggleableSubMenu showSub={false} />);
+            expect(findItemByTitle('Top')).toBeDefined();
+            expect(findItemByTitle('A item')).toBeUndefined();
         });
     });
 
@@ -563,9 +663,7 @@ describe('PopoverMenu compound API', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const subTrigger = findItemByTitle('Sub') as {onPress?: () => void} | undefined;
-            menuItemPropsCapture.current = [];
-            act(() => subTrigger?.onPress?.());
+            press('Sub');
             expect(findItemByTitle('Sub')).toBeUndefined();
             expect(findItemByTitle('Inner')).toBeDefined();
         });
@@ -599,6 +697,18 @@ describe('PopoverMenu compound API', () => {
                             text="A"
                             onSelect={() => {}}
                         />
+                    </ControlledHarness>,
+                ),
+            ).toThrow(/must be called inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when Sub is rendered outside Content', () => {
+            expect(() =>
+                render(
+                    <ControlledHarness initialOpen>
+                        <PopoverMenu.Sub>
+                            <PopoverMenu.SubTrigger text="X" />
+                        </PopoverMenu.Sub>
                     </ControlledHarness>,
                 ),
             ).toThrow(/must be called inside <PopoverMenu\.Content>/);
