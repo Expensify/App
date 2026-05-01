@@ -13,6 +13,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
+import SearchTableHeaderComponent from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
@@ -24,26 +25,33 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
+import {applySelectionToItem, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
 import type TaskListItem from './ListItem/TaskListItem';
+import TransactionGroupListExpanded from './ListItem/TransactionGroupListExpanded';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
 import type {
+    ExpandedGroupContentItem,
+    ExpandedGroupTableHeaderItem,
     ReportActionListItemType,
+    SearchFlashListItem,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -107,7 +115,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     columns: SearchColumnType[];
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
-    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
+    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchFlashListItem>>; viewableItems: Array<ViewToken<SearchFlashListItem>>}) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
@@ -141,7 +149,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     ref?: ForwardedRef<SearchListHandle>;
 };
 
-const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
+const keyExtractor = (item: SearchFlashListItem, index: number) => item.keyForList ?? `${index}`;
 
 function isTransactionGroupListItemArray(data: SearchListItem[]): data is TransactionGroupListItemType[] {
     if (data.length <= 0) {
@@ -194,6 +202,50 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     return false;
 }
 
+function ExpandedGroupTableHeader({item}: {item: ExpandedGroupTableHeaderItem}) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [fetchedSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${item.transactionsQueryHash ?? ''}`);
+    const personalDetails = usePersonalDetails();
+    const accountID = personalDetails?.[0]?.accountID;
+
+    let resolvedColumns = item.columns;
+    if (!item.isExpenseReportType && item.transactionsQueryHash) {
+        const snapshot = fetchedSnapshot as SearchResults | undefined;
+        if (snapshot?.data) {
+            resolvedColumns = getColumnsToShow({currentAccountID: accountID, data: snapshot.data, visibleColumns, type: snapshot.search.type});
+        }
+    }
+
+    return (
+        <View style={[styles.mh5, {backgroundColor: theme.appBG}]}>
+            <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
+                <SearchTableHeaderComponent
+                    canSelectMultiple={item.canSelectMultiple}
+                    type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    onSortPress={() => {}}
+                    sortOrder={undefined}
+                    sortBy={undefined}
+                    shouldShowYear={false}
+                    isAmountColumnWide={false}
+                    isTaxAmountColumnWide={false}
+                    shouldShowSorting={false}
+                    columns={resolvedColumns}
+                    groupBy={item.groupBy}
+                    isExpenseReportView
+                    isActionColumnWide={false}
+                />
+            </View>
+            <View style={[styles.borderBottom, styles.ml3, styles.mr3]} />
+        </View>
+    );
+}
+
+function isExpandedGroupItem(item: SearchFlashListItem): item is ExpandedGroupTableHeaderItem | ExpandedGroupContentItem {
+    return typeof item === 'object' && 'itemType' in item && typeof item.itemType === 'string';
+}
+
 function SearchList({
     data,
     ListItem,
@@ -229,6 +281,21 @@ function SearchList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
     const {hash, groupBy, type} = queryJSON;
+
+    const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
+
+    const toggleGroupExpansion = useCallback((keyForList: string) => {
+        setExpandedGroupKeys((prev) => {
+            const next = new Set(prev);
+            if (next.has(keyForList)) {
+                next.delete(keyForList);
+            } else {
+                next.add(keyForList);
+            }
+            return next;
+        });
+    }, []);
+
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -244,6 +311,51 @@ function SearchList({
         }
         return [];
     }, [data, type]);
+
+    const {expandedData, stickyHeaderIndices: computedStickyHeaderIndices} = useMemo(() => {
+        if (expandedGroupKeys.size === 0 || !isTransactionGroupListItemArray(data)) {
+            return {expandedData: data as SearchFlashListItem[], stickyHeaderIndices: undefined};
+        }
+
+        const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+        const result: SearchFlashListItem[] = [];
+        const headerIndices: number[] = [];
+
+        for (const item of data) {
+            result.push(item);
+            const key = item.keyForList ?? '';
+
+            if (!expandedGroupKeys.has(key)) {
+                continue;
+            }
+
+            const tableHeaderItem: ExpandedGroupTableHeaderItem = {
+                itemType: 'expandedGroupTableHeader',
+                keyForList: `${key}_tableHeader`,
+                parentGroupKeyForList: key,
+                columns: columns ?? [],
+                groupBy,
+                canSelectMultiple,
+                isExpenseReportType,
+                transactionsQueryHash: item.transactionsQueryJSON?.hash,
+            };
+            headerIndices.push(result.length);
+            result.push(tableHeaderItem);
+
+            const contentItem: ExpandedGroupContentItem = {
+                itemType: 'expandedGroupContent',
+                keyForList: `${key}_content`,
+                parentGroupKeyForList: key,
+                groupItem: item,
+            };
+            result.push(contentItem);
+        }
+
+        return {
+            expandedData: result,
+            stickyHeaderIndices: headerIndices.length > 0 ? headerIndices : undefined,
+        };
+    }, [data, expandedGroupKeys, type, columns, groupBy, canSelectMultiple]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
@@ -286,7 +398,7 @@ function SearchList({
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const listRef = useRef<FlashListRef<SearchListItem>>(null);
+    const listRef = useRef<FlashListRef<SearchFlashListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);
@@ -417,18 +529,83 @@ function SearchList({
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
-    const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
-    const firstVisibleIndex = useMemo(() => data.findIndex(isItemVisible), [data, isItemVisible]);
-    const lastVisibleIndex = useMemo(() => data.findLastIndex(isItemVisible), [data, isItemVisible]);
+    const isItemVisible = useCallback(
+        (item: SearchFlashListItem) => {
+            if (isExpandedGroupItem(item)) {
+                return true;
+            }
+            return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline;
+        },
+        [isOffline],
+    );
+    const firstVisibleIndex = useMemo(() => expandedData.findIndex(isItemVisible), [expandedData, isItemVisible]);
+    const lastVisibleIndex = useMemo(() => expandedData.findLastIndex(isItemVisible), [expandedData, isItemVisible]);
+
+    const getItemType = useCallback((item: SearchFlashListItem): string | undefined => {
+        if (!item) {
+            return undefined;
+        }
+        if (isExpandedGroupItem(item)) {
+            return item.itemType;
+        }
+        if ('transactions' in item) {
+            return 'transactionGroup';
+        }
+        if ('transactionID' in item) {
+            return 'transaction';
+        }
+        return 'other';
+    }, []);
 
     const renderItem = useCallback(
-        (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+        (item: SearchFlashListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+            if (isExpandedGroupItem(item)) {
+                if (item.itemType === 'expandedGroupTableHeader') {
+                    return <ExpandedGroupTableHeader item={item} />;
+                }
+                if (item.itemType === 'expandedGroupContent') {
+                    return (
+                        <View style={styles.mh5}>
+                            <TransactionGroupListExpanded
+                                showTooltip
+                                canSelectMultiple={canSelectMultiple}
+                                onCheckboxPress={onCheckboxPress}
+                                onSelectRow={onSelectRow}
+                                columns={columns}
+                                groupBy={groupBy}
+                                accountID={personalDetails?.[0]?.accountID}
+                                isOffline={isOffline}
+                                violations={violations}
+                                transactions={item.groupItem.transactions}
+                                transactionsVisibleLimit={CONST.TRANSACTION.RESULTS_PAGE_SIZE}
+                                setTransactionsVisibleLimit={() => {}}
+                                isEmpty={item.groupItem.transactions.length === 0}
+                                shouldDisplayEmptyView={false}
+                                isExpenseReportType={type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                                transactionsQueryJSON={item.groupItem.transactionsQueryJSON}
+                                searchTransactions={() => {}}
+                                isInSingleTransactionReport={item.groupItem.transactions.length === 1}
+                                onLongPress={() => {}}
+                                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onUndelete={handleUndelete}
+                                policyForMovingExpenses={policyForMovingExpenses}
+                                shouldHideTableHeader
+                            />
+                        </View>
+                    );
+                }
+                return null;
+            }
+
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
+            const shouldApplyAnimation = shouldAnimate && index < expandedData.length - 1;
 
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
-            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
             const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
+
+            const isGroupItem = 'transactions' in item;
+            const groupKey = item.keyForList ?? '';
+            const isGroupExpanded = isGroupItem && expandedGroupKeys.has(groupKey);
 
             return (
                 <Animated.View
@@ -468,6 +645,8 @@ function SearchList({
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                        isExpanded={isGroupExpanded}
+                        onToggleExpansion={isGroupItem ? () => toggleGroupExpansion(groupKey) : undefined}
                     />
                 </Animated.View>
             );
@@ -477,7 +656,7 @@ function SearchList({
             groupBy,
             newTransactionIDByItemKey,
             shouldAnimate,
-            data.length,
+            expandedData.length,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -504,6 +683,9 @@ function SearchList({
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
+            expandedGroupKeys,
+            toggleGroupExpansion,
+            styles.mh5,
         ],
     );
 
@@ -552,16 +734,16 @@ function SearchList({
                 </View>
             )}
             <BaseSearchList
-                data={data}
+                data={expandedData}
                 renderItem={renderItem}
-                onSelectRow={onSelectRow}
+                onSelectRow={onSelectRow as (item: SearchFlashListItem) => void}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                flattenedItemsLength={data.length}
+                flattenedItemsLength={expandedData.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
@@ -572,6 +754,8 @@ function SearchList({
                 selectedTransactions={selectedTransactions}
                 policyForMovingExpenses={policyForMovingExpenses}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                stickyHeaderIndices={computedStickyHeaderIndices}
+                getItemType={getItemType}
             />
             <Modal
                 isVisible={isModalVisible}

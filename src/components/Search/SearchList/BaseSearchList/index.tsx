@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import type {SearchFlashListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -12,7 +12,7 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
-const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
+const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchFlashListItem>);
 
 function BaseSearchList({
     data,
@@ -34,6 +34,8 @@ function BaseSearchList({
     selectedTransactions,
     policyForMovingExpenses,
     nonPersonalAndWorkspaceCards,
+    stickyHeaderIndices,
+    getItemType,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -60,7 +62,7 @@ function BaseSearchList({
     });
 
     const renderItemWithKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchListItem; index: number}) => {
+        ({item, index}: {item: SearchFlashListItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
 
             const onFocus = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
@@ -85,7 +87,7 @@ function BaseSearchList({
     const selectFocusedOption = useCallback(() => {
         const focusedItem = data.at(focusedIndex);
 
-        if (!focusedItem) {
+        if (!focusedItem || ('itemType' in focusedItem && typeof focusedItem.itemType === 'string')) {
             return;
         }
 
@@ -129,6 +131,8 @@ function BaseSearchList({
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
+            stickyHeaderIndices={stickyHeaderIndices}
+            getItemType={getItemType}
         />
     );
 }

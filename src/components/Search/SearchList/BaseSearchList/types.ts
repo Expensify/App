@@ -1,13 +1,13 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import type {SearchFlashListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import type {CardList, Policy, Transaction} from '@src/types/onyx';
 
 type BaseSearchListProps = Pick<
-    FlashListProps<SearchListItem>,
+    FlashListProps<SearchFlashListItem>,
     | 'onScroll'
     | 'contentContainerStyle'
     | 'onEndReached'
@@ -17,12 +17,14 @@ type BaseSearchListProps = Pick<
     | 'keyExtractor'
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
+    | 'stickyHeaderIndices'
+    | 'getItemType'
 > & {
     /** The data to display in the list */
-    data: SearchListItem[];
+    data: SearchFlashListItem[];
 
     /** The function to render each item in the list */
-    renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
+    renderItem: (item: SearchFlashListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element | null;
 
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];
@@ -34,10 +36,10 @@ type BaseSearchListProps = Pick<
     flattenedItemsLength: number;
 
     /** The callback, which is run when a row is pressed */
-    onSelectRow: (item: SearchListItem) => void;
+    onSelectRow: (item: SearchFlashListItem) => void;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashListRef<SearchListItem>>;
+    ref: ForwardedRef<FlashListRef<SearchFlashListItem>>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;

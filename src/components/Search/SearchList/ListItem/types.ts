@@ -348,7 +348,27 @@ type ReportActionListItemType = ListItem &
         reportName: string;
     };
 
+type ExpandedGroupTableHeaderItem = {
+    itemType: 'expandedGroupTableHeader';
+    keyForList: string;
+    parentGroupKeyForList: string;
+    columns: SearchColumnType[];
+    groupBy?: SearchGroupBy;
+    canSelectMultiple: boolean;
+    isExpenseReportType: boolean;
+    transactionsQueryHash?: number;
+};
+
+type ExpandedGroupContentItem = {
+    itemType: 'expandedGroupContent';
+    keyForList: string;
+    parentGroupKeyForList: string;
+    groupItem: TransactionGroupListItemType;
+};
+
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
+
+type SearchFlashListItem = SearchListItem | ExpandedGroupTableHeaderItem | ExpandedGroupContentItem;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
@@ -444,6 +464,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
+        /** Whether this group is expanded (controlled from SearchList) */
+        isExpanded?: boolean;
+        /** Callback to toggle expansion from SearchList */
+        onToggleExpansion?: () => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -472,6 +496,8 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
+    /** Whether to hide the table header (when it's rendered as a separate sticky FlashList item) */
+    shouldHideTableHeader?: boolean;
 };
 
 type UnreportedExpenseListItemType = Transaction & {
@@ -506,4 +532,7 @@ export type {
     TransactionListItemProps,
     ReportActionListItemType,
     UnreportedExpenseListItemType,
+    ExpandedGroupTableHeaderItem,
+    ExpandedGroupContentItem,
+    SearchFlashListItem,
 };
