@@ -5610,6 +5610,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             disableInvoiceFieldsConfirmation: '确定吗？发票字段将在发票中被禁用。',
             delete: '删除发票字段',
             deleteConfirmation: '确定要删除此发票字段吗？',
+            existingInvoiceFieldNameError: '已存在同名发票字段',
         },
         tags: {
             tagName: '标签名称',

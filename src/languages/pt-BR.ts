@@ -5755,6 +5755,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             disableInvoiceFieldsConfirmation: 'Tem certeza? Os campos da fatura serão desativados nas faturas.',
             delete: 'Excluir campo da fatura',
             deleteConfirmation: 'Tem certeza de que deseja excluir este campo da fatura?',
+            existingInvoiceFieldNameError: 'Já existe um campo da fatura com este nome',
         },
         tags: {
             tagName: 'Nome da tag',

@@ -192,7 +192,12 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     }
 
     const previousFieldList = policy?.fieldList ?? {};
-    const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
+    const target = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    const defaultFieldID = WorkspaceReportFieldUtils.generateFieldID(name);
+    const defaultFieldKey = ReportUtils.getReportFieldKey(defaultFieldID);
+    const defaultField = previousFieldList[defaultFieldKey];
+    const shouldUseTargetSpecificFieldID = isInvoiceField || (defaultField && !WorkspaceReportFieldUtils.isReportFieldTargetValid(defaultField, target));
+    const fieldID = shouldUseTargetSpecificFieldID ? WorkspaceReportFieldUtils.generateFieldID(name, target) : defaultFieldID;
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
 
     // User selected type Text but entered a formula Initial value, treat it as a Formula type for optimistic UI
@@ -202,7 +207,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
         type: optimisticType,
-        target: isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE,
+        target,
         defaultValue: initialValue,
         values: listValues,
         disabledOptions: disabledListValues,

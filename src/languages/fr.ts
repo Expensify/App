@@ -5806,6 +5806,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             disableInvoiceFieldsConfirmation: 'Êtes-vous sûr ? Les champs de facture seront désactivés sur les factures.',
             delete: 'Supprimer le champ de facture',
             deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de facture ?',
+            existingInvoiceFieldNameError: 'Un champ de facture portant ce nom existe déjà',
         },
         tags: {
             tagName: 'Nom du tag',

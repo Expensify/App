@@ -5652,6 +5652,7 @@ ${amount} para ${merchant} - ${date}`,
             disableInvoiceFieldsConfirmation: '¿Estás seguro? Los campos de factura se desactivarán en las facturas.',
             delete: 'Eliminar campo de factura',
             deleteConfirmation: '¿Seguro que deseas eliminar este campo de factura?',
+            existingInvoiceFieldNameError: 'Ya existe un campo de factura con este nombre',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

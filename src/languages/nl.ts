@@ -5756,6 +5756,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             disableInvoiceFieldsConfirmation: 'Weet je het zeker? Factuurvelden worden uitgeschakeld op facturen.',
             delete: 'Factuurveld verwijderen',
             deleteConfirmation: 'Weet je zeker dat je dit factuurveld wilt verwijderen?',
+            existingInvoiceFieldNameError: 'Er bestaat al een factuurveld met deze naam',
         },
         tags: {
             tagName: 'Tagnaam',

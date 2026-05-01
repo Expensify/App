@@ -47,6 +47,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const reportTypeForTarget = useMemo(() => (isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE), [isInvoiceField]);
+    const fieldTarget = useMemo(() => (isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE), [isInvoiceField]);
 
     const policyReportIDsSelector = useCallback(
         (reports: OnyxCollection<Report>) =>
@@ -85,8 +86,8 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
 
             if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+            } else if (isReportFieldNameExisting(policy?.fieldList, name, fieldTarget)) {
+                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
             }
@@ -118,19 +119,19 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
 
             return errors;
         },
-        [availableListValuesLength, policy?.fieldList, translate],
+        [availableListValuesLength, fieldTarget, isInvoiceField, policy?.fieldList, translate],
     );
 
     const validateName = useCallback(
         (values: Record<string, string>) => {
             const errors: Record<string, string> = {};
             const name = values[INPUT_IDS.NAME];
-            if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+            if (isReportFieldNameExisting(policy?.fieldList, name, fieldTarget)) {
+                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
             }
             return errors;
         },
-        [policy?.fieldList, translate],
+        [fieldTarget, isInvoiceField, policy?.fieldList, translate],
     );
 
     const handleOnValueCommitted = useCallback(

@@ -1,4 +1,4 @@
-import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import {generateFieldID, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
@@ -87,6 +87,8 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     const fieldList: Record<string, PolicyReportField> = {
         field1: {name: 'Field1', type: 'text'} as PolicyReportField,
         field2: {name: 'Field2', type: 'date'} as PolicyReportField,
+        field3: {name: 'Field3', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE} as PolicyReportField,
+        field4: {name: 'Field3', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE} as PolicyReportField,
     };
 
     it('should return false when field name does not exist', () => {
@@ -100,6 +102,24 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     it('should return true when field name exists with different case', () => {
         expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
         expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
+    });
+
+    it('checks existing names only within the expected target', () => {
+        expect(isReportFieldNameExisting(fieldList, 'Field1', CONST.REPORT_FIELD_TARGETS.INVOICE)).toBe(false);
+        expect(isReportFieldNameExisting(fieldList, 'Field1', CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBe(true);
+        expect(isReportFieldNameExisting(fieldList, 'Field3', CONST.REPORT_FIELD_TARGETS.INVOICE)).toBe(true);
+        expect(isReportFieldNameExisting(fieldList, 'Field3', CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBe(true);
+    });
+});
+
+describe('WorkspaceReportFieldUtils.generateFieldID', () => {
+    it('keeps the existing field ID format when no target is provided', () => {
+        expect(generateFieldID('Field A')).toBe('field_id_FIELD_A');
+    });
+
+    it('can include target in the field ID to avoid cross-target collisions', () => {
+        expect(generateFieldID('Field A', CONST.REPORT_FIELD_TARGETS.INVOICE)).toBe('field_id_INVOICE_FIELD_A');
+        expect(generateFieldID('Field A', CONST.REPORT_FIELD_TARGETS.EXPENSE)).toBe('field_id_EXPENSE_FIELD_A');
     });
 });
 

@@ -5708,6 +5708,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             disableInvoiceFieldsConfirmation: 'よろしいですか？請求書フィールドは請求書で無効になります。',
             delete: '請求書フィールドを削除',
             deleteConfirmation: 'この請求書フィールドを削除してもよろしいですか？',
+            existingInvoiceFieldNameError: 'この名前の請求書フィールドは既に存在します',
         },
         tags: {
             tagName: 'タグ名',

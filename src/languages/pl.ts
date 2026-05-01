@@ -5749,6 +5749,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             disableInvoiceFieldsConfirmation: 'Czy na pewno? Pola faktury zostaną wyłączone na fakturach.',
             delete: 'Usuń pole faktury',
             deleteConfirmation: 'Czy na pewno chcesz usunąć to pole faktury?',
+            existingInvoiceFieldNameError: 'Pole faktury o tej nazwie już istnieje',
         },
         tags: {
             tagName: 'Nazwa tagu',
