@@ -28,7 +28,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     const {
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        searchQueryItem,
+        searchQueryItems,
         selection,
         textInputRef,
         textInputValue,
@@ -97,7 +97,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
                             handleSearch={handleSearchAction}
-                            searchQueryItem={searchQueryItem}
+                            searchQueryItems={searchQueryItems}
                             onListItemPress={onListItemPress}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}

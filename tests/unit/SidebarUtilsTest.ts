@@ -37,6 +37,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAdmin: jest.fn(() => true),
 }));
 const CURRENT_USER_LOGIN = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 5;
+
 describe('SidebarUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -680,7 +682,7 @@ describe('SidebarUtils', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =

@@ -953,6 +953,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         hasOutstandingChildTask,
         parentReportAction,
         ancestors,

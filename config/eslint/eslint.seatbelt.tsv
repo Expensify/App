@@ -347,7 +347,6 @@
 "../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportDetailsPage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1

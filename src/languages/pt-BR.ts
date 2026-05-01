@@ -3468,6 +3468,11 @@ ${amount} para ${merchant} - ${date}`,
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
         toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
+        updatePersonalInfo: 'Atualizar conta bancária',
+        updatePersonalInfoFailure: 'Não foi possível atualizar as informações da conta bancária. Por favor, tente novamente mais tarde.',
+        updateSuccessTitle: 'Conta bancária atualizada!',
+        updateSuccessHeader: 'Conta bancária atualizada',
+        updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -4794,6 +4799,7 @@ ${amount} para ${merchant} - ${date}`,
 
                             Se quiser definir um fornecedor específico para cada cartão, vá em *Configurações > Domínios > Cartões Corporativos*.
                         `),
+                        travelDescription: 'As despesas de viagem serão exportadas como lançamentos contábeis para a conta NetSuite especificada abaixo.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5367,6 +5373,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             oneMoreStepDescription: 'Parece que precisamos verificar sua conta bancária manualmente. Vá até o Concierge, onde as instruções estão esperando por você.',
             gotIt: 'Entendi',
             goToConcierge: 'Ir para o Concierge',
+            exportAsCSV: 'Exportar como CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo de limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Excluir categorias',
@@ -7727,6 +7737,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
+        askConcierge: (message: string) => `Perguntar ao Concierge “${message}”`,
         searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: (

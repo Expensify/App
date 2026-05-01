@@ -329,7 +329,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline);
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
                     }
                     clearSelectedTransactions(true);
                 },

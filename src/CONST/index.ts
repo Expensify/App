@@ -3103,6 +3103,14 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    UPDATE_PERSONAL_BANK_ACCOUNT: {
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
         STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
@@ -4065,6 +4073,9 @@ const CONST = {
                 '2000',
                 '2015',
             ],
+        },
+        BULK_ACTIONS: {
+            EXPORT_CSV: 'exportCSV',
         },
     },
     PERSONAL_CARDS: {
@@ -7974,6 +7985,7 @@ const CONST = {
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
             FIND_ITEM: 'findItem',
+            ASK_CONCIERGE: 'askConcierge',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -9252,6 +9264,7 @@ const CONST = {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
         WORKSPACE_EXPENSIFY_CARD: {
+            BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {

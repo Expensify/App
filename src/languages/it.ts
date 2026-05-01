@@ -3479,6 +3479,11 @@ ${amount} per ${merchant} - ${date}`,
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
         toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o attivare l’Expensify Wallet.',
+        updatePersonalInfo: 'Aggiorna conto bancario',
+        updatePersonalInfoFailure: 'Impossibile aggiornare le informazioni del conto bancario. Riprova più tardi.',
+        updateSuccessTitle: 'Conto bancario aggiornato!',
+        updateSuccessHeader: 'Conto bancario aggiornato',
+        updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -4807,6 +4812,7 @@ ${amount} per ${merchant} - ${date}`,
 
                             Se desideri impostare un fornitore specifico per ogni carta, vai su *Impostazioni > Domini > Carte aziendali*.
                         `),
+                        travelDescription: 'Le spese di viaggio verranno esportate come registrazioni contabili sull’account NetSuite specificato di seguito.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5384,6 +5390,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             oneMoreStepDescription: 'Sembra che dobbiamo verificare manualmente il tuo conto bancario. Vai su Concierge, dove ti aspettano le istruzioni.',
             gotIt: 'Ho capito',
             goToConcierge: 'Vai a Concierge',
+            exportAsCSV: 'Esporta come CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo di limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Elimina categorie',
@@ -7776,6 +7786,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',
+        askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
         searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (
