@@ -104,6 +104,8 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 <Button
                     medium
                     text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
+                    icon={icons.FreezeCard}
+                    iconFill={theme.icon}
                     onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                     isDisabled={canUnfreezeCard && isOffline}
                     style={styles.alignSelfStart}
