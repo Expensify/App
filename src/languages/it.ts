@@ -2458,6 +2458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Scadenza',
             cvv: 'CVV',
             address: 'Indirizzo',
+            reveal: 'Mostra',
             revealDetails: 'Mostra dettagli',
             revealCvv: 'Mostra CVV',
             copyCardNumber: 'Copia numero carta',

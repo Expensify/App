@@ -446,32 +446,31 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <>
                                         <MenuItemWithTopDescription
                                             description={translate('cardPage.virtualCardNumber')}
-                                            title={maskCard('')}
                                             interactive={false}
-                                            titleStyle={styles.walletCardNumber}
-                                            shouldShowRightComponent
-                                            shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
-                                            rightComponent={
-                                                !isSignedInAsDelegate ? (
-                                                    <Button
-                                                        text={translate('cardPage.cardDetails.revealDetails')}
-                                                        onPress={() => {
-                                                            if (isAccountLocked) {
-                                                                showLockedAccountModal();
-                                                                return;
-                                                            }
+                                            titleComponent={
+                                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.mt1]}>
+                                                    <Text style={styles.walletCardNumber}>{maskCard('')}</Text>
+                                                    {!isSignedInAsDelegate && (
+                                                        <Button
+                                                            text={translate('cardPage.cardDetails.reveal')}
+                                                            onPress={() => {
+                                                                if (isAccountLocked) {
+                                                                    showLockedAccountModal();
+                                                                    return;
+                                                                }
 
-                                                            resetValidateActionCodeSent();
-                                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
-                                                                return;
-                                                            }
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
-                                                        }}
-                                                        isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                        isLoading={isCardDetailsLoading[card.cardID]}
-                                                    />
-                                                ) : undefined
+                                                                resetValidateActionCodeSent();
+                                                                if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                                    Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
+                                                                    return;
+                                                                }
+                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
+                                                            }}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                        />
+                                                    )}
+                                                </View>
                                             }
                                         />
                                         <DotIndicatorMessage
