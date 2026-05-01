@@ -68,7 +68,7 @@ jobs:
           working-directory: ./docs
 
       - name: Build Jekyll site
-        run: bundle exec jekyll build --source ./ --destination ./_site
+        run: JEKYLL_ENV=production bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./docs
 
       - name: Deploy to Cloudflare Pages
