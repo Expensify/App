@@ -308,6 +308,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         canUnfreezeCard={canUnfreezeCard}
                         onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
+                        secondaryAction={{
+                            text: translate('workspace.common.viewTransactions'),
+                            icon: expensifyIcons.MoneySearch,
+                            onPress: navigateToTransactions,
+                        }}
                         cardPreview={
                             <CardPreview
                                 overlayImage={cardScarf}
@@ -347,7 +352,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
                 {!hasDetectedDomainFraud && (
                     <>
-                        <CardDetailsActionButtons actions={actionButtons} />
+                        {!isCardFrozen(currentCard) && <CardDetailsActionButtons actions={actionButtons} />}
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
                             title={formattedAvailableSpendAmount}

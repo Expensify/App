@@ -292,11 +292,16 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                             canUnfreezeCard={canManageCardFreeze}
                             onAskToUnfreezePress={() => {}}
+                            secondaryAction={{
+                                text: translate('workspace.common.viewTransactions'),
+                                icon: expensifyIcons.MoneySearch,
+                                onPress: navigateToTransactions,
+                            }}
                         />
                     ) : (
                         <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
                     )}
-                    <CardDetailsActionButtons actions={actionButtons} />
+                    {!isCardFrozen(card) && <CardDetailsActionButtons actions={actionButtons} />}
 
                     {!cardholder?.validated && (
                         <MenuItem

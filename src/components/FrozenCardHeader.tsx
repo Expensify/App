@@ -12,10 +12,18 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Icon from './Icon';
 import Text from './Text';
 import TextLink from './TextLink';
+
+type FrozenCardHeaderAction = {
+    text: string;
+    icon: IconAsset;
+    onPress: () => void;
+    isDisabled?: boolean;
+};
 
 type FrozenCardHeaderProps = {
     cardPreview: React.ReactNode;
@@ -23,11 +31,12 @@ type FrozenCardHeaderProps = {
     onAskToUnfreezePress: () => void;
     canUnfreezeCard: boolean;
     isWorkspaceAdmin: boolean;
+    secondaryAction?: FrozenCardHeaderAction;
     frozenByAccountID?: number;
     frozenDate?: string;
 };
 
-function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, secondaryAction, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -91,13 +100,26 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 />
                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
             </View>
-            <Button
-                medium
-                text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
-                onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
-                isDisabled={canUnfreezeCard && isOffline}
-                style={[styles.mt4, styles.alignSelfStart]}
-            />
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt4]}>
+                <Button
+                    medium
+                    text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
+                    onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                    isDisabled={canUnfreezeCard && isOffline}
+                    style={styles.alignSelfStart}
+                />
+                {!!secondaryAction && (
+                    <Button
+                        medium
+                        text={secondaryAction.text}
+                        icon={secondaryAction.icon}
+                        iconFill={theme.icon}
+                        onPress={secondaryAction.onPress}
+                        isDisabled={secondaryAction.isDisabled}
+                        style={styles.alignSelfStart}
+                    />
+                )}
+            </View>
         </View>
     );
 }
