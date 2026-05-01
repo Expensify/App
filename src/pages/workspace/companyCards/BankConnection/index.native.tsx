@@ -235,7 +235,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                 isVisible={isDuplicateFeed && !isDuplicateFeedDismissed}
                 title={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
                 prompt={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
-                confirmText={translate('workspace.companyCards.addNewCard.duplicateFeedModal.confirmText')}
+                confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 onConfirm={() => {
                     setIsDuplicateFeedDismissed(true);

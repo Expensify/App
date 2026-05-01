@@ -5232,7 +5232,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     confirmText: 'Probleem melden',
                     cancelText: 'Overslaan',
                 },
-                duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.', confirmText: 'Begrepen'},
+                duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.'},
                 csvColumns: {
                     cardNumber: 'Kaartnummer',
                     postedDate: 'Datum',

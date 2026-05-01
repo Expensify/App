@@ -5262,7 +5262,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 duplicateFeedModal: {
                     title: 'Kartenfeed bereits verbunden',
                     prompt: 'Du kannst denselben Kartenfeed nicht zweimal zu demselben Workspace hinzufügen.',
-                    confirmText: 'Verstanden',
                 },
                 csvColumns: {
                     cardNumber: 'Kartennummer',
