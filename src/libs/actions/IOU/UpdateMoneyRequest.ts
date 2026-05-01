@@ -1689,6 +1689,7 @@ function getUpdateTrackExpenseParams(
 }
 
 export {
+    addOptimisticSmartScanModifiedAmountViolation,
     getUpdateMoneyRequestParams,
     getUpdateTrackExpenseParams,
     updateMoneyRequestDate,
