@@ -262,13 +262,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         handleDismissUnfreezeModal();
     }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
-    const navigateToTransactions = useCallback(() => {
+    const navigateToTransactions = () => {
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
             }),
         );
-    }, [cardID]);
+    };
 
     if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
