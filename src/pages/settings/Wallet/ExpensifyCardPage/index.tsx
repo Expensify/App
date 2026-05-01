@@ -452,7 +452,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     <Text style={styles.walletCardNumber}>{maskCard('')}</Text>
                                                     {!isSignedInAsDelegate && (
                                                         <Button
-                                                            text="Reveal"
+                                                            text={translate('cardPage.cardDetails.reveal')}
                                                             onPress={() => {
                                                                 if (isAccountLocked) {
                                                                     showLockedAccountModal();
