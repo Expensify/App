@@ -3,10 +3,10 @@ import CONST from '@src/CONST';
 import type {Transaction, TransactionViolation} from '@src/types/onyx';
 
 /**
- * Creates a minimal scan transaction for testing.
+ * Builds a minimal scan transaction for testing.
  * - receipt.state = SCAN_COMPLETE so didReceiptScanSucceed() returns true
  */
-function createScanTransaction(overrides: Partial<Transaction> = {}): Transaction {
+function buildScanTransaction(overrides: Partial<Transaction> = {}): Transaction {
     return {
         transactionID: '1',
         amount: 1000,
@@ -36,8 +36,8 @@ const expectedSmartScanViolation: TransactionViolation = {
 
 describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     it('should add modifiedAmount violation when edited amount exceeds scanned amount', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
             transaction,
@@ -52,8 +52,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when edited amount is less than or equal to scanned amount', () => {
-        const transaction = createScanTransaction({modifiedAmount: 2000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 1000});
+        const transaction = buildScanTransaction({modifiedAmount: 2000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 1000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -67,8 +67,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when edited amount equals scanned amount', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 1000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 1000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -82,8 +82,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when hasModifiedAmount is false', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -97,8 +97,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when receipt scan did not succeed', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -112,8 +112,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when receipt is still being scanned', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -127,8 +127,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when receipt is in SCAN_READY state', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY}});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY}});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -141,12 +141,12 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
         expect(result).toBe(violations);
     });
 
-    it('should return original violations when transaction is null', () => {
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+    it('should return original violations when transaction is undefined', () => {
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
-            transaction: null,
+            transaction: undefined,
             updatedTransaction,
             transactionViolations: violations,
             hasModifiedAmount: true,
@@ -156,8 +156,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should return original violations when scanned amount is zero', () => {
-        const transaction = createScanTransaction({modifiedAmount: 0});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 0});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
@@ -171,8 +171,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should replace existing smartscan modifiedAmount violation instead of duplicating', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 3000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 3000});
         const existingSmartScanViolation: TransactionViolation = {
             name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
             type: CONST.VIOLATION_TYPES.NOTICE,
@@ -193,8 +193,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should preserve non-smartscan modifiedAmount violations (e.g. distance type)', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
         const distanceModifiedAmountViolation: TransactionViolation = {
             name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
             type: CONST.VIOLATION_TYPES.NOTICE,
@@ -215,8 +215,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should handle negative amounts correctly (uses absolute values)', () => {
-        const transaction = createScanTransaction({modifiedAmount: -1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: -2000});
+        const transaction = buildScanTransaction({modifiedAmount: -1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: -2000});
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
             transaction,
@@ -230,8 +230,8 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
     });
 
     it('should work with empty existing violations array', () => {
-        const transaction = createScanTransaction({modifiedAmount: 1000});
-        const updatedTransaction = createScanTransaction({modifiedAmount: 2000});
+        const transaction = buildScanTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScanTransaction({modifiedAmount: 2000});
 
         const result = addOptimisticSmartScanModifiedAmountViolation({
             transaction,
