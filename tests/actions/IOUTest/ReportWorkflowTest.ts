@@ -1252,9 +1252,339 @@ describe('actions/IOU/ReportWorkflow', () => {
             apiWriteSpy.mockRestore();
         });
 
+        it('uses the updated policy approver when employee data is available', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy.mockClear();
+            const policyID = '1';
+            const adminAccountID = 100;
+            const submitterAccountID = 101;
+            const previousApproverAccountID = 102;
+            const adminEmail = 'admin@example.com';
+            const submitterEmail = 'submitter@example.com';
+            const previousApproverEmail = 'previous-approver@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {accountID: adminAccountID, login: adminEmail},
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [previousApproverAccountID]: {accountID: previousApproverAccountID, login: previousApproverEmail},
+            });
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: adminEmail,
+                owner: adminEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: adminEmail,
+                    },
+                },
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: previousApproverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // Loaded report actions with no explicit override allow the manager to be recomputed from current policy data.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                createdAction: {
+                    reportActionID: 'createdAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    actorAccountID: submitterAccountID,
+                    created: '2026-05-01T09:00:00.000Z',
+                },
+            } as ReportActions);
+            await waitForBatchedUpdates();
+
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            expect(parameters.managerAccountID).toBe(adminAccountID);
+
+            const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(adminAccountID);
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('preserves an active report-level approver override when submitting', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy.mockClear();
+            const policyID = '1';
+            const adminAccountID = 100;
+            const submitterAccountID = 101;
+            const policyApproverAccountID = 102;
+            const manualApproverAccountID = 103;
+            const adminEmail = 'admin@example.com';
+            const submitterEmail = 'submitter@example.com';
+            const policyApproverEmail = 'policy-approver@example.com';
+            const manualApproverEmail = 'manual-approver@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {accountID: adminAccountID, login: adminEmail},
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [policyApproverAccountID]: {accountID: policyApproverAccountID, login: policyApproverEmail},
+                [manualApproverAccountID]: {accountID: manualApproverAccountID, login: manualApproverEmail},
+            });
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: adminEmail,
+                owner: adminEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: policyApproverEmail,
+                    },
+                },
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: manualApproverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // A reroute action after the latest submission marks the report manager as an active explicit override.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                rerouteAction: {
+                    reportActionID: 'rerouteAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                    actorAccountID: adminAccountID,
+                    created: '2026-05-01T10:00:00.000Z',
+                },
+            } as ReportActions);
+            await waitForBatchedUpdates();
+
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            expect(parameters.managerAccountID).toBe(manualApproverAccountID);
+
+            const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(manualApproverAccountID);
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('preserves the existing report manager when report action history is unavailable', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy.mockClear();
+            const policyID = '1';
+            const adminAccountID = 100;
+            const submitterAccountID = 101;
+            const policyApproverAccountID = 102;
+            const existingManagerAccountID = 103;
+            const adminEmail = 'admin@example.com';
+            const submitterEmail = 'submitter@example.com';
+            const policyApproverEmail = 'policy-approver@example.com';
+            const existingManagerEmail = 'existing-manager@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {accountID: adminAccountID, login: adminEmail},
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [policyApproverAccountID]: {accountID: policyApproverAccountID, login: policyApproverEmail},
+                [existingManagerAccountID]: {accountID: existingManagerAccountID, login: existingManagerEmail},
+            });
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: adminEmail,
+                owner: adminEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: policyApproverEmail,
+                    },
+                },
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: existingManagerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // Without report actions in cache, preserve a valid manager because an explicit override may be missing locally.
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            expect(parameters.managerAccountID).toBe(existingManagerAccountID);
+
+            const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(existingManagerAccountID);
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('recomputes the approver when a later submitted action invalidates the report-level override', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy.mockClear();
+            const policyID = '1';
+            const adminAccountID = 100;
+            const submitterAccountID = 101;
+            const policyApproverAccountID = 102;
+            const manualApproverAccountID = 103;
+            const adminEmail = 'admin@example.com';
+            const submitterEmail = 'submitter@example.com';
+            const policyApproverEmail = 'policy-approver@example.com';
+            const manualApproverEmail = 'manual-approver@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {accountID: adminAccountID, login: adminEmail},
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [policyApproverAccountID]: {accountID: policyApproverAccountID, login: policyApproverEmail},
+                [manualApproverAccountID]: {accountID: manualApproverAccountID, login: manualApproverEmail},
+            });
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: adminEmail,
+                owner: adminEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: policyApproverEmail,
+                    },
+                },
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: manualApproverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // A submitted action after reroute means the old explicit override is no longer active.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                rerouteAction: {
+                    reportActionID: 'rerouteAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                    actorAccountID: adminAccountID,
+                    created: '2026-05-01T10:00:00.000Z',
+                },
+                submittedAction: {
+                    reportActionID: 'submittedAction',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    actorAccountID: submitterAccountID,
+                    created: '2026-05-01T11:00:00.000Z',
+                },
+            } as ReportActions);
+            await waitForBatchedUpdates();
+
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            expect(parameters.managerAccountID).toBe(policyApproverAccountID);
+
+            const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(policyApproverAccountID);
+
+            apiWriteSpy.mockRestore();
+        });
+
         it('ignores the existing report manager when it points to the submitter', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            apiWriteSpy.mockClear();
             const policyID = '1';
             const submitterAccountID = 100;
             const computedManagerAccountID = 101;
@@ -1312,7 +1642,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             // Then the API payload and optimistic report update use the configured approver instead of routing to the submitter.
-            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(0) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
             expect(parameters.managerAccountID).toBe(computedManagerAccountID);
 
             const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
