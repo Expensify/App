@@ -29,21 +29,20 @@ function CardDetailsActionButtons({actions, style}: CardDetailsActionButtonsProp
     }
 
     return (
-        <View style={[styles.flexRow, styles.ph10, styles.pt2, styles.mb6, styles.gap2, styles.w100, style]}>
+        <View
+            style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph5, styles.pt2, styles.mb6, styles.gap2, styles.alignSelfStretch, style]}
+        >
             {actions.map((action) => (
-                <View
+                <Button
                     key={action.key}
-                    style={[styles.flex1, styles.mw50]}
-                >
-                    <Button
-                        text={action.text}
-                        icon={action.icon}
-                        iconFill={theme.icon}
-                        onPress={action.onPress}
-                        isDisabled={action.isDisabled}
-                        isLoading={action.isLoading}
-                    />
-                </View>
+                    text={action.text}
+                    icon={action.icon}
+                    iconFill={theme.icon}
+                    onPress={action.onPress}
+                    isDisabled={action.isDisabled}
+                    isLoading={action.isLoading}
+                    style={styles.flexShrink0}
+                />
             ))}
         </View>
     );
