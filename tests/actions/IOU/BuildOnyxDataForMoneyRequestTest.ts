@@ -33,7 +33,6 @@ function buildMockIouAction(iouReportID: string): OptimisticIOUReportAction {
         automatic: false,
         avatar: '',
         isAttachmentOnly: false,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         originalMessage: {
             amount: 1000,
             comment: 'Test split',
