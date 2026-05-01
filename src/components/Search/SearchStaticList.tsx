@@ -218,7 +218,7 @@ function SearchStaticList({
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3]}
+                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, styles.noBorderRadius]}
                         />
                     </View>
                 </View>

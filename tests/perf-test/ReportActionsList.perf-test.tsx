@@ -74,6 +74,11 @@ const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
+const mockReactionListContextValue = {
+    showReactionList: () => {},
+    hideReactionList: () => {},
+    isActiveReportAction: () => false,
+};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
@@ -101,7 +106,7 @@ function ReportActionsListWrapper() {
     return (
         <NavigationContainer ref={navigationRef}>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
-                <ReactionListContext.Provider value={mockRef}>
+                <ReactionListContext.Provider value={mockReactionListContextValue}>
                     <ActionListContext.Provider value={mockRef}>
                         <ReportActionsList
                             parentReportAction={parentReportAction}

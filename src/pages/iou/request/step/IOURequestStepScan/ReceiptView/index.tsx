@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';

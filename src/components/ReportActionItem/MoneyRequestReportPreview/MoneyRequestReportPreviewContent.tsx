@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
@@ -127,7 +128,9 @@ function MoneyRequestReportPreviewContent({
             return () => handle.cancel();
         }, [isTransitionPending]),
     );
-    const shouldShowLoading = !chatReportLoadingState?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+
+    const shouldShowLoading =
+        chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);

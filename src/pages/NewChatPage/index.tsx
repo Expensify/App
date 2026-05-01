@@ -83,7 +83,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         betas,
     });
 
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const reports = listOptions?.reports ?? [];
@@ -97,7 +96,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         },
         allPolicies,
         draftComments,
-        nvpDismissedProductTraining,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -181,7 +179,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;

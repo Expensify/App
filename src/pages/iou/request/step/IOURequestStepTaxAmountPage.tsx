@@ -178,9 +178,8 @@ function IOURequestStepTaxAmountPage({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
 export default IOURequestStepTaxAmountPageWithFullTransactionOrNotFound;

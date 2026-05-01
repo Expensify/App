@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
@@ -190,7 +191,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
                     onExit={() => {
                         onExit?.();
                         handleBackButtonPress();

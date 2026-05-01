@@ -55,6 +55,7 @@ const restrictedImportPaths = [
             'ActivityIndicator',
             'Animated',
             'findNodeHandle',
+            'InteractionManager',
         ],
         message: [
             '',
@@ -65,6 +66,7 @@ const restrictedImportPaths = [
             "For 'ScrollView', please use '@components/ScrollView' instead.",
             "For 'ActivityIndicator', please use '@components/ActivityIndicator' instead.",
             "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
+            "For 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md.",
         ].join('\n'),
     },
     {
@@ -156,6 +158,11 @@ const restrictedImportPaths = [
 
 const restrictedImportPatterns = [
     {
+        group: ['**/TransitionTracker', './TransitionTracker', '../TransitionTracker'],
+        message:
+            "TransitionTracker is an internal primitive. Please use higher-level APIs (Navigation with 'afterTransition'/'waitForTransition', KeyboardUtils, useConfirmModal). See contributingGuides/INTERACTION_MANAGER.md.",
+    },
+    {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead.",
     },
@@ -246,10 +253,6 @@ const config = defineConfig([
             },
         },
 
-        linterOptions: {
-            reportUnusedDisableDirectives: 'off',
-        },
-
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
             '@lwc/lwc/no-async-await': 'off',
@@ -320,9 +323,10 @@ const config = defineConfig([
             // ESLint core rules
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
-            '@typescript-eslint/no-deprecated': 'error',
+            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
             'no-continue': 'off',
+            'no-empty': ['error', {allowEmptyCatch: true}],
 
             // Import specific rules
             'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -734,6 +738,7 @@ const config = defineConfig([
         '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
+        '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
         'docs/assets/**/*',

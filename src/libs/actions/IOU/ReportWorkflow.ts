@@ -15,9 +15,8 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -266,6 +265,8 @@ function getBadgeFromIOUReport(
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
     if (
@@ -283,8 +284,8 @@ function getBadgeFromIOUReport(
         policy,
         getReportTransactions(iouReport?.reportID),
         getAllTransactionViolations(),
-        getCurrentUserEmail(),
-        getUserAccountID(),
+        currentUserLogin,
+        currentUserAccountID,
         getAllReportActions(iouReport?.reportID),
     );
     if (isWaitingSubmitFromCurrentUser) {
@@ -298,6 +299,8 @@ function getIOUReportActionWithBadge(
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
     const chatReportActions = getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
@@ -307,7 +310,7 @@ function getIOUReportActionWithBadge(
             return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy);
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
         if (badge) {
             actionBadge = badge;
             return true;
@@ -1296,7 +1299,8 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
           });
-    const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    const managerID = submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1748,7 +1752,6 @@ export {
     canIOUBePaid,
     canSubmitReport,
     canUnapproveIOU,
-    determineIouReportID,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,

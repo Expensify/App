@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
@@ -41,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 
 type RejectMoneyRequestData = {
     optimisticData: Array<
@@ -107,6 +106,7 @@ function prepareRejectMoneyRequestData(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
@@ -114,7 +114,6 @@ function prepareRejectMoneyRequestData(
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     const allTransactionViolations = getAllTransactionViolations();
-    const deprecatedCurrentUserEmail = getCurrentUserEmail();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
@@ -459,7 +458,7 @@ function prepareRejectMoneyRequestData(
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
                 comment: parsedComment,
-                payeeEmail: deprecatedCurrentUserEmail,
+                payeeEmail: currentUserLogin,
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
@@ -726,7 +725,7 @@ function prepareRejectMoneyRequestData(
         const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(
             policyExpenseChat,
             excludedReportID,
-            deprecatedCurrentUserEmail,
+            currentUserLogin,
             currentUserAccountIDParam,
             allTransactionViolations,
             undefined,
@@ -786,7 +785,7 @@ function prepareRejectMoneyRequestData(
             type: CONST.VIOLATION_TYPES.WARNING,
             data: {
                 comment: comment ?? '',
-                rejectedBy: deprecatedCurrentUserEmail,
+                rejectedBy: currentUserLogin,
                 rejectedDate: DateUtils.getDBTime(),
             },
             showInReview: true,
@@ -883,10 +882,11 @@ function rejectMoneyRequest(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: {sharedRejectedToReportID?: string},
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
     if (!data) {
         return;
     }
@@ -979,8 +979,9 @@ function rejectExpenseReport(
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const parsedComment = getParsedComment(comment);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
-        comment,
+        parsedComment,
         currentUserAccountID,
         currentUserDisplayName,
         currentUserAvatarSource,
@@ -1147,7 +1148,7 @@ function rejectExpenseReport(
     const parameters: RejectExpenseReportParams = {
         reportID,
         targetAccountID,
-        comment,
+        comment: parsedComment,
         rejectedActionReportActionID: optimisticRejectAction.reportActionID,
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };

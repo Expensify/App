@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -20,7 +19,6 @@ import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
@@ -64,7 +62,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     buildOptimisticTransaction,
     getAmount,
-    getCategoryTaxCodeAndAmount,
+    getCategoryTaxDetails,
     getCurrency,
     getDistanceInMeters,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -91,7 +89,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BasePolicyParams from './types/BasePolicyParams';
@@ -901,15 +899,13 @@ function setMoneyRequestCategory(transactionID: string, category: string, policy
         return;
     }
     if (!policy) {
-        setMoneyRequestTaxRate(transactionID, '');
-        setMoneyRequestTaxAmount(transactionID, null);
+        setMoneyRequestTaxRateValues(transactionID, {taxCode: '', taxAmount: null, taxValue: null});
         return;
     }
     const transaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(category, transaction, policy);
-    if (categoryTaxCode && categoryTaxAmount !== undefined) {
-        setMoneyRequestTaxRate(transactionID, categoryTaxCode);
-        setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
+    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy);
+    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+        setMoneyRequestTaxRateValues(transactionID, {taxCode: categoryTaxCode, taxAmount: categoryTaxAmount, taxValue: categoryTaxValue});
     }
 }
 
@@ -1416,7 +1412,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     let iouAction = iou.action;
     let iouReport = iou.report;
     if (isMoneyRequestToManagerMcTest) {
-        const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -1441,11 +1436,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         };
 
         onyxData.optimisticData?.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
-                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {timestamp: DateUtils.getDBTime(date.valueOf()), dismissedMethod: 'click'}},
-            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
@@ -2172,9 +2162,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+
         const originalAmount = Number(existingTransaction.modifiedAmount) || existingTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+
         const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
@@ -2536,7 +2526,7 @@ const expenseReportStatusFilterMapping: Record<string, ExpenseReportStatusPredic
 
 //  Determines whether the current search results should be optimistically updated
 function shouldOptimisticallyUpdateSearch(
-    currentSearchQueryJSON: SearchQueryJSON,
+    currentSearchQueryJSON: Readonly<SearchQueryJSON>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     isInvoice: boolean | undefined,
     transaction?: OnyxEntry<OnyxTypes.Transaction>,
@@ -2623,9 +2613,9 @@ function getSearchOnyxUpdate({
         const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
         const successData = [];
         if (isOptimisticToAccountData) {
-            // The optimistic personal detail is removed on the API's success data but we can't change the managerID of the transaction in the snapshot.
-            // So we need to add the optimistic personal detail back to the snapshot in success data to prevent the flickering.
-            // After that, it will be cleared via Search API.
+            // The optimistic personal detail is cleared from PERSONAL_DETAILS_LIST on API success, but the snapshot's report still references
+            // that optimistic accountID via report.managerID. Re-merging the personal detail into the snapshot in successData prevents the
+            // "To" column from briefly going blank before Search API delivers the real data.
             // See https://github.com/Expensify/App/issues/61310 for more information.
             successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -2643,39 +2633,47 @@ function getSearchOnyxUpdate({
                 },
             });
         }
-        const snapshotData = {
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                [toAccountID]: {
-                    accountID: toAccountID,
-                    displayName: participant?.displayName,
-                    login: participant?.login,
-                },
-                [fromAccountID]: {
-                    accountID: fromAccountID,
-                    avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                    displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                    login: deprecatedCurrentUserPersonalDetails?.login,
-                },
+        // Building this object sequentially resolves TypeScript type inference issues
+        const optimisticSnapshotData: SearchResultDataType = {};
+
+        optimisticSnapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+            [toAccountID]: {
+                accountID: toAccountID,
+                displayName: participant?.displayName,
+                login: participant?.login,
             },
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+            [fromAccountID]: {
                 accountID: fromAccountID,
-                managerID: toAccountID,
-                ...(transactionThreadReportID && {transactionThreadReportID}),
-                ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                ...transaction,
+                avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                login: deprecatedCurrentUserPersonalDetails?.login,
             },
-            ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-            ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-            ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
         };
+
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+            ...(transactionThreadReportID && {transactionThreadReportID}),
+            ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+            ...transaction,
+        };
+
+        if (policy) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+        }
+
+        if (iouReport) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
+        }
+
+        if (iouReport && iouAction) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+        }
 
         const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: snapshotData,
+                    data: optimisticSnapshotData,
                 },
             },
         ];
@@ -2708,8 +2706,7 @@ function getSearchOnyxUpdate({
                             hasResults: true,
                             isLoading: false,
                         },
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        data: snapshotData,
+                        data: optimisticSnapshotData,
                     },
                 });
             }

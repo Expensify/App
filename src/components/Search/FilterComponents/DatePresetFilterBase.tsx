@@ -190,7 +190,7 @@ function DatePresetFilterBase({
         }
 
         dateValuesRef.current = normalizedDefaultDateValues;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setDateValues(normalizedDefaultDateValues);
     }, [isSearchAdvancedFiltersFormLoading, normalizedDefaultDateValues]);
 
@@ -255,7 +255,7 @@ function DatePresetFilterBase({
         if (selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rangeEphemeralValues.from, rangeEphemeralValues.to]);
