@@ -45,7 +45,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions, moneyRequestReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
     // Imperative modals

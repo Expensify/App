@@ -32,7 +32,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions, moneyRequestReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
 
     const confirmApproval = () => {
         if (isDelegateAccessRestricted) {

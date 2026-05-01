@@ -888,7 +888,7 @@ function getSecondaryReportActions({
             reportActions,
             isSecondaryAction: true,
         }) &&
-        (hasOnlyHeldExpenses(reportTransactions, report?.reportID) || didExportFail)
+        (hasOnlyHeldExpenses(reportTransactions) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }

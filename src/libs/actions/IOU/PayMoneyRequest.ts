@@ -202,7 +202,7 @@ function getPayMoneyRequestParams({
 
     const reportTransactions = getReportTransactions(iouReport?.reportID);
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
-    if (hasHeldExpensesReportUtils(reportTransactions, iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
+    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
         total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 

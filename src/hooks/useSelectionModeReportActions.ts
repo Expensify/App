@@ -563,7 +563,7 @@ function useSelectionModeReportActions({
         canAllowSettlement,
         isAnyTransactionOnHold,
         isInvoiceReport,
-        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(transactions, report?.reportID),
+        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(transactions),
         nonHeldAmount,
         fullAmount,
         hasValidNonHeldAmount,

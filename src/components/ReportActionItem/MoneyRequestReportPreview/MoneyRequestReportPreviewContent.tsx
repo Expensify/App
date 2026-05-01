@@ -183,7 +183,7 @@ function MoneyRequestReportPreviewContent({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions, iouReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
     const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
         setRequestType(holdRequestType as ActionHandledType);

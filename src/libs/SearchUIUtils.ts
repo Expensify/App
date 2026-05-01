@@ -2327,7 +2327,7 @@ function getActions(
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(allReportTransactions, report.reportID)) {
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
@@ -2348,7 +2348,7 @@ function getActions(
         canApproveIOU(report, policy, reportMetadata, allReportTransactions) &&
         isAllowedToApproveExpenseReport &&
         !hasOnlyPendingCardOrScanningTransactions &&
-        !hasHeldExpenses(allReportTransactions, report.reportID)
+        !hasHeldExpenses(allReportTransactions)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }

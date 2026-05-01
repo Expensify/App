@@ -10915,7 +10915,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
     const hasPendingTransaction = allReportTransactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = allReportTransactions.some((transaction) => transaction.currency !== report.currency);
     const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
-    const hasOptimisticHeldExpense = hasHeldExpenses(allReportTransactions, report.reportID) && report?.unheldTotal === undefined;
+    const hasOptimisticHeldExpense = hasHeldExpenses(allReportTransactions) && report?.unheldTotal === undefined;
 
     return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !hasOptimisticHeldExpense && !report.pendingFields?.total;
 }
@@ -10941,7 +10941,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     // 1. There should be held expenses
     // 2. For expense reports with negative totals, we need to ensure the unheld amount is valid
     //    by checking that the absolute values are meaningful and different
-    const hasHeldExpensesLocal = hasHeldExpenses(allReportTransactions, iouReport?.reportID);
+    const hasHeldExpensesLocal = hasHeldExpenses(allReportTransactions);
     const hasValidNonHeldAmount =
         hasHeldExpensesLocal &&
         // For normal cases (positive amounts or IOU reports)

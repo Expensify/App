@@ -162,7 +162,7 @@ const getTotalAmountForIOUReportPreviewButton = (
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions, report?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
     // Split the total spend into different categories as needed.
@@ -180,7 +180,7 @@ const getTotalAmountForIOUReportPreviewButton = (
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(transactions, report?.reportID) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
+        if (hasHeldExpensesReportUtils(transactions) && canAllowSettlement && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
             return nonHeldAmount;
         }
 
