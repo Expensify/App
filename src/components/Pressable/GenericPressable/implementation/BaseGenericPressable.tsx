@@ -10,6 +10,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
+import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 
@@ -192,7 +193,7 @@ function GenericPressable({
                 (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
-                isRoleButton && styles.userSelectNone,
+                isRoleButton && canUseTouchScreen() && !hasHoverSupport() && styles.userSelectNone,
             ]}
             // accessibility props
             accessibilityState={{
