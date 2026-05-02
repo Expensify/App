@@ -27,7 +27,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
-import {setOnboardingErrorMessageTranslationKey,setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, addWorkEmailFormError, clearWorkEmailFormErrors} from '@userActions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, addWorkEmailFormError, clearWorkEmailFormErrors} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
@@ -53,7 +53,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -66,14 +65,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL);
 
     useEffect(() => {
-        setOnboardingErrorMessageTranslationKey(null);
+        setOnboardingErrorMessage(null);
     }, []);
 
     useEffect(() => {
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessageTranslationKey(null);
+        setOnboardingErrorMessage(null);
 
         if (onboardingValues?.shouldValidate) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
@@ -112,8 +111,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, [onboardingErrorMessageTranslationKey]);
 
     const clearOnboardingErrorMessage = useCallback(() => {
-        if (onboardingErrorMessage) {
-            setOnboardingErrorMessageTranslationKey(null);
+        if (onboardingErrorMessageTranslationKey) {
+            setOnboardingErrorMessage(null);
         }
     }, [onboardingErrorMessageTranslationKey]);
 
@@ -200,14 +199,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             style={styles.mb3}
                             errors={(onboardingErrorMessageTranslationKey && onboardingErrorMessageTranslationKey !== 'onboarding.workEmail2FAError') ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)} : undefined}
                             errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessageTranslationKey(null)}
+                            onClose={() => setOnboardingErrorMessage(null)}
                         >
                             <Button
                                 large
                                 text={translate('common.skip')}
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
-                                    setOnboardingErrorMessageTranslationKey(null);
+                                    setOnboardingErrorMessage(null);
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}

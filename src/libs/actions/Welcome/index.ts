@@ -14,6 +14,8 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {OnboardingCompanySize} from './OnboardingFlow';
+import { getMicroSecondOnyxErrorWithMessage } from '@libs/ErrorUtils';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 
 let isLoadingReportData = true;
 // Tracks whether we've seen loading start (true) in the current session.
@@ -211,4 +213,6 @@ export {
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
     setOnboardingTestDriveModalDismissed,
+    addWorkEmailFormError,
+    clearWorkEmailFormErrors
 };
