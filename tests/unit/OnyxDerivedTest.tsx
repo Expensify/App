@@ -11,7 +11,7 @@ import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
-import {createRandomReport} from '../utils/collections/reports';
+import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -188,8 +188,10 @@ describe('OnyxDerived', () => {
         });
 
         it('should recompute reportAttributes when personalDetailsList displayName changes', async () => {
+            const chatReport = createRegularChat(1, [1]);
+
             // Set up initial state with report and personalDetailsList
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 '1': {
                     accountID: 1,
@@ -201,8 +203,10 @@ describe('OnyxDerived', () => {
             });
             await waitForBatchedUpdates();
 
-            // Get initial computed value reference
-            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            // Spy on generateReportAttributes - this function SHOULD be called
+            // because a displayName change must trigger a full recomputation
+            // of the report attributes.
+            const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
 
             // Change the displayName - this should trigger full recomputation
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -213,11 +217,24 @@ describe('OnyxDerived', () => {
             });
             await waitForBatchedUpdates();
 
+            // The generateReportAttributes function should have been called
+            // because the dependency (displayName) has changed
+            expect(generateReportAttributesSpy).toHaveBeenCalled();
+
             // Get the computed value after displayName change
             const derivedReportAttributesAfterDisplayNameChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // The computed value should not be the same object (new computation happened)
-            expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
+            // Verify that the recomputation produced the correct result and
+            // the reportAttributes reflect the updated personal details.
+            expect(derivedReportAttributesAfterDisplayNameChange).toMatchObject({
+                reports: {
+                    [chatReport.reportID]: {
+                        reportName: 'Jane Doe',
+                    },
+                },
+            });
+
+            generateReportAttributesSpy.mockRestore();
         });
 
         describe('reportErrors', () => {
