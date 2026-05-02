@@ -12,7 +12,11 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-/** Popover anchor ref. Only `View` qualifies — `HTMLDivElement` lacks `measureInWindow`. */
+/**
+ * Popover anchor ref. Typed as `View` for the contract; the hook accepts any element with `measureInWindow`
+ * at runtime — web Pressables resolve to `HTMLDivElement`, and some callers use `as`-casts to bypass typing.
+ * Non-measurable elements fall back to zero dimensions.
+ */
 type MeasurableRef = RefObject<View | null>;
 
 /**
@@ -42,7 +46,7 @@ function usePopoverPosition() {
     const calculatePopoverPosition = useCallback(
         (anchorRef: MeasurableRef, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
             const element = anchorRef.current;
-            if (isSmallScreenWidth || element === null) {
+            if (isSmallScreenWidth || element === null || typeof element.measureInWindow !== 'function') {
                 return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
             }
             return new Promise<AnchorPosition & Dimensions>((resolve) => {
