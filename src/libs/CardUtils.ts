@@ -22,7 +22,9 @@ import type {
     ExpensifyCardSettingsBase,
     PersonalDetailsList,
     Policy,
+    PolicyConnectionName,
     PrivatePersonalDetails,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {UnassignedCard} from '@src/types/onyx/Card';
@@ -39,6 +41,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -440,6 +443,27 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     );
 }
 
+function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Connections>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
+    if (!connections || !connectionName) {
+        return [];
+    }
+
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return (connections.quickbooksOnline?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return (connections.xero?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return (connections.netsuite?.options?.data?.payableList ?? []).filter((account) => account.type === '_bank').map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return connections.intacct?.data?.bankAccounts ?? [];
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return (connections.quickbooksDesktop?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        default:
+            return [];
+    }
+}
+
 function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
@@ -756,10 +780,11 @@ function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undef
  */
 function getFeedNameForDisplay(
     translate: LocaleContextProps['translate'],
-    feed: CompanyCardFeed | undefined,
+    feed: CardFeed | undefined,
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     customFeedName?: string,
     shouldAddCardsSuffix = true,
+    feedCountry?: string,
 ): string {
     // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
     if (!feed || !cardFeeds) {
@@ -772,7 +797,12 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+        return translate('search.filters.card.centralInvoicing');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);
 
     return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }
@@ -1724,11 +1754,7 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
  * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
-function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
-    transactions: T[],
-    cardList: CardList | undefined,
-    translate: LocalizedTranslate,
-): Array<T & {isCardFeedDeleted?: boolean}> {
+function resolveTransactionCardFields<T extends Transaction>(transactions: T[], cardList: CardList | undefined, translate: LocalizedTranslate): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
         let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
 
@@ -1840,6 +1866,7 @@ export {
     getCardFeedWithDomainID,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    getConnectionBankAccountsForReconciliation,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,

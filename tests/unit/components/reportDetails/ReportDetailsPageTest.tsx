@@ -81,6 +81,7 @@ describe('ReportDetailsPage', () => {
                         policy={undefined}
                         report={report}
                         reportMetadata={undefined}
+                        reportLoadingState={undefined}
                         route={{params: {reportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
                     />
                 </LocaleContextProvider>

@@ -5,11 +5,11 @@
  */
 
 // Import the web implementation directly (Jest resolves index.native.ts by default).
-/* eslint-disable @typescript-eslint/no-require-imports, import/extensions */
+/* eslint-disable import/extensions */
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
-/* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
+/* eslint-enable import/extensions */
 
 function createContainer(...children: HTMLElement[]) {
     const container = document.createElement('div');

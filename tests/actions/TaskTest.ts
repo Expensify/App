@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
@@ -19,14 +18,10 @@ import {
     getFinishOnboardingTaskOnyxData,
     getNavigationUrlOnTaskDelete,
 } from '@libs/actions/Task';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -53,14 +48,12 @@ const mockBuildOptimisticTaskReport = jest.fn();
 const mockBuildOptimisticCreatedReportAction = jest.fn();
 const mockBuildOptimisticTaskCommentReportAction = jest.fn();
 const mockGetTaskAssigneeChatOnyxData = jest.fn();
-const mockGetOptimisticDataForParentReportAction = jest.fn();
 const mockIsHiddenForCurrentUser = jest.fn();
 const mockFormatReportLastMessageText = jest.fn();
 jest.spyOn(ReportUtils, 'buildOptimisticTaskReport').mockImplementation(mockBuildOptimisticTaskReport);
 jest.spyOn(ReportUtils, 'buildOptimisticCreatedReportAction').mockImplementation(mockBuildOptimisticCreatedReportAction);
 jest.spyOn(ReportUtils, 'buildOptimisticTaskCommentReportAction').mockImplementation(mockBuildOptimisticTaskCommentReportAction);
 jest.spyOn(ReportUtils, 'getTaskAssigneeChatOnyxData').mockImplementation(mockGetTaskAssigneeChatOnyxData);
-jest.spyOn(ReportUtils, 'getOptimisticDataForParentReportAction').mockImplementation(mockGetOptimisticDataForParentReportAction);
 jest.spyOn(ReportUtils, 'isHiddenForCurrentUser').mockImplementation(mockIsHiddenForCurrentUser);
 jest.spyOn(ReportUtils, 'formatReportLastMessageText').mockImplementation(mockFormatReportLastMessageText);
 
@@ -374,7 +367,6 @@ describe('actions/Task', () => {
                 },
             });
 
-            mockGetOptimisticDataForParentReportAction.mockReturnValue([]);
             mockIsHiddenForCurrentUser.mockReturnValue(false);
             mockFormatReportLastMessageText.mockReturnValue('Last message text');
 

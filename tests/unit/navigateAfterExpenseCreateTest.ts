@@ -52,7 +52,6 @@ jest.mock('@react-navigation/native');
 
 describe('navigateAfterExpenseCreate', () => {
     beforeAll(() => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const followUpMock = require('@libs/telemetry/submitFollowUpAction') as {setPendingSubmitFollowUpAction: jest.Mock};
         mockSetPendingSubmitFollowUpAction = followUpMock.setPendingSubmitFollowUpAction;
     });

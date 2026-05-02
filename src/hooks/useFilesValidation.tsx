@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
