@@ -511,7 +511,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID: perDiemOptimisticTransactionID,
-                shouldHandleNavigation: shouldHandleNav,
+                shouldDeferAPIWrite: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({

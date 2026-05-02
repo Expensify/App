@@ -235,7 +235,7 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
-    shouldHandleNavigation?: boolean;
+    shouldDeferAPIWrite?: boolean;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -901,7 +901,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         optimisticTransactionID,
-        shouldHandleNavigation = true,
+        shouldDeferAPIWrite = true,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1002,7 +1002,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     };
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: !!(shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        shouldDeferForSearch: !!(shouldDeferAPIWrite && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });

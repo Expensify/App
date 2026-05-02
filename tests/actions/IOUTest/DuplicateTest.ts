@@ -1538,6 +1538,7 @@ describe('actions/Duplicate', () => {
 
             // Verify API was called with CREATE_DISTANCE_REQUEST
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should call submitPerDiemExpense for per diem transactions', async () => {
@@ -1590,6 +1591,7 @@ describe('actions/Duplicate', () => {
 
             // Verify API was called with CREATE_PER_DIEM_REQUEST
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, expect.objectContaining({}), expect.objectContaining({}));
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
@@ -2042,6 +2044,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should route per diem transactions through submitPerDiemExpense', async () => {
@@ -2066,6 +2069,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('should not duplicate expenses when no target policy exists', async () => {
