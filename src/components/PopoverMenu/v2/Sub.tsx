@@ -1,4 +1,4 @@
-import React, {useEffect, useId, useRef} from 'react';
+import React, {useEffect, useId, useState} from 'react';
 import type {ReactNode} from 'react';
 import {useContentActions} from './ContentContext';
 import {SubContext, useSubContextOptional} from './SubContext';
@@ -19,21 +19,16 @@ function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
     const subID = id ?? fallbackID;
     const outerSub = useSubContextOptional();
-    const ancestorChain = outerSub ? [...outerSub.ancestorChain, outerSub.subID] : [];
+    // Chain only changes via JSX restructure, which would unmount this Sub anyway.
+    const [ancestorChain] = useState<readonly string[]>(() => (outerSub ? [...outerSub.ancestorChain, outerSub.subID] : []));
     const value = {subID, ancestorChain} satisfies SubContextValue;
 
     const {registerSub, unregisterSub} = useContentActions();
 
-    // Mirrored so the unmount cleanup sees the latest chain.
-    const ancestorChainRef = useRef<readonly string[]>(ancestorChain);
-    useEffect(() => {
-        ancestorChainRef.current = ancestorChain;
-    });
-
     useEffect(() => {
         registerSub(subID);
-        return () => unregisterSub(subID, ancestorChainRef.current);
-    }, [subID, registerSub, unregisterSub]);
+        return () => unregisterSub(subID, ancestorChain);
+    }, [subID, registerSub, unregisterSub, ancestorChain]);
 
     return <SubContext.Provider value={value}>{children}</SubContext.Provider>;
 }
