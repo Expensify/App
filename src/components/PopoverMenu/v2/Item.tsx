@@ -1,11 +1,11 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
-import type {MenuItemProps} from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {MenuItemForwardProps} from './types';
 import {useSelectableRow} from './useFocusableRow';
 import type {ItemSelectEvent} from './useFocusableRow';
 
@@ -20,28 +20,6 @@ type ItemOwnProps = {
     rightIcon?: IconAsset;
 };
 
-/** Preserves the discriminated MenuItemProps union — built-in `Omit` collapses it. */
-type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
-
-type MenuItemForwardProps = DistributiveOmit<
-    MenuItemProps,
-    | 'title'
-    | 'onPress'
-    | 'interactive'
-    | 'role'
-    | 'shouldCheckActionAllowedOnPress'
-    | 'pressableTestID'
-    | 'focused'
-    | 'onFocus'
-    | 'iconRight'
-    | 'shouldShowRightIcon'
-    | 'shouldShowSelectedItemCheck'
-    | 'isSelected'
-    | 'disabled'
-    | 'pendingAction'
-    | 'ref'
->;
-
 type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
@@ -54,7 +32,7 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <MenuItem
-                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union; matches FocusableMenuItem
+                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union via spread
                 {...rest}
                 ref={ref}
                 title={text}

@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -8,8 +8,6 @@ import type BaseModalProps from '@components/Modal/types';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -18,12 +16,11 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentActionsContext, ContentStateContext} from './ContentContext';
-import type {ContentActionsValue, ContentStateValue, FocusableItem} from './ContentContext';
+import type {ContentStateValue} from './ContentContext';
 import {useRootActions, useRootState} from './RootContext';
 import type {AnchorRef} from './RootContext';
 import useAnchorMeasurement from './useAnchorMeasurement';
-import useOnValueChange from './useOnValueChange';
-import useOrderedIds from './useOrderedIds';
+import useContentStateMachine from './useContentStateMachine';
 import useSuppressSpaceScroll from './useSuppressSpaceScroll';
 
 type ContentProps = {
@@ -104,96 +101,7 @@ function Content({
     const {windowHeight} = useWindowDimensions();
 
     const anchorPosition = useAnchorMeasurement({anchorRef, anchorPositionProp, anchorAlignment, isVisible});
-    const [currentSub, setCurrentSub] = useState<{id: string | null; ancestorChain: readonly string[]}>({id: null, ancestorChain: []});
-    const mountedSubs = useRef<Set<string>>(new Set());
-
-    // Reset to top level on close so reopening doesn't preserve sub-menu state.
-    useOnValueChange(isVisible, (nextVisible) => {
-        if (nextVisible || currentSub.id === null) {
-            return;
-        }
-        setCurrentSub({id: null, ancestorChain: []});
-    });
-
-    const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
-    const orderedIds = useOrderedIds(registry);
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIds.length - 1, isActive: isVisible, initialFocusedIndex: -1});
-    // Guard the -1 sentinel — `.at(-1)` would return the last item.
-    const focusedId = focusedIndex >= 0 ? (orderedIds.at(focusedIndex) ?? null) : null;
-
-    // Mirror so setFocusedId reads the latest order without going stale.
-    const orderedIdsRef = useRef(orderedIds);
-    useLayoutEffect(() => {
-        orderedIdsRef.current = orderedIds;
-    });
-
-    const [actions] = useState<ContentActionsValue>(() => ({
-        // Reset focus on level change: the registry is replaced and the old numeric index would map to a different row.
-        enterSub: (id, ancestorChain) => {
-            setCurrentSub({id, ancestorChain});
-            setFocusedIndex(-1);
-        },
-        exitSub: (target = null) => {
-            setCurrentSub((prev) => {
-                if (target === null) {
-                    return {id: null, ancestorChain: []};
-                }
-                // Target's chain is the prefix of the current chain up to target.
-                const idx = prev.ancestorChain.indexOf(target);
-                const newChain = idx >= 0 ? prev.ancestorChain.slice(0, idx) : [];
-                return {id: target, ancestorChain: newChain};
-            });
-            setFocusedIndex(-1);
-        },
-        registerSub: (subId) => {
-            mountedSubs.current.add(subId);
-        },
-        unregisterSub: (subId, ancestorChain) => {
-            mountedSubs.current.delete(subId);
-            setCurrentSub((prev) => {
-                if (prev.id !== subId) {
-                    return prev;
-                }
-                const newId = ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
-                if (newId === null) {
-                    return {id: null, ancestorChain: []};
-                }
-                const idx = ancestorChain.indexOf(newId);
-                const newChain = idx >= 0 ? ancestorChain.slice(0, idx) : [];
-                return {id: newId, ancestorChain: newChain};
-            });
-        },
-        registerItem: (id, item) =>
-            setRegistry((prev) => {
-                const next = new Map(prev);
-                next.set(id, item);
-                return next;
-            }),
-        unregisterItem: (id) =>
-            setRegistry((prev) => {
-                if (!prev.has(id)) {
-                    return prev;
-                }
-                const next = new Map(prev);
-                next.delete(id);
-                return next;
-            }),
-        setFocusedId: (id) => {
-            setFocusedIndex(id === null ? -1 : orderedIdsRef.current.indexOf(id));
-        },
-    }));
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ENTER,
-        (event) => {
-            const item = focusedId ? registry.get(focusedId) : undefined;
-            if (!item || item.isDisabled) {
-                return;
-            }
-            item.onActivate(event);
-        },
-        {isActive: isVisible},
-    );
+    const {state, actions} = useContentStateMachine({isVisible});
 
     useSuppressSpaceScroll(isVisible && !shouldUseScrollView);
 
@@ -206,7 +114,7 @@ function Content({
     }
 
     const stateValue = {
-        state: {currentSubId: currentSub.id, currentSubAncestorChain: currentSub.ancestorChain, focusedId},
+        state,
         meta: {anchorPosition, anchorAlignment},
     } satisfies ContentStateValue;
 
@@ -255,7 +163,7 @@ function Content({
                                     containerStyles,
                                 ]}
                             >
-                                {!!headerText && currentSub.id === null && (
+                                {!!headerText && state.currentSubId === null && (
                                     <Text
                                         key="header-text"
                                         style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}

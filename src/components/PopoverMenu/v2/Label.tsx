@@ -1,17 +1,9 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import type {MenuItemProps} from '@components/MenuItem';
 import variables from '@styles/variables';
 import {useIsAtActiveLevel} from './SubContext';
-
-/** Preserves the discriminated MenuItemProps union — built-in `Omit` collapses it. */
-type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
-
-type MenuItemForwardProps = DistributiveOmit<
-    MenuItemProps,
-    'title' | 'onPress' | 'interactive' | 'role' | 'pressableTestID' | 'focused' | 'onFocus' | 'shouldCheckActionAllowedOnPress' | 'ref'
->;
+import type {LabelMenuItemForwardProps} from './types';
 
 type LabelOwnProps = {
     text: string;
@@ -19,7 +11,7 @@ type LabelOwnProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-type LabelProps = LabelOwnProps & MenuItemForwardProps;
+type LabelProps = LabelOwnProps & LabelMenuItemForwardProps;
 
 /** Non-interactive header row. Skipped by keyboard navigation; use `<Item>` for clickable rows. */
 function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}: LabelProps): React.ReactElement | null {
@@ -31,7 +23,7 @@ function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}:
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union; matches FocusableMenuItem
+            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union via spread
             {...rest}
             title={text}
             titleStyle={titleStyle}
