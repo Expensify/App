@@ -15,8 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import {ContentActionsContext, ContentStateContext} from './ContentContext';
-import type {ContentStateValue} from './ContentContext';
+import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
 import {useRootActions, useRootState} from './RootContext';
 import type {AnchorRef} from './RootContext';
 import useAnchorMeasurement from './useAnchorMeasurement';
@@ -101,7 +100,7 @@ function Content({
     const {windowHeight} = useWindowDimensions();
 
     const anchorPosition = useAnchorMeasurement({anchorRef, anchorPositionProp, anchorAlignment, isVisible});
-    const {state, actions} = useContentStateMachine({isVisible});
+    const {navigation, focus, actions} = useContentStateMachine({isVisible});
 
     useSuppressSpaceScroll(isVisible && !shouldUseScrollView);
 
@@ -113,71 +112,68 @@ function Content({
         return null;
     }
 
-    const stateValue = {
-        state,
-        meta: {anchorPosition, anchorAlignment},
-    } satisfies ContentStateValue;
-
     const maxHeightStyle = resolveMaxHeightStyle({shouldEnableMaxHeight, shouldUseScrollView, isSmallScreenWidth, isInLandscapeMode, windowHeight});
 
     return (
-        <ContentStateContext.Provider value={stateValue}>
-            <ContentActionsContext.Provider value={actions}>
-                <PopoverWithMeasuredContent
-                    anchorPosition={anchorPosition}
-                    anchorRef={anchorRef}
-                    anchorAlignment={anchorAlignment}
-                    onClose={handleClose}
-                    isVisible={isVisible}
-                    onModalShow={onModalShow}
-                    onModalHide={onModalHide}
-                    animationIn={animationIn}
-                    animationOut={animationOut}
-                    animationInDelay={animationInDelay}
-                    animationInTiming={animationInTiming}
-                    animationOutTiming={animationOutTiming}
-                    disableAnimation={disableAnimation}
-                    withoutOverlay={withoutOverlay}
-                    shouldSetModalVisibility={shouldSetModalVisibility}
-                    shouldHandleNavigationBack={shouldHandleNavigationBack}
-                    shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-                    restoreFocusType={restoreFocusType}
-                    fromSidebarMediumScreen={fromSidebarMediumScreen}
-                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
-                    innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
-                    // Avoid nested ScrollViews when we already wrap children ourselves.
-                    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
-                    testID={testID}
-                >
-                    <FocusTrapForModal
-                        active={isVisible}
-                        shouldReturnFocus={!shouldEnableNewFocusManagement}
+        <ContentNavigationContext.Provider value={navigation}>
+            <ContentFocusContext.Provider value={focus}>
+                <ContentActionsContext.Provider value={actions}>
+                    <PopoverWithMeasuredContent
+                        anchorPosition={anchorPosition}
+                        anchorRef={anchorRef}
+                        anchorAlignment={anchorAlignment}
+                        onClose={handleClose}
+                        isVisible={isVisible}
+                        onModalShow={onModalShow}
+                        onModalHide={onModalHide}
+                        animationIn={animationIn}
+                        animationOut={animationOut}
+                        animationInDelay={animationInDelay}
+                        animationInTiming={animationInTiming}
+                        animationOutTiming={animationOutTiming}
+                        disableAnimation={disableAnimation}
+                        withoutOverlay={withoutOverlay}
+                        shouldSetModalVisibility={shouldSetModalVisibility}
+                        shouldHandleNavigationBack={shouldHandleNavigationBack}
+                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        restoreFocusType={restoreFocusType}
+                        fromSidebarMediumScreen={fromSidebarMediumScreen}
+                        shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+                        innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
+                        // Avoid nested ScrollViews when we already wrap children ourselves.
+                        shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
+                        testID={testID}
                     >
-                        <CompactMenuContext.Provider value>
-                            <View
-                                onLayout={onLayout}
-                                style={[
-                                    isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
-                                    isSmallScreenWidth ? undefined : styles.pv2,
-                                    maxHeightStyle,
-                                    containerStyles,
-                                ]}
-                            >
-                                {!!headerText && state.currentSubID === null && (
-                                    <Text
-                                        key="header-text"
-                                        style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
-                                    >
-                                        {headerText}
-                                    </Text>
-                                )}
-                                {shouldUseScrollView ? <ScrollView contentContainerStyle={scrollContainerStyle}>{children}</ScrollView> : children}
-                            </View>
-                        </CompactMenuContext.Provider>
-                    </FocusTrapForModal>
-                </PopoverWithMeasuredContent>
-            </ContentActionsContext.Provider>
-        </ContentStateContext.Provider>
+                        <FocusTrapForModal
+                            active={isVisible}
+                            shouldReturnFocus={!shouldEnableNewFocusManagement}
+                        >
+                            <CompactMenuContext.Provider value>
+                                <View
+                                    onLayout={onLayout}
+                                    style={[
+                                        isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
+                                        isSmallScreenWidth ? undefined : styles.pv2,
+                                        maxHeightStyle,
+                                        containerStyles,
+                                    ]}
+                                >
+                                    {!!headerText && navigation.currentSubID === null && (
+                                        <Text
+                                            key="header-text"
+                                            style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
+                                        >
+                                            {headerText}
+                                        </Text>
+                                    )}
+                                    {shouldUseScrollView ? <ScrollView contentContainerStyle={scrollContainerStyle}>{children}</ScrollView> : children}
+                                </View>
+                            </CompactMenuContext.Provider>
+                        </FocusTrapForModal>
+                    </PopoverWithMeasuredContent>
+                </ContentActionsContext.Provider>
+            </ContentFocusContext.Provider>
+        </ContentNavigationContext.Provider>
     );
 }
 

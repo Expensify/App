@@ -3,7 +3,9 @@ import React, {useRef, useState} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
-import PopoverMenu, {useIsAtActiveLevel} from '@components/PopoverMenu/v2';
+import * as PopoverMenu from '@components/PopoverMenu/v2';
+
+const {useIsAtActiveLevel} = PopoverMenu;
 
 type MenuItemMockProps = Record<string, unknown> & {
     title?: string;

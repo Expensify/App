@@ -2,7 +2,7 @@ import {useId, useLayoutEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import useSyncFocus from '@hooks/useSyncFocus';
-import {useContentActions, useContentState} from './ContentContext';
+import {useContentActions, useContentFocus} from './ContentContext';
 import {useRootActions} from './RootContext';
 import {useIsAtActiveLevel} from './SubContext';
 
@@ -32,9 +32,7 @@ type FocusableRow = {
 function useFocusableRow({visible, onActivate, isDisabled = false}: {visible: boolean; onActivate: () => void; isDisabled?: boolean}): FocusableRow {
     const id = useId();
     const ref = useRef<View>(null);
-    const {
-        state: {focusedID},
-    } = useContentState();
+    const {focusedID} = useContentFocus();
     const {registerItem, unregisterItem, setFocusedID} = useContentActions();
 
     // Mirrored so the registry's `onActivate` stays stable across renders.

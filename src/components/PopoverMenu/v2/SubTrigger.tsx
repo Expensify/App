@@ -7,7 +7,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useContentActions, useContentState} from './ContentContext';
+import {useContentActions, useContentNavigation} from './ContentContext';
 import {getParentSubID, useSubContext} from './SubContext';
 import useFocusableRow from './useFocusableRow';
 
@@ -26,9 +26,7 @@ type SubTriggerProps = {
 };
 
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
-    const {
-        state: {currentSubID},
-    } = useContentState();
+    const {currentSubID} = useContentNavigation();
     const {enterSub} = useContentActions();
     const subContext = useSubContext();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);

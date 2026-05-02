@@ -1,38 +1,22 @@
-import CheckmarkItem from './CheckmarkItem';
-import type {CheckmarkItemProps} from './CheckmarkItem';
-import Content from './Content';
-import type {ContentProps} from './Content';
-import Group from './Group';
-import type {GroupProps} from './Group';
-import Item from './Item';
-import type {ItemProps, ItemSelectEvent} from './Item';
-import Label from './Label';
-import type {LabelProps} from './Label';
-import Root from './Root';
-import type {RootProps} from './Root';
-import type {AnchorRef} from './RootContext';
-import Separator from './Separator';
-import Sub from './Sub';
-import type {SubProps} from './Sub';
-import SubContent from './SubContent';
-import type {SubContentProps} from './SubContent';
-import {useIsAtActiveLevel} from './SubContext';
-import SubTrigger from './SubTrigger';
-import type {SubTriggerProps} from './SubTrigger';
+export {default as CheckmarkItem} from './CheckmarkItem';
+export {default as Content} from './Content';
+export {default as Group} from './Group';
+export {default as Item} from './Item';
+export {default as Label} from './Label';
+export {default as Root} from './Root';
+export {default as Separator} from './Separator';
+export {default as Sub} from './Sub';
+export {default as SubContent} from './SubContent';
+export {default as SubTrigger} from './SubTrigger';
+export {useIsAtActiveLevel} from './SubContext';
 
-const PopoverMenu = {
-    Root,
-    Content,
-    Item,
-    CheckmarkItem,
-    Label,
-    Group,
-    Sub,
-    SubTrigger,
-    SubContent,
-    Separator,
-};
-
-export default PopoverMenu;
-export {useIsAtActiveLevel};
-export type {AnchorRef, CheckmarkItemProps, ContentProps, GroupProps, ItemProps, ItemSelectEvent, LabelProps, RootProps, SubContentProps, SubProps, SubTriggerProps};
+export type {CheckmarkItemProps} from './CheckmarkItem';
+export type {ContentProps} from './Content';
+export type {GroupProps} from './Group';
+export type {ItemProps, ItemSelectEvent} from './Item';
+export type {LabelProps} from './Label';
+export type {RootProps} from './Root';
+export type {AnchorRef} from './RootContext';
+export type {SubContentProps} from './SubContent';
+export type {SubProps} from './Sub';
+export type {SubTriggerProps} from './SubTrigger';

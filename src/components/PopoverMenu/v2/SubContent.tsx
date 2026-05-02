@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {useContentActions, useContentState} from './ContentContext';
+import {useContentActions, useContentNavigation} from './ContentContext';
 import {getParentSubID, useSubContext} from './SubContext';
 import useFocusableRow from './useFocusableRow';
 
@@ -54,9 +54,7 @@ function BackButton({backButtonText, parentSubID}: {backButtonText?: string; par
 
 /** Renders the back button at active level; keeps children mounted at ancestor levels so nested `<Sub>` stays alive. */
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
-    const {
-        state: {currentSubID, currentSubAncestorChain},
-    } = useContentState();
+    const {currentSubID, currentSubAncestorChain} = useContentNavigation();
     const subContext = useSubContext();
 
     const isActiveLevel = currentSubID === subContext.subID;

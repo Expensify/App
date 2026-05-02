@@ -2,26 +2,16 @@ import {useLayoutEffect, useRef, useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
-import type {ContentActionsValue, FocusableItem} from './ContentContext';
+import type {ContentActionsValue, ContentFocusValue, ContentNavigationValue, FocusableItem} from './ContentContext';
 import useOnValueChange from './useOnValueChange';
 import useOrderedIds from './useOrderedIds';
 
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
-type StateMachineState = {
-    currentSubID: string | null;
-    currentSubAncestorChain: readonly string[];
-    focusedID: string | null;
-};
-
 const ROOT_SUB: CurrentSub = {id: null, ancestorChain: []};
 
-/**
- * Owns navigation state (`currentSub` chain), the focusable-item registry, arrow-key focus index,
- * and the Enter activation shortcut. Returns the state slice and actions Content publishes via
- * `ContentStateContext` / `ContentActionsContext`. Resets to root on close.
- */
-function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: StateMachineState; actions: ContentActionsValue} {
+/** Owns navigation/focus state, item registry, and Enter shortcut. Returns slices for the three Content contexts; resets to root on close. */
+function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation: ContentNavigationValue; focus: ContentFocusValue; actions: ContentActionsValue} {
     const [currentSub, setCurrentSub] = useState<CurrentSub>(ROOT_SUB);
     const mountedSubs = useRef<Set<string>>(new Set());
 
@@ -113,7 +103,8 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: Stat
     );
 
     return {
-        state: {currentSubID: currentSub.id, currentSubAncestorChain: currentSub.ancestorChain, focusedID},
+        navigation: {currentSubID: currentSub.id, currentSubAncestorChain: currentSub.ancestorChain},
+        focus: {focusedID},
         actions,
     };
 }

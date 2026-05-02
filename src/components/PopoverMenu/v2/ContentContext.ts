@@ -1,8 +1,6 @@
 import {createContext, use} from 'react';
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {AnchorPosition} from '@src/styles';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 /** Registry entry written by focusable rows on mount. */
 type FocusableItem = {
@@ -11,17 +9,16 @@ type FocusableItem = {
     onActivate: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
-type ContentStateValue = {
-    state: {
-        currentSubID: string | null;
-        /** Ancestor chain of `currentSubID`; empty at root. */
-        currentSubAncestorChain: readonly string[];
-        focusedID: string | null;
-    };
-    meta: {
-        anchorPosition: AnchorPosition | null;
-        anchorAlignment: AnchorAlignment | undefined;
-    };
+/** Navigation state — changes when the user enters/exits a `<Sub>`. */
+type ContentNavigationValue = {
+    currentSubID: string | null;
+    /** Ancestor chain of `currentSubID`; empty at root. */
+    currentSubAncestorChain: readonly string[];
+};
+
+/** Focus state. Split from navigation so focus changes don't re-render navigation-only consumers. */
+type ContentFocusValue = {
+    focusedID: string | null;
 };
 
 type ContentActionsValue = {
@@ -37,14 +34,25 @@ type ContentActionsValue = {
     setFocusedID: (id: string | null) => void;
 };
 
-const ContentStateContext = createContext<ContentStateValue | null>(null);
-ContentStateContext.displayName = 'PopoverMenuContentStateContext';
+const ContentNavigationContext = createContext<ContentNavigationValue | null>(null);
+ContentNavigationContext.displayName = 'PopoverMenuContentNavigationContext';
+
+const ContentFocusContext = createContext<ContentFocusValue | null>(null);
+ContentFocusContext.displayName = 'PopoverMenuContentFocusContext';
 
 const ContentActionsContext = createContext<ContentActionsValue | null>(null);
 ContentActionsContext.displayName = 'PopoverMenuContentActionsContext';
 
-function useContentState(): ContentStateValue {
-    const value = use(ContentStateContext);
+function useContentNavigation(): ContentNavigationValue {
+    const value = use(ContentNavigationContext);
+    if (!value) {
+        throw new Error('PopoverMenu hook used outside <PopoverMenu.Content>');
+    }
+    return value;
+}
+
+function useContentFocus(): ContentFocusValue {
+    const value = use(ContentFocusContext);
     if (!value) {
         throw new Error('PopoverMenu hook used outside <PopoverMenu.Content>');
     }
@@ -59,5 +67,5 @@ function useContentActions(): ContentActionsValue {
     return value;
 }
 
-export {ContentStateContext, ContentActionsContext, useContentState, useContentActions};
-export type {ContentStateValue, ContentActionsValue, FocusableItem};
+export {ContentNavigationContext, ContentFocusContext, ContentActionsContext, useContentNavigation, useContentFocus, useContentActions};
+export type {ContentNavigationValue, ContentFocusValue, ContentActionsValue, FocusableItem};
