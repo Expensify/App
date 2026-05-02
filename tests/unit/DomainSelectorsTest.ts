@@ -4,8 +4,11 @@ import {
     adminPendingActionSelector,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
+    domainSecurityGroupSettingErrorsSelector,
+    domainSecurityGroupSettingPendingActionSelector,
     domainSettingsPrimaryContactSelector,
     groupsSelector,
+    isAdminSelector,
     isSecurityGroupEntry,
     memberAccountIDsSelector,
     selectSecurityGroupForAccount,
@@ -14,7 +17,7 @@ import {
 } from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 describe('domainSelectors', () => {
@@ -374,7 +377,7 @@ describe('domainSelectors', () => {
                 validated: true,
                 accountID: 1,
                 email: 'test@example.com',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 domain_defaultSecurityGroupID: '1',
                 [key1]: group1,
                 [key2]: group2,
@@ -413,6 +416,111 @@ describe('domainSelectors', () => {
         it('should return false if the value does not have a "shared" property', () => {
             const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
             expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+    });
+
+    describe('domainSecurityGroupSettingPendingActionSelector', () => {
+        it('Should return undefined when domainPendingActions is undefined', () => {
+            expect(domainSecurityGroupSettingPendingActionSelector('name', '1')(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined when domainPendingActions is empty', () => {
+            const domainPendingActions = {} as OnyxEntry<DomainPendingActions>;
+            expect(domainSecurityGroupSettingPendingActionSelector('name', '1')(domainPendingActions)).toBeUndefined();
+        });
+
+        it('Should return undefined when groupID is undefined', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(domainSecurityGroupSettingPendingActionSelector('name', undefined)(domainPendingActions)).toBeUndefined();
+        });
+
+        it('Should return undefined when the group key does not exist in domainPendingActions', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(domainSecurityGroupSettingPendingActionSelector('name', '999')(domainPendingActions)).toBeUndefined();
+        });
+
+        it('Should return the pending action for the given groupID', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}42`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(domainSecurityGroupSettingPendingActionSelector('name', '42')(domainPendingActions)).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        });
+
+        it('Should return the correct pending action when multiple groups are present', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(domainSecurityGroupSettingPendingActionSelector('name', '1')(domainPendingActions)).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(domainSecurityGroupSettingPendingActionSelector('name', '2')(domainPendingActions)).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        });
+    });
+
+    describe('domainSecurityGroupSettingErrorsSelector', () => {
+        it('Should return undefined when domainErrors is undefined', () => {
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '1')(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined when domainErrors is empty', () => {
+            const domainErrors = {} as OnyxEntry<DomainErrors>;
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '1')(domainErrors)).toBeUndefined();
+        });
+
+        it('Should return undefined when groupID is undefined', () => {
+            const domainErrors = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    nameErrors: {errorMessage: 'some error'},
+                },
+            } as unknown as OnyxEntry<DomainErrors>;
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', undefined)(domainErrors)).toBeUndefined();
+        });
+
+        it('Should return undefined when the group key does not exist in domainErrors', () => {
+            const domainErrors = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    nameErrors: {errorMessage: 'some error'},
+                },
+            } as unknown as OnyxEntry<DomainErrors>;
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '999')(domainErrors)).toBeUndefined();
+        });
+
+        it('Should return the errors for the given groupID', () => {
+            const errors = {errorMessage: 'failed to update'};
+            const domainErrors = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}42`]: {
+                    nameErrors: errors,
+                },
+            } as unknown as OnyxEntry<DomainErrors>;
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '42')(domainErrors)).toEqual(errors);
+        });
+
+        it('Should return the correct errors when multiple groups are present', () => {
+            const errors1 = {errorMessage: 'error for group 1'};
+            const errors2 = {errorMessage: 'error for group 2'};
+            const domainErrors = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    nameErrors: errors1,
+                },
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                    nameErrors: errors2,
+                },
+            } as unknown as OnyxEntry<DomainErrors>;
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '1')(domainErrors)).toEqual(errors1);
+            expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '2')(domainErrors)).toEqual(errors2);
         });
     });
 
@@ -508,7 +616,6 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the vacation delegate prefix', () => {
             const domain = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_otherPrefix_123: {
                     delegate: 'wrong@example.com',
                 },
@@ -527,6 +634,51 @@ describe('domainSelectors', () => {
 
             const selector = vacationDelegateSelector(userID1);
             expect(selector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('isAdminSelector', () => {
+        it('Should return false if domain is undefined', () => {
+            expect(isAdminSelector(userID1)(undefined)).toBe(false);
+        });
+
+        it('Should return false if accountID is 0', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+            } as unknown as OnyxEntry<Domain>;
+            expect(isAdminSelector(0)(domain)).toBe(false);
+        });
+
+        it('Should return true if the accountID is found in admin permission entries', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}789101`]: userID2,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(isAdminSelector(userID1)(domain)).toBe(true);
+            expect(isAdminSelector(userID2)(domain)).toBe(true);
+        });
+
+        it('Should return false if the accountID is not in any admin permission entries', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(isAdminSelector(999)(domain)).toBe(false);
+        });
+
+        it('Should ignore null/undefined admin permission values', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: null,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}789101`]: undefined,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(isAdminSelector(userID1)(domain)).toBe(false);
+        });
+
+        it('Should return false for empty domain object', () => {
+            const domain = {} as OnyxEntry<Domain>;
+            expect(isAdminSelector(userID1)(domain)).toBe(false);
         });
     });
 

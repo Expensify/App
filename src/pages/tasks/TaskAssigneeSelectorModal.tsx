@@ -1,7 +1,7 @@
-/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -168,19 +168,19 @@ function TaskAssigneeSelectorModal() {
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList, currentUserEmail),
                 );
                 // Pass through the selected assignee
-                editTaskAssignee(
+                editTaskAssignee({
                     report,
                     parentReport,
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    option?.login ?? '',
+                    sessionAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    assigneeEmail: option?.login ?? '',
                     currentUserEmail,
-                    currentUserPersonalDetails.accountID,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
                     delegateEmail,
-                    option?.accountID,
+                    assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
-                );
+                });
             }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {

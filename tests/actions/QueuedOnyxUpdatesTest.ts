@@ -11,7 +11,7 @@ const queuedOnyxUpdates: Array<
         | typeof ONYXKEYS.PREFERRED_THEME
         | typeof ONYXKEYS.NVP_PREFERRED_LOCALE
         | typeof ONYXKEYS.SESSION
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
         | typeof ONYXKEYS.CREDENTIALS
         | typeof ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED
         | typeof ONYXKEYS.COLLECTION.REPORT
@@ -32,7 +32,7 @@ const queuedOnyxUpdates: Array<
         },
         onyxMethod: 'merge',
     },
-    {key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP, value: false, onyxMethod: 'merge'},
+    {key: ONYXKEYS.IS_LOADING_APP, value: false, onyxMethod: 'merge'},
     {
         key: ONYXKEYS.CREDENTIALS,
         value: {
@@ -104,7 +104,7 @@ describe('actions/QueuedOnyxUpdates', () => {
             await testOnyxKeyValue(ONYXKEYS.PREFERRED_THEME);
             await testOnyxKeyValue(ONYXKEYS.NVP_PREFERRED_LOCALE);
             await testOnyxKeyValue(ONYXKEYS.SESSION);
-            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+            await testOnyxKeyValue(ONYXKEYS.IS_LOADING_APP);
             await testOnyxKeyValue(ONYXKEYS.CREDENTIALS);
             await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED);
 
@@ -149,7 +149,7 @@ describe('actions/QueuedOnyxUpdates', () => {
             await testOnyxKeyValue(ONYXKEYS.PREFERRED_THEME);
             await testOnyxKeyValue(ONYXKEYS.NVP_PREFERRED_LOCALE);
             await testOnyxKeyValue(ONYXKEYS.SESSION);
-            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+            await testOnyxKeyValue(ONYXKEYS.IS_LOADING_APP);
             await testOnyxKeyValue(ONYXKEYS.CREDENTIALS);
             await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED);
 

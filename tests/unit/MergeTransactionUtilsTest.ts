@@ -348,6 +348,10 @@ describe('MergeTransactionUtils', () => {
                 tag: 'Same Tag',
                 billable: false,
                 attendees: [],
+                taxCode: undefined,
+                taxName: '',
+                taxPolicyID: undefined,
+                taxValue: undefined,
             });
         });
 
@@ -542,6 +546,27 @@ describe('MergeTransactionUtils', () => {
                 const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).toContain('attendees');
+            });
+
+            it('should automatically merge login-only attendees', () => {
+                const targetTransaction = {
+                    ...createRandomTransaction(0),
+                    comment: {
+                        ...createRandomTransaction(0).comment,
+                        attendees: [{displayName: '   ', avatarUrl: '', login: 'login-only@example.com'}],
+                    },
+                };
+                const sourceTransaction = {
+                    ...createRandomTransaction(1),
+                    comment: {
+                        ...createRandomTransaction(1).comment,
+                        attendees: [{displayName: 'Legacy User', avatarUrl: '', login: 'login-only@example.com'}],
+                    },
+                };
+
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+
+                expect(result.conflictFields).not.toContain('attendees');
             });
         });
 

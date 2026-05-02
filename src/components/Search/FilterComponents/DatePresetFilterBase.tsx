@@ -93,9 +93,6 @@ type DatePresetFilterBaseProps = {
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
-    /** Whether to show the range validation error */
-    shouldShowRangeError?: boolean;
-
     /** Callback when date values change */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
 
@@ -122,7 +119,6 @@ function DatePresetFilterBase({
     onSelectDateModifier,
     presets,
     isSearchAdvancedFiltersFormLoading,
-    shouldShowRangeError = false,
     onDateValuesChange,
     onRangeValidationErrorChange,
     forceVerticalCalendars = false,
@@ -194,7 +190,7 @@ function DatePresetFilterBase({
         }
 
         dateValuesRef.current = normalizedDefaultDateValues;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setDateValues(normalizedDefaultDateValues);
     }, [isSearchAdvancedFiltersFormLoading, normalizedDefaultDateValues]);
 
@@ -259,7 +255,7 @@ function DatePresetFilterBase({
         if (selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rangeEphemeralValues.from, rangeEphemeralValues.to]);
@@ -451,7 +447,6 @@ function DatePresetFilterBase({
                     setRangeEphemeralValues((prev) => ({...prev, to: date}));
                     onRangeValidationErrorChange?.(false);
                 }}
-                shouldShowError={shouldShowRangeError}
                 forceVertical={forceVerticalCalendars}
             />
         );

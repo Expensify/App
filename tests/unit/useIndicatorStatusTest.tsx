@@ -179,7 +179,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             owner: userID,
             role: isAdmin ? 'admin' : 'user',
             employeeList: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 [userID]: {
                     email: userID,
                     errors:
@@ -244,7 +243,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                     : undefined,
         },
         [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             [userID]: {
                 partnerName: 'John Doe',
                 partnerUserID: userID,

@@ -1,8 +1,9 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
@@ -48,21 +49,19 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {reportByIDsSelector} from '@src/selectors/Attributes';
-import type {Policy, ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import reportByIDsSelector from '@src/selectors/Attributes';
+import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>;
 
-const defaultReportMetadata = {
+const defaultReportLoadingState = {
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
-    isOptimisticReport: false,
     hasOnceLoadedReportActions: false,
 };
 
@@ -86,8 +85,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT,
     );
 
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
+    const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const prevReport = usePrevious(report);
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
 
@@ -96,6 +96,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // Skip first run so we don't dismiss on mount when report may still be loading.
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
+            return;
+        }
+
+        // Route just changed — new report data may not be loaded yet, so don't treat as removal.
+        if (prevReportIDFromRoute !== reportIDFromRoute) {
             return;
         }
 
@@ -108,7 +113,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             }
             Navigation.dismissModal();
         }
-    }, [report, isFocused, prevReport]);
+    }, [report, isFocused, prevReport, prevReportIDFromRoute, reportIDFromRoute]);
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused
@@ -135,10 +140,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         });
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
@@ -167,14 +170,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useDocumentTitle(getReportName(report, reportAttributes));
 
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
-    const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportMetadata, isOffline);
+    const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportLoadingState, isOffline);
     const isReportPendingDeletion = isMoneyRequestReportPendingDeletion(report);
-    const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportMetadata, isOffline);
+    const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {wasParentActionDeleted} = getParentReportActionDeletionStatus({
         parentReportID: report?.parentReportID,
         parentReportActionID: report?.parentReportActionID,
         parentReportAction,
-        parentReportMetadata,
+        parentReportLoadingState,
         isOffline,
     });
 
@@ -207,7 +210,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);
-    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
 
     useEffect(() => {
         // Reset flag when reportID changes (screen stays mounted but navigates to different report)
@@ -253,7 +255,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             hasCreatedLegacyThreadRef.current ||
             transactionThreadReportID ||
             (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction) ||
-            !reportMetadata?.hasOnceLoadedReportActions ||
+            !reportLoadingState?.hasOnceLoadedReportActions ||
             reportActions.length === 0
         ) {
             return;
@@ -301,8 +303,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         report,
         reportActions,
         reportIDFromRoute,
-        reportMetadata?.hasOnceLoadedReportActions,
-        reportMetadata?.isLoadingInitialReportActions,
+        reportLoadingState?.hasOnceLoadedReportActions,
+        reportLoadingState?.isLoadingInitialReportActions,
         snapshot,
         snapshotTransaction,
         snapshotViolations,
@@ -404,8 +406,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
                                 <MoneyRequestReportView
                                     report={report}
-                                    reportMetadata={reportMetadata}
-                                    policy={policy}
+                                    reportLoadingState={reportLoadingState}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     key={report?.reportID}
                                     onLayout={handleSubmitToDestinationVisibleLayout}

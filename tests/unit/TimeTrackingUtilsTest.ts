@@ -1,5 +1,6 @@
 import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {computeTimeAmount, formatTimeMerchant, isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -78,7 +79,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 5000; // $50.00 in cents
             const currency = CONST.CURRENCY.USD;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('8 hours');
             expect(result).toContain('$50.00');
@@ -89,7 +90,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 5000;
             const currency = CONST.CURRENCY.USD;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('2.5 hours');
         });
@@ -99,7 +100,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 5000;
             const currency = CONST.CURRENCY.USD;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('1 hour');
         });
@@ -109,7 +110,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 3000;
             const currency = CONST.CURRENCY.EUR;
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('€');
         });
@@ -119,7 +120,7 @@ describe('TimeTrackingUtils', () => {
             const rate = 100;
             const currency = 'VND';
 
-            const result = formatTimeMerchant(hours, rate, currency, translateLocal);
+            const result = formatTimeMerchant(hours, rate, currency, translateLocal, convertToDisplayString);
 
             expect(result).toContain('₫1 ');
             expect(result).not.toContain('₫1.00');
@@ -129,34 +130,30 @@ describe('TimeTrackingUtils', () => {
     describe('isValidTimeExpenseAmount', () => {
         it('should validate normal time expense amount', () => {
             const amount = 40000; // $400.00
-            const currency = CONST.CURRENCY.USD;
             const decimals = 2;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(true);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(true);
         });
 
         it('should validate large but reasonable amounts', () => {
             const amount = 1000000; // $10,000.00
-            const currency = CONST.CURRENCY.USD;
             const decimals = 2;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(true);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(true);
         });
 
         it('should reject too large amounts with decimals', () => {
             const amount = 10_000_000_000_00; // $10,000,000,000.00
-            const currency = CONST.CURRENCY.USD;
             const decimals = 2;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(false);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(false);
         });
 
         it('should reject too large amounts without decimals', () => {
             const amount = 10_000_000_000_00; // ₫10,000,000,000
-            const currency = 'VND';
             const decimals = 0;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(false);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(false);
         });
     });
 });

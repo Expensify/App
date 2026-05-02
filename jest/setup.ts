@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
@@ -12,8 +11,8 @@ import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import {TextDecoder, TextEncoder} from 'util';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore/index.web';
 import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -124,9 +123,6 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
-
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
@@ -266,7 +262,7 @@ jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -292,7 +288,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 

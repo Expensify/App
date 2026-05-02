@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,15 +32,17 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
-    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const currencySymbol = getCurrencySymbol(currency);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const isWorkflowsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED);
-    const defaultValue = convertToFrontendAmountAsString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency, true, currencyList);
+    const defaultValue = convertToFrontendAmountAsString(
+        policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS,
+        getCurrencyDecimals(policy?.outputCurrency),
+    );
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};

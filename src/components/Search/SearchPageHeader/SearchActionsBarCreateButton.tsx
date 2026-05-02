@@ -60,6 +60,7 @@ function SearchActionsBarCreateButton() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const {showConfirmModal} = useConfirmModal();
@@ -185,7 +186,13 @@ function SearchActionsBarCreateButton() {
                         // No default or restricted with multiple workspaces → workspace selector
                         if (
                             !workspaceIDForReportCreation ||
-                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds) &&
+                            (shouldRestrictUserBillableActions(
+                                defaultChatEnabledPolicy,
+                                ownerBillingGracePeriodEnd,
+                                userBillingGracePeriodEnds,
+                                amountOwed,
+                                currentUserPersonalDetails.accountID,
+                            ) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
                             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
@@ -193,7 +200,15 @@ function SearchActionsBarCreateButton() {
                         }
 
                         // Default workspace is not restricted → create report directly
-                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+                        if (
+                            !shouldRestrictUserBillableActions(
+                                defaultChatEnabledPolicy,
+                                ownerBillingGracePeriodEnd,
+                                userBillingGracePeriodEnds,
+                                amountOwed,
+                                currentUserPersonalDetails.accountID,
+                            )
+                        ) {
                             // Check if empty report confirmation should be shown
                             if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                 openCreateReportConfirmation();
@@ -221,11 +236,14 @@ function SearchActionsBarCreateButton() {
             userBillingGracePeriodEnds,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
+            amountOwed,
+            currentUserPersonalDetails.accountID,
+            defaultChatEnabledPolicy,
         ],
     );
 
     return (
-        <View style={[styles.pr5, styles.searchActionsBarCreateButton]}>
+        <View style={[styles.searchActionsBarCreateButton]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}

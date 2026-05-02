@@ -1,4 +1,4 @@
-import {useEffect, useEffectEvent, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import type {ViewStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -24,7 +24,7 @@ function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): 
     }));
 
     const hideHasBeenCalled = useRef(false);
-    const hide = useEffectEvent(() => {
+    const hide = useCallback(() => {
         // hide can only be called once
         if (hideHasBeenCalled.current) {
             return;
@@ -51,14 +51,14 @@ function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): 
                 ),
             );
         });
-    });
+    }, [opacity, onHide, scale]);
 
     useEffect(() => {
         if (!shouldHideSplash) {
             return;
         }
         hide();
-    }, [shouldHideSplash]);
+    }, [shouldHideSplash, hide]);
 
     return (
         <Reanimated.View style={[StyleSheet.absoluteFill, styles.splashScreenHider, opacityStyle]}>

@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import FontUtils from '@styles/utils/FontUtils';
@@ -140,7 +141,7 @@ describe('SidebarLinksData', () => {
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 [ONYXKEYS.BETAS]: betas,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_APP]: false,
                 ...(reportData ?? {}),
                 ...(otherData ?? {}),
             });
@@ -152,8 +153,8 @@ describe('SidebarLinksData', () => {
     beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
+        setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
 

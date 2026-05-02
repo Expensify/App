@@ -120,6 +120,11 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    tableRowHeight: 56,
+    tableRowPaddingVertical: 8,
+    tableRowPaddingHorizontal: 12,
+    tableGroupRowPaddingVertical: 4,
+    tableGroupRowHeight: 36,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
@@ -199,6 +204,8 @@ export default {
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
     popoverWidth: 375,
+    compactPopoverMenuWidth: 300,
+    compactPopoverMenuVerticalMargin: 100,
     searchRouterPopoverWidth: 512,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
@@ -325,8 +332,6 @@ export default {
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
-    inviteMemberListItemTooltipShiftVertical: -8,
-    inviteMemberListItemTooltipShiftHorizontal: 4,
     hasFilterNegationTooltipShiftHorizontal: -16,
     hasFilterNegationTooltipShiftVertical: 40,
     hasFilterNegationTooltipMaxWidth: 260,
@@ -334,12 +339,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -176,
+    minimalTopBarOffset: -126,
+    minimalTopBarWithFiltersOffset: -170,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 176,
+    searchListContentMarginTop: 126,
+    searchListContentWithFiltersMarginTop: 170,
     searchTopBarZIndex: 9,
-    searchTopBarHeight: 52,
-    searchRouterInputMargin: 52,
 
     scrollToNewTransactionOffset: 300,
 
@@ -354,6 +359,7 @@ export default {
 
     h20: 20,
     h28: 28,
+    h32: 32,
     h36: 36,
     h40: 40,
     h70: 70,
@@ -368,6 +374,7 @@ export default {
     w44: 44,
     w46: 46,
     w52: 52,
+    w68: 68,
     w72: 72,
     w80: 80,
     w92: 92,
@@ -441,4 +448,9 @@ export default {
     rightPositionOdometerPhotoInformationContainer: 20,
     bottomPositionOdometerPhotoInformationContainer: 20,
     paddingOdometerPhotoInformationContainer: 13.5,
+
+    // Camera permission view padding
+    permissionViewPaddingVertical: 108,
+    permissionViewPaddingHorizontal: 61,
+    permissionViewPaddingVerticalLandscape: 16,
 } as const;

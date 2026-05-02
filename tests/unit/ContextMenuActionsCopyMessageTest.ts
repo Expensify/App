@@ -41,7 +41,6 @@ type ContextMenuAction = {
     onPress?: (closePopover: boolean, payload: Record<string, unknown>) => void;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const {default: ContextMenuActions} = require('@pages/inbox/report/ContextMenu/ContextMenuActions') as {default: ContextMenuAction[]};
 
 const copyMessageAction = ContextMenuActions.find((action) => action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE);

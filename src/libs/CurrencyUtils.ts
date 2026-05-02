@@ -8,7 +8,6 @@ import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- kept temporarily for unmigrated CurrencyUtils callers */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -19,7 +18,6 @@ Onyx.connect({
         currencyList = val;
     },
 });
-/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 function getCurrencyList(currencies?: CurrencyList): CurrencyList {
     return currencies ?? currencyList;
@@ -34,7 +32,7 @@ function getCurrencyList(currencies?: CurrencyList): CurrencyList {
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
     const decimals = getCurrencyList(currencies)?.[currency]?.decimals;
-    return decimals ?? 2;
+    return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**
@@ -62,7 +60,7 @@ function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: st
  * Get the currency symbol for a currency(ISO 4217) Code
  */
 function getCurrencySymbol(currencyCode: string, currencies?: CurrencyList): string | undefined {
-    return getCurrencyList(currencies)?.[currencyCode.toUpperCase()]?.symbol;
+    return getCurrencyList(currencies)?.[currencyCode]?.symbol;
 }
 
 /**
@@ -88,12 +86,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, decimals: number)
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true, currencies?: CurrencyList): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, decimals: number): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = withDecimals ? getCurrencyDecimals(currency, currencies) : 0;
-    return convertToFrontendAmountAsInteger(amountAsInt, decimals).toFixed(decimals);
+    return (Math.trunc(amountAsInt) / 100.0).toFixed(decimals);
 }
 
 /**

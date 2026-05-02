@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
-import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,11 +18,10 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
-import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,8 +47,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
-    const {currencyList} = useCurrencyListState();
+    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchResults} = useSearchStateContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -227,7 +225,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     <HeaderWithBackButton
                         title={translate(
                             'iou.splitExpenseEditTitle',
-                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency, false, currencyList),
+                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
                             splitExpenseDraftTransactionDetails?.merchant ?? '',
                         )}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
