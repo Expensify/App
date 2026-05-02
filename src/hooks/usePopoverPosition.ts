@@ -1,4 +1,6 @@
 import {useCallback} from 'react';
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -10,12 +12,8 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
-type MeasurableElement = {measureInWindow: (callback: MeasureInWindowCallback) => void};
-
-function isMeasurable(element: unknown): element is MeasurableElement {
-    return element !== null && typeof element === 'object' && 'measureInWindow' in element && typeof (element as MeasurableElement).measureInWindow === 'function';
-}
+/** Popover anchor ref. Only `View` qualifies — `HTMLDivElement` lacks `measureInWindow`. */
+type MeasurableRef = RefObject<View | null>;
 
 /**
  * Hook for calculating the position of a popover relative to an anchor element.
@@ -42,9 +40,9 @@ function usePopoverPosition() {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const calculatePopoverPosition = useCallback(
-        (anchorRef: React.RefObject<unknown>, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
+        (anchorRef: MeasurableRef, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
             const element = anchorRef.current;
-            if (isSmallScreenWidth || !isMeasurable(element)) {
+            if (isSmallScreenWidth || element === null) {
                 return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
             }
             return new Promise<AnchorPosition & Dimensions>((resolve) => {
@@ -75,3 +73,4 @@ function usePopoverPosition() {
 }
 
 export default usePopoverPosition;
+export type {MeasurableRef};

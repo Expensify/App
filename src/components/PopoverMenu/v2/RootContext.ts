@@ -1,8 +1,8 @@
 import {createContext, use} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
-import type PopoverProps from '@components/Popover/types';
+import type {MeasurableRef} from '@hooks/usePopoverPosition';
 
-type AnchorRef = PopoverProps['anchorRef'];
+type AnchorRef = MeasurableRef;
 
 type RootStateValue = {
     state: {isVisible: boolean};
