@@ -23,7 +23,7 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingErrorMessageTranslationKey, setOnboardingPurposeSelected} from '@userActions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -96,7 +96,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
-                setOnboardingErrorMessageTranslationKey(null);
+                setOnboardingErrorMessage(null);
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
@@ -130,7 +130,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        setOnboardingErrorMessageTranslationKey('onboarding.errorSelection');
+        setOnboardingErrorMessage('onboarding.errorSelection');
     }, []);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);

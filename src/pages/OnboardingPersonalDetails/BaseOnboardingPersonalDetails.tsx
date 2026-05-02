@@ -28,7 +28,7 @@ import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingErrorMessageTranslationKey, setOnboardingPolicyID} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,7 +73,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
-        setOnboardingErrorMessageTranslationKey(null);
+        setOnboardingErrorMessage(null);
     }, []);
 
     const completeOnboarding = useCallback(

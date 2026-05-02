@@ -460,9 +460,6 @@ const ONYXKEYS = {
     /** Onboarding error message translation key to be displayed to the user */
     ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY: 'onboardingErrorMessageTranslationKey',
 
-    /** Onboarding error message to be displayed to the user */
-    ONBOARDING_ERROR_MESSAGE: 'onboardingErrorMessage',
-
     /** Onboarding policyID selected by the user during Onboarding flow */
     ONBOARDING_POLICY_ID: 'onboardingPolicyID',
 
@@ -1474,7 +1471,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY]: TranslationPaths;
-    [ONYXKEYS.ONBOARDING_ERROR_MESSAGE]: string;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;

@@ -29,7 +29,7 @@ import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingErrorMessageTranslationKey, setOnboardingPolicyID} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +81,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price', price)}</muted-text-label></comment>`;
 
     useEffect(() => {
-        setOnboardingErrorMessageTranslationKey(null);
+        setOnboardingErrorMessage(null);
     }, []);
 
     const section: Item[] = [
@@ -275,7 +275,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             large
                             text={translate('onboarding.workspace.createWorkspace')}
                             onPress={() => {
-                                setOnboardingErrorMessageTranslationKey(null);
+                                setOnboardingErrorMessage(null);
                                 if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
                                     createWorkspaceAndCompleteOnboarding();
                                     return;

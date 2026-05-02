@@ -32,7 +32,7 @@ import SCREENS from '@src/SCREENS';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {setOnboardingErrorMessageTranslationKey} from './Welcome';
+import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -310,7 +310,7 @@ function openReportFromDeepLink(
                             const currentFocusedRoute = findFocusedRoute(state);
 
                             if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                                setOnboardingErrorMessageTranslationKey('onboarding.purpose.errorBackButton');
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                                 return;
                             }
 

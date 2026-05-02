@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {setOnboardingErrorMessageTranslationKey} from '@userActions/Welcome';
+import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
@@ -49,7 +49,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 style={[styles.mb5]}
                 text={translate('common.buttonConfirm')}
                 onPress={() => {
-                    setOnboardingErrorMessageTranslationKey(null);
+                    setOnboardingErrorMessage(null);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                         return;

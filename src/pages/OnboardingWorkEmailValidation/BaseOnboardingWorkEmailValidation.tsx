@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
-import {setOnboardingErrorMessageTranslationKey, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
@@ -45,7 +45,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessageTranslationKey(null);
+        setOnboardingErrorMessage(null);
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
@@ -78,7 +78,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
-        setOnboardingErrorMessageTranslationKey(null);
+        setOnboardingErrorMessage(null);
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
     };
 
@@ -117,11 +117,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
                         validateCodeActionErrorField="mergeIntoAccountAndLogIn"
-                        clearError={() => setOnboardingErrorMessageTranslationKey(null)}
+                        clearError={() => setOnboardingErrorMessage(null)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
-                            setOnboardingErrorMessageTranslationKey(null);
+                            setOnboardingErrorMessage(null);
                             setOnboardingMergeAccountStepValue(true, true);
                         }}
                         isLoading={isValidateCodeFormSubmitting}

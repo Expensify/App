@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import {setOnboardingErrorMessageTranslationKey} from '@userActions/Welcome';
+import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import BaseOnboardingWorkEmail from './BaseOnboardingWorkEmail';
 import type {OnboardingWorkEmailProps} from './types';
 
@@ -11,7 +11,7 @@ function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
         useCallback(() => {
             // Return true to indicate that the back button press is handled here
             const backAction = () => {
-                setOnboardingErrorMessageTranslationKey('onboarding.purpose.errorBackButton');
+                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                 return true;
             };
 
