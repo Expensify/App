@@ -1,16 +1,28 @@
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
-let currentCurrencyList: CurrencyList = {};
+let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
+
+/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- kept temporarily for unmigrated CurrencyUtils callers */
+Onyx.connect({
+    key: ONYXKEYS.CURRENCY_LIST,
+    callback: (val) => {
+        if (!val || Object.keys(val).length === 0) {
+            return;
+        }
+
+        currencyList = val;
+    },
+});
+/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 function getCurrencyList(currencies?: CurrencyList): CurrencyList {
-    return currencies ?? currentCurrencyList;
-}
-
-function setCurrentCurrencyList(currencies?: CurrencyList) {
-    currentCurrencyList = currencies ?? {};
+    return currencies ?? currencyList;
 }
 
 /**
@@ -21,12 +33,7 @@ function setCurrentCurrencyList(currencies?: CurrencyList) {
  * @param currency - IOU currency
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    const normalizedCurrency = currency.toUpperCase();
-    const decimals = getCurrencyList(currencies)?.[normalizedCurrency]?.decimals;
-    if (decimals !== undefined) {
-        return decimals;
-    }
-
+    const decimals = getCurrencyList(currencies)?.[currency]?.decimals;
     return decimals ?? 2;
 }
 
@@ -72,8 +79,7 @@ function convertToBackendAmount(amountAsFloat: number): number {
 /**
  * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number, currencyOrDecimals: string | number = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    const decimals = typeof currencyOrDecimals === 'number' ? currencyOrDecimals : getCurrencyDecimals(currencyOrDecimals, currencies);
+function convertToFrontendAmountAsInteger(amountAsInt: number, decimals: number): number {
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
@@ -204,9 +210,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
  * Checks if passed currency code is a valid currency based on currency list
  */
 function isValidCurrencyCode(currencyCode: string, currencies?: CurrencyList): boolean {
-    const normalizedCurrencyCode = currencyCode.toUpperCase();
-
-    const currency = getCurrencyList(currencies)?.[normalizedCurrencyCode];
+    const currency = getCurrencyList(currencies)?.[currencyCode];
     return !!currency;
 }
 
@@ -215,7 +219,6 @@ export {
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    setCurrentCurrencyList,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
