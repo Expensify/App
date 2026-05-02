@@ -186,22 +186,29 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
             } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
                 submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
             }
-        } else if (item?.reportID) {
+            return;
+        }
+        // Call onSubmit to ensure the SearchRouter closes when navigating to a report from search results.
+        // This prevents `isBlockingViewVisible` from remaining `true` after navigating from the SearchRouter.
+        Navigation.setNavigationActionToMicrotaskQueue(() => onSubmit());
+        if (item?.reportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
         } else if ('login' in item) {
             navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
         }
     }
 
-    const searchQueryItem = textInputValue
-        ? {
-              text: textInputValue,
-              singleIcon: expensifyIcons.MagnifyingGlass,
-              searchQuery: textInputValue,
-              itemStyle: styles.activeComponentBG,
-              keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
-              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-          }
+    const searchQueryItems = textInputValue
+        ? [
+              {
+                  text: textInputValue,
+                  singleIcon: expensifyIcons.MagnifyingGlass,
+                  searchQuery: textInputValue,
+                  itemStyle: styles.activeComponentBG,
+                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
+                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+              },
+          ]
         : undefined;
 
     return {
@@ -211,7 +218,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         personalAndWorkspaceCards,
         personalDetails,
         reports,
-        searchQueryItem,
+        searchQueryItems,
         selection,
         textInputRef,
         textInputValue,

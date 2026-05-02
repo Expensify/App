@@ -23,7 +23,6 @@ type LinkedActionNotFoundGuardProps = {
     children: ReactNode;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const route = useRoute();
     const routeParams = route.params as {reportActionID?: string} | undefined;
@@ -48,7 +47,6 @@ type LinkedActionNotFoundGateProps = {
     children: ReactNode;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedActionNotFoundGateProps) {
     const route = useRoute();
     const navigation = useNavigation();
@@ -61,7 +59,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
     const [linkedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {
@@ -106,7 +104,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     // before the effect can fire).
     //
     // Note: the inaccessible whisper case is handled separately by the whisper effect.
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundLinkedAction =
         !wasEverVisible && !isLinkedActionInaccessibleWhisper && (isLinkedActionDeleted || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction));
 

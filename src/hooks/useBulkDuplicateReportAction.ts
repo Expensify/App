@@ -51,7 +51,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             defaultExpensePolicy,
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
-            currentUserLogin: currentUserPersonalDetails.login ?? '',
             isASAPSubmitBetaEnabled,
             betas,
             personalDetails,
@@ -61,6 +60,8 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             transactionViolations: allTransactionViolations,
             translate,
             recentWaypoints,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails?.accountID,
         });
 
         clearSelectedTransactions(undefined, true);
