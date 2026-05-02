@@ -19,7 +19,6 @@ const SCREENS = {
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
-    WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -169,6 +168,10 @@ const SCREENS = {
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
+        },
+
+        AGENTS: {
+            ROOT: 'Settings_Agents',
         },
 
         RULES: {
@@ -788,6 +791,8 @@ const SCREENS = {
         CATEGORIES_SETTINGS: 'Categories_Settings',
         DYNAMIC_CATEGORIES_IMPORT: 'Dynamic_Categories_Import',
         DYNAMIC_CATEGORIES_IMPORTED: 'Dynamic_Categories_Imported',
+        DYNAMIC_SPEND_CATEGORY_SELECTOR: 'Dynamic_Spend_Category_Selector',
+        DYNAMIC_DEFAULT_CATEGORY_SELECTOR: 'Dynamic_Default_Category_Selector',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',

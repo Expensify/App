@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Facoltativo',
         new: 'Nuovo',
         newFeature: 'Nuova funzionalità',
+        beta: 'Beta',
         search: 'Cerca',
         reports: 'Report',
         spend: 'Spese',
@@ -1419,7 +1420,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'Il nome del tag supera i 255 caratteri. Per favore accorcialo o scegli un tag diverso.',
             invalidAmount: 'Inserisci un importo valido prima di continuare',
             invalidDistance: 'Inserisci una distanza valida prima di continuare',
-            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
+            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale per continuare',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
             distanceAmountTooLarge: "L'importo totale è troppo alto. Riduci la distanza o abbassa la tariffa.",
             distanceAmountTooLargeReduceDistance: "L'importo totale è troppo alto. Riduci la distanza.",
@@ -1610,6 +1611,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
                 addApproverSubtitle: 'Aggiungi un ulteriore approvatore al flusso di approvazione esistente.',
@@ -2714,6 +2716,12 @@ ${amount} per ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell’app.',
         defaultPaymentMethod: 'Predefinito',
         bankAccountLastFour: (lastFour: string) => `Conto bancario • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agenti',
+        subtitle: 'Automatizza le attività con agenti personalizzati.',
+        newAgent: 'Nuovo agente',
+        emptyAgents: {title: 'Nessun agente creato', subtitle: 'Smetti di fare le cose manualmente. Dai invece istruzioni a un agente e risparmia un sacco di tempo.'},
     },
     expenseRulesPage: {
         title: 'Regole spese',
@@ -5390,6 +5398,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             oneMoreStepDescription: 'Sembra che dobbiamo verificare manualmente il tuo conto bancario. Vai su Concierge, dove ti aspettano le istruzioni.',
             gotIt: 'Ho capito',
             goToConcierge: 'Vai a Concierge',
+            exportAsCSV: 'Esporta come CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo di limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Elimina categorie',
@@ -6834,8 +6846,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             customRules: {
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
-                policyDocument: 'Documento di politica',
-                policyText: 'Testo della politica',
             },
             spendRules: {
                 title: 'Spesa',
