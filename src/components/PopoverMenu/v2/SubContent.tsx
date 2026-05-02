@@ -7,7 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {useContentActions, useContentState} from './ContentContext';
-import {getParentSubId, useSubContext} from './SubContext';
+import {getParentSubID, useSubContext} from './SubContext';
 import useFocusableRow from './useFocusableRow';
 
 type SubContentProps = {
@@ -15,7 +15,7 @@ type SubContentProps = {
     backButtonText?: string;
 };
 
-function BackButton({backButtonText, parentSubId}: {backButtonText?: string; parentSubId: string | null}): React.ReactElement {
+function BackButton({backButtonText, parentSubID}: {backButtonText?: string; parentSubID: string | null}): React.ReactElement {
     const {exitSub} = useContentActions();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
@@ -27,7 +27,7 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
 
     const {ref, focused, onPress, onFocus} = useFocusableRow({
         visible: true,
-        onActivate: () => exitSub(parentSubId),
+        onActivate: () => exitSub(parentSubID),
     });
 
     return (
@@ -55,12 +55,12 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
 /** Renders the back button at active level; keeps children mounted at ancestor levels so nested `<Sub>` stays alive. */
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
     const {
-        state: {currentSubId, currentSubAncestorChain},
+        state: {currentSubID, currentSubAncestorChain},
     } = useContentState();
     const subContext = useSubContext();
 
-    const isActiveLevel = currentSubId === subContext.subId;
-    const isAncestorOfActive = currentSubAncestorChain.includes(subContext.subId);
+    const isActiveLevel = currentSubID === subContext.subID;
+    const isAncestorOfActive = currentSubAncestorChain.includes(subContext.subID);
 
     if (!isActiveLevel && !isAncestorOfActive) {
         return null;
@@ -71,7 +71,7 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
             {isActiveLevel && (
                 <BackButton
                     backButtonText={backButtonText}
-                    parentSubId={getParentSubId(subContext)}
+                    parentSubID={getParentSubID(subContext)}
                 />
             )}
             {children}

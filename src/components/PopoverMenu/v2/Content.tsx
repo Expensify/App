@@ -163,7 +163,7 @@ function Content({
                                     containerStyles,
                                 ]}
                             >
-                                {!!headerText && state.currentSubId === null && (
+                                {!!headerText && state.currentSubID === null && (
                                     <Text
                                         key="header-text"
                                         style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}

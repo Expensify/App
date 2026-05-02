@@ -16,11 +16,11 @@ type SubProps = {
  */
 
 function Sub({children, id}: SubProps): React.ReactElement {
-    const fallbackId = useId();
-    const subId = id ?? fallbackId;
+    const fallbackID = useId();
+    const subID = id ?? fallbackID;
     const outerSub = useSubContextOptional();
-    const ancestorChain = outerSub ? [...outerSub.ancestorChain, outerSub.subId] : [];
-    const value = {subId, ancestorChain} satisfies SubContextValue;
+    const ancestorChain = outerSub ? [...outerSub.ancestorChain, outerSub.subID] : [];
+    const value = {subID, ancestorChain} satisfies SubContextValue;
 
     const {registerSub, unregisterSub} = useContentActions();
 
@@ -31,9 +31,9 @@ function Sub({children, id}: SubProps): React.ReactElement {
     });
 
     useEffect(() => {
-        registerSub(subId);
-        return () => unregisterSub(subId, ancestorChainRef.current);
-    }, [subId, registerSub, unregisterSub]);
+        registerSub(subID);
+        return () => unregisterSub(subID, ancestorChainRef.current);
+    }, [subID, registerSub, unregisterSub]);
 
     return <SubContext.Provider value={value}>{children}</SubContext.Provider>;
 }

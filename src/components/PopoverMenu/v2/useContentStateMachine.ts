@@ -9,9 +9,9 @@ import useOrderedIds from './useOrderedIds';
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
 type StateMachineState = {
-    currentSubId: string | null;
+    currentSubID: string | null;
     currentSubAncestorChain: readonly string[];
-    focusedId: string | null;
+    focusedID: string | null;
 };
 
 const ROOT_SUB: CurrentSub = {id: null, ancestorChain: []};
@@ -36,9 +36,9 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: Stat
     const orderedIds = useOrderedIds(registry);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIds.length - 1, isActive: isVisible, initialFocusedIndex: -1});
     // Guard the -1 sentinel — `.at(-1)` would return the last item.
-    const focusedId = focusedIndex >= 0 ? (orderedIds.at(focusedIndex) ?? null) : null;
+    const focusedID = focusedIndex >= 0 ? (orderedIds.at(focusedIndex) ?? null) : null;
 
-    // Mirror so setFocusedId reads the latest order without going stale.
+    // Mirror so setFocusedID reads the latest order without going stale.
     const orderedIdsRef = useRef(orderedIds);
     useLayoutEffect(() => {
         orderedIdsRef.current = orderedIds;
@@ -62,22 +62,22 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: Stat
             });
             setFocusedIndex(-1);
         },
-        registerSub: (subId) => {
-            mountedSubs.current.add(subId);
+        registerSub: (subID) => {
+            mountedSubs.current.add(subID);
         },
-        unregisterSub: (subId, ancestorChain) => {
-            mountedSubs.current.delete(subId);
+        unregisterSub: (subID, ancestorChain) => {
+            mountedSubs.current.delete(subID);
             setCurrentSub((prev) => {
-                if (prev.id !== subId) {
+                if (prev.id !== subID) {
                     return prev;
                 }
-                const newId = ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
-                if (newId === null) {
+                const newID = ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
+                if (newID === null) {
                     return ROOT_SUB;
                 }
-                const idx = ancestorChain.indexOf(newId);
+                const idx = ancestorChain.indexOf(newID);
                 const newChain = idx >= 0 ? ancestorChain.slice(0, idx) : [];
-                return {id: newId, ancestorChain: newChain};
+                return {id: newID, ancestorChain: newChain};
             });
         },
         registerItem: (id, item) =>
@@ -95,7 +95,7 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: Stat
                 next.delete(id);
                 return next;
             }),
-        setFocusedId: (id) => {
+        setFocusedID: (id) => {
             setFocusedIndex(id === null ? -1 : orderedIdsRef.current.indexOf(id));
         },
     }));
@@ -103,7 +103,7 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: Stat
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         (event) => {
-            const item = focusedId ? registry.get(focusedId) : undefined;
+            const item = focusedID ? registry.get(focusedID) : undefined;
             if (!item || item.isDisabled) {
                 return;
             }
@@ -113,7 +113,7 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {state: Stat
     );
 
     return {
-        state: {currentSubId: currentSub.id, currentSubAncestorChain: currentSub.ancestorChain, focusedId},
+        state: {currentSubID: currentSub.id, currentSubAncestorChain: currentSub.ancestorChain, focusedID},
         actions,
     };
 }

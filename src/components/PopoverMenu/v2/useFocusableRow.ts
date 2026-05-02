@@ -33,9 +33,9 @@ function useFocusableRow({visible, onActivate, isDisabled = false}: {visible: bo
     const id = useId();
     const ref = useRef<View>(null);
     const {
-        state: {focusedId},
+        state: {focusedID},
     } = useContentState();
-    const {registerItem, unregisterItem, setFocusedId} = useContentActions();
+    const {registerItem, unregisterItem, setFocusedID} = useContentActions();
 
     // Mirrored so the registry's `onActivate` stays stable across renders.
     const onActivateRef = useRef(onActivate);
@@ -51,7 +51,7 @@ function useFocusableRow({visible, onActivate, isDisabled = false}: {visible: bo
         return () => unregisterItem(id);
     }, [visible, id, registerItem, unregisterItem, isDisabled]);
 
-    const focused = focusedId === id;
+    const focused = focusedID === id;
     // Imperatively sync DOM focus when arrow-key nav lands here.
     useSyncFocus(ref, focused);
 
@@ -59,7 +59,7 @@ function useFocusableRow({visible, onActivate, isDisabled = false}: {visible: bo
         ref,
         focused,
         onPress: () => onActivateRef.current(),
-        onFocus: () => setFocusedId(id),
+        onFocus: () => setFocusedID(id),
     };
 }
 

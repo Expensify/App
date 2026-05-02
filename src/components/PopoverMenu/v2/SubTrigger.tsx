@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useContentActions, useContentState} from './ContentContext';
-import {getParentSubId, useSubContext} from './SubContext';
+import {getParentSubID, useSubContext} from './SubContext';
 import useFocusableRow from './useFocusableRow';
 
 type SubTriggerProps = {
@@ -27,14 +27,14 @@ type SubTriggerProps = {
 
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
     const {
-        state: {currentSubId},
+        state: {currentSubID},
     } = useContentState();
     const {enterSub} = useContentActions();
     const subContext = useSubContext();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     // Reachable when the user is at this Sub's parent level.
-    const isVisible = currentSubId === getParentSubId(subContext);
+    const isVisible = currentSubID === getParentSubID(subContext);
 
     const {ref, focused, onPress, onFocus} = useFocusableRow({
         visible: isVisible,
@@ -43,7 +43,7 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
             if (disabled) {
                 return;
             }
-            enterSub(subContext.subId, subContext.ancestorChain);
+            enterSub(subContext.subID, subContext.ancestorChain);
         },
     });
 

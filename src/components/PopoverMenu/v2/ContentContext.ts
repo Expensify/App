@@ -13,10 +13,10 @@ type FocusableItem = {
 
 type ContentStateValue = {
     state: {
-        currentSubId: string | null;
-        /** Ancestor chain of `currentSubId`; empty at root. */
+        currentSubID: string | null;
+        /** Ancestor chain of `currentSubID`; empty at root. */
         currentSubAncestorChain: readonly string[];
-        focusedId: string | null;
+        focusedID: string | null;
     };
     meta: {
         anchorPosition: AnchorPosition | null;
@@ -29,12 +29,12 @@ type ContentActionsValue = {
     enterSub: (id: string, ancestorChain: readonly string[]) => void;
     /** Pop to the given sub id; default `null` pops to root. */
     exitSub: (target?: string | null) => void;
-    registerSub: (subId: string) => void;
+    registerSub: (subID: string) => void;
     /** Pops state to the nearest still-mounted ancestor in the chain (or root) when an active `<Sub>` unmounts. */
-    unregisterSub: (subId: string, ancestorChain: readonly string[]) => void;
+    unregisterSub: (subID: string, ancestorChain: readonly string[]) => void;
     registerItem: (id: string, item: FocusableItem) => void;
     unregisterItem: (id: string) => void;
-    setFocusedId: (id: string | null) => void;
+    setFocusedID: (id: string | null) => void;
 };
 
 const ContentStateContext = createContext<ContentStateValue | null>(null);

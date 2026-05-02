@@ -2,7 +2,7 @@ import {createContext, use} from 'react';
 import {useContentState} from './ContentContext';
 
 type SubContextValue = {
-    subId: string;
+    subID: string;
     /** Ancestor subIds from outermost to immediate parent. Empty for root-level Subs. */
     ancestorChain: readonly string[];
 };
@@ -24,16 +24,16 @@ function useSubContextOptional(): SubContextValue | null {
 
 function useIsAtActiveLevel(): boolean {
     const {
-        state: {currentSubId},
+        state: {currentSubID},
     } = useContentState();
     const subContext = useSubContextOptional();
-    return currentSubId === (subContext?.subId ?? null);
+    return currentSubID === (subContext?.subID ?? null);
 }
 
-/** Returns the immediate parent's subId, or `null` for root-level Subs. */
-function getParentSubId(ctx: SubContextValue): string | null {
+/** Returns the immediate parent's subID, or `null` for root-level Subs. */
+function getParentSubID(ctx: SubContextValue): string | null {
     return ctx.ancestorChain.at(-1) ?? null;
 }
 
-export {SubContext, useSubContext, useSubContextOptional, useIsAtActiveLevel, getParentSubId};
+export {SubContext, useSubContext, useSubContextOptional, useIsAtActiveLevel, getParentSubID};
 export type {SubContextValue};
