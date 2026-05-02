@@ -223,6 +223,7 @@ function createTransaction({
             trackExpense({
                 report,
                 isDraftPolicy: false,
+                existingTransaction: transaction,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
@@ -692,6 +693,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 trackExpense({
                     report,
                     isDraftPolicy: false,
+                    existingTransaction: transaction,
                     participantParams: {
                         payeeEmail: currentUserLogin,
                         payeeAccountID: currentUserAccountID,

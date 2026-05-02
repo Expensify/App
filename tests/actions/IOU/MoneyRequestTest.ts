@@ -298,6 +298,16 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({shouldDeferAPIWrite: true}));
         });
 
+        it('should forward the per-receipt draft as existingTransaction to trackExpense so getTrackExpenseInformation finds the draft', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: fakeTransaction}));
+        });
+
         it('should propagate isFromGlobalCreate from the per-receipt draft into both trackExpense and requestMoney transactionParams (so action gates Search-defer + highlight on the same flag UI uses for cleanup)', () => {
             const fabTransaction = {...fakeTransaction, isFromFloatingActionButton: true};
 
@@ -1379,6 +1389,22 @@ describe('MoneyRequest', () => {
 
             expect(capturedActionChatReportID).toBeDefined();
             expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), capturedActionChatReportID);
+        });
+
+        it('should forward the draft transaction as existingTransaction so getTrackExpenseInformation finds distance metadata', () => {
+            let capturedExistingTransaction: unknown;
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation((params: {existingTransaction?: unknown}) => {
+                capturedExistingTransaction = params.existingTransaction;
+            });
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+            });
+
+            expect(capturedExistingTransaction).toBe(fakeTransaction);
         });
 
         it('should NOT fire onTransactionsCreated on early-return paths (backTo) or non-TRACK paths (createDistanceRequest)', () => {

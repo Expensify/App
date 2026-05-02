@@ -551,6 +551,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 report,
                 isDraftPolicy,
                 action,
+                existingTransaction: item,
                 shouldDeferAPIWrite: isLastBatchItem,
                 draftTransactionIDs,
                 participantParams: {

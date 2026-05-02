@@ -225,6 +225,19 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         });
+
+        it('forwards the per-iteration draft as existingTransaction so getTrackExpenseInformation finds it', async () => {
+            const params = buildParams({iouType: CONST.IOU.TYPE.TRACK});
+            const {result} = renderHook(() => useExpenseSubmission(params));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(PARTICIPANTS, false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
+        });
     });
 });
 
