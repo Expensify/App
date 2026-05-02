@@ -157,10 +157,6 @@ function shouldShowDiscountBanner(
         return false;
     }
 
-    if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return false;
-    }
-
     if (doesUserHavePaymentCardAdded(userBillingFundID)) {
         return false;
     }
@@ -169,14 +165,23 @@ function shouldShowDiscountBanner(
         return false;
     }
 
-    const dateNow = Math.floor(Date.now() / 1000);
-    const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
-    const lastDayTimestamp = fromZonedTime(`${lastDayFreeTrial}`, 'UTC').getTime() / 1000;
-    if (dateNow > lastDayTimestamp) {
+    // Check if we're within the early discount window using firstDayFreeTrial.
+    // This handles the case where lastDayFreeTrial is not yet set but the
+    // user has started their free trial (firstDayFreeTrial is available).
+    if (!isInEarlyDiscountWindow(firstDayFreeTrial)) {
         return false;
     }
 
-    return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY;
+    // If lastDayFreeTrial is set, also verify we haven't passed it
+    if (lastDayFreeTrial) {
+        const dateNow = Math.floor(Date.now() / 1000);
+        const lastDayTimestamp = fromZonedTime(`${lastDayFreeTrial}`, 'UTC').getTime() / 1000;
+        if (dateNow > lastDayTimestamp) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function getEarlyDiscountInfo(firstDayFreeTrial: string | undefined): DiscountInfo | null {
@@ -428,6 +433,19 @@ function isUserOnFreeTrial(firstDayFreeTrial: string | undefined, lastDayFreeTri
     const lastDayFreeTrialDate = new Date(`${lastDayFreeTrial}Z`);
 
     return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
+}
+
+/**
+ * Whether the user is within the early discount window based on firstDayFreeTrial alone.
+ * This handles the case where lastDayFreeTrial is not yet set but firstDayFreeTrial is available.
+ */
+function isInEarlyDiscountWindow(firstDayFreeTrial: string | undefined): boolean {
+    if (!firstDayFreeTrial) {
+        return false;
+    }
+    const dateNow = Math.floor(Date.now() / 1000);
+    const firstDayTimestamp = fromZonedTime(`${firstDayFreeTrial}`, 'UTC').getTime() / 1000;
+    return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY;
 }
 
 /**

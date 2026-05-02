@@ -62,7 +62,10 @@ function useFreeTrial(): FreeTrialState {
         };
     }, [firstDayFreeTrial, showDiscount]);
 
-    if (!onFreeTrial || hasPaymentCard || !hasOwnedPaidPolicies) {
+    // Show the section if the user is on a free trial OR if the discount banner should be shown.
+    // The discount banner check handles the case where lastDayFreeTrial is not yet set
+    // but firstDayFreeTrial is available and we're within the discount window.
+    if ((!onFreeTrial && !showDiscount) || hasPaymentCard || !hasOwnedPaidPolicies) {
         return {shouldShowFreeTrialSection: false, discountType: null, daysLeft: 0, discountInfo: null};
     }
 
