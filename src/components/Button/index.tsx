@@ -310,7 +310,7 @@ function Button({
     };
 
     const renderContent = () => {
-        if (rest.children != null) {
+        if ('children' in rest) {
             return rest.children;
         }
 
