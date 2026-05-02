@@ -4,6 +4,7 @@ import Log from '@libs/Log';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {AnchorRef} from './RootContext';
+import useOnValueChange from './useOnValueChange';
 
 /** Returns measured anchor position; uses `anchorPositionProp` if set, else measures `anchorRef`. `null` until ready. */
 function useAnchorMeasurement({
@@ -19,6 +20,14 @@ function useAnchorMeasurement({
 }): AnchorPosition | null {
     const {calculatePopoverPosition} = usePopoverPosition();
     const [measured, setMeasured] = useState<AnchorPosition | null>(null);
+
+    // Clear on close so a reopen doesn't flash the previous anchor before the new measurement resolves.
+    useOnValueChange(isVisible, (next) => {
+        if (next) {
+            return;
+        }
+        setMeasured(null);
+    });
 
     useEffect(() => {
         if (anchorPositionProp || !anchorRef.current || !isVisible) {

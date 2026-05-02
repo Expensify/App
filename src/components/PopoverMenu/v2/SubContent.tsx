@@ -52,6 +52,7 @@ function BackButton({backButtonText, parentSubId}: {backButtonText?: string; par
     );
 }
 
+/** Renders the back button at active level; keeps children mounted at ancestor levels so nested `<Sub>` stays alive. */
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
     const {
         state: {currentSubId, currentSubAncestorChain},
@@ -59,7 +60,6 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
     const subContext = useSubContext();
 
     const isActiveLevel = currentSubId === subContext.subId;
-    // Keep children mounted while a descendant is active so nested <Sub> registration survives navigation.
     const isAncestorOfActive = currentSubAncestorChain.includes(subContext.subId);
 
     if (!isActiveLevel && !isAncestorOfActive) {

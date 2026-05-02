@@ -3,7 +3,7 @@ import React, {useRef, useState} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
-import PopoverMenu from '@components/PopoverMenu/v2';
+import PopoverMenu, {useIsAtActiveLevel} from '@components/PopoverMenu/v2';
 
 type MenuItemMockProps = Record<string, unknown> & {
     title?: string;
@@ -751,6 +751,48 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Inner')).toBeDefined();
         });
 
+        it('lets custom rows self-gate via useIsAtActiveLevel', () => {
+            const renderSpy = jest.fn();
+            function SelfGatedRow() {
+                if (!useIsAtActiveLevel()) {
+                    return null;
+                }
+                renderSpy();
+                return null;
+            }
+
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="outer">
+                            <PopoverMenu.SubTrigger text="Outer" />
+                            <PopoverMenu.SubContent>
+                                <SelfGatedRow />
+                                <PopoverMenu.Sub id="inner">
+                                    <PopoverMenu.SubTrigger text="Inner" />
+                                    <PopoverMenu.SubContent>
+                                        <PopoverMenu.Item
+                                            text="Innermost"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.SubContent>
+                                </PopoverMenu.Sub>
+                            </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+
+            press('Outer');
+            expect(renderSpy).toHaveBeenCalled();
+
+            renderSpy.mockClear();
+
+            press('Inner');
+            expect(renderSpy).not.toHaveBeenCalled();
+            expect(findItemByTitle('Innermost')).toBeDefined();
+        });
+
         it('keeps a parent-level <SubContent> mounted while a nested sub is active', () => {
             const innerRenderSpy = jest.fn();
             function InnerCustomRow() {
@@ -864,6 +906,29 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('Group', () => {
+        it('keeps a Sub inside a Group navigable', () => {
+            render(
+                <ControlledHarness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Group>
+                            <PopoverMenu.Sub>
+                                <PopoverMenu.SubTrigger text="Open" />
+                                <PopoverMenu.SubContent>
+                                    <PopoverMenu.Item
+                                        text="Inside"
+                                        onSelect={() => {}}
+                                    />
+                                </PopoverMenu.SubContent>
+                            </PopoverMenu.Sub>
+                        </PopoverMenu.Group>
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+
+            press('Open');
+            expect(findItemByTitle('Inside')).toBeDefined();
+        });
+
         it('renders its children at the top level', () => {
             render(
                 <ControlledHarness initialOpen>

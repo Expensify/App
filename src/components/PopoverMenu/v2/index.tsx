@@ -16,6 +16,7 @@ import Sub from './Sub';
 import type {SubProps} from './Sub';
 import SubContent from './SubContent';
 import type {SubContentProps} from './SubContent';
+import {useIsAtActiveLevel} from './SubContext';
 import SubTrigger from './SubTrigger';
 import type {SubTriggerProps} from './SubTrigger';
 
@@ -33,4 +34,5 @@ const PopoverMenu = {
 };
 
 export default PopoverMenu;
+export {useIsAtActiveLevel};
 export type {AnchorRef, CheckmarkItemProps, ContentProps, GroupProps, ItemProps, ItemSelectEvent, LabelProps, RootProps, SubContentProps, SubProps, SubTriggerProps};

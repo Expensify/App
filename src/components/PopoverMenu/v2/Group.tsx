@@ -1,20 +1,13 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {useIsAtActiveLevel} from './SubContext';
 
 type GroupProps = {
     children: ReactNode;
 };
 
-/** ARIA grouping wrapper for related rows; renders as `role="group"` on web, no-op semantics on native. */
-function Group({children}: GroupProps): React.ReactElement | null {
-    const isAtActiveLevel = useIsAtActiveLevel();
-
-    if (!isAtActiveLevel) {
-        return null;
-    }
-
+/** Transparent ARIA `role="group"` wrapper; children self-gate, nested `<Sub>` stays mounted. */
+function Group({children}: GroupProps): React.ReactElement {
     return <View role="group">{children}</View>;
 }
 
