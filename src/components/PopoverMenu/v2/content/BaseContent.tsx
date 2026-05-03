@@ -27,24 +27,14 @@ type BasePopoverProps = {
     onLayout?: (e: LayoutChangeEvent) => void;
     onModalShow?: () => void;
     onModalHide?: () => void;
-    disableAnimation?: boolean;
-    withoutOverlay?: boolean;
-    shouldSetModalVisibility?: boolean;
-    shouldHandleNavigationBack?: boolean;
-    shouldEnableNewFocusManagement?: boolean;
+    /** Focus-restore strategy when the menu closes. Forwarded for accessibility customization. */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
     testID?: string;
-    animationIn?: BaseModalProps['animationIn'];
-    animationOut?: BaseModalProps['animationOut'];
-    animationInDelay?: number;
-    animationInTiming?: number;
-    animationOutTiming?: number;
-    fromSidebarMediumScreen?: boolean;
-    shouldUseModalPaddingStyle?: boolean;
 };
 
 type BaseContentProps = BasePopoverProps & {
     maxHeightStyle?: ViewStyle;
+    /** Set to `false` by `<ScrollableContent>` since it wraps children in a `<ScrollView>` itself. */
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
 };
 
@@ -65,20 +55,8 @@ function BaseContent({
     onLayout,
     onModalShow,
     onModalHide,
-    disableAnimation = true,
-    withoutOverlay = false,
-    shouldSetModalVisibility = true,
-    shouldHandleNavigationBack,
-    shouldEnableNewFocusManagement,
     restoreFocusType,
     testID,
-    animationIn = 'fadeIn',
-    animationOut = 'fadeOut',
-    animationInDelay,
-    animationInTiming = CONST.ANIMATED_TRANSITION,
-    animationOutTiming,
-    fromSidebarMediumScreen,
-    shouldUseModalPaddingStyle,
 }: BaseContentProps): React.ReactElement | null {
     const styles = useThemeStyles();
     const {
@@ -111,27 +89,14 @@ function BaseContent({
                         isVisible={isVisible}
                         onModalShow={onModalShow}
                         onModalHide={onModalHide}
-                        animationIn={animationIn}
-                        animationOut={animationOut}
-                        animationInDelay={animationInDelay}
-                        animationInTiming={animationInTiming}
-                        animationOutTiming={animationOutTiming}
-                        disableAnimation={disableAnimation}
-                        withoutOverlay={withoutOverlay}
-                        shouldSetModalVisibility={shouldSetModalVisibility}
-                        shouldHandleNavigationBack={shouldHandleNavigationBack}
-                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        // Menus don't animate; v2 commits to instant open/close so the popover lands in the same frame.
+                        disableAnimation
                         restoreFocusType={restoreFocusType}
-                        fromSidebarMediumScreen={fromSidebarMediumScreen}
-                        shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                         innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
                         shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
                         testID={testID}
                     >
-                        <FocusTrapForModal
-                            active={isVisible}
-                            shouldReturnFocus={!shouldEnableNewFocusManagement}
-                        >
+                        <FocusTrapForModal active={isVisible}>
                             <CompactMenuContext.Provider value>
                                 <View
                                     onLayout={onLayout}
