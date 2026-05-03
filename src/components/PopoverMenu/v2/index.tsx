@@ -1,6 +1,7 @@
 export {default as CheckmarkItem} from './CheckmarkItem';
 export {default as Content} from './Content';
 export {default as Group} from './Group';
+export {default as Header} from './Header';
 export {default as Item} from './Item';
 export {default as Label} from './Label';
 export {default as Root} from './Root';
@@ -13,6 +14,7 @@ export {useIsAtActiveLevel} from './SubContext';
 export type {CheckmarkItemProps} from './CheckmarkItem';
 export type {ContentProps} from './Content';
 export type {GroupProps} from './Group';
+export type {HeaderProps} from './Header';
 export type {ItemProps, ItemSelectEvent} from './Item';
 export type {LabelProps} from './Label';
 export type {RootProps} from './Root';

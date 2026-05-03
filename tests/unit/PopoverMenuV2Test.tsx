@@ -427,11 +427,12 @@ describe('PopoverMenu V2', () => {
         });
     });
 
-    describe('Content', () => {
-        it('renders headerText at the root level', () => {
+    describe('Header', () => {
+        it('renders at the root level', () => {
             render(
                 <ControlledHarness initialOpen>
-                    <PopoverMenu.Content headerText="Pick a payment">
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Item
                             text="Wallet"
                             onSelect={() => {}}
@@ -442,10 +443,11 @@ describe('PopoverMenu V2', () => {
             expect(screen.getByText('Pick a payment')).toBeTruthy();
         });
 
-        it('hides headerText once a sub is entered', () => {
+        it('hides once a sub is entered', () => {
             render(
                 <ControlledHarness initialOpen>
-                    <PopoverMenu.Content headerText="Pick a payment">
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Sub>
                             <PopoverMenu.SubTrigger text="Pay as business" />
                             <PopoverMenu.SubContent backButtonText="Business">

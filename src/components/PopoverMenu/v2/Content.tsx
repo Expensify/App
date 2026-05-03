@@ -1,13 +1,12 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,8 +23,6 @@ import useContentController from './useContentController';
 
 type ContentProps = {
     children: ReactNode;
-    headerText?: string;
-    headerStyles?: StyleProp<TextStyle>;
     anchorAlignment?: AnchorAlignment;
     /** Pre-measured anchor; skips internal measurement when set. */
     anchorPosition?: AnchorPosition;
@@ -62,8 +59,6 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
 
 function Content({
     children,
-    headerText,
-    headerStyles,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     anchorPosition: anchorPositionProp,
     containerStyles,
@@ -154,14 +149,6 @@ function Content({
                                         containerStyles,
                                     ]}
                                 >
-                                    {!!headerText && navigation.currentSubID === null && (
-                                        <Text
-                                            key="header-text"
-                                            style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
-                                        >
-                                            {headerText}
-                                        </Text>
-                                    )}
                                     {shouldUseScrollView ? <ScrollView contentContainerStyle={scrollContainerStyle}>{children}</ScrollView> : children}
                                 </View>
                             </CompactMenuContext.Provider>
