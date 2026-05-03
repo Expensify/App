@@ -1,4 +1,5 @@
 import {useRef, useState} from 'react';
+import useOnValueChange from './useOnValueChange';
 
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
@@ -24,10 +25,11 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
     const [currentSub, setCurrentSub] = useState<CurrentSub>(ROOT_SUB);
     const mountedSubs = useRef<Set<string>>(new Set());
 
+    useOnValueChange(currentSub.id, onLevelChange);
+
     const actions: SubNavigationActions = {
         enterSub: (id, ancestorChain) => {
             setCurrentSub({id, ancestorChain});
-            onLevelChange();
         },
         exitSub: (target = null) => {
             setCurrentSub((prev) => {
@@ -38,7 +40,6 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
                 const newChain = idx >= 0 ? prev.ancestorChain.slice(0, idx) : [];
                 return {id: target, ancestorChain: newChain};
             });
-            onLevelChange();
         },
         registerSub: (subID) => {
             mountedSubs.current.add(subID);

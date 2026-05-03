@@ -844,6 +844,58 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle<{focused?: boolean}>('Inner')?.focused).toBe(false);
         });
 
+        it('resets focus when an active sub unmounts mid-flight', () => {
+            function SubMenuWithToggle({showSub}: {showSub: boolean}) {
+                return (
+                    <ControlledHarness initialOpen>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="Outer-A"
+                                onSelect={() => {}}
+                            />
+                            <PopoverMenu.Item
+                                text="Outer-B"
+                                onSelect={() => {}}
+                            />
+                            {showSub && (
+                                <PopoverMenu.Sub id="sub">
+                                    <PopoverMenu.SubTrigger text="Open" />
+                                    <PopoverMenu.SubContent>
+                                        <PopoverMenu.Item
+                                            text="Inner-A"
+                                            onSelect={() => {}}
+                                        />
+                                        <PopoverMenu.Item
+                                            text="Inner-B"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.SubContent>
+                                </PopoverMenu.Sub>
+                            )}
+                        </PopoverMenu.Content>
+                    </ControlledHarness>
+                );
+            }
+
+            const tree = render(<SubMenuWithToggle showSub />);
+            press('Open');
+
+            // Focus Inner-A (index 1 after the back button).
+            const innerA = findItemByTitle<{onFocus?: () => void}>('Inner-A');
+            menuItemPropsCapture.current = [];
+            act(() => innerA?.onFocus?.());
+            expect(findItemByTitle<{focused?: boolean}>('Inner-A')?.focused).toBe(true);
+
+            menuItemPropsCapture.current = [];
+            tree.rerender(<SubMenuWithToggle showSub={false} />);
+
+            // After cascade: index 1 maps to Outer-B in the parent list. Focus must NOT carry over.
+            const outerBLatest = [...menuItemPropsCapture.current].reverse().find((p) => p.title === 'Outer-B') as {focused?: boolean} | undefined;
+            const outerALatest = [...menuItemPropsCapture.current].reverse().find((p) => p.title === 'Outer-A') as {focused?: boolean} | undefined;
+            expect(outerALatest?.focused).toBe(false);
+            expect(outerBLatest?.focused).toBe(false);
+        });
+
         // Sub's useLayoutEffect cleanup must only fire on unmount — a re-render inside the active sub must not pop nav.
         it('stays in the sub when focus changes inside it', () => {
             render(
