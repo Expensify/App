@@ -47,14 +47,14 @@ async function setupOnyxData(policy: Policy, reports: Report[], transactions: Ar
     await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
+    // Onyx writes during test setup are intentionally sequential so derived values
+    // (e.g. OUTSTANDING_REPORTS_BY_POLICY_ID) settle in the expected order before the hook subscribes.
     for (const report of reports) {
-        // eslint-disable-next-line no-await-in-loop -- Onyx writes during test setup must be sequential so derived values (e.g. OUTSTANDING_REPORTS_BY_POLICY_ID) settle in the expected order before the hook subscribes
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
     }
 
-    for (const txn of transactions) {
-        // eslint-disable-next-line no-await-in-loop -- Onyx writes during test setup must be sequential so transaction-driven derived values resolve deterministically before assertions run
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
+    for (const transaction of transactions) {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
     }
 
     await waitForBatchedUpdates();
