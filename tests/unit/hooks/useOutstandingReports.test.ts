@@ -47,8 +47,6 @@ async function setupOnyxData(policy: Policy, reports: Report[], transactions: Ar
     await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-    // Onyx writes during test setup are intentionally sequential so derived values
-    // (e.g. OUTSTANDING_REPORTS_BY_POLICY_ID) settle in the expected order before the hook subscribes.
     for (const report of reports) {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
     }
