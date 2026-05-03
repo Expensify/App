@@ -9,6 +9,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -20,7 +21,6 @@ import {useRootActions, useRootState} from './RootContext';
 import type {AnchorRef} from './RootContext';
 import useAnchorMeasurement from './useAnchorMeasurement';
 import useContentStateMachine from './useContentStateMachine';
-import useSuppressSpaceScroll from './useSuppressSpaceScroll';
 
 type ContentProps = {
     children: ReactNode;
