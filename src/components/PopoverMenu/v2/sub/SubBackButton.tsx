@@ -7,17 +7,18 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import {getParentSubID, useSubContext} from './SubContext';
 
 type SubBackButtonProps = {
     /** Defaults to a localized "Go back". */
     backButtonText?: string;
-    /** `null` pops to root. */
-    parentSubID: string | null;
 };
 
 /** Back-row auto-rendered by `<Sub.Content>` at the active level; pops one sub on press. */
-function SubBackButton({backButtonText, parentSubID}: SubBackButtonProps): React.ReactElement {
+function SubBackButton({backButtonText}: SubBackButtonProps): React.ReactElement {
     const {exitSub} = useContentActions(SubBackButton.displayName);
+    const subContext = useSubContext(SubBackButton.displayName);
+    const parentSubID = getParentSubID(subContext);
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();

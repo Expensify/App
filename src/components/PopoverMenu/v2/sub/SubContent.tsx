@@ -2,7 +2,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
 import SubBackButton from './SubBackButton';
-import {getParentSubID, useSubContext} from './SubContext';
+import {useSubContext} from './SubContext';
 
 type SubContentProps = {
     children: ReactNode;
@@ -24,12 +24,7 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
 
     return (
         <>
-            {isActiveLevel && (
-                <SubBackButton
-                    backButtonText={backButtonText}
-                    parentSubID={getParentSubID(subContext)}
-                />
-            )}
+            {isActiveLevel && <SubBackButton backButtonText={backButtonText} />}
             {children}
         </>
     );

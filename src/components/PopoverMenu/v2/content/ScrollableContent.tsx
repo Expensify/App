@@ -26,7 +26,7 @@ function ScrollableContent({shouldEnableMaxHeight = true, contentContainerStyle,
 
     return (
         <BaseContent
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards BasePopoverProps through to BaseContent
             {...rest}
             maxHeightStyle={maxHeightStyle}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
