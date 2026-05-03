@@ -1,12 +1,12 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
-// Internal hooks reached for here only so tests can drive an uncontrolled `<Root>` from the inside —
-// production code never imports these.
-import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+// Reaches for an internal hook so the harness can publish `activeAnchor` without rendering a
+// real `<Trigger>` button in every test. Production code never imports this.
+import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 
 const {useIsAtActiveLevel} = PopoverMenu;
@@ -94,51 +94,42 @@ function press(title: string): void {
 }
 
 /**
- * Helper rendered as a child of `<Root>` to open the menu on mount, mimicking
- * what a `<Trigger>` press would do. Lets tests stay declarative ("start open")
- * without binding to the public `<Trigger>` API. The rect is fabricated since
- * the mocked `<PopoverWithMeasuredContent>` doesn't read it.
+ * Helper rendered as a child of `<Root>` that publishes `activeAnchor` on mount, mimicking what a
+ * `<Trigger>` press would do. Stays mounted so the anchor persists across open/close cycles. Rect
+ * is fabricated since the mocked `<PopoverWithMeasuredContent>` doesn't read it.
  */
-function AutoOpen() {
-    const {setIsVisible, setActiveAnchor} = useRootActions('AutoOpen');
+function AutoSetAnchor() {
+    const {setActiveAnchor} = useRootActions('AutoSetAnchor');
     const ref = useRef<RNViewType>(null);
     useLayoutEffect(() => {
         setActiveAnchor({ref: ref as AnchorRef, rect: {x: 0, y: 0, width: 0, height: 0}});
-        setIsVisible(true);
-    }, [setIsVisible, setActiveAnchor]);
+    }, [setActiveAnchor]);
     return <View ref={ref} />;
 }
 
-/** Bridges `<Root>`'s internal isVisible state back out as an `onChange(next)` callback. */
-function CloseObserver({onChange}: {onChange?: (open: boolean) => void}) {
-    const {
-        state: {isVisible},
-    } = useRootState('CloseObserver');
-    const previous = useRef(isVisible);
-    useEffect(() => {
-        if (previous.current === isVisible) {
-            return;
-        }
-        previous.current = isVisible;
-        onChange?.(isVisible);
-    }, [isVisible, onChange]);
-    return null;
-}
-
+/** Drives `<Root>` via the controlled `open`/`onOpenChange` props. */
 function ControlledHarness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
+    const [open, setOpen] = useState(initialOpen);
+    const handleOpenChange = (next: boolean) => {
+        setOpen(next);
+        onOpenChange?.(next);
+    };
     return (
-        <PopoverMenu.Root>
-            {initialOpen && <AutoOpen />}
-            <CloseObserver onChange={onOpenChange} />
+        <PopoverMenu.Root
+            open={open}
+            onOpenChange={handleOpenChange}
+        >
+            <AutoSetAnchor />
             {children}
         </PopoverMenu.Root>
     );
 }
 
+/** Drives `<Root>` via `defaultOpen` (uncontrolled). */
 function UncontrolledHarness({defaultOpen = false, children}: PropsWithChildren<{defaultOpen?: boolean}>) {
     return (
-        <PopoverMenu.Root>
-            {defaultOpen ? <AutoOpen /> : null}
+        <PopoverMenu.Root defaultOpen={defaultOpen}>
+            <AutoSetAnchor />
             {children}
         </PopoverMenu.Root>
     );

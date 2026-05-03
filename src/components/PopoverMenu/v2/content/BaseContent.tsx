@@ -6,7 +6,6 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
 import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
-import type {AnchorRect} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,11 +14,14 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
+import useAnchorMeasurement from './useAnchorMeasurement';
 import useContentController from './useContentController';
 
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
+    /** Highest precedence — for callers that anchor to event coordinates (long-press, right-click). */
+    anchorPosition?: AnchorPosition;
     containerStyles?: StyleProp<ViewStyle>;
     innerContainerStyle?: ViewStyle;
     onLayout?: (e: LayoutChangeEvent) => void;
@@ -55,6 +57,7 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
 function BaseContent({
     children,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
+    anchorPosition: anchorPositionProp,
     containerStyles,
     innerContainerStyle,
     maxHeightStyle,
@@ -80,19 +83,21 @@ function BaseContent({
     const styles = useThemeStyles();
     const {
         state: {isVisible},
-        meta: {activeAnchor},
+        meta: {anchorRef, activeAnchor},
     } = useRootState(BaseContent.displayName);
     const {setIsVisible} = useRootActions(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    const anchorPosition = useAnchorMeasurement({activeAnchor, anchorRef, anchorPositionProp, anchorAlignment, isVisible});
     const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
 
-    if (!activeAnchor) {
+    // Trigger-published ref wins; fall back to the legacy `anchorRef` Root prop for callers without a `<Trigger>`.
+    const effectiveAnchorRef = activeAnchor?.ref ?? anchorRef;
+
+    if (!anchorPosition || !effectiveAnchorRef) {
         return null;
     }
-
-    const anchorPosition = computeAnchorPositionFromRect(activeAnchor.rect, anchorAlignment);
 
     return (
         <ContentNavigationContext.Provider value={navigation}>
@@ -100,7 +105,7 @@ function BaseContent({
                 <ContentActionsContext.Provider value={actions}>
                     <PopoverWithMeasuredContent
                         anchorPosition={anchorPosition}
-                        anchorRef={activeAnchor.ref}
+                        anchorRef={effectiveAnchorRef}
                         anchorAlignment={anchorAlignment}
                         onClose={actions.close}
                         isVisible={isVisible}
@@ -146,24 +151,6 @@ function BaseContent({
             </ContentFocusContext.Provider>
         </ContentNavigationContext.Provider>
     );
-}
-
-/** Sync mirror of the math in `usePopoverPosition.calculatePopoverPosition`. */
-function computeAnchorPositionFromRect(rect: AnchorRect, alignment: AnchorAlignment): AnchorPosition {
-    const {x, y, width, height} = rect;
-
-    let horizontal: number;
-    if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
-        horizontal = x;
-    } else if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER) {
-        horizontal = x + width / 2;
-    } else {
-        horizontal = x + width;
-    }
-
-    const vertical = alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP ? y + height + CONST.MODAL.POPOVER_MENU_PADDING : y - CONST.MODAL.POPOVER_MENU_PADDING;
-
-    return {horizontal, vertical};
 }
 
 BaseContent.displayName = 'PopoverMenu.BaseContent';

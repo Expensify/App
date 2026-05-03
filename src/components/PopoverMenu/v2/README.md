@@ -4,7 +4,7 @@ Compound, uncontrolled popover-menu primitives. Inspired by [Radix DropdownMenu]
 
 ## Goals
 
-- **Uncontrolled by default.** State (open / closed, focused row, active sub-menu) lives entirely inside `<Root>`. Consumers don't manage `isVisible`, anchor coordinates, or focus indices. Callers that need programmatic-open or non-element anchors stay on v1.
+- **Uncontrolled by default, controlled when needed.** Visibility state lives inside `<Root>` by default — most callers don't manage `isVisible`. Callers that need to drive open/close from outside (product tours, Onyx-derived state, screen-blur effects) pass `open` / `onOpenChange` per Radix's pattern. `<Trigger>` works in both modes.
 - **Composition over configuration.** Behaviour is selected by which components you compose, not by boolean props on a monolithic component (`Content` vs `ScrollableContent`, `<Header>` instead of `headerText`, etc.).
 - **Structural insulation from re-renders.** Triggers don't re-render when content state (sub navigation, focus) changes. Achieved by splitting state into separate contexts (`RootState/Actions`, `ContentNavigation/Focus/Actions`, `Sub`).
 - **Always-on hierarchy assertions.** Misuse fails loud at render time with a descriptive error (`<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`), in dev *and* staging. The throws are emitted by the existing context-consumer hooks (`useRootState`, `useContentActions`, `useSubContext`, …), which take a `componentName` and attribute the failure to the offending component — no separate assertion layer.
@@ -36,6 +36,26 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
 ```
 
 Use `<PopoverMenu.ScrollableContent>` instead of `<PopoverMenu.Content>` when the row count is unbounded.
+
+### Controlled mode
+
+When the popover needs to be opened or closed by something other than a `<Trigger>` press (Onyx events, `useImperativeHandle`, screen-blur effects, product tours), drive `<Root>` directly:
+
+```tsx
+const [open, setOpen] = useState(false);
+
+<PopoverMenu.Root
+    open={open}
+    onOpenChange={setOpen}
+    anchorRef={anchorRef}
+>
+    <PopoverMenu.Content anchorPosition={{horizontal: x, vertical: y}}>
+        ...
+    </PopoverMenu.Content>
+</PopoverMenu.Root>
+```
+
+`anchorRef` (on `<Root>`) and `anchorPosition` (on `<Content>` / `<ScrollableContent>`) are escape hatches for callers without a child `<Trigger>` element — e.g. event-coordinate anchors from long-press or right-click. `<Trigger>`'s captured rect always wins when present.
 
 ## Folder layout
 

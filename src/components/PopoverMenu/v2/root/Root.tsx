@@ -1,20 +1,26 @@
 import React, {useState} from 'react';
 import type {ReactNode} from 'react';
+import useControllableState from '@hooks/useControllableState';
 import {RootActionsContext, RootStateContext} from './RootContext';
-import type {ActiveAnchor, RootActions, RootState} from './RootContext';
+import type {ActiveAnchor, AnchorRef, RootActions, RootState} from './RootContext';
 
 type RootProps = {
     children: ReactNode;
+    /** Escape hatch for callers that open without a `<Trigger>` (e.g. KYC flow, Onyx-derived state). */
+    anchorRef?: AnchorRef;
+    open?: boolean;
+    defaultOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
 };
 
-/** Provider that owns popover open state and the currently-active `<Trigger>` anchor. */
-function Root({children}: RootProps): React.ReactElement {
-    const [isVisible, setIsVisible] = useState(false);
+/** Supports both controlled (`open`/`onOpenChange`) and uncontrolled (`defaultOpen`) modes — Radix `DropdownMenu.Root` pattern. */
+function Root({children, anchorRef, open, defaultOpen = false, onOpenChange}: RootProps): React.ReactElement {
+    const [isVisible, setIsVisible] = useControllableState({value: open, defaultValue: defaultOpen, onChange: onOpenChange});
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
 
     const stateValue: RootState = {
         state: {isVisible},
-        meta: {activeAnchor},
+        meta: {anchorRef: anchorRef ?? null, activeAnchor},
     };
     const actions: RootActions = {setIsVisible, setActiveAnchor};
 

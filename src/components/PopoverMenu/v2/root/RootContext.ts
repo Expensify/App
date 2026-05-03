@@ -1,3 +1,4 @@
+// Split state and actions across two contexts so trigger renders don't react to visibility changes.
 import {createContext, use} from 'react';
 import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {View} from 'react-native';
@@ -14,7 +15,12 @@ type ActiveAnchor = {
 
 type RootState = {
     state: {isVisible: boolean};
-    meta: {activeAnchor: ActiveAnchor | null};
+    meta: {
+        /** Legacy escape hatch for callers without a `<Trigger>`. */
+        anchorRef: AnchorRef | null;
+        /** Set by `<Trigger>` on press. Wins over `anchorRef`. */
+        activeAnchor: ActiveAnchor | null;
+    };
 };
 
 type RootActions = {
