@@ -12,23 +12,23 @@ type ActiveAnchor = {
     rect: AnchorRect;
 };
 
-type RootStateValue = {
+type RootState = {
     state: {isVisible: boolean};
     meta: {activeAnchor: ActiveAnchor | null};
 };
 
-type RootActionsValue = {
+type RootActions = {
     setIsVisible: Dispatch<SetStateAction<boolean>>;
     setActiveAnchor: (anchor: ActiveAnchor) => void;
 };
 
-const RootStateContext = createContext<RootStateValue | null>(null);
+const RootStateContext = createContext<RootState | null>(null);
 RootStateContext.displayName = 'PopoverMenuRootStateContext';
 
-const RootActionsContext = createContext<RootActionsValue | null>(null);
+const RootActionsContext = createContext<RootActions | null>(null);
 RootActionsContext.displayName = 'PopoverMenuRootActionsContext';
 
-function useRootState(componentName: string): RootStateValue {
+function useRootState(componentName: string): RootState {
     const value = use(RootStateContext);
     if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
@@ -36,7 +36,7 @@ function useRootState(componentName: string): RootStateValue {
     return value;
 }
 
-function useRootActions(componentName: string): RootActionsValue {
+function useRootActions(componentName: string): RootActions {
     const value = use(RootActionsContext);
     if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
@@ -45,4 +45,4 @@ function useRootActions(componentName: string): RootActionsValue {
 }
 
 export {RootStateContext, RootActionsContext, useRootState, useRootActions};
-export type {ActiveAnchor, AnchorRect, AnchorRef, RootStateValue, RootActionsValue};
+export type {ActiveAnchor, AnchorRect, AnchorRef, RootState, RootActions};

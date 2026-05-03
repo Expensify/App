@@ -18,6 +18,7 @@ type TriggerProps = WithSentryLabel & {
     testID?: string;
 };
 
+/** Pressable that opens its enclosing `<Root>` and registers itself as the popover's anchor. */
 function Trigger({children, style, hoverStyle, accessibilityLabel, role, disabled, sentryLabel, testID}: TriggerProps): React.ReactElement {
     const {setIsVisible, setActiveAnchor} = useRootActions(Trigger.displayName);
     const ownRef = useRef<View>(null);

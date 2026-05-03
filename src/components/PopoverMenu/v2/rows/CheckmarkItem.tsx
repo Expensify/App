@@ -23,6 +23,7 @@ type CheckmarkItemOwnProps = {
 
 type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
 
+/** Selectable row that renders a check when `isSelected` — Radix's `DropdownMenu.CheckboxItem` analogue. */
 function CheckmarkItem({
     text,
     isSelected = false,

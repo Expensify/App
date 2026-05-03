@@ -25,6 +25,7 @@ type SubTriggerProps = {
     testID?: string;
 };
 
+/** Row that opens its enclosing `<Sub>` on press; only visible at the parent level. */
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
     // Resolve Sub first — closer-neighbor error wins over the also-true "outside <Content>".
     const subContext = useSubContext(SubTrigger.displayName);

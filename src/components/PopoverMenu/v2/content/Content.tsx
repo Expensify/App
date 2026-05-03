@@ -13,6 +13,7 @@ type ContentProps = BasePopoverProps & {
     shouldEnableMaxHeight?: boolean;
 };
 
+/** Popover surface for menus that fit; for unbounded row counts, use `<ScrollableContent>`. */
 function Content({shouldEnableMaxHeight = true, ...rest}: ContentProps): React.ReactElement | null {
     const {
         state: {isVisible},

@@ -8,17 +8,17 @@ type FocusableItem = {
     onActivate: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
-type ContentNavigationValue = {
+type ContentNavigation = {
     currentSubID: string | null;
     currentSubAncestorChain: readonly string[];
 };
 
 // Split from navigation so focus changes don't re-render navigation-only consumers.
-type ContentFocusValue = {
+type ContentFocus = {
     focusedID: string | null;
 };
 
-type ContentActionsValue = {
+type ContentActions = {
     enterSub: (id: string, ancestorChain: readonly string[]) => void;
     /** `null` pops to root. */
     exitSub: (target?: string | null) => void;
@@ -32,16 +32,16 @@ type ContentActionsValue = {
     close: () => void;
 };
 
-const ContentNavigationContext = createContext<ContentNavigationValue | null>(null);
+const ContentNavigationContext = createContext<ContentNavigation | null>(null);
 ContentNavigationContext.displayName = 'PopoverMenuContentNavigationContext';
 
-const ContentFocusContext = createContext<ContentFocusValue | null>(null);
+const ContentFocusContext = createContext<ContentFocus | null>(null);
 ContentFocusContext.displayName = 'PopoverMenuContentFocusContext';
 
-const ContentActionsContext = createContext<ContentActionsValue | null>(null);
+const ContentActionsContext = createContext<ContentActions | null>(null);
 ContentActionsContext.displayName = 'PopoverMenuContentActionsContext';
 
-function useContentNavigation(componentName: string): ContentNavigationValue {
+function useContentNavigation(componentName: string): ContentNavigation {
     const value = use(ContentNavigationContext);
     if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
@@ -49,7 +49,7 @@ function useContentNavigation(componentName: string): ContentNavigationValue {
     return value;
 }
 
-function useContentFocus(componentName: string): ContentFocusValue {
+function useContentFocus(componentName: string): ContentFocus {
     const value = use(ContentFocusContext);
     if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
@@ -57,7 +57,7 @@ function useContentFocus(componentName: string): ContentFocusValue {
     return value;
 }
 
-function useContentActions(componentName: string): ContentActionsValue {
+function useContentActions(componentName: string): ContentActions {
     const value = use(ContentActionsContext);
     if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
@@ -66,4 +66,4 @@ function useContentActions(componentName: string): ContentActionsValue {
 }
 
 export {ContentNavigationContext, ContentFocusContext, ContentActionsContext, useContentNavigation, useContentFocus, useContentActions};
-export type {ContentNavigationValue, ContentFocusValue, ContentActionsValue, FocusableItem};
+export type {ContentNavigation, ContentFocus, ContentActions, FocusableItem};

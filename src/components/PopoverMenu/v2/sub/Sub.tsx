@@ -12,7 +12,7 @@ type SubProps = {
     id?: string;
 };
 
-/** Drill-down (single panel + back button), not Radix-style cascading — deliberate for touch. */
+/** Compound holder for one nested submenu level. */
 function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
     const subID = id ?? fallbackID;

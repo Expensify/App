@@ -7,6 +7,7 @@ type GroupProps = {
     children: ReactNode;
 };
 
+/** Transparent ARIA `role="group"` wrapper; children self-gate to the active level. */
 function Group({children}: GroupProps): React.ReactElement {
     // Result discarded — attributes hierarchy violations to <Group>, which otherwise touches no context.
     useContentActions(Group.displayName);

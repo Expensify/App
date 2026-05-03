@@ -3,7 +3,7 @@ import type {Dispatch, SetStateAction} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
-import type {ContentActionsValue, ContentFocusValue, ContentNavigationValue, FocusableItem} from './ContentContext';
+import type {ContentActions, ContentFocus, ContentNavigation, FocusableItem} from './ContentContext';
 import useOrderedIDs from './useOrderedIDs';
 
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
@@ -11,9 +11,9 @@ type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 const ROOT_SUB: CurrentSub = {id: null, ancestorChain: []};
 
 function useContentController({isVisible, setIsVisible}: {isVisible: boolean; setIsVisible: Dispatch<SetStateAction<boolean>>}): {
-    navigation: ContentNavigationValue;
-    focus: ContentFocusValue;
-    actions: ContentActionsValue;
+    navigation: ContentNavigation;
+    focus: ContentFocus;
+    actions: ContentActions;
 } {
     const [currentSub, setCurrentSub] = useState<CurrentSub>(ROOT_SUB);
     const mountedSubs = useRef<Set<string>>(new Set());
@@ -30,7 +30,7 @@ function useContentController({isVisible, setIsVisible}: {isVisible: boolean; se
         orderedIDsRef.current = orderedIDs;
     });
 
-    const actions: ContentActionsValue = {
+    const actions: ContentActions = {
         // Reset focus on level change — the old index points at a different row in the new registry.
         enterSub: (id, ancestorChain) => {
             setCurrentSub({id, ancestorChain});

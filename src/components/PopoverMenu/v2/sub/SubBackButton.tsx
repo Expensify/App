@@ -15,6 +15,7 @@ type SubBackButtonProps = {
     parentSubID: string | null;
 };
 
+/** Back-row auto-rendered by `<Sub.Content>` at the active level; pops one sub on press. */
 function SubBackButton({backButtonText, parentSubID}: SubBackButtonProps): React.ReactElement {
     const {exitSub} = useContentActions(SubBackButton.displayName);
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);

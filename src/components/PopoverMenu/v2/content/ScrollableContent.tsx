@@ -15,6 +15,7 @@ type ScrollableContentProps = BasePopoverProps & {
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
+/** Popover surface that wraps children in a `<ScrollView>` for unbounded row counts. */
 function ScrollableContent({shouldEnableMaxHeight = true, contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
     // Result discarded — attributes hierarchy violations to ScrollableContent, not BaseContent.
     useRootState(ScrollableContent.displayName);
