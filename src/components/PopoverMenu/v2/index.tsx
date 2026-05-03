@@ -13,5 +13,5 @@ export type {AnchorRef, RootProps, TriggerProps} from './root';
 export {CheckmarkItem, Group, Header, Item, Label, Separator} from './rows';
 export type {CheckmarkItemProps, GroupProps, HeaderProps, ItemProps, ItemSelectEvent, LabelProps} from './rows';
 
-export {Sub, useIsAtActiveLevel} from './sub';
+export {Sub, SubContent, SubTrigger, useIsAtActiveLevel} from './sub';
 export type {SubContentProps, SubProps, SubTriggerProps} from './sub';

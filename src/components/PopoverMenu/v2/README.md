@@ -26,10 +26,10 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
         <PopoverMenu.Separator />
 
         <PopoverMenu.Sub>
-            <PopoverMenu.Sub.Trigger text="More" />
-            <PopoverMenu.Sub.Content>
+            <PopoverMenu.SubTrigger text="More" />
+            <PopoverMenu.SubContent>
                 <PopoverMenu.Item text="Archive" onSelect={...} />
-            </PopoverMenu.Sub.Content>
+            </PopoverMenu.SubContent>
         </PopoverMenu.Sub>
     </PopoverMenu.Content>
 </PopoverMenu.Root>
@@ -44,7 +44,7 @@ Grouped by feature, not by file type. Each subfolder owns its components, contex
 - **`root/`** — `<Root>` provider and `<Trigger>` button.
 - **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`) plus the internal scaffolding they share.
 - **`rows/`** — leaf rows rendered inside content (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`).
-- **`sub/`** — the `<Sub>` compound (`Sub.Trigger`, `Sub.Content`).
+- **`sub/`** — `<Sub>`, `<SubTrigger>`, and `<SubContent>` (drill-down submenu primitives).
 
 Each file carries a high-level header comment describing its role; treat that as the source of truth, not this README.
 
@@ -63,6 +63,6 @@ These are enforced at runtime — not just by convention.
 | `Trigger` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
 | `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `Sub.Content`) |
-| `Sub.Trigger`, `Sub.Content` | `Sub` |
+| `SubTrigger`, `SubContent` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.

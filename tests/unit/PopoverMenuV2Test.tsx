@@ -459,13 +459,13 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="Pay as business" />
-                            <PopoverMenu.Sub.Content backButtonText="Business">
+                            <PopoverMenu.SubTrigger text="Pay as business" />
+                            <PopoverMenu.SubContent backButtonText="Business">
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -485,13 +485,13 @@ describe('PopoverMenu V2', () => {
                         onSelect={() => {}}
                     />
                     <PopoverMenu.Sub>
-                        <PopoverMenu.Sub.Trigger text="Pay as business" />
-                        <PopoverMenu.Sub.Content backButtonText="Business">
+                        <PopoverMenu.SubTrigger text="Pay as business" />
+                        <PopoverMenu.SubContent backButtonText="Business">
                             <PopoverMenu.Item
                                 text="Sub option"
                                 onSelect={() => {}}
                             />
-                        </PopoverMenu.Sub.Content>
+                        </PopoverMenu.SubContent>
                     </PopoverMenu.Sub>
                     <PopoverMenu.Item
                         text="Top 2"
@@ -501,7 +501,7 @@ describe('PopoverMenu V2', () => {
             </ControlledHarness>
         );
 
-        it('shows top-level items + Sub.Trigger when no sub is entered', () => {
+        it('shows top-level items + SubTrigger when no sub is entered', () => {
             render(renderTwoLevelMenu());
             expect(findItemByTitle('Top 1')).toBeDefined();
             expect(findItemByTitle('Top 2')).toBeDefined();
@@ -537,13 +537,13 @@ describe('PopoverMenu V2', () => {
                 >
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="Sub" />
-                            <PopoverMenu.Sub.Content>
+                            <PopoverMenu.SubTrigger text="Sub" />
+                            <PopoverMenu.SubContent>
                                 <PopoverMenu.Item
                                     text="Choose"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -565,13 +565,13 @@ describe('PopoverMenu V2', () => {
                     >
                         <PopoverMenu.Content>
                             <PopoverMenu.Sub id="A">
-                                <PopoverMenu.Sub.Trigger text="Open Sub" />
-                                <PopoverMenu.Sub.Content backButtonText="Back">
+                                <PopoverMenu.SubTrigger text="Open Sub" />
+                                <PopoverMenu.SubContent backButtonText="Back">
                                     <PopoverMenu.Item
                                         text="Choose"
                                         onSelect={() => {}}
                                     />
-                                </PopoverMenu.Sub.Content>
+                                </PopoverMenu.SubContent>
                             </PopoverMenu.Sub>
                         </PopoverMenu.Content>
                     </ControlledHarness>
@@ -589,27 +589,27 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Choose')).toBeUndefined();
         });
 
-        it('renders a nested Sub.Trigger when its parent sub is the active level', () => {
+        it('renders a nested SubTrigger when its parent sub is the active level', () => {
             render(
                 <ControlledHarness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="A">
-                            <PopoverMenu.Sub.Trigger text="Open A" />
-                            <PopoverMenu.Sub.Content backButtonText="Back to root">
+                            <PopoverMenu.SubTrigger text="Open A" />
+                            <PopoverMenu.SubContent backButtonText="Back to root">
                                 <PopoverMenu.Item
                                     text="A item"
                                     onSelect={() => {}}
                                 />
                                 <PopoverMenu.Sub id="B">
-                                    <PopoverMenu.Sub.Trigger text="Open B" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                    <PopoverMenu.SubTrigger text="Open B" />
+                                    <PopoverMenu.SubContent backButtonText="Back to A">
                                         <PopoverMenu.Item
                                             text="B item"
                                             onSelect={() => {}}
                                         />
-                                    </PopoverMenu.Sub.Content>
+                                    </PopoverMenu.SubContent>
                                 </PopoverMenu.Sub>
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -646,13 +646,13 @@ describe('PopoverMenu V2', () => {
                             />
                             {showSub && (
                                 <PopoverMenu.Sub id="A">
-                                    <PopoverMenu.Sub.Trigger text="Open A" />
-                                    <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.SubTrigger text="Open A" />
+                                    <PopoverMenu.SubContent>
                                         <PopoverMenu.Item
                                             text="A item"
                                             onSelect={() => {}}
                                         />
-                                    </PopoverMenu.Sub.Content>
+                                    </PopoverMenu.SubContent>
                                 </PopoverMenu.Sub>
                             )}
                         </PopoverMenu.Content>
@@ -682,18 +682,18 @@ describe('PopoverMenu V2', () => {
                             />
                             {showSubs && (
                                 <PopoverMenu.Sub id="A">
-                                    <PopoverMenu.Sub.Trigger text="Open A" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back to root">
+                                    <PopoverMenu.SubTrigger text="Open A" />
+                                    <PopoverMenu.SubContent backButtonText="Back to root">
                                         <PopoverMenu.Sub id="B">
-                                            <PopoverMenu.Sub.Trigger text="Open B" />
-                                            <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                            <PopoverMenu.SubTrigger text="Open B" />
+                                            <PopoverMenu.SubContent backButtonText="Back to A">
                                                 <PopoverMenu.Item
                                                     text="B item"
                                                     onSelect={() => {}}
                                                 />
-                                            </PopoverMenu.Sub.Content>
+                                            </PopoverMenu.SubContent>
                                         </PopoverMenu.Sub>
-                                    </PopoverMenu.Sub.Content>
+                                    </PopoverMenu.SubContent>
                                 </PopoverMenu.Sub>
                             )}
                         </PopoverMenu.Content>
@@ -723,14 +723,14 @@ describe('PopoverMenu V2', () => {
                 <ControlledHarness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="Trigger" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.SubTrigger text="Trigger" />
+                            <PopoverMenu.SubContent backButtonText="Back">
                                 <CustomRow />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -759,19 +759,19 @@ describe('PopoverMenu V2', () => {
                 <ControlledHarness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
-                            <PopoverMenu.Sub.Trigger text="Outer" />
-                            <PopoverMenu.Sub.Content>
+                            <PopoverMenu.SubTrigger text="Outer" />
+                            <PopoverMenu.SubContent>
                                 <SelfGatedRow />
                                 <PopoverMenu.Sub id="inner">
-                                    <PopoverMenu.Sub.Trigger text="Inner" />
-                                    <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.SubTrigger text="Inner" />
+                                    <PopoverMenu.SubContent>
                                         <PopoverMenu.Item
                                             text="Innermost"
                                             onSelect={() => {}}
                                         />
-                                    </PopoverMenu.Sub.Content>
+                                    </PopoverMenu.SubContent>
                                 </PopoverMenu.Sub>
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -787,7 +787,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Innermost')).toBeDefined();
         });
 
-        it('keeps a parent-level <Sub.Content> mounted while a nested sub is active', () => {
+        it('keeps a parent-level <SubContent> mounted while a nested sub is active', () => {
             const innerRenderSpy = jest.fn();
             function InnerCustomRow() {
                 innerRenderSpy();
@@ -798,19 +798,19 @@ describe('PopoverMenu V2', () => {
                 <ControlledHarness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
-                            <PopoverMenu.Sub.Trigger text="Open outer" />
-                            <PopoverMenu.Sub.Content backButtonText="Back to root">
+                            <PopoverMenu.SubTrigger text="Open outer" />
+                            <PopoverMenu.SubContent backButtonText="Back to root">
                                 <PopoverMenu.Sub id="inner">
-                                    <PopoverMenu.Sub.Trigger text="Open inner" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back to outer">
+                                    <PopoverMenu.SubTrigger text="Open inner" />
+                                    <PopoverMenu.SubContent backButtonText="Back to outer">
                                         <InnerCustomRow />
                                         <PopoverMenu.Item
                                             text="Innermost"
                                             onSelect={() => {}}
                                         />
-                                    </PopoverMenu.Sub.Content>
+                                    </PopoverMenu.SubContent>
                                 </PopoverMenu.Sub>
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -833,13 +833,13 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="Trigger" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.SubTrigger text="Trigger" />
+                            <PopoverMenu.SubContent backButtonText="Back">
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -882,13 +882,13 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Separator />
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="Sub" />
-                            <PopoverMenu.Sub.Content>
+                            <PopoverMenu.SubTrigger text="Sub" />
+                            <PopoverMenu.SubContent>
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -906,13 +906,13 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Group>
                             <PopoverMenu.Sub>
-                                <PopoverMenu.Sub.Trigger text="Open" />
-                                <PopoverMenu.Sub.Content>
+                                <PopoverMenu.SubTrigger text="Open" />
+                                <PopoverMenu.SubContent>
                                     <PopoverMenu.Item
                                         text="Inside"
                                         onSelect={() => {}}
                                     />
-                                </PopoverMenu.Sub.Content>
+                                </PopoverMenu.SubContent>
                             </PopoverMenu.Sub>
                         </PopoverMenu.Group>
                     </PopoverMenu.Content>
@@ -952,13 +952,13 @@ describe('PopoverMenu V2', () => {
                             />
                         </PopoverMenu.Group>
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="More" />
-                            <PopoverMenu.Sub.Content>
+                            <PopoverMenu.SubTrigger text="More" />
+                            <PopoverMenu.SubContent>
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </ControlledHarness>,
@@ -1029,40 +1029,40 @@ describe('PopoverMenu V2', () => {
                 render(
                     <ControlledHarness initialOpen>
                         <PopoverMenu.Sub>
-                            <PopoverMenu.Sub.Trigger text="X" />
+                            <PopoverMenu.SubTrigger text="X" />
                         </PopoverMenu.Sub>
                     </ControlledHarness>,
                 ),
             ).toThrow(/<PopoverMenu\.Sub> must be rendered inside <PopoverMenu\.Content>/);
         });
 
-        it('throws when Sub.Trigger is rendered outside Sub', () => {
+        it('throws when SubTrigger is rendered outside Sub', () => {
             expect(() =>
                 render(
                     <ControlledHarness initialOpen>
                         <PopoverMenu.Content>
-                            <PopoverMenu.Sub.Trigger text="X" />
+                            <PopoverMenu.SubTrigger text="X" />
                         </PopoverMenu.Content>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Sub\.Trigger> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/<PopoverMenu\.SubTrigger> must be rendered inside <PopoverMenu\.Sub>/);
         });
 
-        it('throws when Sub.Content is rendered outside Sub', () => {
+        it('throws when SubContent is rendered outside Sub', () => {
             expect(() =>
                 render(
                     <ControlledHarness initialOpen>
                         <PopoverMenu.Content>
-                            <PopoverMenu.Sub.Content>
+                            <PopoverMenu.SubContent>
                                 <PopoverMenu.Item
                                     text="X"
                                     onSelect={() => {}}
                                 />
-                            </PopoverMenu.Sub.Content>
+                            </PopoverMenu.SubContent>
                         </PopoverMenu.Content>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Sub\.Content> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/<PopoverMenu\.SubContent> must be rendered inside <PopoverMenu\.Sub>/);
         });
     });
 });

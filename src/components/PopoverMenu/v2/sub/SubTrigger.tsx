@@ -71,12 +71,12 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
             titleStyle={titleStyle}
             wrapperStyle={wrapperStyle}
             role={CONST.ROLE.BUTTON}
-            pressableTestID={testID ?? `PopoverMenu.Sub.Trigger-${text}`}
+            pressableTestID={testID ?? `PopoverMenu.SubTrigger-${text}`}
         />
     );
 }
 
-SubTrigger.displayName = 'PopoverMenu.Sub.Trigger';
+SubTrigger.displayName = 'PopoverMenu.SubTrigger';
 
 export default SubTrigger;
 export type {SubTriggerProps};

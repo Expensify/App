@@ -30,7 +30,7 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
     );
 }
 
-SubContent.displayName = 'PopoverMenu.Sub.Content';
+SubContent.displayName = 'PopoverMenu.SubContent';
 
 export default SubContent;
 export type {SubContentProps};
