@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
@@ -71,10 +71,11 @@ function BaseContent({
     const anchorPosition = useAnchorMeasurement({activeAnchor, anchorRef, anchorPositionProp, anchorAlignment, isVisible});
     const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
 
-    // Trigger-published ref wins; fall back to the legacy `anchorRef` Root prop for callers without a `<Trigger>`.
-    const effectiveAnchorRef = activeAnchor?.ref ?? anchorRef;
+    // Fallback ref for event-coord callers — PopoverWithMeasuredContent requires one even when anchorPosition fully determines layout.
+    const fallbackAnchorRef = useRef<View>(null);
+    const effectiveAnchorRef = activeAnchor?.ref ?? anchorRef ?? fallbackAnchorRef;
 
-    if (!anchorPosition || !effectiveAnchorRef) {
+    if (!anchorPosition) {
         return null;
     }
 

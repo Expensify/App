@@ -178,6 +178,21 @@ describe('PopoverMenu V2', () => {
             );
             expect(findItemByTitle('Default')).toBeDefined();
         });
+
+        // Event-coord callers like VideoPopoverMenu drive Root with anchorPosition only — anchorPosition alone must be sufficient.
+        it('renders with anchorPosition only (no Trigger, no Root anchorRef)', () => {
+            render(
+                <PopoverMenu.Root open>
+                    <PopoverMenu.Content anchorPosition={{horizontal: 100, vertical: 200}}>
+                        <PopoverMenu.Item
+                            text="Anchored by coords"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </PopoverMenu.Root>,
+            );
+            expect(findItemByTitle('Anchored by coords')).toBeDefined();
+        });
     });
 
     describe('Item', () => {
