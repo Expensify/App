@@ -189,7 +189,8 @@ function WithCheckmarkItems() {
 
 function ScrollableVariant() {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const items = Array.from({length: 30}, (_, i) => `Option ${i + 1}`);
+    // 100 items exercises the documented worst case for `<ScrollableContent>` (bounded-N regime).
+    const items = Array.from({length: 100}, (_, i) => `Option ${i + 1}`);
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
@@ -199,7 +200,7 @@ function ScrollableVariant() {
                 >
                     <TriggerLabel
                         iconSrc={icons.Plus}
-                        label="Open 30-item menu"
+                        label="Open 100-item menu"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.ScrollableContent>
