@@ -19,7 +19,15 @@ const story: Meta<typeof PopoverMenu.Root> = {
     component: PopoverMenu.Root,
 };
 
-const triggerStyle = {flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderWidth: 1, borderRadius: 8, alignSelf: 'flex-start'} as const;
+const triggerStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: variables.spacing2,
+    padding: variables.spacing2 + 4,
+    borderWidth: variables.borderTopWidth,
+    borderRadius: variables.componentBorderRadiusNormal,
+    alignSelf: 'flex-start',
+} as const;
 
 function TriggerLabel({iconSrc, label}: {iconSrc: React.ComponentProps<typeof Icon>['src']; label: string}) {
     return (

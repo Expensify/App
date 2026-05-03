@@ -1,14 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 /** Horizontal divider between rows; hides outside the active sub-level. */
 function Separator(): React.ReactElement | null {
     const isAtActiveLevel = useIsAtActiveLevel(Separator.displayName);
     const styles = useThemeStyles();
-    const theme = useTheme();
 
     if (!isAtActiveLevel) {
         return null;
@@ -17,7 +15,7 @@ function Separator(): React.ReactElement | null {
     return (
         <View
             accessibilityRole="none"
-            style={[styles.mv2, styles.ph5, {borderTopWidth: 1, borderTopColor: theme.border}]}
+            style={[styles.mv2, styles.ph5, styles.borderTop]}
         />
     );
 }
