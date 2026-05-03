@@ -1,8 +1,12 @@
 import type {Meta} from '@storybook/react-webpack5';
 import React from 'react';
+import {View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
+import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 /**
@@ -15,6 +19,21 @@ const story: Meta<typeof PopoverMenu.Root> = {
     component: PopoverMenu.Root,
 };
 
+const triggerStyle = {flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderWidth: 1, borderRadius: 8, alignSelf: 'flex-start'} as const;
+
+function TriggerLabel({iconSrc, label}: {iconSrc: React.ComponentProps<typeof Icon>['src']; label: string}) {
+    return (
+        <View style={triggerStyle}>
+            <Icon
+                src={iconSrc}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
+            />
+            <Text>{label}</Text>
+        </View>
+    );
+}
+
 function Default() {
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Bank', 'CreditCard']);
     return (
@@ -24,10 +43,9 @@ function Default() {
                     accessibilityLabel="Open menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text="Add payment method"
-                        icon={icons.Plus}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Plus}
+                        label="Add payment method"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.Content>
@@ -56,10 +74,9 @@ function WithHeader() {
                     accessibilityLabel="Open menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text="Pick a payment method"
-                        icon={icons.Plus}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Plus}
+                        label="Pick a payment method"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.Content>
@@ -89,10 +106,9 @@ function WithSubmenu() {
                     accessibilityLabel="Open menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text="More"
-                        icon={icons.Plus}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Plus}
+                        label="More"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.Content>
@@ -141,10 +157,9 @@ function WithCheckmarkItems() {
                     accessibilityLabel="Open speed menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text={`Playback speed: ${selected}`}
-                        icon={icons.Meter}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Meter}
+                        label={`Playback speed: ${selected}`}
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.Content>
@@ -174,10 +189,9 @@ function ScrollableVariant() {
                     accessibilityLabel="Open long menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text="Open 30-item menu"
-                        icon={icons.Plus}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Plus}
+                        label="Open 30-item menu"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.ScrollableContent>
@@ -204,10 +218,9 @@ function GroupedWithSeparator() {
                     accessibilityLabel="Open menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text="Account actions"
-                        icon={icons.Plus}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Plus}
+                        label="Account actions"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.Content>
@@ -249,10 +262,9 @@ function DisabledRow() {
                     accessibilityLabel="Open menu"
                     role={CONST.ROLE.BUTTON}
                 >
-                    <PopoverMenu.Item
-                        text="Add payment method"
-                        icon={icons.Plus}
-                        onSelect={() => {}}
+                    <TriggerLabel
+                        iconSrc={icons.Plus}
+                        label="Add payment method"
                     />
                 </PopoverMenu.Trigger>
                 <PopoverMenu.Content>

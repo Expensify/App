@@ -25,14 +25,23 @@ function Trigger({children, style, hoverStyle, accessibilityLabel, role, disable
 
     const handlePress = () => {
         const node = ownRef.current;
-        if (!node || typeof node.getBoundingClientRect !== 'function') {
-            // Test renderer / unsupported runtime — open without a measurement.
+        if (!node) {
+            return;
+        }
+        // Fabric exposes `getBoundingClientRect` synchronously. Old Arch / Paper exposes only the
+        // async `measureInWindow`. The sync path is preferred so the popover lands in the same frame.
+        if (typeof node.getBoundingClientRect === 'function') {
+            const {x, y, width, height} = node.getBoundingClientRect();
+            setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
             setIsVisible(true);
             return;
         }
-        const {x, y, width, height} = node.getBoundingClientRect();
-        setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
-        setIsVisible(true);
+        if (typeof node.measureInWindow === 'function') {
+            node.measureInWindow((x, y, width, height) => {
+                setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
+                setIsVisible(true);
+            });
+        }
     };
 
     return (
