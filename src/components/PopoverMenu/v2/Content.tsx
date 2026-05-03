@@ -93,8 +93,8 @@ function Content({
     const {
         state: {isVisible},
         meta: {anchorRef},
-    } = useRootState();
-    const {setIsVisible} = useRootActions();
+    } = useRootState(Content.displayName);
+    const {setIsVisible} = useRootActions(Content.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();

@@ -10,10 +10,10 @@ type SubContextValue = {
 const SubContext = createContext<SubContextValue | null>(null);
 SubContext.displayName = 'PopoverMenuSubContext';
 
-function useSubContext(): SubContextValue {
+function useSubContext(componentName: string): SubContextValue {
     const value = use(SubContext);
     if (!value) {
-        throw new Error('PopoverMenu hook used outside <PopoverMenu.Sub>');
+        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Sub>.`);
     }
     return value;
 }
@@ -22,8 +22,8 @@ function useSubContextOptional(): SubContextValue | null {
     return use(SubContext);
 }
 
-function useIsAtActiveLevel(): boolean {
-    const {currentSubID} = useContentNavigation();
+function useIsAtActiveLevel(componentName: string): boolean {
+    const {currentSubID} = useContentNavigation(componentName);
     const subContext = useSubContextOptional();
     return currentSubID === (subContext?.subID ?? null);
 }

@@ -26,15 +26,18 @@ type SubTriggerProps = {
 };
 
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
-    const {currentSubID} = useContentNavigation();
-    const {enterSub} = useContentActions();
-    const subContext = useSubContext();
+    // Resolved first so a "<SubTrigger> outside <Sub>" failure beats the also-true "outside <Content>" message
+    // — Sub is the closer hierarchical neighbor and the more actionable hint.
+    const subContext = useSubContext(SubTrigger.displayName);
+    const {currentSubID} = useContentNavigation(SubTrigger.displayName);
+    const {enterSub} = useContentActions(SubTrigger.displayName);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     // Reachable when the user is at this Sub's parent level.
     const isVisible = currentSubID === getParentSubID(subContext);
 
     const {ref, focused, onPress, onFocus} = useFocusableRow({
+        componentName: SubTrigger.displayName,
         visible: isVisible,
         isDisabled: disabled,
         onActivate: () => {

@@ -23,7 +23,7 @@ type ItemOwnProps = {
 type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled});
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: Item.displayName, onSelect, disabled});
 
     if (!isAtActiveLevel) {
         return null;

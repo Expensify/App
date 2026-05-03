@@ -22,7 +22,7 @@ function Sub({children, id}: SubProps): React.ReactElement {
     const ancestorChain: readonly string[] = outerSub ? [...outerSub.ancestorChain, outerSub.subID] : [];
     const value = {subID, ancestorChain} satisfies SubContextValue;
 
-    const {registerSub, unregisterSub} = useContentActions();
+    const {registerSub, unregisterSub} = useContentActions(Sub.displayName);
 
     // Layout effect because cleanup schedules `setCurrentSub` — running it post-paint
     // would render one ghost frame with `currentSubID` pointing at the unmounted Sub.

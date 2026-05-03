@@ -756,7 +756,7 @@ describe('PopoverMenu V2', () => {
         it('lets custom rows self-gate via useIsAtActiveLevel', () => {
             const renderSpy = jest.fn();
             function SelfGatedRow() {
-                if (!useIsAtActiveLevel()) {
+                if (!useIsAtActiveLevel('SelfGatedRow')) {
                     return null;
                 }
                 renderSpy();
@@ -994,7 +994,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </PopoverMenu.Content>,
                 ),
-            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Root>/);
+            ).toThrow(/<PopoverMenu\.Content> must be rendered inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Item is rendered outside Content', () => {
@@ -1007,7 +1007,19 @@ describe('PopoverMenu V2', () => {
                         />
                     </ControlledHarness>,
                 ),
-            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Content>/);
+            ).toThrow(/<PopoverMenu\.Item> must be rendered inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when Group is rendered outside Content', () => {
+            expect(() =>
+                render(
+                    <ControlledHarness initialOpen>
+                        <PopoverMenu.Group>
+                            <View />
+                        </PopoverMenu.Group>
+                    </ControlledHarness>,
+                ),
+            ).toThrow(/<PopoverMenu\.Group> must be rendered inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Sub is rendered outside Content', () => {
@@ -1019,7 +1031,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Sub>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Content>/);
+            ).toThrow(/<PopoverMenu\.Sub> must be rendered inside <PopoverMenu\.Content>/);
         });
 
         it('throws when SubTrigger is rendered outside Sub', () => {
@@ -1031,7 +1043,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Sub>/);
+            ).toThrow(/<PopoverMenu\.SubTrigger> must be rendered inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when SubContent is rendered outside Sub', () => {
@@ -1048,7 +1060,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </ControlledHarness>,
                 ),
-            ).toThrow(/PopoverMenu hook used outside <PopoverMenu\.Sub>/);
+            ).toThrow(/<PopoverMenu\.SubContent> must be rendered inside <PopoverMenu\.Sub>/);
         });
     });
 });

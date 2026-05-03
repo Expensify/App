@@ -49,26 +49,26 @@ ContentFocusContext.displayName = 'PopoverMenuContentFocusContext';
 const ContentActionsContext = createContext<ContentActionsValue | null>(null);
 ContentActionsContext.displayName = 'PopoverMenuContentActionsContext';
 
-function useContentNavigation(): ContentNavigationValue {
+function useContentNavigation(componentName: string): ContentNavigationValue {
     const value = use(ContentNavigationContext);
     if (!value) {
-        throw new Error('PopoverMenu hook used outside <PopoverMenu.Content>');
+        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
     }
     return value;
 }
 
-function useContentFocus(): ContentFocusValue {
+function useContentFocus(componentName: string): ContentFocusValue {
     const value = use(ContentFocusContext);
     if (!value) {
-        throw new Error('PopoverMenu hook used outside <PopoverMenu.Content>');
+        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
     }
     return value;
 }
 
-function useContentActions(): ContentActionsValue {
+function useContentActions(componentName: string): ContentActionsValue {
     const value = use(ContentActionsContext);
     if (!value) {
-        throw new Error('PopoverMenu hook used outside <PopoverMenu.Content>');
+        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
     }
     return value;
 }

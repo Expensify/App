@@ -37,7 +37,7 @@ function CheckmarkItem({
     iconHeight,
     ...rest
 }: CheckmarkItemProps): React.ReactElement | null {
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled});
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: CheckmarkItem.displayName, onSelect, disabled});
 
     if (!isAtActiveLevel) {
         return null;

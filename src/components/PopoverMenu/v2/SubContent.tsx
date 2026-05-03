@@ -16,7 +16,7 @@ type SubContentProps = {
 };
 
 function BackButton({backButtonText, parentSubID}: {backButtonText?: string; parentSubID: string | null}): React.ReactElement {
-    const {exitSub} = useContentActions();
+    const {exitSub} = useContentActions(BackButton.displayName);
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -26,6 +26,7 @@ function BackButton({backButtonText, parentSubID}: {backButtonText?: string; par
     const labelText = backButtonText ?? translate('common.goBack');
 
     const {ref, focused, onPress, onFocus} = useFocusableRow({
+        componentName: BackButton.displayName,
         visible: true,
         onActivate: () => exitSub(parentSubID),
     });
@@ -54,8 +55,10 @@ function BackButton({backButtonText, parentSubID}: {backButtonText?: string; par
 
 /** Renders the back button at active level; keeps children mounted at ancestor levels so nested `<Sub>` stays alive. */
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
-    const {currentSubID, currentSubAncestorChain} = useContentNavigation();
-    const subContext = useSubContext();
+    // Resolved first so a "<SubContent> outside <Sub>" failure beats the also-true "outside <Content>" message
+    // — Sub is the closer hierarchical neighbor and the more actionable hint.
+    const subContext = useSubContext(SubContent.displayName);
+    const {currentSubID, currentSubAncestorChain} = useContentNavigation(SubContent.displayName);
 
     const isActiveLevel = currentSubID === subContext.subID;
     const isAncestorOfActive = currentSubAncestorChain.includes(subContext.subID);
@@ -77,6 +80,7 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
     );
 }
 
+BackButton.displayName = 'PopoverMenu.Sub.BackButton';
 SubContent.displayName = 'PopoverMenu.SubContent';
 
 export default SubContent;

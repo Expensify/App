@@ -12,11 +12,22 @@ type FocusableRow = {
 };
 
 /** Generic registry/focus dance for popover rows. For close-on-select rows, prefer `useSelectableRow`. */
-function useFocusableRow({visible, onActivate, isDisabled = false}: {visible: boolean; onActivate: () => void; isDisabled?: boolean}): FocusableRow {
+function useFocusableRow({
+    componentName,
+    visible,
+    onActivate,
+    isDisabled = false,
+}: {
+    /** Display name of the calling component, used to attribute hierarchy violations. */
+    componentName: string;
+    visible: boolean;
+    onActivate: () => void;
+    isDisabled?: boolean;
+}): FocusableRow {
     const id = useId();
     const ref = useRef<View>(null);
-    const {focusedID} = useContentFocus();
-    const {registerItem, unregisterItem, setFocusedID} = useContentActions();
+    const {focusedID} = useContentFocus(componentName);
+    const {registerItem, unregisterItem, setFocusedID} = useContentActions(componentName);
 
     // Mirrored so the registry's `onActivate` stays stable across renders.
     const onActivateRef = useRef(onActivate);
