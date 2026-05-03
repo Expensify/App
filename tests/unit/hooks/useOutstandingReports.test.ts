@@ -257,7 +257,7 @@ describe('useOutstandingReports', () => {
     // reports that belong to a different workspace.
     it('filters per-policy when iterating across multiple workspaces with no selectedPolicyID', async () => {
         // Given two workspaces with different eligibility profiles
-        // policy1: instant submit + no approvers → reports with only non-reimbursable txns are ineligible destinations
+        // policy1: instant submit + no approvers → reports with only non-reimbursable transactions are ineligible destinations
         // policy2: instant submit + approver workflow → those same reports stay eligible
         await act(async () => {
             await setupOnyxData(
