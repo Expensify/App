@@ -15,7 +15,6 @@ type ItemOwnProps = {
     onSelect?: (event: ItemSelectEvent) => void;
     disabled?: boolean;
     pendingAction?: PendingAction;
-    /** Defaults to `PopoverMenu.Item-${text}`. */
     testID?: string;
     rightIcon?: IconAsset;
 };

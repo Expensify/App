@@ -4,15 +4,9 @@ import type {View} from 'react-native';
 
 type AnchorRef = RefObject<View | null>;
 
-/** Bounding rect of an anchor element, captured at the moment its trigger was pressed. */
 type AnchorRect = {x: number; y: number; width: number; height: number};
 
-/**
- * The currently-active anchor for the popover. Set by `<Trigger>` on press.
- * Bundles the element ref (used by `Popover` for outside-click detection) with
- * a snapshot of the bounding rect (used to position the popover) — both are
- * captured together so the popover never sees a half-updated anchor.
- */
+// Ref + rect captured together so the popover never sees a half-updated anchor.
 type ActiveAnchor = {
     ref: AnchorRef;
     rect: AnchorRect;

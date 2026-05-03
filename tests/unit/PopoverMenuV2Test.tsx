@@ -6,8 +6,8 @@ import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 // Internal hooks reached for here only so tests can drive an uncontrolled `<Root>` from the inside —
 // production code never imports these.
-import {useRootActions, useRootState} from '@components/PopoverMenu/v2/RootContext';
-import type {AnchorRef} from '@components/PopoverMenu/v2/RootContext';
+import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 
 const {useIsAtActiveLevel} = PopoverMenu;
 

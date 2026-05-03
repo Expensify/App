@@ -20,17 +20,7 @@ function createSelectEvent(): ItemSelectEvent {
 
 type SelectableRow = FocusableRow & {isAtActiveLevel: boolean};
 
-/** Close-on-select wrapper around `useFocusableRow`; gated on `isAtActiveLevel`. */
-function useSelectableRow({
-    componentName,
-    onSelect,
-    disabled,
-}: {
-    /** Display name of the calling component, used to attribute hierarchy violations. */
-    componentName: string;
-    onSelect?: (event: ItemSelectEvent) => void;
-    disabled: boolean;
-}): SelectableRow {
+function useSelectableRow({componentName, onSelect, disabled}: {componentName: string; onSelect?: (event: ItemSelectEvent) => void; disabled: boolean}): SelectableRow {
     const {close} = useContentActions(componentName);
     const isAtActiveLevel = useIsAtActiveLevel(componentName);
 
@@ -47,7 +37,6 @@ function useSelectableRow({
             if (event.defaultPrevented) {
                 return;
             }
-            // Atomically hides the popover and resets nav — same React batch, no derived-state listener.
             close();
         },
     });

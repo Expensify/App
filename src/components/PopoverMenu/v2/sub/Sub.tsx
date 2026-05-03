@@ -8,17 +8,11 @@ import SubTrigger from './SubTrigger';
 
 type SubProps = {
     children: ReactNode;
-    /** Override the auto-generated id. Useful for tests/analytics. */
+    /** Useful for tests/analytics; falls back to a generated id. */
     id?: string;
 };
 
-/**
- * Drill-down sub-menu (single panel + back button), not Radix-style cascading panels —
- * deliberate UX choice for touch/small-screen. Don't "fix" this back to multi-panel.
- *
- * The trigger and content are exposed as static properties (`Sub.Trigger`, `Sub.Content`)
- * so callers reach them through the compound namespace rather than as flat sibling exports.
- */
+/** Drill-down (single panel + back button), not Radix-style cascading — deliberate for touch. */
 function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
     const subID = id ?? fallbackID;
@@ -29,8 +23,7 @@ function Sub({children, id}: SubProps): React.ReactElement {
 
     const {registerSub, unregisterSub} = useContentActions(Sub.displayName);
 
-    // Layout effect because cleanup schedules `setCurrentSub` — running it post-paint
-    // would render one ghost frame with `currentSubID` pointing at the unmounted Sub.
+    // Layout effect: post-paint cleanup would render a ghost frame pointing at the unmounted Sub.
     useLayoutEffect(() => {
         registerSub(subID);
         return () => unregisterSub(subID, ancestorChain);

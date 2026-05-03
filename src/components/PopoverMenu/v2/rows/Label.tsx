@@ -13,7 +13,7 @@ type LabelOwnProps = {
 
 type LabelProps = LabelOwnProps & LabelMenuItemForwardProps;
 
-/** Non-interactive header row. Skipped by keyboard navigation; use `<Item>` for clickable rows. */
+/** Non-interactive — for clickable rows use `<Item>`. */
 function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}: LabelProps): React.ReactElement | null {
     const isAtActiveLevel = useIsAtActiveLevel(Label.displayName);
 

@@ -1,9 +1,8 @@
 import type {MenuItemProps} from '@components/MenuItem';
 
-/** Preserves the discriminated MenuItemProps union — built-in `Omit` collapses it. */
+/** Built-in `Omit` collapses the discriminated `MenuItemProps` union. */
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
-/** Props forwarded from selectable rows (Item / CheckmarkItem) to the underlying MenuItem. */
 type MenuItemForwardProps = DistributiveOmit<
     MenuItemProps,
     | 'title'
@@ -23,7 +22,6 @@ type MenuItemForwardProps = DistributiveOmit<
     | 'ref'
 >;
 
-/** Props forwarded from Label to MenuItem (Label overrides fewer keys than selectable rows). */
 type LabelMenuItemForwardProps = DistributiveOmit<
     MenuItemProps,
     'title' | 'onPress' | 'interactive' | 'role' | 'pressableTestID' | 'focused' | 'onFocus' | 'shouldCheckActionAllowedOnPress' | 'ref'

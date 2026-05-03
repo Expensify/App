@@ -3,7 +3,7 @@ import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentCo
 
 type SubContextValue = {
     subID: string;
-    /** Ancestor subIDs from outermost to immediate parent. Empty for root-level Subs. */
+    /** Outermost-to-immediate-parent. Empty at root. */
     ancestorChain: readonly string[];
 };
 
@@ -28,7 +28,6 @@ function useIsAtActiveLevel(componentName: string): boolean {
     return currentSubID === (subContext?.subID ?? null);
 }
 
-/** Returns the immediate parent's subID, or `null` for root-level Subs. */
 function getParentSubID(ctx: SubContextValue): string | null {
     return ctx.ancestorChain.at(-1) ?? null;
 }

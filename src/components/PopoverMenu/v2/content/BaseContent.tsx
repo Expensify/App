@@ -17,11 +17,6 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
 import useContentController from './useContentController';
 
-/**
- * Props shared by every public popover-content variant (`Content`, `ScrollableContent`, …).
- * Variant-specific knobs (e.g. an inner `ScrollView`'s `contentContainerStyle`) live on the
- * variant component itself.
- */
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
@@ -47,9 +42,7 @@ type BasePopoverProps = {
 };
 
 type BaseContentProps = BasePopoverProps & {
-    /** Pre-resolved max-height — variants compute it based on whether they wrap children in a scrollable region. */
     maxHeightStyle?: ViewStyle;
-    /** Forwarded to `<PopoverWithMeasuredContent>`. Variants that already wrap their children in a `<ScrollView>` set this to `false`. */
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
 };
 
@@ -58,12 +51,7 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-/**
- * Internal scaffolding shared by every popover-content variant: anchor lookup, controller
- * wiring, modal/focus-trap/menu-context wrapping, and base layout. Variants pre-compute
- * scroll-mode-specific behaviour (max-height, space-bar suppression) and pass resolved
- * values in — this component is intentionally unaware of "scrollable" as a concept.
- */
+/** Intentionally unaware of "scrollable" as a concept — variants pre-resolve their own max-height policy. */
 function BaseContent({
     children,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
@@ -100,7 +88,6 @@ function BaseContent({
 
     const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
 
-    // No `<Trigger>` has been pressed yet — nothing to anchor against.
     if (!activeAnchor) {
         return null;
     }
@@ -161,14 +148,7 @@ function BaseContent({
     );
 }
 
-/**
- * Resolves the anchor's bounding rect into the `{horizontal, vertical}` point that
- * `<PopoverWithMeasuredContent>` will offset from. The horizontal axis picks one of
- * the rect's three vertical edges (left / center / right); the vertical axis
- * adds/subtracts the popover-menu padding so the menu doesn't overlap the trigger.
- * Mirrors the math in `usePopoverPosition.calculatePopoverPosition`, but synchronous
- * — the rect was already captured by `<Trigger>` on press.
- */
+/** Sync mirror of the math in `usePopoverPosition.calculatePopoverPosition`. */
 function computeAnchorPositionFromRect(rect: AnchorRect, alignment: AnchorAlignment): AnchorPosition {
     const {x, y, width, height} = rect;
 

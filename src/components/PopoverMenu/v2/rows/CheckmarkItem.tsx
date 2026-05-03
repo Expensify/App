@@ -16,7 +16,6 @@ type CheckmarkItemOwnProps = {
     onSelect?: (event: ItemSelectEvent) => void;
     disabled?: boolean;
     pendingAction?: PendingAction;
-    /** Defaults to `PopoverMenu.CheckmarkItem-${text}`. */
     testID?: string;
     /** When set, replaces the check icon. */
     rightIcon?: IconAsset;
@@ -24,7 +23,6 @@ type CheckmarkItemOwnProps = {
 
 type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
 
-/** Selectable menu row that renders a check when `isSelected` — radix's `DropdownMenu.CheckboxItem` analogue. */
 function CheckmarkItem({
     text,
     isSelected = false,
@@ -57,7 +55,7 @@ function CheckmarkItem({
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                // Suppress check when a custom right icon is supplied; MenuItem renders them as independent slots.
+                // MenuItem renders rightIcon and the check as independent slots; suppress the check when both would show.
                 shouldShowSelectedItemCheck={!rightIcon}
                 onPress={onPress}
                 onFocus={onFocus}

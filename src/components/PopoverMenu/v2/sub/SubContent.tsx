@@ -9,10 +9,9 @@ type SubContentProps = {
     backButtonText?: string;
 };
 
-/** Renders the back button at active level; keeps children mounted at ancestor levels so nested `<Sub>` stays alive. */
+/** Stays mounted at ancestor levels so nested `<Sub>` instances live across drill-downs. */
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
-    // Resolved first so a "<Sub.Content> outside <Sub>" failure beats the also-true "outside <Content>" message
-    // — Sub is the closer hierarchical neighbor and the more actionable hint.
+    // Resolve Sub first — closer-neighbor error wins over the also-true "outside <Content>".
     const subContext = useSubContext(SubContent.displayName);
     const {currentSubID, currentSubAncestorChain} = useContentNavigation(SubContent.displayName);
 

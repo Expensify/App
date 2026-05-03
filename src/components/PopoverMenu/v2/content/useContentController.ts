@@ -10,12 +10,6 @@ type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
 const ROOT_SUB: CurrentSub = {id: null, ancestorChain: []};
 
-/**
- * Owns navigation/focus state, the item registry, and the Enter shortcut. Returns slices
- * for the three Content contexts. Resetting on close is bundled into `actions.close` so
- * the popover's hide and the navigation reset happen in the same React batch — there's
- * no derived-state listener watching `isVisible`.
- */
 function useContentController({isVisible, setIsVisible}: {isVisible: boolean; setIsVisible: Dispatch<SetStateAction<boolean>>}): {
     navigation: ContentNavigationValue;
     focus: ContentFocusValue;
@@ -27,17 +21,17 @@ function useContentController({isVisible, setIsVisible}: {isVisible: boolean; se
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIDs = useOrderedIDs(registry);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIDs.length - 1, isActive: isVisible, initialFocusedIndex: -1});
-    // Guard the -1 sentinel — `.at(-1)` would return the last item.
+    // `.at(-1)` would return the last item, not "nothing focused".
     const focusedID = focusedIndex >= 0 ? (orderedIDs.at(focusedIndex) ?? null) : null;
 
-    // Mirror so setFocusedID reads the latest order without going stale.
+    // Mirror so setFocusedID reads the latest order, not a stale closure.
     const orderedIDsRef = useRef(orderedIDs);
     useLayoutEffect(() => {
         orderedIDsRef.current = orderedIDs;
     });
 
     const actions: ContentActionsValue = {
-        // Reset focus on level change: the registry is replaced and the old numeric index would map to a different row.
+        // Reset focus on level change — the old index points at a different row in the new registry.
         enterSub: (id, ancestorChain) => {
             setCurrentSub({id, ancestorChain});
             setFocusedIndex(-1);
@@ -47,7 +41,6 @@ function useContentController({isVisible, setIsVisible}: {isVisible: boolean; se
                 if (target === null) {
                     return ROOT_SUB;
                 }
-                // Target's chain is the prefix of the current chain up to target.
                 const idx = prev.ancestorChain.indexOf(target);
                 const newChain = idx >= 0 ? prev.ancestorChain.slice(0, idx) : [];
                 return {id: target, ancestorChain: newChain};
@@ -91,8 +84,7 @@ function useContentController({isVisible, setIsVisible}: {isVisible: boolean; se
             setFocusedIndex(id === null ? -1 : orderedIDsRef.current.indexOf(id));
         },
         close: () => {
-            // All three updates batch into a single render — the next open lands at the top level
-            // with no focused row and no derived-state listener observing `isVisible`.
+            // Batched into one render so the next open lands at root with no focused row.
             setIsVisible(false);
             setCurrentSub(ROOT_SUB);
             setFocusedIndex(-1);

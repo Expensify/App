@@ -8,13 +8,8 @@ import CONST from '@src/CONST';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
 
-/**
- * Renders the popover-menu surface anchored to the current anchor. Children render directly
- * inside the surface — for menus tall enough to need an inner scroll region, use
- * `<ScrollableContent>` instead.
- */
 type ContentProps = BasePopoverProps & {
-    /** Cap popover height. Ignored in landscape so content stays reachable. */
+    /** Ignored in landscape so bottom-docked sheets stay reachable. */
     shouldEnableMaxHeight?: boolean;
 };
 
@@ -22,8 +17,7 @@ function Content({shouldEnableMaxHeight = true, ...rest}: ContentProps): React.R
     const {
         state: {isVisible},
     } = useRootState(Content.displayName);
-    // Stop space-bar from scrolling the page behind the popover. The scrollable variant skips this
-    // because the user is opting into "space scrolls the inner content".
+    // ScrollableContent skips this — the user opts into space scrolling the inner content.
     useSuppressSpaceScroll(isVisible);
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
@@ -39,11 +33,6 @@ function Content({shouldEnableMaxHeight = true, ...rest}: ContentProps): React.R
     );
 }
 
-/**
- * Non-scrollable content shrinks to fit its children, capping only on small screens so the
- * menu never overflows the device viewport. Landscape opts out entirely so bottom-docked
- * sheets stay reachable.
- */
 function computeMaxHeightStyle({
     shouldEnableMaxHeight,
     isSmallScreenWidth,

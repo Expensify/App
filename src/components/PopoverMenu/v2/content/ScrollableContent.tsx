@@ -9,22 +9,14 @@ import CONST from '@src/CONST';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
 
-/**
- * Renders the popover-menu surface anchored to the current anchor, with its children wrapped
- * in a `<ScrollView>`. Use this variant when the menu can be tall enough to need an inner
- * scroll region — space-bar scrolling is left intact and the modal won't double-wrap us in
- * landscape.
- */
 type ScrollableContentProps = BasePopoverProps & {
-    /** Cap popover height. Ignored in landscape so content stays reachable. */
+    /** Ignored in landscape so bottom-docked sheets stay reachable. */
     shouldEnableMaxHeight?: boolean;
-    /** Forwarded to the inner `<ScrollView>`'s `contentContainerStyle`. */
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 function ScrollableContent({shouldEnableMaxHeight = true, contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
-    // Result discarded — call exists purely to attribute "outside <Root>" errors to ScrollableContent
-    // instead of the internal BaseContent that runs further down the render.
+    // Result discarded — attributes hierarchy violations to ScrollableContent, not BaseContent.
     useRootState(ScrollableContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -43,11 +35,6 @@ function ScrollableContent({shouldEnableMaxHeight = true, contentContainerStyle,
     );
 }
 
-/**
- * Scrollable content fills the viewport (capped at `POPOVER_MENU_MAX_HEIGHT`) so the inner
- * `<ScrollView>` has room to actually scroll. Landscape opts out so bottom-docked sheets
- * stay reachable.
- */
 function computeMaxHeightStyle({
     shouldEnableMaxHeight,
     isSmallScreenWidth,

@@ -6,17 +6,11 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type HeaderProps = {
-    /** Text to render. Typically a `string`, but `<Text>` accepts any `ReactNode`. */
     children: ReactNode;
-    /** Override or extend the default header text style. */
     style?: StyleProp<TextStyle>;
 };
 
-/**
- * Title row rendered at the top of `<PopoverMenu.Content>`. Hides automatically when a sub is entered
- * so the back-button row owns that space — same active-level gating used by `<Label>` and `<Separator>`.
- * To title a sub instead, render `<Header>` inside the `<SubContent>` rather than at the root.
- */
+/** Hides on sub entry. To title a sub, render inside `<Sub.Content>` instead. */
 function Header({children, style}: HeaderProps): React.ReactElement | null {
     const styles = useThemeStyles();
     const isAtActiveLevel = useIsAtActiveLevel(Header.displayName);

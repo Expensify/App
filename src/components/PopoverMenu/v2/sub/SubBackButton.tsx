@@ -9,13 +9,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 type SubBackButtonProps = {
-    /** Optional override for the back button's title; defaults to a localized "Go back". */
+    /** Defaults to a localized "Go back". */
     backButtonText?: string;
-    /** Sub to pop back to when pressed. `null` pops all the way to root. */
+    /** `null` pops to root. */
     parentSubID: string | null;
 };
 
-/** Internal back-row rendered by `<Sub.Content>` at the active level. Pops one sub on press. */
 function SubBackButton({backButtonText, parentSubID}: SubBackButtonProps): React.ReactElement {
     const {exitSub} = useContentActions(SubBackButton.displayName);
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
