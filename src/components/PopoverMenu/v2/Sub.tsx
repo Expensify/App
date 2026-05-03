@@ -1,8 +1,10 @@
 import React, {useId, useLayoutEffect} from 'react';
 import type {ReactNode} from 'react';
 import {useContentActions} from './ContentContext';
+import SubContent from './SubContent';
 import {SubContext, useSubContextOptional} from './SubContext';
 import type {SubContextValue} from './SubContext';
+import SubTrigger from './SubTrigger';
 
 type SubProps = {
     children: ReactNode;
@@ -13,6 +15,9 @@ type SubProps = {
 /**
  * Drill-down sub-menu (single panel + back button), not Radix-style cascading panels —
  * deliberate UX choice for touch/small-screen. Don't "fix" this back to multi-panel.
+ *
+ * The trigger and content are exposed as static properties (`Sub.Trigger`, `Sub.Content`)
+ * so callers reach them through the compound namespace rather than as flat sibling exports.
  */
 function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
@@ -35,6 +40,8 @@ function Sub({children, id}: SubProps): React.ReactElement {
 }
 
 Sub.displayName = 'PopoverMenu.Sub';
+Sub.Trigger = SubTrigger;
+Sub.Content = SubContent;
 
 export default Sub;
 export type {SubProps};

@@ -26,7 +26,7 @@ type SubTriggerProps = {
 };
 
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
-    // Resolved first so a "<SubTrigger> outside <Sub>" failure beats the also-true "outside <Content>" message
+    // Resolved first so a "<Sub.Trigger> outside <Sub>" failure beats the also-true "outside <Content>" message
     // — Sub is the closer hierarchical neighbor and the more actionable hint.
     const subContext = useSubContext(SubTrigger.displayName);
     const {currentSubID} = useContentNavigation(SubTrigger.displayName);
@@ -72,12 +72,12 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
             titleStyle={titleStyle}
             wrapperStyle={wrapperStyle}
             role={CONST.ROLE.BUTTON}
-            pressableTestID={testID ?? `PopoverMenu.SubTrigger-${text}`}
+            pressableTestID={testID ?? `PopoverMenu.Sub.Trigger-${text}`}
         />
     );
 }
 
-SubTrigger.displayName = 'PopoverMenu.SubTrigger';
+SubTrigger.displayName = 'PopoverMenu.Sub.Trigger';
 
 export default SubTrigger;
 export type {SubTriggerProps};

@@ -8,8 +8,6 @@ export {default as Root} from './Root';
 export {default as ScrollableContent} from './ScrollableContent';
 export {default as Separator} from './Separator';
 export {default as Sub} from './Sub';
-export {default as SubContent} from './SubContent';
-export {default as SubTrigger} from './SubTrigger';
 export {useIsAtActiveLevel} from './SubContext';
 
 export type {CheckmarkItemProps} from './CheckmarkItem';
