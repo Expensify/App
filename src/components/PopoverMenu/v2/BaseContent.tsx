@@ -14,7 +14,7 @@ import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
 import {useRootActions, useRootState} from './RootContext';
-import useAnchorMeasurement from './useAnchorMeasurement';
+import type {AnchorRect} from './RootContext';
 import useContentController from './useContentController';
 
 /**
@@ -25,8 +25,6 @@ import useContentController from './useContentController';
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
-    /** Pre-measured anchor; skips internal measurement when set. */
-    anchorPosition?: AnchorPosition;
     containerStyles?: StyleProp<ViewStyle>;
     innerContainerStyle?: ViewStyle;
     onLayout?: (e: LayoutChangeEvent) => void;
@@ -69,7 +67,6 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
 function BaseContent({
     children,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    anchorPosition: anchorPositionProp,
     containerStyles,
     innerContainerStyle,
     maxHeightStyle,
@@ -95,18 +92,20 @@ function BaseContent({
     const styles = useThemeStyles();
     const {
         state: {isVisible},
-        meta: {anchorRef},
+        meta: {activeAnchor},
     } = useRootState(BaseContent.displayName);
     const {setIsVisible} = useRootActions(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const anchorPosition = useAnchorMeasurement({anchorRef, anchorPositionProp, anchorAlignment, isVisible});
     const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
 
-    if (!anchorPosition) {
+    // No `<Trigger>` has been pressed yet — nothing to anchor against.
+    if (!activeAnchor) {
         return null;
     }
+
+    const anchorPosition = computeAnchorPositionFromRect(activeAnchor.rect, anchorAlignment);
 
     return (
         <ContentNavigationContext.Provider value={navigation}>
@@ -114,7 +113,7 @@ function BaseContent({
                 <ContentActionsContext.Provider value={actions}>
                     <PopoverWithMeasuredContent
                         anchorPosition={anchorPosition}
-                        anchorRef={anchorRef}
+                        anchorRef={activeAnchor.ref}
                         anchorAlignment={anchorAlignment}
                         onClose={actions.close}
                         isVisible={isVisible}
@@ -160,6 +159,31 @@ function BaseContent({
             </ContentFocusContext.Provider>
         </ContentNavigationContext.Provider>
     );
+}
+
+/**
+ * Resolves the anchor's bounding rect into the `{horizontal, vertical}` point that
+ * `<PopoverWithMeasuredContent>` will offset from. The horizontal axis picks one of
+ * the rect's three vertical edges (left / center / right); the vertical axis
+ * adds/subtracts the popover-menu padding so the menu doesn't overlap the trigger.
+ * Mirrors the math in `usePopoverPosition.calculatePopoverPosition`, but synchronous
+ * — the rect was already captured by `<Trigger>` on press.
+ */
+function computeAnchorPositionFromRect(rect: AnchorRect, alignment: AnchorAlignment): AnchorPosition {
+    const {x, y, width, height} = rect;
+
+    let horizontal: number;
+    if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
+        horizontal = x;
+    } else if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER) {
+        horizontal = x + width / 2;
+    } else {
+        horizontal = x + width;
+    }
+
+    const vertical = alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP ? y + height + CONST.MODAL.POPOVER_MENU_PADDING : y - CONST.MODAL.POPOVER_MENU_PADDING;
+
+    return {horizontal, vertical};
 }
 
 BaseContent.displayName = 'PopoverMenu.BaseContent';

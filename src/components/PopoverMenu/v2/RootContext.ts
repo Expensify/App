@@ -1,16 +1,31 @@
 import {createContext, use} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
-import type {MeasurableRef} from '@hooks/usePopoverPosition';
+import type {Dispatch, RefObject, SetStateAction} from 'react';
+import type {View} from 'react-native';
 
-type AnchorRef = MeasurableRef;
+type AnchorRef = RefObject<View | null>;
+
+/** Bounding rect of an anchor element, captured at the moment its trigger was pressed. */
+type AnchorRect = {x: number; y: number; width: number; height: number};
+
+/**
+ * The currently-active anchor for the popover. Set by `<Trigger>` on press.
+ * Bundles the element ref (used by `Popover` for outside-click detection) with
+ * a snapshot of the bounding rect (used to position the popover) — both are
+ * captured together so the popover never sees a half-updated anchor.
+ */
+type ActiveAnchor = {
+    ref: AnchorRef;
+    rect: AnchorRect;
+};
 
 type RootStateValue = {
     state: {isVisible: boolean};
-    meta: {anchorRef: AnchorRef};
+    meta: {activeAnchor: ActiveAnchor | null};
 };
 
 type RootActionsValue = {
     setIsVisible: Dispatch<SetStateAction<boolean>>;
+    setActiveAnchor: (anchor: ActiveAnchor) => void;
 };
 
 const RootStateContext = createContext<RootStateValue | null>(null);
@@ -36,4 +51,4 @@ function useRootActions(componentName: string): RootActionsValue {
 }
 
 export {RootStateContext, RootActionsContext, useRootState, useRootActions};
-export type {AnchorRef, RootStateValue, RootActionsValue};
+export type {ActiveAnchor, AnchorRect, AnchorRef, RootStateValue, RootActionsValue};

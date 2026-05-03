@@ -8,6 +8,7 @@ export {default as Root} from './Root';
 export {default as ScrollableContent} from './ScrollableContent';
 export {default as Separator} from './Separator';
 export {default as Sub} from './Sub';
+export {default as Trigger} from './Trigger';
 export {useIsAtActiveLevel} from './SubContext';
 
 export type {CheckmarkItemProps} from './CheckmarkItem';
@@ -22,3 +23,4 @@ export type {ScrollableContentProps} from './ScrollableContent';
 export type {SubContentProps} from './SubContent';
 export type {SubProps} from './Sub';
 export type {SubTriggerProps} from './SubTrigger';
+export type {TriggerProps} from './Trigger';

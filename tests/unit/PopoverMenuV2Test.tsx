@@ -1,9 +1,13 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
+// Internal hooks reached for here only so tests can drive an uncontrolled `<Root>` from the inside —
+// production code never imports these.
+import {useRootActions, useRootState} from '@components/PopoverMenu/v2/RootContext';
+import type {AnchorRef} from '@components/PopoverMenu/v2/RootContext';
 
 const {useIsAtActiveLevel} = PopoverMenu;
 
@@ -69,16 +73,6 @@ jest.mock('@components/CompactMenuContext', () => {
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useTheme', () => () => ({border: 'borderColor', icon: 'iconColor', iconHovered: 'iconHovered'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false}));
-// Sync-thenable + stable function ref so the measurement effect resolves inside `render()` without looping via setState.
-jest.mock('@hooks/usePopoverPosition', () => {
-    const calculatePopoverPosition = jest.fn(() => ({
-        then: (onFulfilled: (v: {horizontal: number; vertical: number}) => void) => {
-            onFulfilled({horizontal: 0, vertical: 0});
-            return {catch: () => undefined};
-        },
-    }));
-    return () => ({calculatePopoverPosition});
-});
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({BackArrow: 'BackArrowIcon', ArrowRight: 'ArrowRightIcon'}),
 }));
@@ -99,38 +93,54 @@ function press(title: string): void {
     act(() => item?.onPress?.());
 }
 
+/**
+ * Helper rendered as a child of `<Root>` to open the menu on mount, mimicking
+ * what a `<Trigger>` press would do. Lets tests stay declarative ("start open")
+ * without binding to the public `<Trigger>` API. The rect is fabricated since
+ * the mocked `<PopoverWithMeasuredContent>` doesn't read it.
+ */
+function AutoOpen() {
+    const {setIsVisible, setActiveAnchor} = useRootActions('AutoOpen');
+    const ref = useRef<RNViewType>(null);
+    useLayoutEffect(() => {
+        setActiveAnchor({ref: ref as AnchorRef, rect: {x: 0, y: 0, width: 0, height: 0}});
+        setIsVisible(true);
+    }, [setIsVisible, setActiveAnchor]);
+    return <View ref={ref} />;
+}
+
+/** Bridges `<Root>`'s internal isVisible state back out as an `onChange(next)` callback. */
+function CloseObserver({onChange}: {onChange?: (open: boolean) => void}) {
+    const {
+        state: {isVisible},
+    } = useRootState('CloseObserver');
+    const previous = useRef(isVisible);
+    useEffect(() => {
+        if (previous.current === isVisible) {
+            return;
+        }
+        previous.current = isVisible;
+        onChange?.(isVisible);
+    }, [isVisible, onChange]);
+    return null;
+}
+
 function ControlledHarness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
-    const [open, setOpen] = useState(initialOpen);
-    const anchorRef = useRef<RNViewType>(null);
     return (
-        <>
-            <View ref={anchorRef} />
-            <PopoverMenu.Root
-                open={open}
-                onOpenChange={(next) => {
-                    setOpen(next);
-                    onOpenChange?.(next);
-                }}
-                anchorRef={anchorRef}
-            >
-                {children}
-            </PopoverMenu.Root>
-        </>
+        <PopoverMenu.Root>
+            {initialOpen && <AutoOpen />}
+            <CloseObserver onChange={onOpenChange} />
+            {children}
+        </PopoverMenu.Root>
     );
 }
 
 function UncontrolledHarness({defaultOpen = false, children}: PropsWithChildren<{defaultOpen?: boolean}>) {
-    const anchorRef = useRef<RNViewType>(null);
     return (
-        <>
-            <View ref={anchorRef} />
-            <PopoverMenu.Root
-                defaultOpen={defaultOpen}
-                anchorRef={anchorRef}
-            >
-                {children}
-            </PopoverMenu.Root>
-        </>
+        <PopoverMenu.Root>
+            {defaultOpen ? <AutoOpen /> : null}
+            {children}
+        </PopoverMenu.Root>
     );
 }
 
@@ -545,39 +555,35 @@ describe('PopoverMenu V2', () => {
         });
 
         it('resets to top level when the menu closes via item selection and reopens', () => {
-            function ExternallyControlledHarness({open}: {open: boolean}) {
-                const anchorRef = useRef<RNViewType>(null);
+            // Remounting `<Root>` (key bump) is the strict-uncontrolled equivalent of toggling
+            // `open` from outside: tear down nav state and rebuild, so the next open lands at root.
+            function Harness({remountKey}: {remountKey: number}) {
                 return (
-                    <>
-                        <View ref={anchorRef} />
-                        <PopoverMenu.Root
-                            open={open}
-                            onOpenChange={() => {}}
-                            anchorRef={anchorRef}
-                        >
-                            <PopoverMenu.Content>
-                                <PopoverMenu.Sub id="A">
-                                    <PopoverMenu.Sub.Trigger text="Open Sub" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back">
-                                        <PopoverMenu.Item
-                                            text="Choose"
-                                            onSelect={() => {}}
-                                        />
-                                    </PopoverMenu.Sub.Content>
-                                </PopoverMenu.Sub>
-                            </PopoverMenu.Content>
-                        </PopoverMenu.Root>
-                    </>
+                    <ControlledHarness
+                        key={remountKey}
+                        initialOpen
+                    >
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Sub id="A">
+                                <PopoverMenu.Sub.Trigger text="Open Sub" />
+                                <PopoverMenu.Sub.Content backButtonText="Back">
+                                    <PopoverMenu.Item
+                                        text="Choose"
+                                        onSelect={() => {}}
+                                    />
+                                </PopoverMenu.Sub.Content>
+                            </PopoverMenu.Sub>
+                        </PopoverMenu.Content>
+                    </ControlledHarness>
                 );
             }
 
-            const tree = render(<ExternallyControlledHarness open />);
+            const tree = render(<Harness remountKey={1} />);
             press('Open Sub');
             expect(findItemByTitle('Choose')).toBeDefined();
 
             menuItemPropsCapture.current = [];
-            tree.rerender(<ExternallyControlledHarness open={false} />);
-            tree.rerender(<ExternallyControlledHarness open />);
+            tree.rerender(<Harness remountKey={2} />);
 
             expect(findItemByTitle('Open Sub')).toBeDefined();
             expect(findItemByTitle('Choose')).toBeUndefined();
@@ -631,34 +637,26 @@ describe('PopoverMenu V2', () => {
 
         it('pops to parent when an active <Sub> unmounts mid-flight', () => {
             function SubMenuWithToggle({showSub}: {showSub: boolean}) {
-                const anchorRef = useRef<RNViewType>(null);
                 return (
-                    <>
-                        <View ref={anchorRef} />
-                        <PopoverMenu.Root
-                            open
-                            onOpenChange={() => {}}
-                            anchorRef={anchorRef}
-                        >
-                            <PopoverMenu.Content>
-                                <PopoverMenu.Item
-                                    text="Top"
-                                    onSelect={() => {}}
-                                />
-                                {showSub && (
-                                    <PopoverMenu.Sub id="A">
-                                        <PopoverMenu.Sub.Trigger text="Open A" />
-                                        <PopoverMenu.Sub.Content>
-                                            <PopoverMenu.Item
-                                                text="A item"
-                                                onSelect={() => {}}
-                                            />
-                                        </PopoverMenu.Sub.Content>
-                                    </PopoverMenu.Sub>
-                                )}
-                            </PopoverMenu.Content>
-                        </PopoverMenu.Root>
-                    </>
+                    <ControlledHarness initialOpen>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="Top"
+                                onSelect={() => {}}
+                            />
+                            {showSub && (
+                                <PopoverMenu.Sub id="A">
+                                    <PopoverMenu.Sub.Trigger text="Open A" />
+                                    <PopoverMenu.Sub.Content>
+                                        <PopoverMenu.Item
+                                            text="A item"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.Sub.Content>
+                                </PopoverMenu.Sub>
+                            )}
+                        </PopoverMenu.Content>
+                    </ControlledHarness>
                 );
             }
 
@@ -675,39 +673,31 @@ describe('PopoverMenu V2', () => {
 
         it('cascades back to root when both a nested <Sub> and its parent unmount together', () => {
             function NestedTree({showSubs}: {showSubs: boolean}) {
-                const anchorRef = useRef<RNViewType>(null);
                 return (
-                    <>
-                        <View ref={anchorRef} />
-                        <PopoverMenu.Root
-                            open
-                            onOpenChange={() => {}}
-                            anchorRef={anchorRef}
-                        >
-                            <PopoverMenu.Content>
-                                <PopoverMenu.Item
-                                    text="Top"
-                                    onSelect={() => {}}
-                                />
-                                {showSubs && (
-                                    <PopoverMenu.Sub id="A">
-                                        <PopoverMenu.Sub.Trigger text="Open A" />
-                                        <PopoverMenu.Sub.Content backButtonText="Back to root">
-                                            <PopoverMenu.Sub id="B">
-                                                <PopoverMenu.Sub.Trigger text="Open B" />
-                                                <PopoverMenu.Sub.Content backButtonText="Back to A">
-                                                    <PopoverMenu.Item
-                                                        text="B item"
-                                                        onSelect={() => {}}
-                                                    />
-                                                </PopoverMenu.Sub.Content>
-                                            </PopoverMenu.Sub>
-                                        </PopoverMenu.Sub.Content>
-                                    </PopoverMenu.Sub>
-                                )}
-                            </PopoverMenu.Content>
-                        </PopoverMenu.Root>
-                    </>
+                    <ControlledHarness initialOpen>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="Top"
+                                onSelect={() => {}}
+                            />
+                            {showSubs && (
+                                <PopoverMenu.Sub id="A">
+                                    <PopoverMenu.Sub.Trigger text="Open A" />
+                                    <PopoverMenu.Sub.Content backButtonText="Back to root">
+                                        <PopoverMenu.Sub id="B">
+                                            <PopoverMenu.Sub.Trigger text="Open B" />
+                                            <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                                <PopoverMenu.Item
+                                                    text="B item"
+                                                    onSelect={() => {}}
+                                                />
+                                            </PopoverMenu.Sub.Content>
+                                        </PopoverMenu.Sub>
+                                    </PopoverMenu.Sub.Content>
+                                </PopoverMenu.Sub>
+                            )}
+                        </PopoverMenu.Content>
+                    </ControlledHarness>
                 );
             }
 
@@ -984,6 +974,16 @@ describe('PopoverMenu V2', () => {
 
         afterAll(() => {
             consoleErrorSpy.mockRestore();
+        });
+
+        it('throws when Trigger is rendered outside Root', () => {
+            expect(() =>
+                render(
+                    <PopoverMenu.Trigger accessibilityLabel="Open menu">
+                        <View />
+                    </PopoverMenu.Trigger>,
+                ),
+            ).toThrow(/<PopoverMenu\.Trigger> must be rendered inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Content is rendered outside Root', () => {
