@@ -70,7 +70,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
 
     return (
         <AnimatedSubmitButton
-            success={isWaitingForSubmissionFromCurrentUser}
+            success={isWaitingForSubmissionFromCurrentUser && !hasViolations}
             text={translate('common.submit')}
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {
