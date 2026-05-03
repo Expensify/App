@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Optional',
         new: 'Neu',
         newFeature: 'Neue Funktion',
+        beta: 'Beta',
         search: 'Suche',
         reports: 'Berichte',
         spend: 'Ausgaben',
@@ -1422,7 +1423,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'Der Tagname überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie einen anderen Tag.',
             invalidAmount: 'Bitte gib vor dem Fortfahren einen gültigen Betrag ein',
             invalidDistance: 'Bitte gib eine gültige Entfernung ein, bevor du fortfährst',
-            invalidReadings: 'Bitte geben Sie sowohl Start- als auch Endstand ein',
+            invalidReadings: 'Bitte geben Sie sowohl Start- als auch Endstand ein, bevor Sie fortfahren',
             negativeDistanceNotAllowed: 'Endstand muss größer als Anfangsstand sein',
             distanceAmountTooLarge: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung oder reduziere den Satz.',
             distanceAmountTooLargeReduceDistance: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung.',
@@ -1612,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wähle eine Option, um die approvierende Person für diesen Bericht zu ändern. (Aktualisiere deine <a href="${workflowSettingLink}">Workspace-Einstellungen</a>, um dies dauerhaft für alle Berichte zu ändern.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
+            reassignedApproverMessage: (managerID: number) => `hat den Genehmigenden über eine Workflow-Aktualisierung neu zu <mention-user accountID="${managerID}"/> zugewiesen`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
                 addApproverSubtitle: 'Füge dem bestehenden Workflow eine weitere genehmigende Person hinzu.',
@@ -2719,6 +2721,12 @@ ${amount} für ${merchant} – ${date}`,
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standard',
         bankAccountLastFour: (lastFour: string) => `Bankkonto • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agenten',
+        subtitle: 'Automatisiere Aufgaben mit benutzerdefinierten Agenten.',
+        newAgent: 'Neue*r Agent*in',
+        emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen einen Agenten an und spare dir jede Menge Zeit.'},
     },
     expenseRulesPage: {
         title: 'Ausgabenregeln',

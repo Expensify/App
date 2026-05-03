@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Optioneel',
         new: 'Nieuw',
         newFeature: 'Nieuwe functie',
+        beta: 'Beta',
         search: 'Zoeken',
         reports: 'Rapporten',
         spend: 'Uitgaven',
@@ -1418,7 +1419,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'De tagnaam is langer dan 255 tekens. Maak deze korter of kies een andere tag.',
             invalidAmount: 'Voer een geldig bedrag in voordat je doorgaat',
             invalidDistance: 'Voer een geldige afstand in voordat je verdergaat',
-            invalidReadings: 'Voer zowel de begin- als eindstanden in',
+            invalidReadings: 'Voer zowel de begin- als eindstanden in voordat je doorgaat',
             negativeDistanceNotAllowed: 'Eindstand moet hoger zijn dan beginstand',
             distanceAmountTooLarge: 'Het totale bedrag is te hoog. Verlaag de afstand of verlaag het tarief.',
             distanceAmountTooLargeReduceDistance: 'Het totale bedrag is te hoog. Verlaag de afstand.',
@@ -1607,6 +1608,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Kies een optie om de fiatteur voor dit rapport te wijzigen. (Werk je <a href="${workflowSettingLink}">werkruimteninstellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `heeft de goedkeurder opnieuw toegewezen aan <mention-user accountID="${managerID}"/> via een workflow-update`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
                 addApproverSubtitle: 'Voeg een extra fiatteur toe aan de bestaande workflow.',
@@ -2712,6 +2714,12 @@ ${amount} voor ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om rechtstreeks in de app betalingen te versturen en te ontvangen.',
         defaultPaymentMethod: 'Standaard',
         bankAccountLastFour: (lastFour: string) => `Bankrekening • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agenten',
+        subtitle: 'Automatiseer taken met aangepaste agents.',
+        newAgent: 'Nieuwe medewerker',
+        emptyAgents: {title: 'Geen agents aangemaakt', subtitle: 'Stop met dingen handmatig doen. Geef in plaats daarvan een opdracht aan een agent en bespaar jezelf veel tijd.'},
     },
     expenseRulesPage: {
         title: 'Declaratieregels',

@@ -192,7 +192,7 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getCategoryTaxCodeAndAmount', () => {
+    describe('getCategoryTaxDetails', () => {
         it('should return the associated tax when the category matches the tax expense rules', () => {
             // Given a policy with tax expense rules associated with a category
             const category = 'Advertising';
@@ -204,11 +204,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-            // Then it should return the associated tax code and amount
+            // Then it should return the associated tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
             expect(categoryTaxAmount).toBe(5);
+            expect(categoryTaxValue).toBe('5%');
         });
 
         it("should return the default tax when the category doesn't match the tax expense rules", () => {
@@ -223,11 +224,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
             expect(categoryTaxAmount).toBe(0);
+            expect(categoryTaxValue).toBe('0%');
         });
 
         it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
@@ -254,11 +256,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_2');
             expect(categoryTaxAmount).toBe(9);
+            expect(categoryTaxValue).toBe('10%');
         });
 
         describe('should return undefined tax', () => {
@@ -276,11 +279,12 @@ describe('TransactionUtils', () => {
                 };
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
 
             it('if there are no policy tax expense rules', () => {
@@ -294,11 +298,12 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
         });
     });
@@ -327,6 +332,7 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.category).toBe(category);
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
+            expect(updatedTransaction.taxValue).toBe('5%');
         });
 
         it('should update transaction when distance is changed', () => {

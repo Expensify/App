@@ -10638,10 +10638,10 @@ describe('ReportUtils', () => {
             expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
-        it('should return an empty string when stateNum or statusNum is undefined', () => {
-            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe('');
-            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
-            expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
+        it('should return "Unreported" when stateNum or statusNum is undefined', () => {
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe(mockTranslate('common.unreported'));
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe(mockTranslate('common.unreported'));
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe(mockTranslate('common.unreported'));
         });
 
         it('should return "Deleted" when isDeleted is true', () => {

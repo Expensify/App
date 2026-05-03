@@ -170,6 +170,10 @@ const SCREENS = {
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
+        AGENTS: {
+            ROOT: 'Settings_Agents',
+        },
+
         RULES: {
             ROOT: 'Settings_Rules',
             ADD: 'Settings_Rules_Add',

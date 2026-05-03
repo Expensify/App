@@ -1494,6 +1494,7 @@ const CONST = {
                 RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
+                REASSIGN_APPROVER: 'REASSIGNAPPROVER',
                 REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SETTLEMENT_ACCOUNT_LOCKED: 'SETTLEMENTACCOUNTLOCKED',
@@ -8842,6 +8843,9 @@ const CONST = {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
         },
+        MODAL: {
+            DISMISS_DIALOG: 'Modal-DismissDialog',
+        },
         ATTACHMENT_PREVIEW: {
             VIDEO_THUMBNAIL: 'AttachmentPreview-VideoThumbnail',
             IMAGE_THUMBNAIL: 'AttachmentPreview-ImageThumbnail',
@@ -9148,6 +9152,7 @@ const CONST = {
         ACCOUNT: {
             PROFILE: 'Account-Profile',
             WALLET: 'Account-Wallet',
+            AGENTS: 'Account-Agents',
             RULES: 'Account-Rules',
             PREFERENCES: 'Account-Preferences',
             SECURITY: 'Account-Security',

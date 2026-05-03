@@ -76,7 +76,6 @@
 "../../src/components/ImportSpreadsheet.tsx"	"react-hooks/refs"	1
 "../../src/components/InteractiveStepSubPageHeader.tsx"	"no-restricted-syntax"	1
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
-"../../src/components/LHNOptionsList/OptionRowLHN.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
