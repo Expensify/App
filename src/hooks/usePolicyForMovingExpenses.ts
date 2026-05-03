@@ -1,4 +1,5 @@
 import {activePolicySelector} from '@selectors/Policy';
+import {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {canSubmitPerDiemExpenseFromWorkspace, isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
@@ -88,7 +89,12 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
 
     // Contextual selector — captures login/flags from closure.
     // Returns only IDs + flags (stable output) to prevent re-renders when unrelated policies change.
-    const policyQualificationSelector = (policies: OnyxCollection<Policy>) => getPolicyQualificationResult(policies, login, isPerDiemRequest, isTimeRequest, expensePolicyID);
+    // Memoized to prevent useOnyx from re-running the selector on every render, which can cause
+    // cascading re-renders when the POLICY collection changes (e.g. during workspace creation).
+    const policyQualificationSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => getPolicyQualificationResult(policies, login, isPerDiemRequest, isTimeRequest, expensePolicyID),
+        [login, isPerDiemRequest, isTimeRequest, expensePolicyID],
+    );
     const [qualificationResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: policyQualificationSelector,
     });
