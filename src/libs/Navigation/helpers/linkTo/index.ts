@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
-import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
 import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -22,6 +21,12 @@ import type {ActionPayloadParams, LinkToOptions} from './types';
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
 };
+
+/**
+ * Leaf screen names that represent the root/landing view of each tab.
+ * Used to distinguish plain tab switches from cross-tab deep navigations.
+ */
+const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -203,7 +208,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
-    if (shouldCheckFullScreenRouteMatching(action)) {
+    // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
+    // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
+    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the

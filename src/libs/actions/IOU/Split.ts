@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import {fastMerge} from 'expensify-common';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -102,6 +101,7 @@ import type {Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/I
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
@@ -115,9 +115,7 @@ import {
     getAllTransactions,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getMoneyRequestPolicyTags,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyTagsData,
     getReceiptError,
     getReportPreviewAction,
@@ -1397,7 +1395,8 @@ function updateSplitTransactions({
     };
 
     // Collect optimistic child transactions to add to the search snapshot (forward split only)
-    const optimisticChildSnapshotEntries: Record<string, OnyxTypes.Transaction> = {};
+    const optimisticChildSnapshotEntries: SearchResultDataType = {};
+    const optimisticChildSnapshotKeys: Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`> = [];
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
@@ -1911,7 +1910,7 @@ function updateSplitTransactions({
         // Collect the optimistic child transaction for snapshot update (forward split only)
         if (!isReverseSplitOperation && optimisticTransactionFromGetMoneyRequest) {
             const childTransactionID = optimisticTransactionFromGetMoneyRequest.transactionID;
-            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`;
+            const transactionKey: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`;
             // Use the transaction value from optimisticData if available (it may have merchant fixes applied),
             // otherwise fall back to the raw optimistic transaction
             const transactionUpdate = moneyRequestInformationOnyxData.optimisticData?.find((update) => update.key === transactionKey);
@@ -1920,6 +1919,7 @@ function updateSplitTransactions({
                     ? (transactionUpdate.value as OnyxTypes.Transaction)
                     : optimisticTransactionFromGetMoneyRequest;
             optimisticChildSnapshotEntries[transactionKey] = snapshotTransaction;
+            optimisticChildSnapshotKeys.push(transactionKey);
         }
 
         onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
@@ -1964,6 +1964,7 @@ function updateSplitTransactions({
             undeletedTransaction?.transactionID,
             currentReportAction,
             undefined,
+            currentUserPersonalDetails.accountID,
             undefined,
             undefined,
             undefined,
@@ -2132,20 +2133,19 @@ function updateSplitTransactions({
         }
 
         // Build the snapshot data update: remove original transaction and add child transactions
-        const optimisticSnapshotData: Record<string, OnyxTypes.Transaction | null> = {
+        const optimisticSnapshotData: SearchResultDataType = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
             ...optimisticChildSnapshotEntries,
         };
 
         // On failure, restore the original transaction and remove the child transactions
-        const failureSnapshotData: Record<string, OnyxTypes.Transaction | null> = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction ?? null,
-        };
-        for (const childKey of Object.keys(optimisticChildSnapshotEntries)) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] = originalTransaction ?? null;
+        for (const childKey of optimisticChildSnapshotKeys) {
             failureSnapshotData[childKey] = null;
         }
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
@@ -2154,7 +2154,6 @@ function updateSplitTransactions({
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
