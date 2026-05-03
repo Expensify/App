@@ -299,8 +299,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the RBR icon should be shown
-            expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // Then the Fix badge should be shown
+            expect(screen.getByLabelText('Fix', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
         it('should display the GBR on the parent task when it has an open subtask', async () => {
