@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import type {ReactNode} from 'react';
 import type {PressableProps as RNPressableProps, StyleProp, View, ViewStyle} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Log from '@libs/Log';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {AnchorRef} from './RootContext';
 import {useRootActions} from './RootContext';
@@ -28,8 +29,7 @@ function Trigger({children, style, hoverStyle, accessibilityLabel, role, disable
         if (!node) {
             return;
         }
-        // Fabric exposes `getBoundingClientRect` synchronously. Old Arch / Paper exposes only the
-        // async `measureInWindow`. The sync path is preferred so the popover lands in the same frame.
+        // Fabric: sync `getBoundingClientRect` (popover lands in the same frame). Old Arch / Paper / test renderer: async `measureInWindow`.
         if (typeof node.getBoundingClientRect === 'function') {
             const {x, y, width, height} = node.getBoundingClientRect();
             setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
@@ -41,7 +41,10 @@ function Trigger({children, style, hoverStyle, accessibilityLabel, role, disable
                 setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
                 setIsVisible(true);
             });
+            return;
         }
+        // Unreachable in real runtimes (Fabric, Paper, web all expose at least one).
+        Log.warn('[PopoverMenu.Trigger] anchor node exposes neither getBoundingClientRect nor measureInWindow');
     };
 
     return (

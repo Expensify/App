@@ -2,27 +2,26 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
+import useMaxHeightStyle from './useMaxHeightStyle';
 
 type ScrollableContentProps = BasePopoverProps & {
-    /** Ignored in landscape so bottom-docked sheets stay reachable. */
-    shouldEnableMaxHeight?: boolean;
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 /** Popover surface that wraps children in a `<ScrollView>` for unbounded row counts. */
-function ScrollableContent({shouldEnableMaxHeight = true, contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
+function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
     // Result discarded — attributes hierarchy violations to ScrollableContent, not BaseContent.
     useRootState(ScrollableContent.displayName);
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
-    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-    const maxHeightStyle = computeMaxHeightStyle({shouldEnableMaxHeight, isSmallScreenWidth, isInLandscapeMode, windowHeight});
+    // Cap to window height (with a floor of POPOVER_MENU_MAX_HEIGHT) so the inner scroll has room.
+    const maxHeightStyle = useMaxHeightStyle({
+        desktopFallback: {maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)},
+    });
 
     return (
         <BaseContent
@@ -34,26 +33,6 @@ function ScrollableContent({shouldEnableMaxHeight = true, contentContainerStyle,
             <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>
         </BaseContent>
     );
-}
-
-function computeMaxHeightStyle({
-    shouldEnableMaxHeight,
-    isSmallScreenWidth,
-    isInLandscapeMode,
-    windowHeight,
-}: {
-    shouldEnableMaxHeight: boolean;
-    isSmallScreenWidth: boolean;
-    isInLandscapeMode: boolean;
-    windowHeight: number;
-}): ViewStyle | undefined {
-    if (!shouldEnableMaxHeight || isInLandscapeMode) {
-        return undefined;
-    }
-    if (isSmallScreenWidth) {
-        return {maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE};
-    }
-    return {maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)};
 }
 
 ScrollableContent.displayName = 'PopoverMenu.ScrollableContent';

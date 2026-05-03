@@ -27,7 +27,7 @@ type BasePopoverProps = {
     onLayout?: (e: LayoutChangeEvent) => void;
     onModalShow?: () => void;
     onModalHide?: () => void;
-    /** Focus-restore strategy when the menu closes. Forwarded for accessibility customization. */
+    /** Focus-restore strategy when the menu closes. */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
     testID?: string;
 };
@@ -63,6 +63,7 @@ function BaseContent({
         state: {isVisible},
         meta: {anchorRef, activeAnchor},
     } = useRootState(BaseContent.displayName);
+    // Threaded into the controller so `close()` can batch `setIsVisible(false)` atomically with sub/focus reset.
     const {setIsVisible} = useRootActions(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();

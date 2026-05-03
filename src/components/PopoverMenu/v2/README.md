@@ -82,7 +82,7 @@ These are enforced at runtime — not just by convention.
 |---|---|
 | `Trigger` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `Sub.Content`) |
+| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `<SubContent>`) |
 | `SubTrigger`, `SubContent` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.

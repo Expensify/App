@@ -1,8 +1,4 @@
-/**
- * Named re-exports + `sideEffects: false` (this folder's package.json) make `import *`
- * tree-shakeable. Webpack today; Metro when Expo's tree-shaking flags flip on.
- * https://docs.expo.dev/guides/tree-shaking/
- */
+// Named re-exports + `sideEffects: false` keep `import *` tree-shakeable on webpack today and Metro when Expo's flags flip on.
 
 export {Content, ScrollableContent} from './content';
 export type {ContentProps, ScrollableContentProps} from './content';

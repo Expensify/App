@@ -15,7 +15,7 @@ function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
     const subID = id ?? fallbackID;
     const outerSub = useSubContextOptional();
-    // Chain only changes via JSX restructure, which would unmount this Sub anyway.
+    // Chain changes only via JSX restructure (which unmounts this Sub).
     const ancestorChain: readonly string[] = outerSub ? [...outerSub.ancestorChain, outerSub.subID] : [];
     const value = {subID, ancestorChain} satisfies SubContextValue;
 
