@@ -6,8 +6,8 @@ import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {MenuItemForwardProps} from './types';
-import {useSelectableRow} from './useFocusableRow';
-import type {ItemSelectEvent} from './useFocusableRow';
+import useSelectableRow from './useSelectableRow';
+import type {ItemSelectEvent} from './useSelectableRow';
 
 type ItemOwnProps = {
     text: string;
