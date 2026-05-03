@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import {useContentNavigation} from './ContentContext';
+import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
 import SubBackButton from './SubBackButton';
 import {getParentSubID, useSubContext} from './SubContext';
 

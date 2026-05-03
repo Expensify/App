@@ -1,12 +1,12 @@
 import React from 'react';
 import type {ViewStyle} from 'react-native';
+import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import CONST from '@src/CONST';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
-import {useRootState} from './RootContext';
-import type {AnchorRef} from './RootContext';
 
 /**
  * Renders the popover-menu surface anchored to the current anchor. Children render directly

@@ -1,6 +1,6 @@
 import React, {useId, useLayoutEffect} from 'react';
 import type {ReactNode} from 'react';
-import {useContentActions} from './ContentContext';
+import {useContentActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import SubContent from './SubContent';
 import {SubContext, useSubContextOptional} from './SubContext';
 import type {SubContextValue} from './SubContext';

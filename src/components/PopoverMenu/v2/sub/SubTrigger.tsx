@@ -1,15 +1,15 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
+import {useContentActions, useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
+import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useContentActions, useContentNavigation} from './ContentContext';
 import {getParentSubID, useSubContext} from './SubContext';
-import useFocusableRow from './useFocusableRow';
 
 type SubTriggerProps = {
     text: string;

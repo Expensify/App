@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useIsAtActiveLevel} from './SubContext';
 
 function Separator(): React.ReactElement | null {
     const isAtActiveLevel = useIsAtActiveLevel(Separator.displayName);

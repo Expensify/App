@@ -5,6 +5,8 @@ import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
+import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import type {AnchorRect} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,8 +15,6 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
-import {useRootActions, useRootState} from './RootContext';
-import type {AnchorRect} from './RootContext';
 import useContentController from './useContentController';
 
 /**

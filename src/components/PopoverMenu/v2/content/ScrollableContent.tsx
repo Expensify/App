@@ -1,5 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -7,7 +8,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
-import {useRootState} from './RootContext';
 
 /**
  * Renders the popover-menu surface anchored to the current anchor, with its children wrapped

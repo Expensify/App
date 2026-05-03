@@ -1,9 +1,9 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useIsAtActiveLevel} from './SubContext';
 
 type HeaderProps = {
     /** Text to render. Typically a `string`, but `<Text>` accepts any `ReactNode`. */

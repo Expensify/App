@@ -1,5 +1,5 @@
 import {createContext, use} from 'react';
-import {useContentNavigation} from './ContentContext';
+import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
 
 type SubContextValue = {
     subID: string;

@@ -1,5 +1,5 @@
-import {useContentActions} from './ContentContext';
-import {useIsAtActiveLevel} from './SubContext';
+import {useContentActions} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useFocusableRow from './useFocusableRow';
 import type {FocusableRow} from './useFocusableRow';
 
