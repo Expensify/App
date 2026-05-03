@@ -48,7 +48,7 @@ function useAnchorMeasurement({
                 setHasFreshMeasurement(true);
             })
             .catch((error: unknown) => {
-                Log.warn('[PopoverMenu.Content] popover position calculation failed', {error: String(error)});
+                Log.warn('[PopoverMenu.Content] popover position calculation failed', {error});
             });
         return () => {
             cancelled = true;
