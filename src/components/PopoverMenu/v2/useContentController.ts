@@ -1,26 +1,28 @@
 import {useLayoutEffect, useRef, useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
 import type {ContentActionsValue, ContentFocusValue, ContentNavigationValue, FocusableItem} from './ContentContext';
-import useOnValueChange from './useOnValueChange';
 import useOrderedIDs from './useOrderedIDs';
 
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
 const ROOT_SUB: CurrentSub = {id: null, ancestorChain: []};
 
-/** Owns navigation/focus state, item registry, and Enter shortcut. Returns slices for the three Content contexts; resets to root on close. */
-function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation: ContentNavigationValue; focus: ContentFocusValue; actions: ContentActionsValue} {
+/**
+ * Owns navigation/focus state, the item registry, and the Enter shortcut. Returns slices
+ * for the three Content contexts. Resetting on close is bundled into `actions.close` so
+ * the popover's hide and the navigation reset happen in the same React batch — there's
+ * no derived-state listener watching `isVisible`.
+ */
+function useContentController({isVisible, setIsVisible}: {isVisible: boolean; setIsVisible: Dispatch<SetStateAction<boolean>>}): {
+    navigation: ContentNavigationValue;
+    focus: ContentFocusValue;
+    actions: ContentActionsValue;
+} {
     const [currentSub, setCurrentSub] = useState<CurrentSub>(ROOT_SUB);
     const mountedSubs = useRef<Set<string>>(new Set());
-
-    useOnValueChange(isVisible, (nextVisible) => {
-        if (nextVisible || currentSub.id === null) {
-            return;
-        }
-        setCurrentSub(ROOT_SUB);
-    });
 
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIDs = useOrderedIDs(registry);
@@ -34,7 +36,7 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation:
         orderedIDsRef.current = orderedIDs;
     });
 
-    const [actions] = useState<ContentActionsValue>(() => ({
+    const actions: ContentActionsValue = {
         // Reset focus on level change: the registry is replaced and the old numeric index would map to a different row.
         enterSub: (id, ancestorChain) => {
             setCurrentSub({id, ancestorChain});
@@ -88,7 +90,14 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation:
         setFocusedID: (id) => {
             setFocusedIndex(id === null ? -1 : orderedIDsRef.current.indexOf(id));
         },
-    }));
+        close: () => {
+            // All three updates batch into a single render — the next open lands at the top level
+            // with no focused row and no derived-state listener observing `isVisible`.
+            setIsVisible(false);
+            setCurrentSub(ROOT_SUB);
+            setFocusedIndex(-1);
+        },
+    };
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
@@ -109,4 +118,4 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation:
     };
 }
 
-export default useContentStateMachine;
+export default useContentController;

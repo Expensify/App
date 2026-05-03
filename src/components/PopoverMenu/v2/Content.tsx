@@ -20,7 +20,7 @@ import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} fr
 import {useRootActions, useRootState} from './RootContext';
 import type {AnchorRef} from './RootContext';
 import useAnchorMeasurement from './useAnchorMeasurement';
-import useContentStateMachine from './useContentStateMachine';
+import useContentController from './useContentController';
 
 type ContentProps = {
     children: ReactNode;
@@ -100,13 +100,9 @@ function Content({
     const {windowHeight} = useWindowDimensions();
 
     const anchorPosition = useAnchorMeasurement({anchorRef, anchorPositionProp, anchorAlignment, isVisible});
-    const {navigation, focus, actions} = useContentStateMachine({isVisible});
+    const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
 
     useSuppressSpaceScroll(isVisible && !shouldUseScrollView);
-
-    const handleClose = () => {
-        setIsVisible(false);
-    };
 
     if (!anchorPosition) {
         return null;
@@ -122,7 +118,7 @@ function Content({
                         anchorPosition={anchorPosition}
                         anchorRef={anchorRef}
                         anchorAlignment={anchorAlignment}
-                        onClose={handleClose}
+                        onClose={actions.close}
                         isVisible={isVisible}
                         onModalShow={onModalShow}
                         onModalHide={onModalHide}

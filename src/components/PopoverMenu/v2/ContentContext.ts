@@ -32,6 +32,12 @@ type ContentActionsValue = {
     registerItem: (id: string, item: FocusableItem) => void;
     unregisterItem: (id: string) => void;
     setFocusedID: (id: string | null) => void;
+    /**
+     * Atomically hides the popover and resets navigation/focus to the root level. Use this
+     * instead of `useRootActions().setIsVisible(false)` so that the next open lands at the top
+     * level.
+     */
+    close: () => void;
 };
 
 const ContentNavigationContext = createContext<ContentNavigationValue | null>(null);

@@ -1,4 +1,4 @@
-import {useRootActions} from './RootContext';
+import {useContentActions} from './ContentContext';
 import {useIsAtActiveLevel} from './SubContext';
 import useFocusableRow from './useFocusableRow';
 import type {FocusableRow} from './useFocusableRow';
@@ -22,7 +22,7 @@ type SelectableRow = FocusableRow & {isAtActiveLevel: boolean};
 
 /** Close-on-select wrapper around `useFocusableRow`; gated on `isAtActiveLevel`. */
 function useSelectableRow({onSelect, disabled}: {onSelect?: (event: ItemSelectEvent) => void; disabled: boolean}): SelectableRow {
-    const {setIsVisible} = useRootActions();
+    const {close} = useContentActions();
     const isAtActiveLevel = useIsAtActiveLevel();
 
     const row = useFocusableRow({
@@ -37,7 +37,8 @@ function useSelectableRow({onSelect, disabled}: {onSelect?: (event: ItemSelectEv
             if (event.defaultPrevented) {
                 return;
             }
-            setIsVisible(false);
+            // Atomically hides the popover and resets nav — same React batch, no derived-state listener.
+            close();
         },
     });
 
