@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, invite users]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, auditor, invite users]
 ---
 
 
@@ -11,7 +11,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 
 - **Member** – Can submit and/or approve expenses.
 - **Admin** – Can manage members, roles, workflows, and settings.
-- **Auditor** – Can view and comment on reports but cannot make changes.
+- **Auditor** – Can view all workspace editor pages in read-only mode and comment on reports, but cannot change workspace configuration or take workflow actions (e.g., approve, pay, or take control).
 
 ---
 
