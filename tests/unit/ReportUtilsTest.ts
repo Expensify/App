@@ -8867,6 +8867,39 @@ describe('ReportUtils', () => {
 
             expect(result).toBe(false);
         });
+
+        // The optimistic-create bypass must only apply to in-flight creates. If errorFields.createReport
+        // is set, the server already rejected the create and the optimistic record will never become a
+        // valid destination — falling through to the normal eligibility check filters it out, instead of
+        // pinning a permanently broken report at the top of the picker.
+        it('should return true for an optimistic report whose create failed (pendingFields ADD + errorFields.createReport set)', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3009),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30009, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {createReport: {timestamp: 'report.genericCreateReportFailureMessage'}},
+            };
+            const transaction = {
+                transactionID: '30009',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(true);
+        });
     });
 
     describe('canDeleteTransaction', () => {

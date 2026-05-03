@@ -9,6 +9,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const POLICY_ID = 'policy1';
+const SECOND_POLICY_ID = 'policy2';
 const ACCOUNT_ID = 100;
 
 function buildPolicy(overrides: Partial<Policy> = {}): Policy {
@@ -33,25 +34,26 @@ function buildExpenseReport(reportID: string, overrides: Partial<Report> = {}): 
     };
 }
 
-function buildInstantSubmitNoApproversPolicy(): Policy {
+function buildInstantSubmitNoApproversPolicy(overrides: Partial<Policy> = {}): Policy {
     return buildPolicy({
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        ...overrides,
     });
 }
 
 async function setupOnyxData(policy: Policy, reports: Report[], transactions: Array<{transactionID: string; reportID: string; reimbursable: boolean}>) {
     await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
     for (const report of reports) {
-        // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop -- Onyx writes during test setup must be sequential so derived values (e.g. OUTSTANDING_REPORTS_BY_POLICY_ID) settle in the expected order before the hook subscribes
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
     }
 
     for (const txn of transactions) {
-        // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop -- Onyx writes during test setup must be sequential so transaction-driven derived values resolve deterministically before assertions run
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
     }
 
@@ -245,6 +247,78 @@ describe('useOutstandingReports', () => {
         await waitFor(() => {
             expect(result.current.length).toBe(1);
             expect(result.current.at(0)?.reportID).toBe('optimisticReport');
+        });
+    });
+
+    // The cross-policy branch is hit when no selectedPolicyID is provided (e.g. from a self-DM
+    // or before a workspace is chosen), in which case the hook iterates every workspace policy.
+    // This exercises the per-report policy lookup added for issue #70423 and guards against
+    // regressions where a policy lookup keyed off the source policyID would mis-classify
+    // reports that belong to a different workspace.
+    it('filters per-policy when iterating across multiple workspaces with no selectedPolicyID', async () => {
+        // Given two workspaces with different eligibility profiles
+        // policy1: instant submit + no approvers → reports with only non-reimbursable txns are ineligible destinations
+        // policy2: instant submit + approver workflow → those same reports stay eligible
+        await act(async () => {
+            await setupOnyxData(
+                buildInstantSubmitNoApproversPolicy(),
+                [buildExpenseReport('reportOnIneligiblePolicy')],
+                [{transactionID: 'txnIneligible', reportID: 'reportOnIneligiblePolicy', reimbursable: false}],
+            );
+
+            const policyWithApprovers = buildPolicy({
+                id: SECOND_POLICY_ID,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, policyWithApprovers);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}reportOnEligiblePolicy`, buildExpenseReport('reportOnEligiblePolicy', {policyID: SECOND_POLICY_ID}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txnEligible`, {transactionID: 'txnEligible', reportID: 'reportOnEligiblePolicy', reimbursable: false});
+            await waitForBatchedUpdates();
+        });
+
+        // When the hook is invoked without a selectedPolicyID (cross-policy iteration branch)
+        const {result} = renderHook(() => useOutstandingReports(undefined, undefined, ACCOUNT_ID, false));
+
+        // Then only the eligible-workspace report is returned. The hook must look up each report's
+        // own policy when applying isReportIneligibleForMoveExpenses — using a single policy for
+        // the whole list would either drop the eligible report or keep the ineligible one.
+        await waitFor(() => {
+            expect(result.current.length).toBe(1);
+            expect(result.current.at(0)?.reportID).toBe('reportOnEligiblePolicy');
+        });
+    });
+
+    // Regression test for the failed-create scenario raised on PR #89079. An optimistic report
+    // can stay in Onyx with pendingFields.createReport === ADD even after the server rejects the
+    // create — the API failure data only sets errorFields.createReport, it does not clear the
+    // pending field. Without this guard the report would remain in the picker forever, so the
+    // pendingFields bypass must require the absence of errorFields.createReport.
+    it('filters out optimistic reports whose create failed (pendingFields ADD + errorFields.createReport set)', async () => {
+        // Given a workspace with instant submit and no approvers, and an optimistic report that
+        // both still has pendingFields.createReport === ADD AND has errorFields.createReport set,
+        // populated with a non-reimbursable transaction (matching the post-failure Onyx state).
+        await act(async () => {
+            await setupOnyxData(
+                buildInstantSubmitNoApproversPolicy(),
+                [
+                    buildExpenseReport('failedOptimisticReport', {
+                        pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        errorFields: {createReport: {timestamp: 'report.genericCreateReportFailureMessage'}},
+                    }),
+                ],
+                [{transactionID: 'txnFailed', reportID: 'failedOptimisticReport', reimbursable: false}],
+            );
+        });
+
+        // When the hook computes outstanding reports
+        const {result} = renderHook(() => useOutstandingReports(undefined, POLICY_ID, ACCOUNT_ID, false));
+
+        // Then the failed optimistic report should be filtered out as ineligible — the create
+        // already failed so it can never become a valid move-expense destination
+        await waitFor(() => {
+            expect(result.current.length).toBe(0);
         });
     });
 });

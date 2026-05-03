@@ -7,13 +7,26 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 
-const policyIdMapper = (policy: OnyxEntry<Policy>) => policy?.id;
+// Only the fields isReportIneligibleForMoveExpenses needs (via isInstantSubmitEnabled and
+// isSubmitAndClose). Reading just these fields lets the hook share a single Onyx subscription
+// to ONYXKEYS.COLLECTION.POLICY through useMappedPolicies, instead of subscribing to the
+// full collection twice.
+type PolicyEligibilitySnapshot = Pick<Policy, 'id' | 'autoReporting' | 'autoReportingFrequency' | 'approvalMode'>;
+
+const policyEligibilityMapper = (policy: OnyxEntry<Policy>): PolicyEligibilitySnapshot | undefined =>
+    policy
+        ? {
+              id: policy.id,
+              autoReporting: policy.autoReporting,
+              autoReportingFrequency: policy.autoReportingFrequency,
+              approvalMode: policy.approvalMode,
+          }
+        : undefined;
 
 export default function useOutstandingReports(selectedReportID: string | undefined, selectedPolicyID: string | undefined, ownerAccountID: number | undefined, isEditing: boolean) {
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [allPoliciesID] = useMappedPolicies(policyIdMapper);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policiesEligibility] = useMappedPolicies(policyEligibilityMapper);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
 
@@ -36,13 +49,18 @@ export default function useOutstandingReports(selectedReportID: string | undefin
             if (selectedReportID && report.reportID === selectedReportID) {
                 return true;
             }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            // Structural cast: PolicyEligibilitySnapshot exposes exactly the fields
+            // isReportIneligibleForMoveExpenses reads through isInstantSubmitEnabled and
+            // isSubmitAndClose. Building a full Policy here just to satisfy the type would
+            // negate the point of the narrow mapper.
+            const policy = policiesEligibility?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] as OnyxEntry<Policy>;
             return !isReportIneligibleForMoveExpenses(report, policy);
         });
 
     if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
         const result = [];
-        for (const policyID of Object.values(allPoliciesID ?? {})) {
+        for (const mappedPolicy of Object.values(policiesEligibility ?? {})) {
+            const policyID = mappedPolicy?.id;
             if (!policyID || policyID === personalPolicyID) {
                 continue;
             }

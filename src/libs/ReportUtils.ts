@@ -2734,8 +2734,11 @@ function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>
     // Optimistically created reports go through a transient window where the report exists in
     // Onyx but the transaction hasn't been associated yet. During that window
     // hasOnlyNonReimbursableTransactions flips from false to true, which would otherwise cause
-    // the new report to flicker into and out of the picker (deploy blocker #88425).
-    if (moneyRequestReport?.pendingFields?.createReport === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+    // the new report to flicker into and out of the picker (deploy blocker #88425). The bypass
+    // is restricted to in-flight creates: if errorFields.createReport is set the server already
+    // rejected the create and the optimistic record will never become a valid destination, so
+    // it must fall through to the normal eligibility check.
+    if (moneyRequestReport?.pendingFields?.createReport === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !moneyRequestReport?.errorFields?.createReport) {
         return false;
     }
     return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
