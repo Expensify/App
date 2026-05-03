@@ -8,9 +8,7 @@ import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
-import Icon from '@components/Icon';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -32,11 +30,8 @@ import UnreportedTransactionAction from '@components/ReportActionItem/Unreported
 import {SearchStateContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -99,10 +94,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {
     canWriteInReport,
-    getChatListItemReportName,
-    getDisplayNamesWithTooltips,
     getMovedActionMessage,
-    getWhisperDisplayNames,
     isCompletedTaskReport,
     isExpenseReport,
     isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils,
@@ -112,7 +104,6 @@ import {
 import SelectionScraper from '@libs/SelectionScraper';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import variables from '@styles/variables';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {expandURLPreview} from '@userActions/Report';
@@ -149,7 +140,9 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
+import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
+import WhisperBanner from './WhisperBanner';
 
 type PureReportActionItemProps = {
     /** The personal policy ID */
@@ -259,9 +252,6 @@ type PureReportActionItemProps = {
     /** Gets all transactions on an IOU report with a receipt */
     getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
 
-    /** Whether the current user is the only participant in the report */
-    isCurrentUserTheOnlyParticipant?: (participantAccountIDs?: number[]) => boolean;
-
     /** Function to clear an error from a transaction */
     clearError?: (transactionID: string) => void;
 
@@ -333,7 +323,6 @@ function PureReportActionItem({
     resolveActionableReportMentionWhisper = () => {},
     resolveActionableMentionWhisper = () => {},
     isClosedExpenseReportWithNoExpenses,
-    isCurrentUserTheOnlyParticipant = () => false,
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
@@ -348,9 +337,8 @@ function PureReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
+    const {translate, formatTravelDate, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -374,7 +362,6 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(reportID);
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
@@ -795,7 +782,12 @@ function PureReportActionItem({
                 />
             );
         } else if (isSimpleMessageAction(action)) {
-            children = <SimpleMessageContent action={action} />;
+            children = (
+                <SimpleMessageContent
+                    action={action}
+                    report={report}
+                />
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -938,7 +930,11 @@ function PureReportActionItem({
             children = <CreateHarvestReportAction reportNameValuePairsOriginalID={reportNameValuePairsOriginalID} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
             children = <CreatedReportForUnapprovedTransactionsAction action={action} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+        } else if (
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+        ) {
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
@@ -1119,42 +1115,10 @@ function PureReportActionItem({
 
     const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
-    const isMultipleParticipant = whisperedTo.length > 1;
 
     const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() : undefined;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
-    const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
-        : [];
-    const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
-    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber) : [];
-
-    const renderSearchHeader = (children: React.ReactNode) => {
-        if (!isOnSearch) {
-            return children;
-        }
-
-        return (
-            <View style={[styles.p4]}>
-                <View style={styles.webViewStyles.tagStyles.ol}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, !isWhisper ? styles.mb3 : {}]}>
-                        <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
-                        <TextLink
-                            fontSize={variables.fontSizeSmall}
-                            onPress={() => {
-                                onPress?.();
-                            }}
-                            numberOfLines={1}
-                        >
-                            {getChatListItemReportName(action, report, conciergeReportID)}
-                        </TextLink>
-                    </View>
-                    {children}
-                </View>
-            </View>
-        );
-    };
 
     // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
     const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
@@ -1236,42 +1200,25 @@ function PureReportActionItem({
                                     needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                     shouldDisableStrikeThrough
                                 >
-                                    {renderSearchHeader(
-                                        <>
-                                            {isWhisper && (
-                                                <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
-                                                    <View style={[styles.pl6, styles.mr3]}>
-                                                        <Icon
-                                                            fill={theme.icon}
-                                                            src={expensifyIcons.Eye}
-                                                            small
-                                                        />
-                                                    </View>
-                                                    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                                                        {translate('reportActionContextMenu.onlyVisible')}
-                                                        &nbsp;
-                                                    </Text>
-                                                    <DisplayNames
-                                                        fullTitle={getWhisperDisplayNames(translate, formatPhoneNumber, whisperedTo) ?? ''}
-                                                        displayNamesWithTooltips={displayNamesWithTooltips}
-                                                        tooltipEnabled
-                                                        numberOfLines={1}
-                                                        textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
-                                                        shouldUseFullTitle={isWhisperOnlyVisibleByUser}
-                                                    />
-                                                </View>
-                                            )}
-                                            {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
-                                        </>,
-                                    )}
+                                    <SearchActionHeader
+                                        action={action}
+                                        report={report}
+                                        isWhisper={isWhisper}
+                                        onPress={onPress}
+                                    >
+                                        {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
+                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                    </SearchActionHeader>
                                 </OfflineWithFeedback>
                             </View>
                         </View>
                     )}
                 </Hoverable>
-                <View style={styles.reportActionSystemMessageContainer}>
-                    <InlineSystemMessage message={action.error} />
-                </View>
+                {!!action.error && (
+                    <View style={styles.reportActionSystemMessageContainer}>
+                        <InlineSystemMessage message={action.error} />
+                    </View>
+                )}
             </PressableWithSecondaryInteraction>
         </View>
     );

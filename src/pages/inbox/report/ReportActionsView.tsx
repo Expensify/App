@@ -365,7 +365,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 hasCreatedActionAdded={shouldAddCreatedAction}
-                isConciergeSidePanel={isConciergeSidePanel}
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}

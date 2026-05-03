@@ -9,7 +9,7 @@ index ee42f63..4e8d8c0 100644
 -    const shouldMaintainVisibleContentPosition = recyclerViewManager.shouldMaintainVisibleContentPosition();
      const maintainVisibleContentPositionInternal = useMemo(() => {
 -        if (shouldMaintainVisibleContentPosition) {
-+        if (maintainVisibleContentPosition != null) {
++        if (maintainVisibleContentPosition != null && !maintainVisibleContentPosition.disabled) {
              return {
                  ...maintainVisibleContentPosition,
                  minIndexForVisible: 0,
@@ -48,7 +48,7 @@ index b2bd67a..d4bf02d 100644
 -
    const maintainVisibleContentPositionInternal = useMemo(() => {
 -    if (shouldMaintainVisibleContentPosition) {
-+    if (maintainVisibleContentPosition != null) {
++    if (maintainVisibleContentPosition != null && !maintainVisibleContentPosition.disabled) {
        return {
          ...maintainVisibleContentPosition,
          minIndexForVisible: 0,
