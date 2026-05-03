@@ -4,7 +4,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
 import type {ContentActionsValue, ContentFocusValue, ContentNavigationValue, FocusableItem} from './ContentContext';
 import useOnValueChange from './useOnValueChange';
-import useOrderedIds from './useOrderedIds';
+import useOrderedIDs from './useOrderedIDs';
 
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
@@ -23,15 +23,15 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation:
     });
 
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
-    const orderedIds = useOrderedIds(registry);
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIds.length - 1, isActive: isVisible, initialFocusedIndex: -1});
+    const orderedIDs = useOrderedIDs(registry);
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIDs.length - 1, isActive: isVisible, initialFocusedIndex: -1});
     // Guard the -1 sentinel — `.at(-1)` would return the last item.
-    const focusedID = focusedIndex >= 0 ? (orderedIds.at(focusedIndex) ?? null) : null;
+    const focusedID = focusedIndex >= 0 ? (orderedIDs.at(focusedIndex) ?? null) : null;
 
     // Mirror so setFocusedID reads the latest order without going stale.
-    const orderedIdsRef = useRef(orderedIds);
+    const orderedIDsRef = useRef(orderedIDs);
     useLayoutEffect(() => {
-        orderedIdsRef.current = orderedIds;
+        orderedIDsRef.current = orderedIDs;
     });
 
     const [actions] = useState<ContentActionsValue>(() => ({
@@ -86,7 +86,7 @@ function useContentStateMachine({isVisible}: {isVisible: boolean}): {navigation:
                 return next;
             }),
         setFocusedID: (id) => {
-            setFocusedIndex(id === null ? -1 : orderedIdsRef.current.indexOf(id));
+            setFocusedIndex(id === null ? -1 : orderedIDsRef.current.indexOf(id));
         },
     }));
 
