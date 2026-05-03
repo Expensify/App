@@ -87,7 +87,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-    const sessionStartTime = useConciergeSessionStartTime(isConciergeChat);
+    const sessionStartTime = useConciergeSessionStartTime(isConciergeChat, report?.lastReadTime);
 
     const hasUserSentMessage = useMemo(() => {
         if (!isConciergeChat || !sessionStartTime) {

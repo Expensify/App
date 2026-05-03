@@ -63,15 +63,28 @@ function useConciergeReportActions({
         return hasUserMessageInLoadedSet || hasOlderActions;
     }, [isConciergeChat, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions]);
 
-    const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeChat || !hadUserMessageAtSessionStart || !sessionStartTime) {
+    const hasUnreadMessages = useMemo(() => {
+        if (!isConciergeChat || !sessionStartTime) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
-    }, [isConciergeChat, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart]);
+        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created > sessionStartTime);
+    }, [isConciergeChat, visibleReportActions, sessionStartTime]);
 
-    const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory;
-    const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
+    const hasPreviousMessages = useMemo(() => {
+        if (!isConciergeChat || !sessionStartTime) {
+            return false;
+        }
+        if (!hadUserMessageAtSessionStart && !hasUnreadMessages) {
+            return false;
+        }
+        const hasReadMessagesInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created <= sessionStartTime);
+        return hasReadMessagesInLoadedSet || hasOlderActions;
+    }, [isConciergeChat, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasUnreadMessages, hasOlderActions]);
+
+    // Show the welcome greeting only when all messages are read (no unread),
+    // the user hasn't sent a new message, and they have prior chat history.
+    const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !hasUnreadMessages && !showFullHistory;
+    const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !hasUnreadMessages && !showFullHistory;
 
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeGreeting) {
@@ -102,8 +115,19 @@ function useConciergeReportActions({
         [firstUserMessageCreated, sessionStartTime],
     );
 
+    const isUnreadAction = useCallback(
+        (action: OnyxTypes.ReportAction): boolean => {
+            if (!sessionStartTime) {
+                return false;
+            }
+            return isCreatedAction(action) || action.created > sessionStartTime;
+        },
+        [sessionStartTime],
+    );
+
     const filterActions = useCallback(
         (actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
+            // Case 3: Only read messages — show greeting + CREATED
             if (showConciergeWelcome && conciergeGreetingAction) {
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
@@ -117,6 +141,14 @@ function useConciergeReportActions({
             if (!hadUserMessageAtSessionStart) {
                 return actions;
             }
+
+            // Cases 1 & 2: Unread messages exist but user hasn't sent a new
+            // message yet — show only unread actions (after the read boundary).
+            if (hasUnreadMessages && !hasUserSentMessage) {
+                return actions.filter(isUnreadAction);
+            }
+
+            // User sent a message this session — show session actions
             const filtered = actions.filter(isCurrentSessionAction);
             if (filtered.length === 0) {
                 return actions;
@@ -127,7 +159,18 @@ function useConciergeReportActions({
             }
             return filtered;
         },
-        [showConciergeWelcome, conciergeGreetingAction, isConciergeChat, showFullHistory, sessionStartTime, isCurrentSessionAction, hadUserMessageAtSessionStart],
+        [
+            showConciergeWelcome,
+            conciergeGreetingAction,
+            isConciergeChat,
+            showFullHistory,
+            sessionStartTime,
+            isCurrentSessionAction,
+            hadUserMessageAtSessionStart,
+            hasUnreadMessages,
+            hasUserSentMessage,
+            isUnreadAction,
+        ],
     );
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);

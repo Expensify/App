@@ -5,14 +5,16 @@ import useIsInSidePanel from './useIsInSidePanel';
 import useSidePanelState from './useSidePanelState';
 
 /**
- * Returns the session start time for a Concierge chat. Uses the side panel's
- * session time when rendered inside the side panel, otherwise captures
- * `DateUtils.getDBTime()` on the **first** focus after mount/navigating to
- * the Concierge DM and keeps that value stable until the user navigates to a
- * different chat. This avoids resetting the welcome state when the user
- * navigates to a child report (e.g. an onboarding task) and comes back.
+ * Returns the session start time for a Concierge chat.
+ *
+ * - **Side panel:** Uses the side panel's own session time (`DateUtils.getDBTime()`
+ *   captured when the panel opens).
+ * - **Main DM:** Captures `lastReadTime` on the **first** focus after navigating
+ *   to the Concierge DM. This separates *read* messages (hidden behind "Show
+ *   history") from *unread* messages (always visible), matching the issue spec.
+ *   The value stays stable until the user navigates to a different chat.
  */
-function useConciergeSessionStartTime(isConciergeChat: boolean): string | null {
+function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: string): string | null {
     const isInSidePanel = useIsInSidePanel();
     const isFocused = useIsFocused();
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
@@ -22,9 +24,6 @@ function useConciergeSessionStartTime(isConciergeChat: boolean): string | null {
     const [prevShouldHide, setPrevShouldHide] = useState(true);
     const [prevIsConciergeChat, setPrevIsConciergeChat] = useState(isConciergeChat);
 
-    // When the user navigates away from Concierge to a different chat,
-    // isConciergeChat flips to false. Reset so the next visit to Concierge
-    // gets a fresh session.
     if (prevIsConciergeChat !== isConciergeChat) {
         setPrevIsConciergeChat(isConciergeChat);
         if (!isConciergeChat) {
@@ -33,13 +32,14 @@ function useConciergeSessionStartTime(isConciergeChat: boolean): string | null {
         }
     }
 
-    // Set the session time only on the first hide→show transition per visit.
-    // Subsequent focus regains (e.g. returning from a child task thread)
-    // keep the existing session time so the welcome state doesn't flash.
+    // Capture the session boundary on the first hide→show transition per visit.
+    // For the main DM we use lastReadTime so that unread messages stay visible
+    // while read history is collapsed. Falls back to DateUtils.getDBTime() when
+    // lastReadTime is unavailable (e.g. fresh report with no reads).
     if (prevShouldHide !== shouldHide) {
         setPrevShouldHide(shouldHide);
         if (!shouldHide && !mainDMSessionStartTime) {
-            setMainDMSessionStartTime(DateUtils.getDBTime());
+            setMainDMSessionStartTime(lastReadTime ?? DateUtils.getDBTime());
         }
     }
 
