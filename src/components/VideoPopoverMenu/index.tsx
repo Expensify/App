@@ -1,43 +1,70 @@
-import React, {useRef} from 'react';
-import type {View} from 'react-native';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PopoverMenu from '@components/PopoverMenu';
-import {useVideoPopoverMenuState} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
-import type {AnchorPosition} from '@styles/index';
+import React from 'react';
+import * as PopoverMenu from '@components/PopoverMenu/v2';
+import {useVideoPopoverMenuActions, useVideoPopoverMenuState} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
 
 type VideoPopoverMenuProps = {
-    /** Whether  popover menu is visible. */
     isPopoverVisible?: boolean;
 
-    /** Callback executed to hide popover when an item is selected. */
-    hidePopover?: (selectedItem?: PopoverMenuItem, index?: number) => void;
+    /** Fires on item selection, outside click, and escape — not just one of those. */
+    hidePopover?: () => void;
 
-    /** The horizontal and vertical anchors points for the popover.  */
     anchorPosition?: AnchorPosition;
 };
 
-function VideoPopoverMenu({
-    isPopoverVisible = false,
-    hidePopover = () => {},
-    anchorPosition = {
-        horizontal: 0,
-        vertical: 0,
-    },
-}: VideoPopoverMenuProps) {
-    const {menuItems} = useVideoPopoverMenuState();
-    const videoPlayerMenuRef = useRef<View | HTMLDivElement>(null);
+const DEFAULT_ANCHOR: AnchorPosition = {horizontal: 0, vertical: 0};
+
+function VideoPopoverMenu({isPopoverVisible = false, hidePopover = () => {}, anchorPosition = DEFAULT_ANCHOR}: VideoPopoverMenuProps) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {currentPlaybackSpeed, isLocalFile} = useVideoPopoverMenuState();
+    const {updatePlaybackSpeed, downloadAttachment} = useVideoPopoverMenuActions();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter']);
+
+    const showDownload = !isOffline && !isLocalFile;
+    const playbackSpeedLabel = translate('videoPlayer.playbackSpeed');
 
     return (
-        <PopoverMenu
-            onClose={hidePopover}
-            onItemSelected={hidePopover}
-            isVisible={isPopoverVisible}
-            anchorPosition={anchorPosition}
-            menuItems={menuItems}
-            anchorRef={videoPlayerMenuRef}
-            shouldUseScrollView
-            shouldMaintainFocusAfterSubItemSelect={false}
-        />
+        <PopoverMenu.Root
+            open={isPopoverVisible}
+            onOpenChange={(open) => {
+                if (open) {
+                    return;
+                }
+                hidePopover();
+            }}
+        >
+            <PopoverMenu.Content anchorPosition={anchorPosition}>
+                {showDownload && (
+                    <PopoverMenu.Item
+                        text={translate('common.download')}
+                        icon={icons.Download}
+                        onSelect={downloadAttachment}
+                    />
+                )}
+                <PopoverMenu.Sub>
+                    <PopoverMenu.SubTrigger
+                        text={playbackSpeedLabel}
+                        icon={icons.Meter}
+                    />
+                    <PopoverMenu.SubContent backButtonText={playbackSpeedLabel}>
+                        {CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => (
+                            <PopoverMenu.CheckmarkItem
+                                key={speed}
+                                text={speed === 1 ? translate('videoPlayer.normal') : speed.toString()}
+                                isSelected={currentPlaybackSpeed === speed}
+                                shouldPutLeftPaddingWhenNoIcon
+                                onSelect={() => updatePlaybackSpeed(speed)}
+                            />
+                        ))}
+                    </PopoverMenu.SubContent>
+                </PopoverMenu.Sub>
+            </PopoverMenu.Content>
+        </PopoverMenu.Root>
     );
 }
 

@@ -22,7 +22,7 @@ type TriggerProps = WithSentryLabel & {
 /** Pressable that opens its enclosing `<Root>` and registers itself as the popover's anchor. */
 function Trigger({children, style, hoverStyle, accessibilityLabel, role, disabled, sentryLabel, testID}: TriggerProps): React.ReactElement {
     const {setIsVisible, setActiveAnchor} = useRootActions(Trigger.displayName);
-    const ownRef = useRef<View>(null);
+    const ownRef: AnchorRef = useRef<View | null>(null);
 
     const handlePress = () => {
         const node = ownRef.current;
@@ -32,13 +32,13 @@ function Trigger({children, style, hoverStyle, accessibilityLabel, role, disable
         // Fabric: sync `getBoundingClientRect` (popover lands in the same frame). Old Arch / Paper / test renderer: async `measureInWindow`.
         if (typeof node.getBoundingClientRect === 'function') {
             const {x, y, width, height} = node.getBoundingClientRect();
-            setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
+            setActiveAnchor({ref: ownRef, rect: {x, y, width, height}});
             setIsVisible(true);
             return;
         }
         if (typeof node.measureInWindow === 'function') {
             node.measureInWindow((x, y, width, height) => {
-                setActiveAnchor({ref: ownRef as AnchorRef, rect: {x, y, width, height}});
+                setActiveAnchor({ref: ownRef, rect: {x, y, width, height}});
                 setIsVisible(true);
             });
             return;
