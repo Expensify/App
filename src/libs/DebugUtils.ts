@@ -1347,6 +1347,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 prohibitedExpenseRule: 'string',
                 comment: 'string',
                 cardID: 'number',
+                missingFields: 'array',
             });
         case 'showInReview':
             return validateBoolean(value);
