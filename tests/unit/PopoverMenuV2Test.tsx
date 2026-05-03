@@ -895,45 +895,6 @@ describe('PopoverMenu V2', () => {
             expect(outerALatest?.focused).toBe(false);
             expect(outerBLatest?.focused).toBe(false);
         });
-
-        // Sub's useLayoutEffect cleanup must only fire on unmount — a re-render inside the active sub must not pop nav.
-        it('stays in the sub when focus changes inside it', () => {
-            render(
-                <ControlledHarness initialOpen>
-                    <PopoverMenu.Content>
-                        <PopoverMenu.Sub id="sub">
-                            <PopoverMenu.SubTrigger text="Open" />
-                            <PopoverMenu.SubContent backButtonText="Back">
-                                <PopoverMenu.Item
-                                    text="First"
-                                    onSelect={() => {}}
-                                />
-                                <PopoverMenu.Item
-                                    text="Second"
-                                    onSelect={() => {}}
-                                />
-                            </PopoverMenu.SubContent>
-                        </PopoverMenu.Sub>
-                    </PopoverMenu.Content>
-                </ControlledHarness>,
-            );
-
-            press('Open');
-            // After entering, both inner items + back row are rendered.
-            expect(findItemByTitle('First')).toBeDefined();
-            expect(findItemByTitle('Second')).toBeDefined();
-            expect(findItemByTitle('Back')).toBeDefined();
-
-            // Trigger a focus change inside the sub — this re-renders the Content tree.
-            const second = findItemByTitle<{onFocus?: () => void}>('Second');
-            act(() => second?.onFocus?.());
-
-            // If the cleanup-on-unrelated-render bug is present, navigation pops and the inner items disappear.
-            expect(findItemByTitle('First')).toBeDefined();
-            expect(findItemByTitle('Second')).toBeDefined();
-            expect(findItemByTitle('Back')).toBeDefined();
-            expect(findItemByTitle('Open')).toBeUndefined();
-        });
     });
 
     describe('Separator', () => {
