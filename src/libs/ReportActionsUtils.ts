@@ -4391,10 +4391,6 @@ function getCardIssuedMessage({
         ? createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(String(cardID)), ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))
         : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
 
-    console.log('****** shouldNavigateToCardDetails ******', shouldNavigateToCardDetails);
-    console.log('****** navigateRoute ******', navigateRoute);
-    console.log('****** ${environmentURL}/${navigateRoute} ******', `${environmentURL}/${navigateRoute}`);
-
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
