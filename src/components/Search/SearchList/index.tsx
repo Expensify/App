@@ -41,6 +41,7 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import BaseSearchList from './BaseSearchList';
+import type BaseSearchListProps from './BaseSearchList/types';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
 import type TaskListItem from './ListItem/TaskListItem';
@@ -115,7 +116,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     columns: SearchColumnType[];
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
-    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchFlashListItem>>; viewableItems: Array<ViewToken<SearchFlashListItem>>}) => void;
+    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
@@ -398,7 +399,7 @@ function SearchList({
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const listRef = useRef<FlashListRef<SearchFlashListItem>>(null);
+    const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);
@@ -734,10 +735,10 @@ function SearchList({
                 </View>
             )}
             <BaseSearchList
-                data={expandedData}
-                renderItem={renderItem}
-                onSelectRow={onSelectRow as (item: SearchFlashListItem) => void}
-                keyExtractor={keyExtractor}
+                data={expandedData as SearchListItem[]}
+                renderItem={renderItem as BaseSearchListProps['renderItem']}
+                onSelectRow={onSelectRow}
+                keyExtractor={keyExtractor as BaseSearchListProps['keyExtractor']}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
@@ -747,7 +748,7 @@ function SearchList({
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
-                onViewableItemsChanged={onViewableItemsChanged}
+                onViewableItemsChanged={onViewableItemsChanged as BaseSearchListProps['onViewableItemsChanged']}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
@@ -755,7 +756,7 @@ function SearchList({
                 policyForMovingExpenses={policyForMovingExpenses}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={computedStickyHeaderIndices}
-                getItemType={getItemType}
+                getItemType={getItemType as BaseSearchListProps['getItemType']}
             />
             <Modal
                 isVisible={isModalVisible}

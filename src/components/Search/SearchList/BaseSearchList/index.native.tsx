@@ -1,10 +1,10 @@
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
 import Animated from 'react-native-reanimated';
-import type {SearchFlashListItem} from '@components/Search/SearchList/ListItem/types';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type BaseSearchListProps from './types';
 
-const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchFlashListItem>);
+const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 function BaseSearchList({
     data,
@@ -22,7 +22,7 @@ function BaseSearchList({
     getItemType,
 }: BaseSearchListProps) {
     const renderItemWithoutKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchFlashListItem; index: number}) => {
+        ({item, index}: {item: SearchListItem; index: number}) => {
             return renderItem(item, index, false, undefined);
         },
         [renderItem],
