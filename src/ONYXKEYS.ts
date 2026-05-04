@@ -1107,6 +1107,7 @@ const ONYXKEYS = {
         ADD_WORK_EMAIL_FORM_DRAFT: 'addWorkEmailFormDraft',
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
+        SPEND_RULE_MAX_AMOUNT_FORM: 'spendRuleMaxAmountForm',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1252,6 +1253,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
+    [ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM]: FormTypes.SpendRuleMaxAmountForm;
 };
 
 type OnyxFormDraftValuesMapping = {
