@@ -40,9 +40,12 @@ type UserSelectPopupProps = {
      * Set to true to always show search, or false to never show search regardless of user count.
      */
     isSearchable?: boolean;
+
+    /** Whether to soft-exclude Expensify team members (Guides/Account Managers) from suggestions. Used by the From filter so internal staff don't leak into customer suggestions. */
+    shouldExcludeExpensifyTeamMembers?: boolean;
 };
 
-function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
+function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable, shouldExcludeExpensifyTeamMembers = false}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -74,7 +77,12 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
         }, []);
     }, [value, personalDetails]);
 
-    const expensifyTeamExclusions = useMemo(() => getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.login), [personalDetails, currentUserPersonalDetails.login]);
+    const expensifyTeamExclusions = useMemo(() => {
+        if (!shouldExcludeExpensifyTeamMembers) {
+            return CONST.EMPTY_OBJECT as Record<string, boolean>;
+        }
+        return getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.login);
+    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserPersonalDetails.login]);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} =
         useSearchSelector({
