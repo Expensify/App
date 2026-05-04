@@ -81,6 +81,7 @@ async function measureOpenReportCallsDuringTransition(): Promise<{delta: number;
 
     await act(async () => {
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
         await waitForBatchedUpdates();
     });
 
@@ -93,6 +94,7 @@ async function measureOpenReportCallsDuringTransition(): Promise<{delta: number;
  */
 async function measureOpenReportCallsOnMountWithLoadingFalse(): Promise<{delta: number; unmount: () => void}> {
     await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+    await Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
     await waitForBatchedUpdates();
 
     const baseline = mockOpenReport.mock.calls.length;

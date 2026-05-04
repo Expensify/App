@@ -1238,6 +1238,7 @@ function getGuidedSetupDataForOpenReport(
         introSelected,
         engagementChoice: choice,
         onboardingMessage,
+        wasInvited: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
         betas,

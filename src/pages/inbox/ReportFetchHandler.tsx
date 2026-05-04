@@ -252,16 +252,14 @@ function ReportFetchHandler() {
         fetchReport();
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
-    // Re-trigger fetchReport once isLoadingApp is false for invite onboarding users.
-    // The timing guard in fetchReport (line 125) blocks openReport while isLoadingApp is true
-    // to wait for policy data. The main fetchReport useEffect doesn't include isLoadingApp in
-    // its deps, so it won't re-fire when the guard lifts. This effect watches for the right
-    // conditions and calls fetchReport exactly once.
-    // We use a ref instead of usePrevious because on iOS the component may mount after
-    // isLoadingApp is already false, so a true→false transition is never observed.
+    // Re-trigger fetchReport for invite onboarding users once both isLoadingApp and
+    // isLoadingReportData are false. We wait for isLoadingReportData because the concierge
+    // report must be available for getGuidedSetupDataForOpenReport to succeed. On iOS the
+    // component may mount after isLoadingApp is already false, so isLoadingReportData acts
+    // as the real "data is ready" signal. The ref ensures we only call fetchReport once.
     // See: https://github.com/Expensify/App/issues/74781
     useEffect(() => {
-        if (isLoadingApp || didTriggerInviteOnboardingFetchRef.current) {
+        if (isLoadingApp || isLoadingReportData || didTriggerInviteOnboardingFetchRef.current) {
             return;
         }
 
@@ -277,7 +275,7 @@ function ReportFetchHandler() {
             didTriggerInviteOnboardingFetchRef.current = true;
             fetchReport();
         }
-    }, [isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete]);
+    }, [isLoadingApp, isLoadingReportData, introSelected, isOnboardingCompleted, isInviteOnboardingComplete]);
 
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.
