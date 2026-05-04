@@ -10,10 +10,6 @@ import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import ReportScreen from '@pages/inbox/ReportScreen';
 import type SCREENS from '@src/SCREENS';
 
-// A timestamp far enough in the past that all chat messages appear as "current session",
-// bypassing the Concierge side-panel session filter in ReportActionsView.
-const INBOX_SESSION_START = '2000-01-01T00:00:00.000+00:00';
-
 type InboxStackParamList = {
     InboxList: undefined;
     InboxReport: {reportID: string};
@@ -36,7 +32,7 @@ function InboxReportScreen({navigation}: {navigation: ReportScreenProps['navigat
     );
 
     const globalSidePanelState = useSidePanelState();
-    const sidePanelState = useMemo(() => ({...globalSidePanelState, sessionStartTime: INBOX_SESSION_START}), [globalSidePanelState]);
+    const sidePanelState = useMemo(() => ({...globalSidePanelState, sessionStartTime: null}), [globalSidePanelState]);
 
     // Cast to the expected type — prototype bridge between our local stack and ReportScreen's navigator type.
     const reportScreenRoute = route as unknown as ReportScreenProps['route'];

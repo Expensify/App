@@ -90,9 +90,9 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-
     const {sessionStartTime} = useSidePanelState();
+
+    const isConciergeSidePanel = isInSidePanel && !!sessionStartTime && isConciergeChatReport(report, conciergeReportID);
 
     const hasUserSentMessage = useMemo(() => {
         if (!isConciergeSidePanel || !sessionStartTime) {
