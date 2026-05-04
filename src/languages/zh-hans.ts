@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: '可选',
         new: '新',
         newFeature: '新功能',
+        beta: '测试版',
         search: '搜索',
         reports: '报表',
         spend: '支出',
@@ -840,6 +841,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: '只有管理员可以在此房间中发送消息。',
+    readOnlyConversation: '此对话仅可查看。',
     reportAction: {
         asCopilot: '作为副驾驶，用于',
         assistedBy: (agentName: string) => `由${agentName}协助`,
@@ -1374,7 +1376,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: '标签名称超过了 255 个字符。请缩短它或选择其他标签。',
             invalidAmount: '请在继续之前输入有效金额',
             invalidDistance: '请在继续之前输入有效的距离',
-            invalidReadings: '请输入起始读数和结束读数',
+            invalidReadings: '请在继续之前输入起始读数和结束读数',
             negativeDistanceNotAllowed: '结束读数必须大于开始读数',
             distanceAmountTooLarge: '总金额过大。请减少距离或降低费率。',
             distanceAmountTooLargeReduceDistance: '总金额过大。请减少距离。',
@@ -1426,11 +1428,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: '已搁置此报销费用',
         unheldExpense: '已取消冻结此报销费用',
         moveUnreportedExpense: '移动未报销费用',
-        addUnreportedExpense: '添加未报销费用',
-        selectUnreportedExpense: '请选择至少一笔报销添加到报表中。',
-        emptyStateUnreportedExpenseTitle: '没有未报销的报销单',
-        emptyStateUnreportedExpenseSubtitle: '看起来你没有任何未报销的费用。请在下方创建一笔。',
-        addUnreportedExpenseConfirm: '添加到报表',
+        addExistingExpense: '添加现有费用',
+        selectExistingExpense: '请选择至少一笔报销添加到报表中。',
+        emptyStateExistingExpenseTitle: '没有现有费用',
+        emptyStateExistingExpenseSubtitle: '看起来你没有任何现有的费用。请在下方创建一笔。',
+        addExistingExpenseConfirm: '添加到报表',
         newReport: '新报表',
         explainHold: () => ({
             one: '请解释你为何暂时保留这笔报销。',
@@ -1560,6 +1562,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',
@@ -2027,6 +2030,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: '将 Sentry 请求记录到控制台',
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
+            showBranchNameInTitle: '在浏览器标题中显示分支名称',
         },
         security: '安全',
         signOut: '退出登录',
@@ -2040,8 +2044,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: '账户',
         general: '常规',
         helpPage: {
-            title: '帮助与支持',
-            description: '我们全天候 24/7 为您提供帮助',
+            title: '有疑问吗？',
+            description: '我们全天候为您提供帮助。',
             helpSite: '帮助网站',
             conciergeChat: 'Concierge',
             conciergeChatDescription: '你的个人 AI 助理',
@@ -2635,6 +2639,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addFirstPaymentMethod: '在应用中添加支付方式以直接发送和接收款项。',
         defaultPaymentMethod: '默认',
         bankAccountLastFour: (lastFour: string) => `银行账户 • ${lastFour}`,
+    },
+    agentsPage: {
+        title: '代理人',
+        subtitle: '使用自定义代理自动化任务。',
+        newAgent: '新代理',
+        emptyAgents: {title: '未创建代理', subtitle: '别再手动处理这些事情了。交给智能助理去执行，帮你节省大量时间。'},
     },
     expenseRulesPage: {
         title: '报销规则',
@@ -3393,6 +3403,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
+        updatePersonalInfo: '更新银行账户',
+        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
+        updateSuccessTitle: '银行账户已更新!',
+        updateSuccessHeader: '银行账户已更新',
+        updateSuccessMessage: '恭喜,您的银行账户已设置完成,可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -4683,6 +4698,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
 
                             如果你希望为每张卡设置特定供应商，请前往 *设置 > 域 > 公司卡*。
                         `),
+                        travelDescription: '差旅报销将作为日记账分录导出到下方指定的 NetSuite 账户。',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5244,6 +5260,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             oneMoreStepDescription: '看起来我们需要手动验证您的银行账户。请前往 Concierge 查看为您准备的操作说明。',
             gotIt: '明白了',
             goToConcierge: '前往 Concierge',
+            exportAsCSV: '导出为 CSV',
+            csvColumnType: '类型',
+            csvColumnLimitType: '限额类型',
+            csvColumnLimit: '限额',
         },
         categories: {
             deleteCategories: '删除类别',
@@ -5805,6 +5825,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其技术联系人替换为工作区所有者 ${workspaceOwner}。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 还有一份待处理报告需要处理。请在将其从工作区中移除之前，先让 TA 完成所需操作。`,
+            allMembers: '所有成员',
+            admins: '管理员',
+            approvers: '审批人',
+            auditors: '审计员',
+            emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -6631,8 +6656,6 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
-                policyDocument: '政策文件',
-                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',
@@ -7279,6 +7302,7 @@ ${reportName}
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7541,6 +7565,7 @@ ${reportName}
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',
+        askConcierge: (message: string) => `询问 Concierge“${message}”`,
         searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (
@@ -8645,12 +8670,6 @@ ${reportName}
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
         saveSearchTooltip: '<tooltip>在这里<strong>重命名已保存的搜索</strong>！</tooltip>',
         accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>扫描我们的测试收据</strong>，看看它如何运作！</tooltip>',
-            manager: '<tooltip>选择我们的<strong>测试管理员</strong>来试用吧！</tooltip>',
-            confirmation: '<tooltip>现在<strong>提交报销</strong>，见证奇迹发生！</tooltip>',
-            tryItOut: '试用一下',
-        },
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
@@ -8825,7 +8844,7 @@ ${reportName}
             resetDomain: '重置域名',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入要重置的域名 <strong>${domainName}</strong> 以确认。`,
             enterDomainName: '在此输入您的域名',
-            resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <bullet-list><bullet-item>公司卡关联以及这些卡上所有未报销的费用</bullet-item><bullet-item>SAML 和群组设置</bullet-item></bullet-list> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
+            resetDomainInfo: `此操作为<strong>永久性</strong>，并将删除以下数据：<br/> <bullet-list><bullet-item>公司卡关联以及这些卡上任何未报销的费用</bullet-item><bullet-item>SAML 和群组设置</bullet-item><bullet-item>差旅数据以及对 Expensify Travel 的访问权限</bullet-item></bullet-list> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过在<a href="#">联系方式</a>中移除关联邮箱，将此域从您的域列表中清除。`,
         },
         domainMembers: '域成员',
         members: {
@@ -8874,6 +8893,10 @@ ${reportName}
         groups: {
             title: '群组',
             memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`}),
+            defaultGroup: '新成员的默认群组',
+            defaultGroupPrompt: (currentName: string, newName: string) => `您确定要将 ${newName} 设为默认群组吗？新成员将被邀请加入此群组，而不是之前的默认群组（${currentName}）。`,
+            makeDefault: '设为默认',
+            neverMind: '算了',
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},

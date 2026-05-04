@@ -117,7 +117,6 @@ function Confirmation() {
 
     const isDismissingRef = useRef(false);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
         (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||

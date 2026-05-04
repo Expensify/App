@@ -1,5 +1,5 @@
+import {filterPolicyIDSelector} from '@selectors/Search';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,10 +14,6 @@ type WorkspaceSelectPopupProps = {
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
     closeOverlay: () => void;
 };
-
-function filterPolicyIDSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
-    return searchAdvancedFiltersForm?.policyID;
-}
 
 function WorkspaceSelectPopup({policyIDQuery, updateFilterForm, closeOverlay}: WorkspaceSelectPopupProps) {
     const {translate} = useLocalize();

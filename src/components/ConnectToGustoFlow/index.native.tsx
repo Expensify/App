@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -20,16 +20,13 @@ function ConnectToGustoFlow({policyID}: ConnectToGustoFlowProps) {
     const [isWebViewOpen, setIsWebViewOpen] = useState(true);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const renderLoading = useCallback(
-        () => (
-            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'ConnectToGustoFlow'}}
-                />
-            </View>
-        ),
-        [styles.fullScreenLoading],
+    const renderLoading = () => (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={{context: 'ConnectToGustoFlow'}}
+            />
+        </View>
     );
 
     const authToken = session?.authToken ?? null;
