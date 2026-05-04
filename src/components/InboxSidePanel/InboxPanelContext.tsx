@@ -11,8 +11,8 @@ type InboxPanelActionsContextValue = {
     closePanel: () => void;
     togglePanel: () => void;
     toggleFloating: () => void;
-    /** Register a callback that navigates within the panel's stack to the given reportID. */
-    registerPanelNavigation: (fn: (reportID: string) => void) => void;
+    /** Register a callback that navigates within the panel's stack to the given reportID. Pass null to unregister (e.g. on unmount). */
+    registerPanelNavigation: (fn: ((reportID: string) => void) | null) => void;
     /** Navigate to a report inside the panel (and open the panel if closed). */
     navigateToReport: (reportID: string) => void;
 };
@@ -39,9 +39,9 @@ function InboxPanelProvider({children}: {children: ReactNode}) {
     const togglePanel = useCallback(() => setIsOpen((prev) => !prev), []);
     const toggleFloating = useCallback(() => setIsFloating((prev) => !prev), []);
 
-    const registerPanelNavigation = useCallback((fn: (reportID: string) => void) => {
+    const registerPanelNavigation = useCallback((fn: ((reportID: string) => void) | null) => {
         panelNavigateRef.current = fn;
-        if (pendingReportIDRef.current) {
+        if (fn && pendingReportIDRef.current) {
             fn(pendingReportIDRef.current);
             pendingReportIDRef.current = null;
         }

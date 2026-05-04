@@ -1,10 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
 import {maybeCompleteAuthSession} from 'expo-web-browser';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {LogBox, useWindowDimensions as useRawWindowDimensions, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -83,50 +82,63 @@ function MainContent() {
     const theme = useTheme();
     const panelWidth = Math.max(rawWindowWidth * 0.2, 350);
 
-    // Measured width of the main content container, provided to all children via
-    // EffectiveWidthContext so useWindowDimensions returns the true available width.
-    const [mainContentWidth, setMainContentWidth] = useState(rawWindowWidth);
-    const onMainContentLayout = useCallback((e: LayoutChangeEvent) => {
-        setMainContentWidth(e.nativeEvent.layout.width);
-    }, []);
-
     const panelWidthSV = useSharedValue(panelWidth);
-    const panelContainerWidthSV = useSharedValue(0);
     const panelTranslateX = useSharedValue(panelWidth);
 
-    // Docked panel animation — only active when not floating.
+    // Animate translateX for the docked slide-in. When floating, snap to full-width with no
+    // translate so the panel fills its fixed container. The container width/position itself
+    // is set via React state (one re-render on open/close) to avoid ResizeObserver firing on
+    // every animation frame and cascading re-renders through EffectiveWidthContext.
     useEffect(() => {
         if (isFloating) {
-            // Collapse docked panel immediately when switching to floating.
-            panelContainerWidthSV.value = 0;
-            panelTranslateX.value = panelWidthSV.value;
+            panelWidthSV.value = FLOATING_PANEL_WIDTH;
+            panelTranslateX.value = 0;
             return;
         }
         const pw = Math.max(rawWindowWidth * 0.2, 350);
         panelWidthSV.value = pw;
-        panelContainerWidthSV.value = withTiming(isOpen ? pw : 0, {duration: PANEL_ANIMATION_DURATION});
         panelTranslateX.value = withTiming(isOpen ? 0 : pw, {duration: PANEL_ANIMATION_DURATION});
         // SharedValue refs are stable — intentionally omitted from deps
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, isFloating, rawWindowWidth]);
 
-    // Panel outer container grows in the flex row, pushing the main content narrower.
-    const panelContainerStyle = useAnimatedStyle(() => ({
-        width: panelContainerWidthSV.value,
-        overflow: 'hidden',
-    }));
-
-    // Panel inner stays at full panel width and slides in on x-axis — no text reflow.
+    // Inner panel slides on x-axis. Width and translate are driven by shared values so
+    // they work for both docked (slide animation) and floating (no animation) modes.
     const panelInnerStyle = useAnimatedStyle(() => ({
         width: panelWidthSV.value,
         flex: 1,
         transform: [{translateX: panelTranslateX.value}],
-        borderLeftWidth: 1,
-        borderLeftColor: theme.border,
     }));
 
-    // When floating, main content always takes the full viewport width.
-    const effectiveWidth = isFloating ? rawWindowWidth : mainContentWidth;
+    // Derived directly from isOpen — avoids onLayout/ResizeObserver updates during animation.
+    const effectiveWidth = isFloating || !isOpen ? rawWindowWidth : rawWindowWidth - panelWidth;
+
+    // Outer panel container switches between docked (in-flow) and floating (fixed overlay).
+    // Keeping a single <InboxSidePanel /> in the JSX tree regardless of mode prevents the
+    // NavigationContainer from remounting every time the user toggles floating.
+    const panelOuterStyle = isFloating
+        ? {
+              position: 'fixed' as 'absolute',
+              bottom: FLOATING_PANEL_MARGIN,
+              right: FLOATING_PANEL_MARGIN,
+              width: FLOATING_PANEL_WIDTH,
+              height: FLOATING_PANEL_HEIGHT,
+              display: (isOpen ? 'flex' : 'none') as 'flex' | 'none',
+              borderRadius: 12,
+              overflow: 'hidden' as const,
+              borderWidth: 1,
+              borderColor: theme.border,
+              shadowColor: '#000',
+              shadowOffset: {width: 0, height: 8},
+              shadowOpacity: 0.15,
+              shadowRadius: 24,
+          }
+        : {
+              width: isOpen ? panelWidth : 0,
+              overflow: 'hidden' as const,
+              borderLeftWidth: 1,
+              borderLeftColor: theme.border,
+          };
 
     return (
         <View style={{flex: 1, flexDirection: 'row'}}>
@@ -135,10 +147,7 @@ function MainContent() {
                 (search, workspaces, settings, etc.) size themselves to the space
                 actually available rather than the raw viewport. */}
             <EffectiveWidthContext.Provider value={effectiveWidth}>
-                <View
-                    style={fill}
-                    onLayout={onMainContentLayout}
-                >
+                <View style={fill}>
                     <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                         <ColorSchemeWrapper>
                             <Expensify />
@@ -146,38 +155,13 @@ function MainContent() {
                     </ErrorBoundary>
                 </View>
             </EffectiveWidthContext.Provider>
-            {/* Docked panel — hidden when floating */}
-            {!isFloating && (
-                <Animated.View style={panelContainerStyle}>
-                    <Animated.View style={panelInnerStyle}>
-                        <InboxSidePanel />
-                    </Animated.View>
-                </Animated.View>
-            )}
-            {/* Floating panel — fixed bottom-right overlay */}
-            {isFloating && isOpen && (
-                <View
-                    style={{
-                        // position: 'fixed' is valid on RN web and keeps the panel
-                        // in the viewport corner regardless of scroll position.
-                        position: 'fixed' as 'absolute',
-                        bottom: FLOATING_PANEL_MARGIN,
-                        right: FLOATING_PANEL_MARGIN,
-                        width: FLOATING_PANEL_WIDTH,
-                        height: FLOATING_PANEL_HEIGHT,
-                        borderRadius: 12,
-                        overflow: 'hidden',
-                        borderWidth: 1,
-                        borderColor: theme.border,
-                        shadowColor: '#000',
-                        shadowOffset: {width: 0, height: 8},
-                        shadowOpacity: 0.15,
-                        shadowRadius: 24,
-                    }}
-                >
+            {/* Single InboxSidePanel instance — style switches between docked and floating.
+                Keeping it at a fixed JSX tree position prevents NavigationContainer remounts. */}
+            <View style={panelOuterStyle}>
+                <Animated.View style={panelInnerStyle}>
                     <InboxSidePanel />
-                </View>
-            )}
+                </Animated.View>
+            </View>
         </View>
     );
 }

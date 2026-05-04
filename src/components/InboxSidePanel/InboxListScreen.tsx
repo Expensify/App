@@ -36,6 +36,7 @@ function InboxListScreen() {
         registerPanelNavigation((reportID: string) => {
             navigation.navigate('InboxReport', {reportID});
         });
+        return () => registerPanelNavigation(null);
     }, [navigation, registerPanelNavigation]);
 
     const onSelectRow = useCallback(
