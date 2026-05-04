@@ -11586,6 +11586,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -11748,8 +11749,11 @@ async function generateDeployChecklistBodyAndAssignees({ tag, PRList, PRListMobi
     console.log('Found the following Internal QA PRs:', Object.fromEntries(internalQAPRMap));
     const noQAPRNumbers = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.number) : [];
     console.log('Found the following NO QA PRs:', noQAPRNumbers);
+    const mobileExpensifyData = PRListMobileExpensify.length > 0 ? await GithubUtils_1.default.fetchAllPullRequests(PRListMobileExpensify, CONST_1.default.MOBILE_EXPENSIFY_REPO) : [];
+    const noQAMobileExpensifyPRNumbers = Array.isArray(mobileExpensifyData) ? mobileExpensifyData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.number) : [];
+    console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRNumbers);
     const verifiedAppPRs = new Set([...verifiedPRList, ...noQAPRNumbers]);
-    const verifiedMobileExpensifyPRs = new Set(verifiedPRListMobileExpensify);
+    const verifiedMobileExpensifyPRs = new Set([...verifiedPRListMobileExpensify, ...noQAMobileExpensifyPRNumbers]);
     const resolvedInternalQAPRSet = new Set(resolvedInternalQAPRs);
     const resolvedDeployBlockerSet = new Set(resolvedDeployBlockers);
     const internalQAPRNumbers = new Set(internalQAPRMap.keys());
@@ -11868,7 +11872,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -11956,11 +11960,11 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
+    static fetchAllPullRequests(pullRequestNumbers, repo = CONST_1.default.APP_REPO) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            repo,
             state: 'all',
             sort: 'created',
             direction: 'desc',

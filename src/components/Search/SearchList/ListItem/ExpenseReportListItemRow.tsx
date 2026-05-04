@@ -4,23 +4,18 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
-import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {SearchColumnType} from '@components/Search/types';
+import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getParentNavigationSubtitle, getReportStatusTranslation} from '@libs/ReportUtils';
-import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
@@ -30,7 +25,6 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import type {ExpenseReportListItemType} from './types';
 import UserInfoCell from './UserInfoCell';
-import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
@@ -49,6 +43,7 @@ type ExpenseReportListItemRowProps = {
     isFocused?: boolean;
     isPendingDelete?: boolean;
     columns?: SearchColumnType[];
+    isLargeScreenWidth?: boolean;
 };
 
 function ExpenseReportListItemRow({
@@ -67,14 +62,13 @@ function ExpenseReportListItemRow({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    isLargeScreenWidth = false,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const policy = usePolicy(item.policyID);
+    const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
@@ -82,7 +76,7 @@ function ExpenseReportListItemRow({
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
@@ -91,7 +85,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, item.shouldShowYearSubmitted)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isSubmittedColumnWide: item.shouldShowYearSubmitted})]}>
                 <DateCell
                     date={item.submitted ?? ''}
                     showTooltip
@@ -100,7 +94,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, item.shouldShowYearApproved)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide: item.shouldShowYearApproved})]}>
                 <DateCell
                     date={item.approved ?? ''}
                     showTooltip
@@ -109,7 +103,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, item.shouldShowYearExported)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
@@ -141,6 +135,7 @@ function ExpenseReportListItemRow({
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
                         displayName={item.formattedFrom ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 )}
             </View>
@@ -152,12 +147,17 @@ function ExpenseReportListItemRow({
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
                         displayName={item.formattedTo ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 )}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View
+                style={[
+                    StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true}),
+                ]}
+            >
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
@@ -166,7 +166,14 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View
+                style={[
+                    StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL, {
+                        isAmountColumnWide: item.isAmountColumnWide,
+                        shouldRemoveTotalColumnFlex: true,
+                    }),
+                ]}
+            >
                 <TotalCell
                     total={nonReimbursableSpend}
                     currency={currency}
@@ -175,7 +182,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
@@ -202,7 +209,7 @@ function ExpenseReportListItemRow({
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                 <ActionCell
                     action={item.action}
-                    goToItem={onButtonPress}
+                    onButtonPress={onButtonPress}
                     isSelected={item.isSelected}
                     isLoading={isActionLoading}
                     policyID={item.policyID}
@@ -223,122 +230,80 @@ function ExpenseReportListItemRow({
         ),
     };
 
-    const thereIsFromAndTo = !!item?.from && !!item?.to;
-    const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
-
     // Calculate the correct border color for avatars based on hover and focus states
     const finalAvatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
 
     if (!isLargeScreenWidth) {
-        const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
-        const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
-        const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
-        const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
-        const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
-        const isInMobileSelectionMode = shouldUseNarrowLayout && !!canSelectMultiple;
+        const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
+        const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
+        const formattedDate = DateUtils.formatWithUTCTimeZone(
+            item.created ?? '',
+            DateUtils.doesDateBelongToAPastYear(item.created ?? '') ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        );
 
-        // Compute accessible group label (user name, subtitle, report title, status, amount)
-        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy, conciergeReportID);
-        const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
-        const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
-        const amountLabel = convertToDisplayString(totalDisplaySpend, currency);
-        const groupAccessibilityLabel = [participantFromDisplayName, item.reportName, subtitleLabel, statusLabel, amountLabel].filter(Boolean).join(', ');
-
+        const amountText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency);
+        const groupAccessibilityLabel = [item.reportName, amountText, formattedDate, expenseCountText].filter(Boolean).join(', ');
         return (
-            <View style={styles.pRelative}>
-                <View
-                    accessible
-                    accessibilityLabel={groupAccessibilityLabel}
-                    role={CONST.ROLE.BUTTON}
-                    style={{marginRight: variables.w72}}
-                >
-                    <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mb2]}>
-                        {showUserInfo && (
-                            <UserInfoCellsWithArrow
-                                shouldShowToRecipient={shouldShowToRecipient}
-                                participantFrom={item?.from}
-                                participantFromDisplayName={participantFromDisplayName}
-                                participantToDisplayName={participantToDisplayName}
-                                participantTo={item?.to}
-                                avatarSize={CONST.AVATAR_SIZE.SMALL_SUBSCRIPT}
-                                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                                infoCellsTextStyle={{lineHeight: 14}}
-                                infoCellsAvatarStyle={styles.pr1}
-                                fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
-                                shouldUseArrowIcon={false}
-                            />
-                        )}
-                    </View>
-                    <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, {marginRight: -variables.w72}]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
-                            {!!canSelectMultiple && (
-                                <Checkbox
-                                    onPress={onCheckboxPress}
-                                    isChecked={isSelectAllChecked}
-                                    isIndeterminate={isIndeterminate}
-                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                                    disabled={isDisabledCheckbox}
-                                    accessibilityLabel={item.text ?? ''}
-                                    shouldStopMouseDownPropagation
-                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
-                                />
-                            )}
-                            <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
-                                <ReportSearchHeader
-                                    report={item}
-                                    style={[{maxWidth: variables.reportSearchHeaderMaxWidth}]}
-                                    transactions={item.transactions}
-                                    avatarBorderColor={finalAvatarBorderColor}
-                                />
-                            </View>
-                        </View>
-                        <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
-                            <TotalCell
-                                total={totalDisplaySpend}
-                                currency={currency}
-                                isScanning={isScanning}
-                            />
-                        </View>
-                    </View>
-                </View>
-                <View style={[styles.pAbsolute, styles.t0, styles.r0, {width: variables.w72}, styles.alignItemsEnd]}>
-                    <ActionCell
-                        action={item.action}
-                        goToItem={onButtonPress}
-                        isSelected={item.isSelected}
-                        isLoading={isActionLoading}
-                        policyID={item.policyID}
-                        reportID={item.reportID}
-                        hash={item.hash}
-                        amount={item.total}
-                        extraSmall
-                        shouldDisablePointerEvents={isInMobileSelectionMode || isPendingDelete}
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                accessible
+                accessibilityLabel={groupAccessibilityLabel}
+                role={CONST.ROLE.BUTTON}
+            >
+                {!!canSelectMultiple && (
+                    <Checkbox
+                        onPress={onCheckboxPress}
+                        isChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
+                        disabled={isDisabledCheckbox}
+                        accessibilityLabel={item.text ?? ''}
+                        shouldStopMouseDownPropagation
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
+                )}
+                <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.gap2]}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.lh20, styles.flex1]}
+                        >
+                            {item.reportName ?? ''}
+                        </Text>
+                        <Text style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}>
+                            {isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency)}
+                        </Text>
+                    </View>
+                    <View style={[styles.flexRow, styles.gap2]}>
+                        <Text style={[styles.mutedNormalTextLabel, styles.flex1]}>{formattedDate}</Text>
+                        <Text style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}>{expenseCountText}</Text>
+                    </View>
                 </View>
             </View>
         );
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>
                     <SearchReportAvatar
                         primaryAvatar={item.primaryAvatar}
                         secondaryAvatar={item.secondaryAvatar}
@@ -346,6 +311,7 @@ function ExpenseReportListItemRow({
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                         reportID={item.reportID}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
 
@@ -354,15 +320,13 @@ function ExpenseReportListItemRow({
                     return <Fragment key={column}>{CellComponent}</Fragment>;
                 })}
             </View>
-            <View style={styles.ml2}>
-                <Icon
-                    src={expensifyIcons.ArrowRight}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                    fill={theme.icon}
-                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
-                />
-            </View>
+            <Icon
+                src={expensifyIcons.ArrowRight}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+                fill={theme.icon}
+                additionalStyles={!isHovered && styles.opacitySemiTransparent}
+            />
         </View>
     );
 }

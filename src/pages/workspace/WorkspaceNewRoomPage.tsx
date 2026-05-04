@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -61,6 +62,7 @@ function EmptyWorkspaceView() {
 
 type WorkspaceNewRoomPageRef = {
     focus?: () => void;
+    isValidInput?: () => boolean;
 };
 
 type WorkspaceNewRoomPageProps = {
@@ -86,6 +88,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 
     useImperativeHandle(ref, () => ({
         focus: () => roomPageInputRef.current?.focus(),
+        isValidInput: () => !!roomPageInputRef.current,
     }));
 
     const workspaceOptions = useMemo(
@@ -118,7 +121,8 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         setNewRoomFormLoading();
-        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const participants = [currentUserAccountID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport({
             participantList: participants,
@@ -130,6 +134,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
             description: parsedDescription,
+            currentUserAccountID,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -321,3 +326,4 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 }
 
 export default WorkspaceNewRoomPage;
+export type {WorkspaceNewRoomPageRef};

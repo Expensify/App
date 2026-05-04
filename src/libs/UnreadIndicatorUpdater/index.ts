@@ -49,10 +49,9 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
         const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
         return (
-            ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived, reportActions) &&
+            ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
                 chatReport,

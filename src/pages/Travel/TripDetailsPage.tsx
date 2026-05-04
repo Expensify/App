@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
-import {getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
+import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 import {openTravelDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -73,8 +73,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
-    const travelerPersonalDetailsSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation), [reservation]);
+    const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
+    const travelerPersonalDetailsSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, reservation);
 
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector}, [travelerPersonalDetailsSelector]);
 
@@ -91,7 +91,11 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                 shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
                 <HeaderWithBackButton
-                    title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
+                    title={formatCancelledDescription(
+                        translate('iou.canceled'),
+                        reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
+                        isCancelled,
+                    )}
                     shouldShowBackButton
                     icon={reservationIcon}
                     iconHeight={20}

@@ -14,6 +14,7 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
+import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import variables from '@styles/variables';
 import {authorizeTransaction, denyTransaction, fireAndForgetDenyTransaction} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
@@ -76,19 +77,6 @@ const DeniedTransactionSuccessScreen = createScreenWithDefaults(
     'DeniedTransactionSuccessScreen',
 );
 
-const DeniedTransactionClientFailureScreen = createScreenWithDefaults(
-    DefaultClientFailureScreen,
-    {
-        headerTitle: 'multifactorAuthentication.reviewTransaction.transactionFailed',
-        illustration: 'DeniedTransactionHand',
-        iconWidth: variables.transactionHandWidth,
-        iconHeight: variables.transactionHandHeight,
-        title: 'multifactorAuthentication.reviewTransaction.transactionFailed',
-        subtitle: 'multifactorAuthentication.reviewTransaction.transactionCouldNotBeCompletedReachOut',
-    },
-    'DeniedTransactionClientFailureScreen',
-);
-
 const DeniedTransactionServerFailureScreen = createScreenWithDefaults(
     DefaultServerFailureScreen,
     {
@@ -112,19 +100,11 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
     'AlreadyReviewedFailureScreen',
 );
 
-export {
-    ApprovedTransactionSuccessScreen,
-    ApproveTransactionClientFailureScreen,
-    ApproveTransactionServerFailureScreen,
-    DeniedTransactionSuccessScreen,
-    DeniedTransactionClientFailureScreen,
-    DeniedTransactionServerFailureScreen,
-    AlreadyReviewedFailureScreen,
-};
+export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen, AlreadyReviewedFailureScreen};
 
 export default {
     // Allowed methods are hardcoded here; keep in sync with allowedAuthenticationMethods in useNavigateTo3DSAuthorizationChallenge.
-    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
+    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: authorizeTransaction,
 
     // AuthorizeTransaction's callback navigates to the outcome screen, but if it knows the user is going to see an error outcome, we explicitly deny the transaction to make sure the user can't re-approve it on another device
@@ -147,26 +127,25 @@ export default {
      */
     onCancel: async (payload) => {
         if (!isAuthorizeTransactionPayload(payload)) {
-            return {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED};
+            return createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, undefined);
         }
-        const result = await denyTransaction({transactionID: payload.transactionID});
-        return {...result, payload};
+        const {httpStatusCode, reason, message} = await denyTransaction({transactionID: payload.transactionID});
+        return createMFAErrorFromApiResponse(httpStatusCode, reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, message);
     },
     failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_DENIED]: <DeniedTransactionSuccessScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_EXPIRED]: <OutOfTimeFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.ALREADY_APPROVED_APPROVE_ATTEMPTED]: <ApprovedTransactionSuccessScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.ALREADY_DENIED_DENY_ATTEMPTED]: <DeniedTransactionSuccessScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.ALREADY_APPROVED_DENY_ATTEMPTED]: <AlreadyReviewedFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.ALREADY_DENIED_APPROVE_ATTEMPTED]: <AlreadyReviewedFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.ALREADY_REVIEWED]: <AlreadyReviewedFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.FLOW_OUTCOMES.TRANSACTION_DENIED]: <DeniedTransactionSuccessScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED]: <OutOfTimeFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.ALREADY_APPROVED_APPROVE_ATTEMPTED]: <ApprovedTransactionSuccessScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.ALREADY_DENIED_DENY_ATTEMPTED]: <DeniedTransactionSuccessScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED]: <AlreadyReviewedFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.ALREADY_DENIED_APPROVE_ATTEMPTED]: <AlreadyReviewedFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.ALREADY_REVIEWED]: <AlreadyReviewedFailureScreen />,
 
-        // Client-side errors (not returned by the backend API)
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.REQUESTED_TRANSACTION_UNAVAILABLE]: <AlreadyReviewedFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED]: (
+        // Local errors (not returned by the backend API)
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED]: (
             <NoEligibleMethodsFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />
         ),
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED]: (
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED]: (
             <UnsupportedDeviceFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />
         ),
     },

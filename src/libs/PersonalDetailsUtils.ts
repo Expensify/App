@@ -8,7 +8,6 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -41,7 +40,7 @@ let hiddenTranslation = '';
 let youTranslation = '';
 
 Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     callback: (value) => {
         if (value ?? true) {
             return;
@@ -140,7 +139,10 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
+    if (!email) {
+        return undefined;
+    }
     return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
@@ -358,7 +360,7 @@ function createDisplayName(
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     if (firstName || lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
     }

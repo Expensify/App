@@ -31,9 +31,6 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
-
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
 
@@ -57,12 +54,6 @@ type ReportActionsListItemRendererProps = {
 
     /** The original report ID for draft message lookups */
     originalReportID: string | undefined;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -89,7 +80,6 @@ function ReportActionsListItemRenderer({
     report,
     transactionThreadReport,
     displayAsGroup,
-    mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -99,8 +89,6 @@ function ReportActionsListItemRenderer({
     shouldHighlight = false,
     parentReportActionForTransactionThread,
     originalReportID,
-    userWalletTierName,
-    isUserValidated,
     userBillingFundID,
     personalDetails,
     isTryNewDotNVPDismissed = false,
@@ -110,7 +98,6 @@ function ReportActionsListItemRenderer({
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`);
     const [reportDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
     const draftMessage = reportDraftMessages?.[reportAction.reportActionID]?.message;
 
@@ -200,8 +187,6 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -221,16 +206,12 @@ function ReportActionsListItemRenderer({
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            userWalletTierName={userWalletTierName}
-            isUserValidated={isUserValidated}
             personalDetails={personalDetails}
             draftMessage={draftMessage}
-            emojiReactions={emojiReactions}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}

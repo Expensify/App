@@ -6,11 +6,10 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
-import SidebarUtils, {_categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -38,6 +37,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAdmin: jest.fn(() => true),
 }));
 const CURRENT_USER_LOGIN = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 5;
+
 describe('SidebarUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -72,7 +73,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -127,6 +127,7 @@ describe('SidebarUtils', () => {
                     false,
                     {},
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
                     isReportArchived.current,
                 ) ?? {};
@@ -148,7 +149,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
@@ -157,6 +158,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -182,6 +184,7 @@ describe('SidebarUtils', () => {
                     true,
                     {},
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -194,7 +197,6 @@ describe('SidebarUtils', () => {
                 reportID: '1',
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -216,7 +218,7 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
@@ -225,6 +227,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -244,7 +247,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
@@ -255,6 +258,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -282,12 +286,11 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
@@ -298,6 +301,7 @@ describe('SidebarUtils', () => {
                     false,
                     reportErrors,
                     MOCK_TRANSACTIONS,
+                    false,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -322,6 +326,7 @@ describe('SidebarUtils', () => {
                 false,
                 {},
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -419,7 +424,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -434,6 +438,7 @@ describe('SidebarUtils', () => {
                 false,
                 {},
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -512,7 +517,7 @@ describe('SidebarUtils', () => {
 
             // When: Checking for RBR on the chat report
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
-            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 chatReport,
@@ -521,6 +526,7 @@ describe('SidebarUtils', () => {
                 false,
                 reportErrors,
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -549,7 +555,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -599,6 +604,7 @@ describe('SidebarUtils', () => {
                 false,
                 {},
                 MOCK_TRANSACTIONS,
+                false,
                 MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
                 isReportArchived.current,
             );
@@ -676,7 +682,7 @@ describe('SidebarUtils', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =
@@ -687,11 +693,138 @@ describe('SidebarUtils', () => {
                     true,
                     {},
                     {[transactionKey]: transaction},
+                    false,
                     transactionViolations,
                     false,
                 ) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
+        });
+
+        it('forwards isOffline: online treats deleted pending-delete IOU as skipped, so the live IOU is the single transaction thread and its receipt error surfaces', () => {
+            // Given: an expense report with TWO IOU actions — one live (with a receipt-errored transaction) and one already-deleted with pendingAction=delete.
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: '2',
+            };
+            const MOCK_CHAT_REPORT: Report = {
+                reportID: '2',
+            };
+            const liveTransactionID = 'tx-live';
+            const deletedTransactionID = 'tx-deleted';
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    message: [{type: 'TEXT', text: 'live'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: liveTransactionID,
+                        amount: 10,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+
+                '2': {
+                    reportActionID: '2',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:25:44.171',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    // Empty html marks this as a legacy-deleted comment.
+                    message: [{type: 'TEXT', text: '', html: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: deletedTransactionID,
+                        amount: 20,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+            };
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                    transactionID: liveTransactionID,
+                    amount: 10,
+                    errors: {
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                    },
+                } as unknown as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                    transactionID: deletedTransactionID,
+                    amount: 20,
+                } as unknown as Transaction,
+            };
+
+            // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
+            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, false, {}, false);
+
+            expect(onlineResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+        });
+
+        it('forwards isOffline: offline treats deleted pending-delete IOU as still counted, so there are 2 IOU actions and no single transaction thread is identified', () => {
+            // Given: same report setup as the previous test.
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: '2',
+            };
+            const MOCK_CHAT_REPORT: Report = {
+                reportID: '2',
+            };
+            const liveTransactionID = 'tx-live';
+            const deletedTransactionID = 'tx-deleted';
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    message: [{type: 'TEXT', text: 'live'}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: liveTransactionID,
+                        amount: 10,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+
+                '2': {
+                    reportActionID: '2',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:25:44.171',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    message: [{type: 'TEXT', text: '', html: ''}],
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: deletedTransactionID,
+                        amount: 20,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as ReportAction,
+            };
+            const MOCK_TRANSACTIONS: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                    transactionID: liveTransactionID,
+                    amount: 10,
+                    errors: {
+                        someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                    },
+                } as unknown as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                    transactionID: deletedTransactionID,
+                    amount: 20,
+                } as unknown as Transaction,
+            };
+
+            // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
+            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, true, {}, false);
+
+            // Then: no single transaction thread is identified, so the receipt error is not surfaced via that path.
+            expect(offlineResult).toBeNull();
         });
     });
 
@@ -712,7 +845,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -757,7 +889,17 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.shouldDisplayReportInLHN(MOCK_REPORT, MOCK_REPORTS as OnyxCollection<Report>, undefined, true, undefined, {}, undefined, MOCK_TRANSACTIONS);
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_REPORT,
+                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+            });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
         });
@@ -789,7 +931,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -857,18 +998,98 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.shouldDisplayReportInLHN(
-                MOCK_TRANSACTION_THREAD_REPORT,
-                MOCK_REPORTS as OnyxCollection<Report>,
-                undefined,
-                true,
-                undefined,
-                {},
-                undefined,
-                MOCK_TRANSACTIONS,
-            );
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_TRANSACTION_THREAD_REPORT,
+                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+            });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as false when report is falsy', () => {
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: undefined as unknown as Report,
+                reports: {},
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('returns shouldDisplay as false for unsupported report type', () => {
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+                } as Report,
+                reports: {},
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('accepts isOffline=true without error', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
+                currentReportId: '1',
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: true,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result.shouldDisplay).toBe('boolean');
+        });
+
+        it('accepts isOffline=false without error', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
+                currentReportId: '1',
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result.shouldDisplay).toBe('boolean');
         });
     });
 
@@ -1650,6 +1871,79 @@ describe('SidebarUtils', () => {
             });
 
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
+        });
+
+        it('returns the correct alternate text for UPDATE_REQUIRE_COMPANY_CARDS_ENABLED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const enabledAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                originalMessage: {enabled: true},
+            };
+            const enabledReportActions: ReportActions = {[enabledAction.reportActionID]: enabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, enabledReportActions);
+            });
+
+            const enabledResult = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction: enabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(enabledResult?.alternateText).toBe('enabled the company card purchases requirement');
+
+            const disabledAction: ReportAction = {
+                ...createRandomReportAction(3),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                originalMessage: {enabled: false},
+            };
+            const disabledReportActions: ReportActions = {[disabledAction.reportActionID]: disabledAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, disabledReportActions);
+            });
+
+            const disabledResult = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction: disabledAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(disabledResult?.alternateText).toBe('disabled the company card purchases requirement');
         });
 
         it('returns the correct alternate text for ADD_CARD_FEED action', async () => {
@@ -2703,7 +2997,6 @@ describe('SidebarUtils', () => {
                     childReportNotificationPreference: 'always',
                 };
                 const MOCK_REPORT_ACTIONS: ReportActions = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     [lastAction.reportActionID]: lastAction,
                     [deletedAction.reportActionID]: deletedAction,
                 };
@@ -3231,24 +3524,24 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Zebra', sortKey: 'zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [
-                        {reportID: '3', displayName: 'Charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
-                        {reportID: '4', displayName: 'Beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
+                        {reportID: '3', displayName: 'Charlie', sortKey: 'charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
+                        {reportID: '4', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
                     ],
                     draftReports: [
-                        {reportID: '5', displayName: 'Echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
-                        {reportID: '6', displayName: 'Delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
+                        {reportID: '5', displayName: 'Echo', sortKey: 'echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
+                        {reportID: '6', displayName: 'Delta', sortKey: 'delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
                     ],
                     nonArchivedReports: [
-                        {reportID: '7', displayName: 'Hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
-                        {reportID: '8', displayName: 'Golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
+                        {reportID: '7', displayName: 'Hotel', sortKey: 'hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
+                        {reportID: '8', displayName: 'Golf', sortKey: 'golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
                     ],
                     archivedReports: [
-                        {reportID: '9', displayName: 'India', lastVisibleActionCreated: '2024-01-09 10:00:00'},
-                        {reportID: '10', displayName: 'Juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
+                        {reportID: '9', displayName: 'India', sortKey: 'india', lastVisibleActionCreated: '2024-01-09 10:00:00'},
+                        {reportID: '10', displayName: 'Juliet', sortKey: 'juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
                     ],
                 };
 
@@ -3280,24 +3573,24 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Zebra', sortKey: 'zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [
-                        {reportID: '3', displayName: 'Charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
-                        {reportID: '4', displayName: 'Beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
+                        {reportID: '3', displayName: 'Charlie', sortKey: 'charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
+                        {reportID: '4', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
                     ],
                     draftReports: [
-                        {reportID: '5', displayName: 'Echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
-                        {reportID: '6', displayName: 'Delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
+                        {reportID: '5', displayName: 'Echo', sortKey: 'echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
+                        {reportID: '6', displayName: 'Delta', sortKey: 'delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
                     ],
                     nonArchivedReports: [
-                        {reportID: '7', displayName: 'Hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
-                        {reportID: '8', displayName: 'Golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
+                        {reportID: '7', displayName: 'Hotel', sortKey: 'hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
+                        {reportID: '8', displayName: 'Golf', sortKey: 'golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
                     ],
                     archivedReports: [
-                        {reportID: '9', displayName: 'India', lastVisibleActionCreated: '2024-01-09 10:00:00'},
-                        {reportID: '10', displayName: 'Juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
+                        {reportID: '9', displayName: 'India', sortKey: 'india', lastVisibleActionCreated: '2024-01-09 10:00:00'},
+                        {reportID: '10', displayName: 'Juliet', sortKey: 'juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
                     ],
                 };
 
@@ -3329,8 +3622,8 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: '', sortKey: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [],
                     draftReports: [],
@@ -3352,8 +3645,8 @@ describe('SidebarUtils', () => {
                     errorReports: [],
                     draftReports: [],
                     nonArchivedReports: [
-                        {reportID: '1', displayName: 'Alpha', lastVisibleActionCreated: undefined},
-                        {reportID: '2', displayName: 'Beta', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: undefined},
+                        {reportID: '2', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     archivedReports: [],
                 };
@@ -3367,28 +3660,52 @@ describe('SidebarUtils', () => {
             });
         });
 
+        describe('buildSortKey', () => {
+            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
+                // Given names with accented characters
+                const cafeAccented = _buildSortKey('Café');
+                const cafePlain = _buildSortKey('Cafe');
+
+                // Then accented "é" sorts after plain "e" by code point
+                expect(cafeAccented > cafePlain).toBe(true);
+            });
+
+            it('should be case-insensitive', () => {
+                expect(_buildSortKey('Alpha')).toBe(_buildSortKey('alpha'));
+                expect(_buildSortKey('ZEBRA')).toBe(_buildSortKey('zebra'));
+            });
+
+            it('should zero-pad numeric segments for natural sort order', () => {
+                const report2 = _buildSortKey('Report 2');
+                const report10 = _buildSortKey('Report 10');
+
+                // Then "Report 2" sorts before "Report 10"
+                expect(report2 < report10).toBe(true);
+            });
+        });
+
         describe('combineReportCategories', () => {
             it('should combine categories in correct order', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1'},
-                    {reportID: '2', displayName: 'Pinned 2'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: '2', displayName: 'Pinned 2', sortKey: 'pinned 000000000000002'},
                 ];
                 const errorReports = [
-                    {reportID: '3', displayName: 'Error 1'},
-                    {reportID: '4', displayName: 'Error 2'},
+                    {reportID: '3', displayName: 'Error 1', sortKey: 'error 000000000000001'},
+                    {reportID: '4', displayName: 'Error 2', sortKey: 'error 000000000000002'},
                 ];
                 const draftReports = [
-                    {reportID: '5', displayName: 'Draft 1'},
-                    {reportID: '6', displayName: 'Draft 2'},
+                    {reportID: '5', displayName: 'Draft 1', sortKey: 'draft 000000000000001'},
+                    {reportID: '6', displayName: 'Draft 2', sortKey: 'draft 000000000000002'},
                 ];
                 const nonArchivedReports = [
-                    {reportID: '7', displayName: 'Normal 1'},
-                    {reportID: '8', displayName: 'Normal 2'},
+                    {reportID: '7', displayName: 'Normal 1', sortKey: 'normal 000000000000001'},
+                    {reportID: '8', displayName: 'Normal 2', sortKey: 'normal 000000000000002'},
                 ];
                 const archivedReports = [
-                    {reportID: '9', displayName: 'Archived 1'},
-                    {reportID: '10', displayName: 'Archived 2'},
+                    {reportID: '9', displayName: 'Archived 1', sortKey: 'archived 000000000000001'},
+                    {reportID: '10', displayName: 'Archived 2', sortKey: 'archived 000000000000002'},
                 ];
 
                 // When the reports are combined
@@ -3401,13 +3718,13 @@ describe('SidebarUtils', () => {
             it('should filter out reports with undefined reportID', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1'},
-                    {reportID: undefined, displayName: 'Invalid'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: undefined, displayName: 'Invalid', sortKey: 'invalid'},
                 ];
-                const errorReports = [{reportID: '2', displayName: 'Error 1'}];
-                const draftReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
-                const nonArchivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
-                const archivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
+                const errorReports = [{reportID: '2', displayName: 'Error 1', sortKey: 'error 000000000000001'}];
+                const draftReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
+                const nonArchivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
+                const archivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
 
                 // When the reports are combined
                 const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
@@ -3506,6 +3823,7 @@ describe('SidebarUtils', () => {
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
                     draftComments: {},
+                    isOffline: false,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -3527,10 +3845,236 @@ describe('SidebarUtils', () => {
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
                     draftComments: {},
+                    isOffline: false,
                 });
 
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
+            });
+        });
+
+        describe('getReportsToDisplayInLHN', () => {
+            it('should return an empty object when reports is undefined', () => {
+                const result = SidebarUtils.getReportsToDisplayInLHN(
+                    '1', // currentReportId
+                    undefined, // reports
+                    [], // betas
+                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
+                    {}, // draftComments
+                    {}, // transactionViolations
+                    {}, // transactions
+                    false, // isOffline
+                    {}, // reportNameValuePairs
+                    undefined, // reportAttributes
+                );
+
+                expect(result).toEqual({});
+            });
+
+            it('should return an empty object when reports is empty', () => {
+                const result = SidebarUtils.getReportsToDisplayInLHN(
+                    '1', // currentReportId
+                    {}, // reports
+                    [], // betas
+                    CONST.PRIORITY_MODE.DEFAULT, // priorityMode
+                    {}, // draftComments
+                    {}, // transactionViolations
+                    {}, // transactions
+                    false, // isOffline
+                    {}, // reportNameValuePairs
+                    undefined, // reportAttributes
+                );
+
+                expect(result).toEqual({});
+            });
+
+            it('should skip undefined report entries', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: undefined,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+
+                expect(result).toEqual({});
+            });
+
+            it('should pass isOffline=false to shouldDisplayReportInLHN', () => {
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+
+                // The function should run without errors with isOffline=false
+                expect(result).toBeDefined();
+            });
+
+            it('should pass isOffline=true to shouldDisplayReportInLHN', () => {
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, true, {}, undefined);
+
+                // The function should run without errors with isOffline=true
+                expect(result).toBeDefined();
+            });
+
+            it('should filter reports with unsupported type', () => {
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN('1', reports, [], CONST.PRIORITY_MODE.DEFAULT, {}, {}, {}, false, {}, undefined);
+
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
+            });
+
+            it('should use the correct draft comment per report', () => {
+                const report1 = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const report2 = {
+                    ...createRandomReport(2, undefined),
+                    reportID: '2',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}2`]: report2,
+                };
+
+                const draftComments = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'draft for report 1',
+                };
+
+                const result = SidebarUtils.getReportsToDisplayInLHN(undefined, reports, [], CONST.PRIORITY_MODE.DEFAULT, draftComments, {}, {}, false, {}, undefined);
+
+                // Should not throw and should return a valid result
+                expect(result).toBeDefined();
+            });
+        });
+
+        describe('updateReportsToDisplayInLHN with isOffline', () => {
+            it('should pass isOffline=false correctly', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1, undefined),
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: false,
+                });
+
+                // No changes expected since the updated key doesn't exist in reports
+                expect(result).toBe(displayedReports);
+            });
+
+            it('should pass isOffline=true correctly', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1, undefined),
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: true,
+                });
+
+                // No changes expected since the updated key doesn't exist in reports
+                expect(result).toBe(displayedReports);
+            });
+
+            it('should remove a report when it is no longer in reports collection with isOffline=true', () => {
+                const reports: OnyxCollection<Report> = {};
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: ['0'],
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    isOffline: true,
+                });
+
+                expect(result).not.toBe(displayedReports);
+                expect(result['0']).toBeUndefined();
+            });
+
+            it('should use the correct draft comment for each updated report', () => {
+                const report1 = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report1,
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const draftComments = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'draft text',
+                };
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments,
+                    isOffline: false,
+                });
+
+                // Should not throw and should return a valid result
+                expect(result).toBeDefined();
             });
         });
     });

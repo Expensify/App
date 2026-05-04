@@ -2,11 +2,11 @@ import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -140,7 +140,6 @@ function ScheduleCallPage() {
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (calendlySchedule?.isLoading || !firstDate || scheduleCallDraft?.date) {
             return;
         }
@@ -174,10 +173,12 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <FullScreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
+                        />
+                    </View>
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
                         <View style={styles.ph5}>

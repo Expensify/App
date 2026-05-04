@@ -72,8 +72,8 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     return total.length > 0 ? total : null;
 }
 
-function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).filter(
+function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: readonly ConnectionName[]) {
+    return (accountingIntegrations ?? CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES).filter(
         (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
     );
 }

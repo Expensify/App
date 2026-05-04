@@ -1,3 +1,4 @@
+import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
 import type {LABEL_ROTATIONS} from './constants';
 
@@ -68,4 +69,6 @@ type PieSlice = {
 
 type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, PieSlice, UnitPosition, UnitWithFallback};
+type ParagraphWithWidth = {para: SkParagraph | null; width: number};
+
+export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

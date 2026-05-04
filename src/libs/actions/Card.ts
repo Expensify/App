@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
@@ -12,6 +13,7 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
+    SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
     UnassignCardParams,
@@ -23,14 +25,21 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
+import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
+import type {SpendRuleForm} from '@src/types/form';
+import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
@@ -66,8 +75,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                cardID,
+                cardID: cardID.toString(),
                 isLoading: true,
                 errors: null,
             },
@@ -745,7 +753,7 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
         isEditing,
         currentStep: step,
@@ -761,7 +769,7 @@ function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAcco
 }
 
 function clearIssueNewCardFlow(policyID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
         isSuccessful: false,
@@ -774,7 +782,7 @@ function clearIssueNewCardFormData() {
 }
 
 function clearIssueNewCardError(policyID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
 function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
@@ -1364,10 +1372,10 @@ function issueExpensifyCard(
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: true,
                 errors: null,
@@ -1376,10 +1384,10 @@ function issueExpensifyCard(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 isSuccessful: true,
@@ -1387,10 +1395,10 @@ function issueExpensifyCard(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -1518,6 +1526,31 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
+function setCardReconciliationAccount(workspaceAccountID: number, domainName: string, expensifyCardIntegrationWithdrawalID: string, currentReconciliationBankAccountID?: string) {
+    const parameters = {
+        domainName,
+        expensifyCardIntegrationWithdrawalID,
+    };
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: expensifyCardIntegrationWithdrawalID,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: currentReconciliationBankAccountID ?? null,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT, parameters, {optimisticData, failureData});
+}
+
 function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -1553,6 +1586,117 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     };
 
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
+}
+
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
+    const ruleID = cardRuleID;
+    const ruleAST = buildSpendRuleAST(spendRuleValues, existingRule?.created);
+    if (!ruleAST) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [ruleID]: {
+                        ...ruleAST,
+                        pendingAction: existingRule ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [ruleID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [ruleID]: existingRule ?? null,
+                },
+            },
+        },
+    ];
+
+    const parameters: SetExpensifyCardRuleParams = {
+        domainAccountID,
+        cardRuleID: ruleID,
+        cardRuleValue: JSON.stringify(ruleAST),
+    };
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, successData, failureData});
+}
+
+function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, existingRule: ExpensifyCardRule) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [cardRuleID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [cardRuleID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [cardRuleID]: existingRule,
+                },
+            },
+        },
+    ];
+
+    const parameters: SetExpensifyCardRuleParams = {
+        domainAccountID,
+        cardRuleID,
+        cardRuleValue: '',
+    };
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1618,6 +1762,77 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
     API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
 }
 
+function escapeCsvField(value: string): string {
+    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
+        return `"${value.replaceAll('"', '""')}"`;
+    }
+    return value;
+}
+
+function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
+    const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    return personalDetailsList?.[String(accountID)]?.login ?? '';
+}
+
+function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
+    const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const details = personalDetailsList?.[String(accountID)];
+    if (!details?.displayName?.trim()) {
+        return '';
+    }
+    return getDisplayNameOrDefault(details, '', false, false);
+}
+
+type ExportExpensifyCardListToCSVParams = {
+    /** Workspace policy ID (used in the download filename) */
+    policyID: string;
+
+    /** Cards to include in the export (typically the current selection) */
+    cards: Card[];
+
+    /** Personal details used to resolve cardholder email */
+    personalDetailsList: PersonalDetailsList | undefined;
+
+    /** Settlement / card program currency for limit amounts */
+    settlementCurrency: string;
+
+    translate: LocalizedTranslate;
+};
+
+function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate}: ExportExpensifyCardListToCSVParams) {
+    if (cards.length === 0) {
+        return;
+    }
+
+    const header = [
+        translate('common.email'),
+        translate('workspace.expensifyCard.name'),
+        translate('workspace.expensifyCard.lastFour'),
+        translate('workspace.expensifyCard.csvColumnType'),
+        translate('workspace.expensifyCard.csvColumnLimitType'),
+        translate('workspace.expensifyCard.csvColumnLimit'),
+    ]
+        .map(escapeCsvField)
+        .join(',');
+
+    const rows = cards.map((card) => {
+        const owner = getOwnerEmailForCard(card, personalDetailsList);
+        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList);
+        const lastFourColumn = card.lastFourPAN ?? '';
+        const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
+        const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
+        const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+        const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
+
+        return [owner, ownerNameColumn, lastFourColumn, typeColumn, limitTypeColumn, limitColumn].map(escapeCsvField).join(',');
+    });
+
+    const csvContent = [header, ...rows].join('\r\n');
+    const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
+    const fileName = `ExpensifyCards_${safePolicySegment}.csv`;
+    localFileDownload(fileName, csvContent, translate);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -1646,6 +1861,7 @@ export {
     updateAssignedCardName,
     updateAssignedCardTransactionStartDate,
     toggleContinuousReconciliation,
+    setCardReconciliationAccount,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
     updateSelectedExpensifyCardFeed,
@@ -1656,5 +1872,8 @@ export {
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
+    exportExpensifyCardListToCSV,
+    deleteExpensifyCardRule,
+    setExpensifyCardRule,
 };
-export type {ReplacementReason};
+export type {ExportExpensifyCardListToCSVParams, ReplacementReason};

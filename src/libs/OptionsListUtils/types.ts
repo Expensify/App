@@ -211,7 +211,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
+    excludeHidden?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
     searchInputValue?: string;
@@ -222,7 +222,6 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    // TODO: Remove the optional operator once all call sites pass sortedActions (https://github.com/Expensify/App/issues/66381)
     sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 

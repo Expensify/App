@@ -1,5 +1,4 @@
 import type {OnyxValue} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -68,22 +67,4 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
     return introSelected?.inviteType !== undefined;
 }
 
-/**
- * Selector to check if the onboarding flow is loading
- *
- * `undefined` means the value is not loaded yet
- * `true` means the onboarding flow is loading
- * `false` means the onboarding flow is not loading
- */
-function isOnboardingLoadingSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    return !!onboarding?.isLoading;
-}
-
-/**
- * Selector to check if the user selected a track-intent onboarding choice
- */
-function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
-    return introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
-}
-
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isOnboardingLoadingSelector, isTrackIntentUserSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector};

@@ -94,6 +94,8 @@ function appendSetupCategoriesOnboardingData(
         currentUserAccountID,
         hasOutstandingChildTask,
         parentReportAction,
+        // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+        undefined,
     );
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
