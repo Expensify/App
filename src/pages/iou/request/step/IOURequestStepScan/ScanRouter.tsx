@@ -95,7 +95,6 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
     return (
         <MultiScanGate>
             <ScanGlobalCreate
-                report={report}
                 iouType={iouType}
                 reportID={reportID}
                 transactionID={transactionID}

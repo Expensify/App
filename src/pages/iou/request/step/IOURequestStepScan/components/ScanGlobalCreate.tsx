@@ -30,7 +30,6 @@ import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 
 type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
-    report: OnyxEntry<Report>;
     iouType: IOUType;
     reportID: string;
     transactionID: string;
@@ -42,7 +41,7 @@ type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
  * ScanGlobalCreate — initiated from the FAB (+) button (no specific report).
  * Uses default expense policy to auto-select workspace, or navigates to participant picker.
  */
-function ScanGlobalCreate({report: _report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanGlobalCreateProps) {
+function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanGlobalCreateProps) {
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const selfDMReport = useSelfDMReport();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
