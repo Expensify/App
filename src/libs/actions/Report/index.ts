@@ -5196,6 +5196,7 @@ type CompleteOnboardingProps = {
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
+    personalTrackGoal?: string;
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
@@ -5216,6 +5217,7 @@ async function completeOnboarding({
     selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
+    personalTrackGoal,
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
@@ -5257,6 +5259,7 @@ async function completeOnboarding({
         bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
         selectedInterestedFeatures: selectedInterestedFeatures && selectedInterestedFeatures.length > 0 ? JSON.stringify(selectedInterestedFeatures) : undefined,
+        personalTrackGoal,
     };
 
     if (shouldWaitForRHPVariantInitialization) {

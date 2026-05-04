@@ -2972,6 +2972,14 @@ const translations = {
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },
+        personalTrackGoal: {
+            title: 'What are you interested in tracking?',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: 'Investment tracking',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: 'Household tracking',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SIDEPROJECT_TRACKING]: 'Side project tracking',
+            [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE]: 'Something else',
+            somethingElsePlaceholder: 'Tell us what you want to track',
+        },
         employees: {
             title: 'How many employees do you have?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',

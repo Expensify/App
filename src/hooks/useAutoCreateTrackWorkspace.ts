@@ -32,6 +32,7 @@ import useResponsiveLayout from './useResponsiveLayout';
 function useAutoCreateTrackWorkspace() {
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingPersonalTrackGoal] = useOnyx(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -107,6 +108,7 @@ function useAutoCreateTrackWorkspace() {
                     adminsChatReportID: newAdminsChatReportID,
                     onboardingPolicyID: newPolicyID,
                     shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
+                    personalTrackGoal: onboardingPersonalTrackGoal ?? undefined,
                     introSelected,
                     isSelfTourViewed,
                     betas,
@@ -143,6 +145,7 @@ function useAutoCreateTrackWorkspace() {
             onboardingPolicyID,
             hasPaidGroupAdminPolicy,
             onboardingAdminsChatReportID,
+            onboardingPersonalTrackGoal,
             currentUserPersonalDetails.localCurrencyCode,
             introSelected,
             activePolicyID,

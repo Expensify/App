@@ -102,11 +102,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
+                if (choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                    return;
+                }
+
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
-                    if (choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
-                        autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
-                        return;
-                    }
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],
