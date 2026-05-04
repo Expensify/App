@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -43,39 +43,28 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const isPDSandFSGDownloaded = reimbursementAccount?.achData?.corpay?.downloadedPDSandFSG ?? reimbursementAccountDraft?.[signerInfoKeys.DOWNLOADED_PDS_AND_FSG] ?? false;
     const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouched] = useState<boolean>(false);
 
-    const copyOfIDInputID = COPY_OF_ID;
-    const addressProofInputID = ADDRESS_PROOF;
-    const directorsProofInputID = PROOF_OF_DIRECTORS;
-    const codiceFiscaleInputID = CODICE_FISCALE;
-
     const defaultValues: Record<string, FileObject[]> = {
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] ?? []) : [],
-        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? (reimbursementAccountDraft?.[directorsProofInputID] ?? []) : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] ?? []) : [],
+        [COPY_OF_ID]: Array.isArray(reimbursementAccountDraft?.[COPY_OF_ID]) ? (reimbursementAccountDraft?.[COPY_OF_ID] ?? []) : [],
+        [ADDRESS_PROOF]: Array.isArray(reimbursementAccountDraft?.[ADDRESS_PROOF]) ? (reimbursementAccountDraft?.[ADDRESS_PROOF] ?? []) : [],
+        [PROOF_OF_DIRECTORS]: Array.isArray(reimbursementAccountDraft?.[PROOF_OF_DIRECTORS]) ? (reimbursementAccountDraft?.[PROOF_OF_DIRECTORS] ?? []) : [],
+        [CODICE_FISCALE]: Array.isArray(reimbursementAccountDraft?.[CODICE_FISCALE]) ? (reimbursementAccountDraft?.[CODICE_FISCALE] ?? []) : [],
     };
 
-    const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
-    const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[addressProofInputID]);
-    const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[directorsProofInputID]);
-    const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
+    const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[COPY_OF_ID]);
+    const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[ADDRESS_PROOF]);
+    const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[PROOF_OF_DIRECTORS]);
+    const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[CODICE_FISCALE]);
 
     useEffect(() => {
         getEnvironmentURL().then(setEnvironmentUrl);
     }, []);
 
-    const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-    );
+    const STEP_FIELDS: Array<FormOnyxKeys<'reimbursementAccount'>> = [COPY_OF_ID, ADDRESS_PROOF, PROOF_OF_DIRECTORS, CODICE_FISCALE];
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            setIsPDSandFSGDownloadedTouched(true);
-            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
-        },
-        [STEP_FIELDS, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        setIsPDSandFSGDownloadedTouched(true);
+        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -137,16 +126,16 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedIDs}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedIDs, copyOfIDInputID, setUploadedID);
+                            handleSelectFile(files, uploadedIDs, COPY_OF_ID, setUploadedID);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedIDs, copyOfIDInputID, setUploadedID);
+                            handleRemoveFile(fileName, uploadedIDs, COPY_OF_ID, setUploadedID);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedIDs}
-                        inputID={copyOfIDInputID}
+                        inputID={COPY_OF_ID}
                         setError={(error) => {
-                            setUploadError(error, copyOfIDInputID);
+                            setUploadError(error, COPY_OF_ID);
                         }}
                         fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
@@ -165,16 +154,16 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedProofsOfAddress}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
+                            handleSelectFile(files, uploadedProofsOfAddress, ADDRESS_PROOF, setUploadedProofOfAddress);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
+                            handleRemoveFile(fileName, uploadedProofsOfAddress, ADDRESS_PROOF, setUploadedProofOfAddress);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfAddress}
-                        inputID={addressProofInputID}
+                        inputID={ADDRESS_PROOF}
                         setError={(error) => {
-                            setUploadError(error, addressProofInputID);
+                            setUploadError(error, ADDRESS_PROOF);
                         }}
                         fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
@@ -192,16 +181,16 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedProofsOfDirectors}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
+                            handleSelectFile(files, uploadedProofsOfDirectors, PROOF_OF_DIRECTORS, setUploadedProofsOfDirectors);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
+                            handleRemoveFile(fileName, uploadedProofsOfDirectors, PROOF_OF_DIRECTORS, setUploadedProofsOfDirectors);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfDirectors}
-                        inputID={directorsProofInputID}
+                        inputID={PROOF_OF_DIRECTORS}
                         setError={(error) => {
-                            setUploadError(error, directorsProofInputID);
+                            setUploadError(error, PROOF_OF_DIRECTORS);
                         }}
                         fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />
@@ -217,16 +206,16 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedCodiceFiscale}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
+                            handleSelectFile(files, uploadedCodiceFiscale, CODICE_FISCALE, setUploadedCodiceFiscale);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
+                            handleRemoveFile(fileName, uploadedCodiceFiscale, CODICE_FISCALE, setUploadedCodiceFiscale);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedCodiceFiscale}
-                        inputID={codiceFiscaleInputID}
+                        inputID={CODICE_FISCALE}
                         setError={(error) => {
-                            setUploadError(error, codiceFiscaleInputID);
+                            setUploadError(error, CODICE_FISCALE);
                         }}
                         fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
                     />

@@ -31,6 +31,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -453,7 +454,6 @@ function Search({
             return;
         }
         return deferHeavySearchWork();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, deferHeavySearchWork, isDataLoaded]);
 
     useFocusEffect(
@@ -764,7 +764,7 @@ function Search({
                 // Also check if the report itself was selected (when it was empty) by checking the reportID key
                 const reportKey = transactionGroup.keyForList;
                 const wasReportSelected = reportKey && reportKey in selectedTransactions;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 const hasAnySelected = isExpenseReportType && (wasReportSelected || transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions));
 
                 for (const transactionItem of transactionGroup.transactions) {
@@ -808,7 +808,7 @@ function Search({
                             report: transactionItem.report,
                             policy: transactionItem.policy,
                         }),
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
@@ -864,7 +864,7 @@ function Search({
                         report: transactionItem.report,
                         policy: transactionItem.policy,
                     }),
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
@@ -1354,7 +1354,6 @@ function Search({
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
@@ -1481,7 +1480,7 @@ function Search({
     didBailToFallbackState.current = false;
 
     const isAnyVisibleActionLoading = useMemo(
-        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`)),
+        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${item.reportID}`)),
         [filteredData, isActionLoadingSet],
     );
 
@@ -1712,7 +1711,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
-                                isLoadMore
+                                isLoadMore={shouldShowLoadingMoreItems}
                             />
                         ) : undefined
                     }
