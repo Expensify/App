@@ -9,7 +9,7 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 const mockOpenReport = jest.fn();
 
 jest.mock('@userActions/Report', () => ({
-    openReport: (...args: unknown[]) => mockOpenReport(...args),
+    openReport: mockOpenReport,
     readNewestAction: jest.fn(),
     subscribeToReportLeavingEvents: jest.fn(),
     unsubscribeFromLeavingRoomReportChannel: jest.fn(),
@@ -65,8 +65,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 jest.mock('@src/components/ConfirmedRoute.tsx', () => jest.fn());
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ReportFetchHandler = require('@pages/inbox/ReportFetchHandler').default;
+const ReportFetchHandler = (require('@pages/inbox/ReportFetchHandler') as {default: React.ComponentType}).default;
 
 /**
  * Helper to render the component, wait for initial effects, record baseline call count,
