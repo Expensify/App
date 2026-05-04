@@ -1,17 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
-import Camera from '@pages/iou/request/step/IOURequestStepScan/components/Camera';
-import MultiScanGate from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanGate';
-import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
-import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
-import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
-import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUType} from '@src/CONST';
@@ -20,6 +12,14 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+import useScanCapture from '../hooks/useScanCapture';
+import type {ReceiptFile} from '../types';
+import buildReceiptFiles from '../utils/buildReceiptFiles';
+import getFileSource from '../utils/getFileSource';
+import startScanProcessSpan from '../utils/startScanProcessSpan';
+import useScanFileReadabilityCheck from '../utils/useScanFileReadabilityCheck';
+import Camera from './Camera';
+import {useMultiScanState} from './MultiScanContext';
 
 type ScanFromReportProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxEntry<Report>;
@@ -36,12 +36,12 @@ type ScanFromReportProps = WithCurrentUserPersonalDetailsProps & {
  */
 function ScanFromReport({report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanFromReportProps) {
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
+    const {isMultiScanEnabled} = useMultiScanState();
 
     // TODO: derive transactions from useOptimisticDraftTransactions when wired up
     const transactions = transaction ? [transaction] : [];
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), setIsMultiScanEnabled);
+    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), () => {});
 
     const processReceipts = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -77,7 +77,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
     });
 
     return (
-        <MultiScanGate>
+        <>
             {PDFValidationComponent}
             <Camera
                 onCapture={(file) => {
@@ -87,7 +87,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}
-        </MultiScanGate>
+        </>
     );
 }
 

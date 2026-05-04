@@ -3,15 +3,15 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
-import Camera from '@pages/iou/request/step/IOURequestStepScan/components/Camera';
-import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
-import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import useScanCapture from '../hooks/useScanCapture';
+import getFileSource from '../utils/getFileSource';
+import Camera from './Camera';
 
 type ScanEditReceiptProps = {
     report: OnyxEntry<Report>;

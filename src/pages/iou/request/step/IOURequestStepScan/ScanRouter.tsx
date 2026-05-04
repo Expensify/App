@@ -4,16 +4,17 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
-import ScanEditReceipt from '@pages/iou/request/step/IOURequestStepScan/components/ScanEditReceipt';
-import ScanFromReport from '@pages/iou/request/step/IOURequestStepScan/components/ScanFromReport';
-import ScanGlobalCreate from '@pages/iou/request/step/IOURequestStepScan/components/ScanGlobalCreate';
-import ScanSkipConfirmation from '@pages/iou/request/step/IOURequestStepScan/components/ScanSkipConfirmation';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import MultiScanGate from './components/MultiScanGate';
+import ScanEditReceipt from './components/ScanEditReceipt';
+import ScanFromReport from './components/ScanFromReport';
+import ScanGlobalCreate from './components/ScanGlobalCreate';
+import ScanSkipConfirmation from './components/ScanSkipConfirmation';
 
 type ScanRouterProps = {
     report: OnyxEntry<Report>;
@@ -30,6 +31,8 @@ type ScanRouterProps = {
  * ScanRouter — thin routing layer that selects the appropriate scan variant
  * based on route params and transaction state.
  *
+ * MultiScanGate wraps non-edit variants so they can access MultiScanContext.
+ *
  * Variant selection:
  *   Edit       — replacing an existing receipt (backTo or isEditing)
  *   SkipConfirm — quick action with skipConfirmation flag (direct submit)
@@ -43,7 +46,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    // Edit/replace receipt flow
+    // Edit/replace receipt flow — no multi-scan needed
     if (backTo || isEditing) {
         return (
             <ScanEditReceipt
@@ -58,11 +61,26 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
     const shouldSkipConfirmation =
         !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
-    // From-report flows (not global create, not archived)
+    // Non-edit variants are wrapped in MultiScanGate so they can read multi-scan state
     if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
         if (shouldSkipConfirmation) {
             return (
-                <ScanSkipConfirmation
+                <MultiScanGate>
+                    <ScanSkipConfirmation
+                        report={report}
+                        iouType={iouType}
+                        reportID={reportID}
+                        transactionID={transactionID}
+                        transaction={transaction}
+                        backToReport={backToReport}
+                    />
+                </MultiScanGate>
+            );
+        }
+
+        return (
+            <MultiScanGate>
+                <ScanFromReport
                     report={report}
                     iouType={iouType}
                     reportID={reportID}
@@ -70,11 +88,13 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
                     transaction={transaction}
                     backToReport={backToReport}
                 />
-            );
-        }
+            </MultiScanGate>
+        );
+    }
 
-        return (
-            <ScanFromReport
+    return (
+        <MultiScanGate>
+            <ScanGlobalCreate
                 report={report}
                 iouType={iouType}
                 reportID={reportID}
@@ -82,19 +102,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
                 transaction={transaction}
                 backToReport={backToReport}
             />
-        );
-    }
-
-    // Global create flow (FAB or archived report)
-    return (
-        <ScanGlobalCreate
-            report={report}
-            iouType={iouType}
-            reportID={reportID}
-            transactionID={transactionID}
-            transaction={transaction}
-            backToReport={backToReport}
-        />
+        </MultiScanGate>
     );
 }
 

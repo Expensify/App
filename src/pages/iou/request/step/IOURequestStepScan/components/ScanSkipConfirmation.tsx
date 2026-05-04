@@ -19,15 +19,6 @@ import {calculateDefaultReimbursable} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
-import Camera from '@pages/iou/request/step/IOURequestStepScan/components/Camera';
-import GpsPermissionGate from '@pages/iou/request/step/IOURequestStepScan/components/GpsPermissionGate';
-import MultiScanGate from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanGate';
-import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
-import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
-import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
-import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -37,6 +28,15 @@ import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+import useScanCapture from '../hooks/useScanCapture';
+import {getLocationPermission} from '../LocationPermission';
+import type {ReceiptFile} from '../types';
+import buildReceiptFiles from '../utils/buildReceiptFiles';
+import getFileSource from '../utils/getFileSource';
+import useScanFileReadabilityCheck from '../utils/useScanFileReadabilityCheck';
+import Camera from './Camera';
+import GpsPermissionGate from './GpsPermissionGate';
+import {useMultiScanState} from './MultiScanContext';
 
 type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxEntry<Report>;
@@ -75,7 +75,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
+    const {isMultiScanEnabled} = useMultiScanState();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
@@ -87,7 +87,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), setIsMultiScanEnabled);
+    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), () => {});
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {
@@ -256,10 +256,10 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     });
 
     return (
-        <MultiScanGate>
+        <>
             {PDFValidationComponent}
             <Camera
-                onCapture={(file, source) => {
+                onCapture={(file) => {
                     processReceipts([file]);
                 }}
                 onDrop={validateFiles}
@@ -272,7 +272,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                 onComplete={submitDirectly}
             />
-        </MultiScanGate>
+        </>
     );
 }
 

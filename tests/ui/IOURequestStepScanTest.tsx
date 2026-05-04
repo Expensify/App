@@ -55,6 +55,11 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraFormat: jest.fn(() => null),
 }));
 
+jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
+    __esModule: true,
+    default: () => ({iouType: 'submit', routeName: 'Money_Request_Create'}),
+}));
+
 function createMinimalReport(reportID: string, policyID: string): Report {
     return {
         reportID,
