@@ -180,6 +180,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+            !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
             !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
             !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
         ],
@@ -283,7 +284,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && styles.borderBottom,
             ]}
             accessible={false}
             shouldShowRightCaret={false}

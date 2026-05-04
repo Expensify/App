@@ -112,6 +112,19 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
         HapticFeedback.press();
     };
 
+    // End entry-to-scan navigation span and start entry-to-scan-ready on mount
+    useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        const entryParentSpan = getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        if (entryParentSpan) {
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                parentSpan: entryParentSpan,
+            });
+        }
+    }, []);
+
     // Start camera init span when permission is granted and camera is ready
     useEffect(() => {
         if (cameraInitSpanStarted.current || cameraPermissionStatus !== RESULTS.GRANTED || device == null) {
@@ -130,6 +143,9 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
             return;
         }
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
     }, [cameraPermissionStatus]);
 
     // Cancel spans on unmount if camera never initialized
@@ -142,6 +158,10 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
                 cancelSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
             }
             cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+            // Cancel entry-to-scan spans if they haven't ended naturally
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
         };
     }, []);
 
@@ -154,6 +174,8 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
             endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
 
         // Pre-create upload directory to avoid latency during capture
         const path = getReceiptsUploadFolderPath();

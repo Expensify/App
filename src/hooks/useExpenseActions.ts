@@ -145,7 +145,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     // Archive checks
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
@@ -241,7 +240,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 optimisticIOUReportID,
                 isASAPSubmitBetaEnabled,
                 introSelected,
-                activePolicyID,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,

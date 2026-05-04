@@ -70,9 +70,10 @@ import {
     getRemovedCardFeedMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
+    getReportAction,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
-    getReportActionMessageText,
     getReportActionText,
+    getRequireCompanyCardsEnabledMessage,
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
@@ -114,6 +115,7 @@ import {
     isTagModificationAction,
     isTransactionThread,
     isUnapprovedAction,
+    wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {
@@ -472,7 +474,12 @@ function computeReportNameBasedOnReportAction(
         });
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return getReportActionMessageText(parentReportAction) || translate('iou.receiptScanningFailed');
+        // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
+        let iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+            iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
+        }
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -634,7 +641,11 @@ function computeReportNameBasedOnReportAction(
         return getPolicyChangeMessage(translate, parentReportAction);
     }
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+    if (
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+    ) {
         return Parser.htmlToText(getChangedApproverActionMessage(translate, parentReportAction));
     }
 
@@ -767,6 +778,10 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
         return getUpdatedCardFeedStatementPeriodMessage(translate, parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
+        return getRequireCompanyCardsEnabledMessage(translate, parentReportAction);
+    }
+
     if (isDynamicExternalWorkflowSubmitFailedAction(parentReportAction)) {
         return getDynamicExternalWorkflowSubmitFailedActionMessage(translate, parentReportAction);
     }

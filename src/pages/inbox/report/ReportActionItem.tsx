@@ -4,9 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {chatIncludesChronosWithID, getTransactionsWithReceipts, isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses, isCurrentUserTheOnlyParticipant} from '@libs/ReportUtils';
+import {chatIncludesChronosWithID, getTransactionsWithReceipts, isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper} from '@userActions/Report';
 import {clearError} from '@userActions/Transaction';
@@ -15,7 +14,7 @@ import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'personalPolicyID'> & {
+type ReportActionItemProps = PureReportActionItemProps & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
@@ -45,13 +44,9 @@ function ReportActionItem({
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -68,14 +63,11 @@ function ReportActionItem({
         <PureReportActionItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            personalPolicyID={personalPolicyID}
             action={action}
             report={report}
-            policy={policy}
             draftMessage={draftMessage}
             iouReport={iouReport}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            parentReport={parentReport}
             personalDetails={personalDetails}
             originalReportID={originalReportID}
             originalReport={originalReport}
@@ -85,13 +77,11 @@ function ReportActionItem({
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
-            isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            reportMetadata={reportMetadata}
         />
     );
 }

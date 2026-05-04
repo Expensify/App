@@ -1,4 +1,4 @@
-import {reportByIDsSelector} from '@selectors/Attributes';
+import reportByIDsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';

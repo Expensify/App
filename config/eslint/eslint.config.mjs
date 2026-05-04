@@ -271,6 +271,16 @@ const config = defineConfig([
                 'error',
                 {
                     selector: ['variable', 'property'],
+                    format: null,
+                    // Allow __esModule because it is a well-known interop property injected by bundlers
+                    // (e.g. Babel/Webpack) and sometimes required by library internals (e.g. react-native-skia).
+                    filter: {
+                        regex: '^__esModule$',
+                        match: true,
+                    },
+                },
+                {
+                    selector: ['variable', 'property'],
                     format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
                     // This filter excludes variables and properties that start with "private_" to make them valid.
                     //
@@ -738,6 +748,7 @@ const config = defineConfig([
         '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
+        '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
         'docs/assets/**/*',

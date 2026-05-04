@@ -484,6 +484,7 @@ describe('actions/IOU', () => {
                 transaction: transactionToCategorize,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -534,6 +535,7 @@ describe('actions/IOU', () => {
                 transaction: originalTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -573,6 +575,7 @@ describe('actions/IOU', () => {
                 transaction: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -607,6 +610,7 @@ describe('actions/IOU', () => {
                 amountOwed: 0,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -1731,7 +1735,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1800,7 +1803,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -2325,7 +2327,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -4897,7 +4898,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -5371,7 +5371,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -5501,6 +5500,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5678,6 +5678,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5859,6 +5860,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6049,6 +6051,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6760,7 +6763,6 @@ describe('actions/IOU', () => {
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
         beforeEach(() => {
             jest.mock('@libs/OdometerImageUtils', () => ({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __esModule: true,
                 default: jest.fn(),
             }));
