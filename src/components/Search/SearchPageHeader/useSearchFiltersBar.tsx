@@ -395,6 +395,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                                 update[filterKey] = selectedUsers;
                                 updateFilterForm(update);
                             }}
+                            shouldExcludeExpensifyTeamMembers={filterKey === FILTER_KEYS.FROM}
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
