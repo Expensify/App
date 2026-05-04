@@ -63,7 +63,6 @@ jest.mock('@components/CompactMenuContext', () => {
     const ReactActual = jest.requireActual('react');
     const ctx = ReactActual.createContext(false);
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- ESM module marker required by jest module mocks.
         __esModule: true,
         default: ctx,
         useIsCompactMenu: () => true,
