@@ -30,7 +30,7 @@ function SearchInputSelectionWrapper({ref, skipSkeleton, ...props}: SearchAutoco
     return (
         <SearchAutocompleteInput
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding all props to SearchAutocompleteInput
             {...props}
             selection={undefined}
         />

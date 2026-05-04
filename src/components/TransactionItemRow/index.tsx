@@ -693,6 +693,15 @@ function TransactionItemRow({
                         <ExportedIconCell reportActions={reportActions} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
+                    >
+                        <TextCell text={transactionItem.withdrawalID} />
+                    </View>
+                );
             default:
                 return null;
         }
@@ -807,7 +816,7 @@ function TransactionItemRow({
                 {!!shouldShowBottomBorder && (
                     <View style={bgActiveStyles}>
                         <View style={styles.ph3}>
-                            <View style={[styles.borderBottom]} />
+                            <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
                         </View>
                     </View>
                 )}
@@ -882,7 +891,7 @@ function TransactionItemRow({
             {!!shouldShowBottomBorder && (
                 <View style={bgActiveStyles}>
                     <View style={styles.ph3}>
-                        <View style={styles.borderBottom} />
+                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
                     </View>
                 </View>
             )}

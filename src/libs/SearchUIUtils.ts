@@ -283,6 +283,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
 };
 
 const taskColumnNamesToSortingProperty: TaskSorting = {
@@ -4084,6 +4085,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.expenses';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             return 'common.total';
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
@@ -5433,6 +5436,7 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
             CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+            CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
