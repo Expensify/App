@@ -41,7 +41,6 @@ jest.mock('@libs/Navigation/navigationRef', () => {
         index: 0,
     };
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: {
             getRootState: jest.fn(() => mockState),

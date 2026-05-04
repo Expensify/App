@@ -336,10 +336,8 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
         policyID: string;
@@ -435,10 +433,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
         policyID?: string;
     };
-    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
         policyID: string;

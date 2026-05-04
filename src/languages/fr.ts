@@ -6025,6 +6025,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Si vous supprimez ${memberName} de cet espace de travail, nous le remplacerons en tant que contact technique par ${workspaceOwner}, le responsable de l’espace de travail.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
+            allMembers: 'Tous les membres',
+            admins: 'Administrateurs',
+            approvers: 'Approbateurs',
+            auditors: 'Auditeurs',
+            emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -7557,6 +7562,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
