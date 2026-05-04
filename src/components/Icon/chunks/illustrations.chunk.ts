@@ -89,6 +89,7 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
+import TvScreenRobot from '@assets/images/product-illustrations/tv-screen-robot.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
@@ -99,6 +100,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-bot.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
@@ -285,6 +287,7 @@ const Illustrations = {
     ToddInCar,
     ToddWithPhones,
     TopiaryDollarSign,
+    TvScreenRobot,
     WorkspaceScene,
     UpgradeRocket,
 
@@ -302,6 +305,7 @@ const Illustrations = {
 
     // Simple Illustrations
     Accounting,
+    AiBot,
     Building,
     BankCoin,
     Coins,

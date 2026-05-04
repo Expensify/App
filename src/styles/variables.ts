@@ -124,6 +124,7 @@ export default {
     tableRowPaddingVertical: 8,
     tableRowPaddingHorizontal: 12,
     tableGroupRowPaddingVertical: 4,
+    tableGroupRowHeight: 36,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),

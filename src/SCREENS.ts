@@ -170,6 +170,10 @@ const SCREENS = {
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
+        AGENTS: {
+            ROOT: 'Settings_Agents',
+        },
+
         RULES: {
             ROOT: 'Settings_Rules',
             ADD: 'Settings_Rules_Add',
@@ -769,6 +773,7 @@ const SCREENS = {
         NAME: 'Workspace_Overview_Name',
         CLIENT_ID: 'Workspace_Overview_Client_ID',
         CATEGORY_CREATE: 'Category_Create',
+        DYNAMIC_CATEGORY_CREATE: 'Dynamic_Category_Create',
         CATEGORY_EDIT: 'Category_Edit',
         CATEGORY_PAYROLL_CODE: 'Category_Payroll_Code',
         CATEGORY_GL_CODE: 'Category_GL_Code',
@@ -781,6 +786,7 @@ const SCREENS = {
         CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: 'Category_Require_Itemized_Receipts_Over',
         CATEGORY_REQUIRED_FIELDS: 'Category_Required_Fields',
         CATEGORIES_SETTINGS: 'Categories_Settings',
+        DYNAMIC_CATEGORIES_SETTINGS: 'Dynamic_Categories_Settings',
         DYNAMIC_CATEGORIES_IMPORT: 'Dynamic_Categories_Import',
         DYNAMIC_CATEGORIES_IMPORTED: 'Dynamic_Categories_Imported',
         DYNAMIC_SPEND_CATEGORY_SELECTOR: 'Dynamic_Spend_Category_Selector',

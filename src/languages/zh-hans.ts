@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: '可选',
         new: '新',
         newFeature: '新功能',
+        beta: '测试版',
         search: '搜索',
         reports: '报表',
         spend: '支出',
@@ -1375,7 +1376,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: '标签名称超过了 255 个字符。请缩短它或选择其他标签。',
             invalidAmount: '请在继续之前输入有效金额',
             invalidDistance: '请在继续之前输入有效的距离',
-            invalidReadings: '请输入起始读数和结束读数',
+            invalidReadings: '请在继续之前输入起始读数和结束读数',
             negativeDistanceNotAllowed: '结束读数必须大于开始读数',
             distanceAmountTooLarge: '总金额过大。请减少距离或降低费率。',
             distanceAmountTooLargeReduceDistance: '总金额过大。请减少距离。',
@@ -1561,6 +1562,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',
@@ -2637,6 +2639,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addFirstPaymentMethod: '在应用中添加支付方式以直接发送和接收款项。',
         defaultPaymentMethod: '默认',
         bankAccountLastFour: (lastFour: string) => `银行账户 • ${lastFour}`,
+    },
+    agentsPage: {
+        title: '代理人',
+        subtitle: '使用自定义代理自动化任务。',
+        newAgent: '新代理',
+        emptyAgents: {title: '未创建代理', subtitle: '别再手动处理这些事情了。交给智能助理去执行，帮你节省大量时间。'},
     },
     expenseRulesPage: {
         title: '报销规则',
@@ -5817,6 +5825,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其技术联系人替换为工作区所有者 ${workspaceOwner}。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 还有一份待处理报告需要处理。请在将其从工作区中移除之前，先让 TA 完成所需操作。`,
+            allMembers: '所有成员',
+            admins: '管理员',
+            approvers: '审批人',
+            auditors: '审计员',
+            emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -7289,6 +7302,7 @@ ${reportName}
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

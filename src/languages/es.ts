@@ -29,6 +29,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Opcional',
         new: 'Nuevo',
         newFeature: 'Nueva función',
+        beta: 'Beta',
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
@@ -1372,7 +1373,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar',
             invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
-            invalidReadings: 'Por favor ingrese ambas lecturas de inicio y fin',
+            invalidReadings: 'Por favor ingrese ambas lecturas de inicio y fin para continuar',
             negativeDistanceNotAllowed: 'La lectura final debe ser mayor que la lectura inicial',
             distanceAmountTooLarge: 'El importe total es demasiado alto. Reduce la distancia o disminuye la tarifa.',
             distanceAmountTooLargeReduceDistance: 'El importe total es demasiado alto. Reduce la distancia.',
@@ -1562,6 +1563,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink) =>
                 `Elige una opción para cambiar el aprobador de este informe. (Actualiza la <a href="${workflowSettingLink}">configuración del espacio de trabajo</a> para cambiarlo de forma permanente en todos los informes.)`,
             changedApproverMessage: (managerID) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID) => `reasignó el aprobador a <mention-user accountID="${managerID}"/> mediante una actualización de flujo de trabajo`,
             actions: {
                 addApprover: 'Añadir aprobador',
                 addApproverSubtitle: 'Añade un aprobador adicional al flujo de trabajo existente.',
@@ -2602,6 +2604,15 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
         bankAccountLastFour: (lastFour) => `Cuenta bancaria • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agentes',
+        subtitle: 'Automatiza tareas con agentes personalizados.',
+        newAgent: 'Nuevo agente',
+        emptyAgents: {
+            title: 'No se han creado agentes.',
+            subtitle: 'Deja de hacer las cosas manualmente. En su lugar, instruye a un agente y ahorra mucho tiempo.',
+        },
     },
     expenseRulesPage: {
         title: 'Reglas de gastos',
@@ -5850,6 +5861,14 @@ ${amount} para ${merchant} - ${date}`,
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
+            allMembers: 'Todos los miembros',
+            admins: 'Administradores',
+            approvers: 'Aprobadores',
+            auditors: 'Auditores',
+            emptyRoleFilter: {
+                title: 'Ningún miembro coincide con este filtro',
+                subtitle: 'Invita a un miembro o cambia el filtro anterior.',
+            },
             importMembers: 'Importar miembros',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Si eliminas a ${approver} de este espacio de trabajo, lo reemplazaremos en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
@@ -7277,6 +7296,7 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el requisito de compras con tarjeta de la empresa`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el autopago de informes aprobados`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `estableció el umbral de autopago de informes aprobados en "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>

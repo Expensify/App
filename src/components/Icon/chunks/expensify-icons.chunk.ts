@@ -29,6 +29,7 @@ import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
+import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
@@ -284,6 +285,7 @@ const Expensicons = {
     Bell,
     Binoculars,
     Bolt,
+    Bot,
     Box,
     Bug,
     Building,

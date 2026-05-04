@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Facultatif',
         new: 'Nouveau',
         newFeature: 'Nouvelle fonctionnalité',
+        beta: 'Bêta',
         search: 'Rechercher',
         reports: 'Notes de frais',
         spend: 'Dépenses',
@@ -1425,7 +1426,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'Le nom du tag dépasse 255 caractères. Veuillez le raccourcir ou choisir un autre tag.',
             invalidAmount: 'Veuillez saisir un montant valide avant de continuer',
             invalidDistance: 'Veuillez saisir une distance valide avant de continuer',
-            invalidReadings: 'Veuillez saisir les relevés de début et de fin',
+            invalidReadings: 'Veuillez saisir les relevés de début et de fin pour continuer',
             negativeDistanceNotAllowed: 'Le relevé de fin doit être supérieur au relevé de début',
             distanceAmountTooLarge: 'Le montant total est trop élevé. Réduisez la distance ou diminuez le taux.',
             distanceAmountTooLargeReduceDistance: 'Le montant total est trop élevé. Réduisez la distance.',
@@ -1616,6 +1617,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Choisissez une option pour modifier l’approbateur de cette note de frais. (Mettez à jour vos <a href="${workflowSettingLink}">paramètres d’espace de travail</a> pour changer cela définitivement pour toutes les notes de frais.)`,
             changedApproverMessage: (managerID: number) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `a réaffecté l'approbateur à <mention-user accountID="${managerID}"/> via une mise à jour du flux de travail`,
             actions: {
                 addApprover: 'Ajouter un approbateur',
                 addApproverSubtitle: 'Ajouter un approbateur supplémentaire au circuit d’approbation existant.',
@@ -2725,6 +2727,12 @@ ${amount} pour ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Ajoutez un moyen de paiement pour envoyer et recevoir des paiements directement dans l’application.',
         defaultPaymentMethod: 'Par défaut',
         bankAccountLastFour: (lastFour: string) => `Compte bancaire • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agent·e·s',
+        subtitle: 'Automatisez les tâches avec des agents personnalisés.',
+        newAgent: 'Nouvel agent',
+        emptyAgents: {title: 'Aucun agent créé', subtitle: 'Arrêtez de tout faire manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps.'},
     },
     expenseRulesPage: {
         title: 'Règles de dépenses',
@@ -6017,6 +6025,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Si vous supprimez ${memberName} de cet espace de travail, nous le remplacerons en tant que contact technique par ${workspaceOwner}, le responsable de l’espace de travail.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
+            allMembers: 'Tous les membres',
+            admins: 'Administrateurs',
+            approvers: 'Approbateurs',
+            auditors: 'Auditeurs',
+            emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -7549,6 +7562,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} l’exigence d’achats par carte d’entreprise`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

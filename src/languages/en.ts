@@ -90,6 +90,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         newFeature: 'New feature',
+        beta: 'Beta',
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
@@ -1474,7 +1475,7 @@ const translations = {
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing',
             invalidDistance: 'Please enter a valid distance before continuing',
-            invalidReadings: 'Please enter both start and end readings',
+            invalidReadings: 'Please enter both start & end readings to continue',
             negativeDistanceNotAllowed: 'End reading must be greater than start reading',
             distanceAmountTooLarge: 'The total amount is too large. Reduce the distance or lower the rate.',
             distanceAmountTooLargeReduceDistance: 'The total amount is too large. Reduce the distance.',
@@ -1663,6 +1664,7 @@ const translations = {
             header: (workflowSettingLink: string) =>
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
@@ -2772,6 +2774,15 @@ const translations = {
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agents',
+        subtitle: 'Automate tasks with custom agents.',
+        newAgent: 'New agent',
+        emptyAgents: {
+            title: 'No agents created',
+            subtitle: 'Stop manually doing stuff. Instruct an agent instead and save yourself lots of time.',
+        },
     },
     expenseRulesPage: {
         title: 'Expense rules',
@@ -5991,6 +6002,14 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            allMembers: 'All members',
+            admins: 'Admins',
+            approvers: 'Approvers',
+            auditors: 'Auditors',
+            emptyRoleFilter: {
+                title: 'No members match this filter',
+                subtitle: 'Invite a member or change the filter above.',
+            },
             importMembers: 'Import members',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
@@ -7411,6 +7430,7 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the company card purchases requirement`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
