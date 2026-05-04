@@ -57,6 +57,7 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
 
     const isEditing = issueNewCard?.isEditing;
     const hasCardRuleID = !!issueNewCard?.data?.cardRuleID;
+    const spendRuleForm = issueNewCard?.data.cardRuleValue ?? {};
     const hasCardRuleData = !!issueNewCard?.data?.cardRuleID || !!issueNewCard?.data?.cardRuleValue;
     const restrictionAction = issueNewCard?.data?.cardRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING;
@@ -202,44 +203,44 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
                                         onSelect={handleSelectRestrictionAction}
                                     />
                                 </View>
-                                {/* <MenuItemWithTopDescription
+                                <MenuItemWithTopDescription
                                     description={translate('common.merchant')}
-                                    onPress={() => {
-                                        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
-                                    }}
+                                    // onPress={() => {
+                                    //     navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
+                                    // }}
                                     shouldShowRightIcon
-                                    title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
+                                    // title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                                     numberOfLinesTitle={2}
                                     titleStyle={styles.flex1}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.spendRules.spendCategory')}
-                                    onPress={() => {
-                                        clearError();
-                                        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
-                                    }}
+                                    // onPress={() => {
+                                    //     clearError();
+                                    //     navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
+                                    // }}
                                     shouldShowRightIcon
-                                    title={categoriesMenuTitle}
+                                    // title={categoriesMenuTitle}
                                     numberOfLinesTitle={2}
                                     titleStyle={styles.flex1}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.spendRules.maxAmount')}
-                                    onPress={() => {
-                                        clearError();
-                                        if (!selectedCurrency) {
-                                            openCurrencyMismatchModal();
-                                            return;
-                                        }
-                                        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
-                                    }}
+                                    // onPress={() => {
+                                    //     clearError();
+                                    //     if (!selectedCurrency) {
+                                    //         openCurrencyMismatchModal();
+                                    //         return;
+                                    //     }
+                                    //     navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
+                                    // }}
                                     shouldShowRightIcon
-                                    title={maxAmountMenuTitle}
+                                    // title={maxAmountMenuTitle}
                                     titleStyle={styles.flex1}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                /> */}
+                                />
                             </View>
                         )}
                     </View>
