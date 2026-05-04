@@ -3,10 +3,14 @@ import {Image, StyleSheet, TextInput} from 'react-native';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
+import {addComment, getReportByID} from '@libs/actions/Report';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {useInboxPanelActions} from './InboxPanelContext';
 
 const PLACEHOLDER_CYCLE_MS = 3000;
 const INPUT_WIDTH_DEFAULT = 200;
@@ -42,6 +46,12 @@ function fadeIn(opacity: SharedValue<number>) {
 function AskConciergeInput() {
     const theme = useTheme();
     const {translate} = useLocalize();
+
+    const {navigateToReport} = useInboxPanelActions();
+
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const [value, setValue] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -81,6 +91,33 @@ function AskConciergeInput() {
         return () => clearInterval(interval);
     }, [isFocused, opacity, value]);
 
+    const handleSubmit = () => {
+        const trimmed = value.trim();
+        if (!trimmed || !conciergeReportID || !session?.accountID) {
+            return;
+        }
+
+        const conciergeReport = getReportByID(conciergeReportID);
+        if (conciergeReport) {
+            const currentUserDetails = personalDetails?.[session.accountID];
+            addComment({
+                report: conciergeReport,
+                notifyReportID: conciergeReportID,
+                ancestors: [],
+                text: trimmed,
+                timezoneParam: currentUserDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: session.accountID,
+            });
+        }
+
+        setValue('');
+        setIsFocused(false);
+        isFocusedShared.set(false);
+        opacity.set(1);
+
+        navigateToReport(conciergeReportID);
+    };
+
     return (
         <Animated.View
             style={[
@@ -109,6 +146,9 @@ function AskConciergeInput() {
                     }}
                     placeholder={isFocused && value === '' ? PLACEHOLDERS.at(placeholderIndex) : STATIC_PLACEHOLDER}
                     placeholderTextColor={theme.textSupporting}
+                    returnKeyType="send"
+                    onSubmitEditing={handleSubmit}
+                    blurOnSubmit
                     style={{
                         flex: 1,
                         color: theme.text,

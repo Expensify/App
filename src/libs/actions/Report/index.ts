@@ -7348,6 +7348,10 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
+function getReportByID(reportID: string): OnyxEntry<Report> {
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo};
 
 export {
@@ -7469,4 +7473,5 @@ export {
     prepareOnyxDataForCleanUpOptimisticParticipants,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
+    getReportByID,
 };
