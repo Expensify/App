@@ -142,7 +142,7 @@ type UseSearchSelectorReturn = {
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
         (option1.login && option1.login === option2.login)
     );
 };

@@ -29,6 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
@@ -36,8 +37,7 @@ import {
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-    updateSplitTransactionsFromSplitExpensesFlow,
-} from '@libs/actions/IOU/Split';
+} from '@libs/actions/IOU/SplitExpenseItems';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -269,6 +269,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isPerDiem,
             isCard,
             translate,
+            convertToDisplayString,
         });
         if (saveError) {
             setErrorMessage(saveError);
@@ -403,6 +404,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetailsAmount,
         currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
         translate,
+        convertToDisplayString,
     });
 
     const footerContent = (

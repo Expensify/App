@@ -41,12 +41,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow?.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
     // Build a map of member emails to their existing workflow's approver email (for non-default workflows only)
     const membersInExistingWorkflows = (() => {
@@ -76,7 +76,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
                 return {
@@ -96,7 +95,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, translate, icons.FallbackAvatar]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, policyMemberEmailsToAccountIDs, translate, icons.FallbackAvatar]);
 
     const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
     const allApprovers: SelectionListApprover[] = [...selectedMembers];
@@ -104,7 +103,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     if (approvalWorkflow?.availableMembers) {
         const availableMembers = approvalWorkflow.availableMembers
             .map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
                 return {

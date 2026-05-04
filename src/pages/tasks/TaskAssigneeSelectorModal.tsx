@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';

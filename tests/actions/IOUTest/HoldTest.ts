@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import {putOnHold, putTransactionsOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -46,7 +44,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -471,7 +468,7 @@ describe('actions/IOU/Hold', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -545,7 +542,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     mockFetch.fail();
                     mockFetch?.resume?.();
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

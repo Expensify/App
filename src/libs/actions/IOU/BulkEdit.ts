@@ -28,8 +28,9 @@ import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getAllTransactionViolations, getCurrentUserEmail, getUpdatedMoneyRequestReportData, getUserAccountID} from '.';
+import {getAllTransactionViolations, getUpdatedMoneyRequestReportData} from '.';
 
 function removeUnchangedBulkEditFields(
     transactionChanges: TransactionChanges,
@@ -79,6 +80,8 @@ type UpdateMultipleMoneyRequestsParams = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function updateMultipleMoneyRequests({
@@ -94,6 +97,8 @@ function updateMultipleMoneyRequests({
     allPolicies,
     introSelected,
     betas,
+    currentUserAccountID,
+    currentUserLogin,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -132,7 +137,7 @@ function updateMultipleMoneyRequests({
         // bulk-edit comments are visible immediately while still offline.
         let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(introSelected, getCurrentUserEmail(), getUserAccountID(), betas, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport(introSelected, currentUserLogin, currentUserAccountID, betas, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
@@ -345,42 +350,40 @@ function updateMultipleMoneyRequests({
         // new values immediately (the snapshot is the exclusive data source for search
         // result rendering and is not automatically updated by the TRANSACTION write above).
         if (hash) {
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...updatedTransaction, pendingFields};
+            if (optimisticViolationsData && optimisticViolationsData.onyxMethod === Onyx.METHOD.SET) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = optimisticViolationsData.value;
+            }
             snapshotOptimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                            ...updatedTransaction,
-                            pendingFields,
-                        },
-                        ...(optimisticViolationsData && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: optimisticViolationsData.value}),
-                    },
+                    data: optimisticSnapshotData,
                 },
             });
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const successSnapshotData: NullishDeep<SearchResultDataType> = {};
+            successSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {pendingFields: clearedPendingFields};
             snapshotSuccessData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    data: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingFields: clearedPendingFields},
-                    },
+                    data: successSnapshotData,
                 },
             });
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...transaction, pendingFields: clearedPendingFields};
+            if (currentTransactionViolations) {
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
+            }
             snapshotFailureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                            ...transaction,
-                            pendingFields: clearedPendingFields,
-                        },
-                        ...(currentTransactionViolations && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations}),
-                    },
+                    data: failureSnapshotData,
                 },
             });
         }

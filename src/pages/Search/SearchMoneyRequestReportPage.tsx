@@ -49,7 +49,7 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {reportByIDsSelector} from '@src/selectors/Attributes';
+import reportByIDsSelector from '@src/selectors/Attributes';
 import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type SearchMoneyRequestPageProps =
@@ -87,6 +87,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const prevReport = usePrevious(report);
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
 
@@ -95,6 +96,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // Skip first run so we don't dismiss on mount when report may still be loading.
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
+            return;
+        }
+
+        // Route just changed — new report data may not be loaded yet, so don't treat as removal.
+        if (prevReportIDFromRoute !== reportIDFromRoute) {
             return;
         }
 
@@ -107,7 +113,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             }
             Navigation.dismissModal();
         }
-    }, [report, isFocused, prevReport]);
+    }, [report, isFocused, prevReport, prevReportIDFromRoute, reportIDFromRoute]);
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused
@@ -204,7 +210,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);
-    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
 
     useEffect(() => {
         // Reset flag when reportID changes (screen stays mounted but navigates to different report)

@@ -1,15 +1,14 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
-import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {SplitExpense} from '@src/types/onyx/IOU';
-import {convertToDisplayString} from './CurrencyUtils';
-
-type TranslateFunction = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
 
 type SplitWarningParams = {
     splitExpenses: SplitExpense[];
     transactionDetailsAmount: number;
     currency: string;
-    translate: TranslateFunction;
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type SplitSaveErrorParams = {
@@ -19,7 +18,8 @@ type SplitSaveErrorParams = {
     isDistance: boolean;
     isPerDiem: boolean;
     isCard: boolean;
-    translate: TranslateFunction;
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /**
@@ -36,7 +36,7 @@ function findInvalidSplit(splitExpenses: SplitExpense[], transactionDetailsAmoun
  * Computes the inline warning message shown while editing splits (before saving).
  * Returns an empty string when there is nothing to warn about.
  */
-function computeSplitWarningMessage({splitExpenses, transactionDetailsAmount, currency, translate}: SplitWarningParams): string {
+function computeSplitWarningMessage({splitExpenses, transactionDetailsAmount, currency, translate, convertToDisplayString}: SplitWarningParams): string {
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const invalidSplit = findInvalidSplit(splitExpenses, transactionDetailsAmount);
     const difference = sumOfSplitExpenses - transactionDetailsAmount;
@@ -70,7 +70,7 @@ function computeSplitWarningMessage({splitExpenses, transactionDetailsAmount, cu
  *
  * Returns an empty string when there is no amount-based error.
  */
-function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, currency, isDistance, isPerDiem, isCard, translate}: SplitSaveErrorParams): string {
+function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, currency, isDistance, isPerDiem, isCard, translate, convertToDisplayString}: SplitSaveErrorParams): string {
     if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
         return translate('iou.error.manySplitsProvided');
     }
@@ -113,4 +113,3 @@ function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, 
 }
 
 export {computeSplitWarningMessage, computeSplitSaveErrorMessage};
-export type {SplitWarningParams, SplitSaveErrorParams};

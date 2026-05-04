@@ -7,8 +7,8 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {
+    AddExistingExpensesParamList,
     AddPersonalBankAccountNavigatorParamList,
-    AddUnreportedExpensesParamList,
     ChronosScheduleOOONavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -407,6 +407,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodConfirmMagicCodePage').default,
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmMagicCodePage').default,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/VerifyAccountPage').default,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
@@ -458,6 +460,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/subPages/AccountFlowEntryPoint').default,
+    [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UpdatePersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
@@ -522,9 +525,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequiredFieldsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewAddressPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceOverviewPlanTypePage').default,
-    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportCategoriesPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportedCategoriesPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicSpendCategorySelectorPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicDefaultCategorySelectorPage').default,
     [SCREENS.WORKSPACE.UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/upgrade/WorkspaceUpgradePage').default,
     [SCREENS.WORKSPACE.DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/WorkspaceDowngradePage').default,
     [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/PayAndDowngradePage').default,
@@ -534,7 +539,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeSuccessPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeErrorPage').default,
-    [SCREENS.WORKSPACE.CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CreateCategoryPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CreateCategoryPage').default,
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/EditCategoryPage').default,
     [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryPayrollCodePage').default,
     [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryGLCodePage').default,
@@ -1119,8 +1124,8 @@ const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<Miss
     [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails/MissingPersonalDetailsMagicCodePage').default,
 });
 
-const AddUnreportedExpenseModalStackNavigator = createModalStackNavigator<AddUnreportedExpensesParamList>({
-    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: () => require<ReactComponentModule>('../../../../pages/AddUnreportedExpense').default,
+const AddExistingExpenseModalStackNavigator = createModalStackNavigator<AddExistingExpensesParamList>({
+    [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: () => require<ReactComponentModule>('../../../../pages/AddExistingExpense').default,
 });
 
 const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
@@ -1161,7 +1166,7 @@ const MultifactorAuthenticationStackNavigator = createModalStackNavigator<Multif
 
 export {
     AddPersonalBankAccountModalStackNavigator,
-    AddUnreportedExpenseModalStackNavigator,
+    AddExistingExpenseModalStackNavigator,
     CategoriesModalStackNavigator,
     DebugModalStackNavigator,
     DomainCardModalStackNavigator,
