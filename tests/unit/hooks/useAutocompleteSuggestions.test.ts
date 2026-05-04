@@ -90,9 +90,7 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
-// eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
 const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
-// eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
 
 const defaultParams = {
