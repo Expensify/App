@@ -1,7 +1,4 @@
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
-import {getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import type * as IOU from '@userActions/IOU';
-import {getMoneyRequestPolicyTags} from '@userActions/IOU';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {startSplitBill} from '@userActions/IOU/Split';
 import * as TrackExpense from '@userActions/IOU/TrackExpense';
@@ -45,19 +42,6 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             requestMoneyParams.transactionParams.receipt = file;
             requestMoneyParams.isRetry = true;
             requestMoneyParams.shouldPlaySound = false;
-            const isMoneyRequestReport = isMoneyRequestReportReportUtils(requestMoneyParams.report);
-            const moneyRequestReportID = isMoneyRequestReport ? requestMoneyParams.report?.reportID : undefined;
-            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(requestMoneyParams.report?.chatReportID) : requestMoneyParams.report;
-            const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(requestMoneyParams.action);
-            const parentChatReport = isMovingTransactionFromTrackExpense ? undefined : currentChatReport;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policyTagList = getMoneyRequestPolicyTags({
-                existingIOUReport: requestMoneyParams.existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport,
-                participant: requestMoneyParams.participantParams.participant,
-            });
-            requestMoneyParams.policyParams = {...(requestMoneyParams.policyParams ?? {}), policyTagList};
             TrackExpense.requestMoney(requestMoneyParams);
             break;
         }

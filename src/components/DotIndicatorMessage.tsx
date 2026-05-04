@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReceiptErrorPolicyTagList from '@hooks/useReceiptErrorPolicyTagList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +15,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import type * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
@@ -67,12 +69,18 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
+    const policyTagList = useReceiptErrorPolicyTagList(receiptError);
+
     const handleLinkPress = (href: string) => {
         if (!receiptError) {
             return;
         }
 
         if (href.endsWith('retry')) {
+            if (receiptError.action === CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
+                const requestMoneyParams = receiptError.retryParams as IOU.RequestMoneyInformation;
+                requestMoneyParams.policyParams = {...(requestMoneyParams.policyParams ?? {}), policyTagList};
+            }
             handleRetryPress(receiptError, dismissError, () => {
                 showConfirmModal({
                     prompt: translate('common.genericErrorMessage'),
