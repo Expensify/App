@@ -593,6 +593,7 @@ function MoneyRequestReportTransactionList({
             onArrowRightPress={handleArrowRightPress}
             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
             isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
+            shouldScrollHorizontally={shouldScrollHorizontally}
         />
     );
 
