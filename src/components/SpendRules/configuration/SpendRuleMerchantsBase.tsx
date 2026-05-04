@@ -1,6 +1,7 @@
 import type {NavigationProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
+import {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,7 +23,7 @@ type SpendRuleMerchantsBaseProps = {
     ruleID: string;
     action: string;
     merchantNames: string[];
-    merchantMatchTypes: string[];
+    merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[];
     editMerchantRoute: typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT;
 };
 
