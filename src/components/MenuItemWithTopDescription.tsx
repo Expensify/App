@@ -1,6 +1,7 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
+import variables from '@styles/variables';
 import MenuItem from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
 
@@ -22,7 +23,7 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, style,
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            style={[{paddingVertical: 8, minHeight: 56}, style]}
+            style={[{paddingVertical: 8, minHeight: variables.menuItemWithTopDescriptionMinHeight}, style]}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
             outerWrapperStyle={highlighted ? highlightedOuterWrapperStyle : outerWrapperStyle}
