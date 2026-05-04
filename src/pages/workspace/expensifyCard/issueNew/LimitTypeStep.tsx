@@ -52,7 +52,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
         if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
-            return CONST.EXPENSIFY_CARD.STEP.CARD_RULES;
+            return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
         }
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
     }, [isEditing, issueNewCard?.data?.cardType]);

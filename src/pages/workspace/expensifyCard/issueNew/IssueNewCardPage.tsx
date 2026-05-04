@@ -21,7 +21,7 @@ import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitTypeStep from './LimitTypeStep';
-import SetCardRulesStep from './SetCardRulesStep';
+import SetSpendRulesStep from './spendRules/SetSpendRulesStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
@@ -35,7 +35,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
-        [CONST.EXPENSIFY_CARD.STEP.CARD_RULES]: 3,
+        [CONST.EXPENSIFY_CARD.STEP.SPEND_RULES]: 3,
         [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
         [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
     };
@@ -98,9 +98,9 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         startStepIndex={startStepIndex}
                     />
                 );
-            case CONST.EXPENSIFY_CARD.STEP.CARD_RULES:
+            case CONST.EXPENSIFY_CARD.STEP.SPEND_RULES:
                 return (
-                    <SetCardRulesStep
+                    <SetSpendRulesStep
                         policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}

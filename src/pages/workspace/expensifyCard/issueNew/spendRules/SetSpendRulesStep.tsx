@@ -24,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type Policy from '@src/types/onyx/Policy';
 
-type SetCardRulesStepProps = {
+type SetSpendRulesStepProps = {
     // The policy that the card will be issued under
     policy: OnyxEntry<Policy>;
 
@@ -35,7 +35,7 @@ type SetCardRulesStepProps = {
     stepNames: readonly string[];
 };
 
-function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepProps) {
+function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -208,4 +208,4 @@ function SetCardRulesStep({policy, stepNames, startStepIndex}: SetCardRulesStepP
     );
 }
 
-export default SetCardRulesStep;
+export default SetSpendRulesStep;
