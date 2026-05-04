@@ -1,7 +1,7 @@
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
+import InboxPanelControls from '@components/InboxSidePanel/InboxPanelControls';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 // import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -75,7 +75,7 @@ function TopBar({breadcrumbLabel, shouldDisplayHelpButton = false, cancelSearch,
                     </PressableWithoutFeedback>
                 )}
                 {/* displaySearch && <SearchButton /> */}
-                {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.mr2} />}
+                {shouldDisplayHelpButton && <InboxPanelControls />}
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>

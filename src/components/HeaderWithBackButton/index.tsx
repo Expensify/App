@@ -6,7 +6,7 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
+import InboxPanelControls from '@components/InboxSidePanel/InboxPanelControls';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 // import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -363,7 +363,7 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {/* shouldDisplaySearchRouter && <SearchButton /> */}
-                {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.ml2} />}
+                {shouldDisplayHelpButton && <InboxPanelControls />}
             </View>
         </View>
     );
