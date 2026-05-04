@@ -87,9 +87,27 @@ async function measureOpenReportCallsDuringTransition(): Promise<{delta: number;
     return {delta: mockOpenReport.mock.calls.length - baseline, unmount};
 }
 
-describe('ReportFetchHandler - isLoadingApp transition effect', () => {
+/**
+ * Helper that mounts with isLoadingApp already false (simulates iOS where the component
+ * mounts after openApp has finished). Returns delta from mount.
+ */
+async function measureOpenReportCallsOnMountWithLoadingFalse(): Promise<{delta: number; unmount: () => void}> {
+    await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+    await waitForBatchedUpdates();
+
+    const baseline = mockOpenReport.mock.calls.length;
+
+    const {unmount} = render(<ReportFetchHandler />);
+    await act(async () => {
+        await waitForBatchedUpdates();
+    });
+
+    return {delta: mockOpenReport.mock.calls.length - baseline, unmount};
+}
+
+describe('ReportFetchHandler - invite onboarding fetch effect', () => {
     // When isLoadingApp transitions from true to false, a baseline number of openReport calls occur
-    // from other effects (e.g., isLoadingReportData transition). The new isLoadingApp transition effect
+    // from other effects (e.g., isLoadingReportData transition). The invite onboarding effect
     // adds exactly one additional call when conditions are met.
     let baselineDelta: number;
 
@@ -153,6 +171,20 @@ describe('ReportFetchHandler - isLoadingApp transition effect', () => {
 
         const {delta, unmount} = await measureOpenReportCallsDuringTransition();
         expect(delta).toBe(baselineDelta + 1);
+        unmount();
+    });
+
+    it('should trigger openReport when isLoadingApp is already false at mount (iOS scenario)', async () => {
+        await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+            choice: CONST.ONBOARDING_CHOICES.ADMIN,
+            inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
+        });
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await waitForBatchedUpdates();
+
+        const {delta, unmount} = await measureOpenReportCallsOnMountWithLoadingFalse();
+        // Should still trigger the invite onboarding fetch even without a true→false transition
+        expect(delta).toBeGreaterThan(0);
         unmount();
     });
 

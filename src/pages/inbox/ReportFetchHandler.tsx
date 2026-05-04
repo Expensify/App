@@ -75,7 +75,7 @@ function ReportFetchHandler() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
-    const prevIsLoadingApp = usePrevious(isLoadingApp);
+    const didTriggerInviteOnboardingFetchRef = useRef(false);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
@@ -252,13 +252,16 @@ function ReportFetchHandler() {
         fetchReport();
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
-    // Re-trigger fetchReport when isLoadingApp transitions to false for invite onboarding users.
-    // The timing guard in fetchReport blocks openReport while isLoadingApp is true to wait for
-    // policy data. When isLoadingApp becomes false, we need to re-trigger fetchReport so that
-    // openReport can run with the now-available introSelected data and create guided setup tasks.
+    // Re-trigger fetchReport once isLoadingApp is false for invite onboarding users.
+    // The timing guard in fetchReport (line 125) blocks openReport while isLoadingApp is true
+    // to wait for policy data. The main fetchReport useEffect doesn't include isLoadingApp in
+    // its deps, so it won't re-fire when the guard lifts. This effect watches for the right
+    // conditions and calls fetchReport exactly once.
+    // We use a ref instead of usePrevious because on iOS the component may mount after
+    // isLoadingApp is already false, so a true→false transition is never observed.
     // See: https://github.com/Expensify/App/issues/74781
     useEffect(() => {
-        if (!prevIsLoadingApp || isLoadingApp) {
+        if (isLoadingApp || didTriggerInviteOnboardingFetchRef.current) {
             return;
         }
 
@@ -271,9 +274,10 @@ function ReportFetchHandler() {
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
         if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+            didTriggerInviteOnboardingFetchRef.current = true;
             fetchReport();
         }
-    }, [isLoadingApp, prevIsLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete]);
+    }, [isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete]);
 
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.
