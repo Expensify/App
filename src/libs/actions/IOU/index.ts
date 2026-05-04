@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -20,7 +19,6 @@ import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
@@ -64,7 +62,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     buildOptimisticTransaction,
     getAmount,
-    getCategoryTaxCodeAndAmount,
+    getCategoryTaxDetails,
     getCurrency,
     getDistanceInMeters,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -901,15 +899,13 @@ function setMoneyRequestCategory(transactionID: string, category: string, policy
         return;
     }
     if (!policy) {
-        setMoneyRequestTaxRate(transactionID, '');
-        setMoneyRequestTaxAmount(transactionID, null);
+        setMoneyRequestTaxRateValues(transactionID, {taxCode: '', taxAmount: null, taxValue: null});
         return;
     }
     const transaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(category, transaction, policy);
-    if (categoryTaxCode && categoryTaxAmount !== undefined) {
-        setMoneyRequestTaxRate(transactionID, categoryTaxCode);
-        setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
+    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy);
+    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+        setMoneyRequestTaxRateValues(transactionID, {taxCode: categoryTaxCode, taxAmount: categoryTaxAmount, taxValue: categoryTaxValue});
     }
 }
 
@@ -2166,9 +2162,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+
         const originalAmount = Number(existingTransaction.modifiedAmount) || existingTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
+
         const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);

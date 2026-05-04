@@ -86,7 +86,15 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {createDraftTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID, startDistanceRequest, startMoneyRequest} from './actions/IOU';
+import {
+    createDraftTransaction,
+    getUserAccountID,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReportID,
+    startDistanceRequest,
+    startMoneyRequest,
+} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
@@ -110,7 +118,6 @@ import type {FormulaContext} from './Formula';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
@@ -2350,7 +2357,7 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
 /**
  * Whether the provided report is an archived report
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
 }
@@ -2607,7 +2614,6 @@ function isOneTransactionThread(report: OnyxEntry<Report>, parentReport: OnyxEnt
  * Checks if given report is a transaction thread
  */
 function isReportTransactionThread(report: OnyxEntry<Report>) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return isMoneyRequest(report) || isTrackExpenseReport(report);
 }
 
@@ -3898,7 +3904,7 @@ function getDisplayNamesWithTooltips(
     return personalDetailsListArray
         .map((user) => {
             const accountID = Number(user?.accountID);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
             const displayName =
                 getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber}) ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -4191,6 +4197,8 @@ function hasUnresolvedCardFraudAlert(reportOrOption: OnyxEntry<Report> | OptionD
 
 function getReasonAndReportActionThatRequiresAttention(
     optionOrReport: OnyxEntry<Report> | OptionData,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
 ): ReasonAndReportActionThatRequiresAttention | null {
@@ -4247,7 +4255,9 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
-        const expenseBadge = isAssigneeExpenseAction ? getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy) : undefined;
+        const expenseBadge = isAssigneeExpenseAction
+            ? getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID)
+            : undefined;
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
             reportAction: Object.values(reportActions)
@@ -4259,7 +4269,14 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(optionOrReport, policy, optionReportMetadata, invoiceReceiverPolicy);
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(
+        optionOrReport,
+        policy,
+        optionReportMetadata,
+        invoiceReceiverPolicy,
+        currentUserLogin,
+        currentUserAccountID,
+    );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -4315,7 +4332,7 @@ function getReasonAndReportActionThatRequiresAttention(
  * @param parentReportAction (the report action the current report is a thread of)
  */
 function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>, isReportArchived = false) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, parentReportAction, isReportArchived);
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, getCurrentUserEmail() ?? '', getUserAccountID(), parentReportAction, isReportArchived);
 }
 
 /**
@@ -5066,7 +5083,6 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
 }
 
 function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
@@ -5105,7 +5121,7 @@ function canHoldUnholdReportAction(
     const isApproved = isReportApproved({report});
     const isRequestIOU = isIOUReport(report);
     const isHoldActionCreator = isActionCreator(holdReportAction);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionCreator(reportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserAccountID === report?.managerID;
@@ -5124,7 +5140,13 @@ function canHoldUnholdReportAction(
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iouTransaction: OnyxEntry<Transaction>, isOffline: boolean): void => {
+const changeMoneyRequestHoldStatus = (
+    reportAction: OnyxEntry<ReportAction>,
+    iouTransaction: OnyxEntry<Transaction>,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -5147,7 +5169,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iou
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -5635,7 +5657,6 @@ function getModifiedExpenseOriginalMessage(
     }
 
     if (
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
         ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
     ) {
@@ -5732,7 +5753,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-deprecated
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1]), conciergeReportID}) ?? '';
         }
     }
@@ -6107,7 +6128,7 @@ function getParentNavigationSubtitle(
         const ownerAccountID = report?.ownerAccountID;
         const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
         const login = personalDetails ? personalDetails.login : null;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
 
         if (isExpenseReport(report)) {
@@ -6732,7 +6753,7 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
     };
 
     // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+
     const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
 
     // If there is no title field, use "New Report" as default (matches OldDot behavior)
@@ -9086,7 +9107,6 @@ function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, is
     return true;
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function isReportNotFound(report: OnyxEntry<Report>): boolean {
     return !!report?.errorFields?.notFound;
 }
@@ -9605,7 +9625,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     if (draftComment) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
@@ -10853,11 +10873,20 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
 
 /**
  * Check if Report has any held expenses
+ *
+ * @warning Use `hasHeldExpensesFromTransactions` instead.
  */
 function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
     const iouReportTransactions = getReportTransactions(iouReportID);
     const transactions = allReportTransactions ?? iouReportTransactions;
     return transactions.some((transaction) => isOnHoldTransactionUtils(transaction));
+}
+
+/**
+ * Check if Report has any held expenses
+ */
+function hasHeldExpensesFromTransactions(allReportTransactions: Transaction[]): boolean {
+    return allReportTransactions.some((transaction) => isOnHoldTransactionUtils(transaction));
 }
 
 /**
@@ -11263,9 +11292,16 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     workspaceName: string,
     currentUserAccountID: number,
     currentUserEmail: string,
+    currentUserLocalCurrency: string,
 ): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, currentUserAccountID, currentUserEmail);
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
+        introSelected,
+        workspaceName,
+        currentUserAccountID,
+        currentUserEmail,
+        currency: currentUserLocalCurrency,
+    });
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -11299,6 +11335,7 @@ type CreateDraftTransactionParams = {
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currentUserLocalCurrency: string;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11316,6 +11353,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     transaction,
     currentUserAccountID,
     currentUserEmail,
+    currentUserLocalCurrency,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11460,7 +11498,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '', currentUserAccountID, currentUserEmail);
+    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '', currentUserAccountID, currentUserEmail, currentUserLocalCurrency);
 }
 
 /**
@@ -11664,15 +11702,17 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
-    const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // Phase 1 cohort (MANAGE_TEAM + micro company size) bypasses the beta gate — the backend
     // handles gating via NVP, so all micro users get followups without needing the beta flag.
     // Includes MICRO_SMALL, MICRO_MEDIUM, and the deprecated MICRO for backwards compatibility.
     const isPhase1Cohort =
         companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
-    // When posting to admins room and the user is in the suggestedFollowups beta (or Phase 1 cohort), we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && (Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration) || isPhase1Cohort);
+    // Followups path: MANAGE_TEAM + (Phase 1 cohort OR suggestedFollowups beta). Reaches every
+    // MANAGE_TEAM cohort user, including `+` aliases and phone-primary sign-ups.
+    const shouldUseFollowupsInsteadOfTasks =
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (isPhase1Cohort || Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration));
+    // Post to #admins room when followups fire OR the existing tasks-in-admins predicate approves.
+    const shouldPostTasksInAdminsRoom = shouldUseFollowupsInsteadOfTasks || isPostingTasksInAdminsRoom(engagementChoice);
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const conciergeChat =
         getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], deprecatedAllReports, false) ??
@@ -12173,7 +12213,6 @@ function prepareOnboardingOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
-                choice: null,
                 createWorkspace: null,
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
@@ -12625,7 +12664,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
     const transactions = getReportTransactions(iouReport?.reportID).filter(
         (transaction) => !shouldExcludeDeletedTransactions || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
 }
 
@@ -12809,6 +12848,8 @@ function generateReportAttributes({
     isReportArchived = false,
     allTransactions,
     reports,
+    currentUserLogin,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -12816,6 +12857,8 @@ function generateReportAttributes({
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     isReportArchived: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     actionTargetReportActionID?: string;
     reports?: OnyxCollection<Report>;
@@ -12828,7 +12871,7 @@ function generateReportAttributes({
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const {reason, actionBadge, reportAction} = getReasonAndReportActionThatRequiresAttention(report, parentReportAction, isReportArchived) ?? {};
+    const {reason, actionBadge, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
@@ -13151,7 +13194,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
         return translate('iou.deleted');
     }
     if (stateNum === undefined || statusNum === undefined) {
-        return '';
+        return translate('common.unreported');
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -13182,7 +13225,7 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
         return theme.reportStatusBadge.deleted;
     }
     if (stateNum === undefined || statusNum === undefined) {
-        return undefined;
+        return theme.reportStatusBadge.unreported;
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -13253,6 +13296,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
     CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
@@ -13287,6 +13331,8 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getTag(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+            return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return Parser.htmlToText(transaction.comment?.comment ?? '');
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
@@ -13566,7 +13612,6 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
@@ -13700,6 +13745,7 @@ export {
     getTransactionSortValue,
     isSortableColumnName,
     getLinkedIOUTransaction,
+    hasHeldExpensesFromTransactions,
 };
 
 export type {

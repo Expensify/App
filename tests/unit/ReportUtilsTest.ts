@@ -8,7 +8,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-// eslint-disable-next-line no-restricted-syntax -- Ignoring type errors for testing purposes
 import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -25,7 +24,6 @@ import Log from '@libs/Log';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
@@ -592,7 +590,8 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                // SMALL keeps this in the tasks path; MICRO routes through Phase 1 followups (no tasks generated).
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -622,7 +621,8 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                // SMALL keeps this in the tasks path; MICRO routes through Phase 1 followups (no tasks generated).
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -807,7 +807,10 @@ describe('ReportUtils', () => {
             }
         });
 
-        it('should add guidedSetupData when email has a +', async () => {
+        it('should generate followups (not tasks) for `+` email users in the MANAGE_TEAM + MICRO Phase 1 cohort', async () => {
+            // Phase 1 cohort opens the followups path to all MANAGE_TEAM 1-10 users — including `+` aliases
+            // and phone-primary sign-ups. The `+` exclusion in `isPostingTasksInAdminsRoom` was scoped to
+            // the trial-banner placement (PR #53895, #71355) and must not block followups for cohort users.
             const adminsChatReportID = '1';
             await waitForBatchedUpdates();
 
@@ -823,8 +826,12 @@ describe('ReportUtils', () => {
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
-            expect(result?.guidedSetupData).toHaveLength(3);
-            expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
+            // Followups path active: no tasks generated, bespoke welcome posted optimistically to #admins.
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+            expect(result?.bespokeWelcomeMessage).toBeDefined();
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
+            const adminsRoomActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
+            expect(adminsRoomActions?.length).toBeGreaterThan(0);
         });
 
         it('should not create tasks if the task feature is not in the selected interested features', () => {
@@ -877,7 +884,7 @@ describe('ReportUtils', () => {
             mergeSpy.mockRestore();
         });
 
-        it('passes MICRO company size to onboarding task parameters', () => {
+        it('passes company size to onboarding task parameters', () => {
             const title = jest.fn();
             const description = jest.fn();
 
@@ -897,18 +904,19 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                // SMALL keeps the tasks path active; MICRO routes through Phase 1 followups (no tasks generated).
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
 
             expect(title).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
-                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 }),
             );
 
             expect(description).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
-                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 }),
             );
         });
@@ -988,7 +996,8 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                // SMALL keeps the tasks path active; MANAGE_TEAM + MICRO routes through Phase 1 followups.
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: true,
             });
 
@@ -1016,7 +1025,8 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                // SMALL keeps the tasks path active; MANAGE_TEAM + MICRO routes through Phase 1 followups.
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: false,
             });
 
@@ -1047,7 +1057,8 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                // SMALL keeps the tasks path active; MANAGE_TEAM + MICRO routes through Phase 1 followups.
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: undefined,
             });
 
@@ -5120,10 +5131,10 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserEmail, currentUserAccountID);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -5165,7 +5176,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -6646,7 +6657,7 @@ describe('ReportUtils', () => {
         it('should return HAS_ADD_WORKSPACE_ROOM_ERRORS when the report has addWorkspaceRoom errors', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 errorFields: {addWorkspaceRoom: {1708946640843000: 'error creating room'}},
             };
 
@@ -7186,10 +7197,9 @@ describe('ReportUtils', () => {
 
             // Verify reportID and originalReportID
             expect(reportAction.reportID).toBe(reportID);
-            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
             const originalMessage = getOriginalMessage(reportAction);
             expect(originalMessage?.originalID).toBe(originalReportID);
-            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             // Verify empty message array (by design for this action type)
             expect(reportAction.message).toEqual([]);
@@ -8951,7 +8961,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
@@ -8975,7 +8985,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             expect(result).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_UNRESOLVED_CARD_FRAUD_ALERT);
         });
@@ -8993,7 +9003,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -9034,7 +9044,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             // Should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION (from getActionTypeForAssigneeToComplete)
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
@@ -9059,7 +9069,7 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(adminReport, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(adminReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -9090,7 +9100,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
@@ -9138,7 +9148,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should skip the completed task and return the incomplete one
@@ -9185,7 +9195,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should return the earliest created incomplete task
@@ -9236,7 +9246,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // All tasks completed, so no matching reportAction
@@ -9285,7 +9295,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should only return the task where childManagerAccountID matches the current user
@@ -10628,10 +10638,10 @@ describe('ReportUtils', () => {
             expect(result).toBe(mockTranslate('iou.settledExpensify'));
         });
 
-        it('should return an empty string when stateNum or statusNum is undefined', () => {
-            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe('');
-            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
-            expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
+        it('should return "Unreported" when stateNum or statusNum is undefined', () => {
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe(mockTranslate('common.unreported'));
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe(mockTranslate('common.unreported'));
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe(mockTranslate('common.unreported'));
         });
 
         it('should return "Deleted" when isDeleted is true', () => {
@@ -12755,7 +12765,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
             expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
@@ -12798,7 +12808,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
             expect(reasonForAttention?.reason).toBe(undefined);
 
             const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
@@ -13560,7 +13570,7 @@ describe('ReportUtils', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
         expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
     });
 
@@ -15008,6 +15018,7 @@ describe('ReportUtils', () => {
                 transaction: undefined,
                 currentUserAccountID,
                 currentUserEmail,
+                currentUserLocalCurrency: '',
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -15048,6 +15059,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should navigate to the restricted action page
@@ -15084,6 +15096,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should navigate to the restricted action page
@@ -15124,6 +15137,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should navigate to the category step
@@ -15166,6 +15180,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -15195,6 +15210,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -15245,6 +15261,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -15291,6 +15308,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should log a warning and not navigate
@@ -15337,6 +15355,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -15375,6 +15394,7 @@ describe('ReportUtils', () => {
                     transaction,
                     currentUserAccountID,
                     currentUserEmail,
+                    currentUserLocalCurrency: '',
                 });
 
                 // Then it should navigate to restricted action page

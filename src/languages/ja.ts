@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: '任意',
         new: '新規',
         newFeature: '新機能',
+        beta: 'ベータ',
         search: '検索',
         reports: 'レポート',
         spend: '支出',
@@ -1401,7 +1402,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'タグ名が255文字を超えています。短くするか、別のタグを選択してください。',
             invalidAmount: '続行する前に有効な金額を入力してください',
             invalidDistance: '続行する前に有効な距離を入力してください',
-            invalidReadings: '開始値と終了値の両方を入力してください',
+            invalidReadings: '続行する前に開始値と終了値の両方を入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
             distanceAmountTooLarge: '合計金額が大きすぎます。距離を減らすか、レートを下げてください。',
             distanceAmountTooLargeReduceDistance: '合計金額が大きすぎます。距離を減らしてください。',
@@ -1591,6 +1592,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
             actions: {
                 addApprover: '承認者を追加',
                 addApproverSubtitle: '既存のワークフローに追加の承認者を追加します。',
@@ -2063,6 +2065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry リクエストをコンソールに記録',
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
+            showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
         },
         security: 'セキュリティ',
         signOut: 'サインアウト',
@@ -2686,6 +2689,12 @@ ${date} の ${merchant} への ${amount}`,
         addFirstPaymentMethod: 'アプリ内で直接支払いの送受信を行うには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
         bankAccountLastFour: (lastFour: string) => `銀行口座・${lastFour}`,
+    },
+    agentsPage: {
+        title: 'エージェント',
+        subtitle: 'カスタムエージェントでタスクを自動化。',
+        newAgent: '新しいエージェント',
+        emptyAgents: {title: 'エージェントは作成されていません', subtitle: '手作業はやめて、代わりにエージェントに指示を出して、時間を大幅に節約しましょう。'},
     },
     expenseRulesPage: {
         title: '経費ルール',
@@ -3449,6 +3458,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         confirmationStepHeader: '情報を確認してください。',
         confirmationStepSubHeader: '下記の詳細を再確認し、利用規約のチェックボックスをオンにして確定してください。',
         toGetStarted: '個人の銀行口座を追加して、経費精算の受け取りや請求書の支払い、Expensifyウォレットの有効化を行いましょう。',
+        updatePersonalInfo: '銀行口座を更新',
+        updatePersonalInfoFailure: '銀行口座情報を更新できませんでした。後でもう一度お試しください。',
+        updateSuccessTitle: '銀行口座が更新されました!',
+        updateSuccessHeader: '銀行口座が更新されました',
+        updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -4764,6 +4778,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
 
                             各カードごとに特定の取引先を設定したい場合は、*設定 > ドメイン > 会社カード* に移動してください。
                         `),
+                        travelDescription: '出張費は、以下で指定された NetSuite アカウントに仕訳としてエクスポートされます。',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5332,6 +5347,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             oneMoreStepDescription: '銀行口座を手動で確認する必要があるようです。指示が表示されていますので、Concierge 画面に進んでください。',
             gotIt: '了解しました',
             goToConcierge: 'Concierge へ移動',
+            exportAsCSV: 'CSVでエクスポート',
+            csvColumnType: 'タイプ',
+            csvColumnLimitType: '限度タイプ',
+            csvColumnLimit: '限度額',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',
@@ -5908,6 +5927,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `このワークスペースから${memberName}を削除すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} は、対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
+            allMembers: 'すべてのメンバー',
+            admins: '管理者',
+            approvers: '承認者',
+            auditors: '監査担当者',
+            emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6750,8 +6774,6 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
-                policyDocument: 'ポリシー文書',
-                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',
@@ -7416,6 +7438,7 @@ ${reportName}
             `カード明細フィード「${feedName}」の利用明細期間の終了日を変更しました${newValue ? ` を「${newValue}」に` : ''}${previousValue ? ` （以前の値：「${previousValue}」）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7678,6 +7701,7 @@ ${reportName}
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
         searchIn: '検索対象',
+        askConcierge: (message: string) => `Concierge に「${message}」と聞く`,
         searchPlaceholder: '何かを検索...',
         suggestions: '提案',
         suggestionsAvailable: (

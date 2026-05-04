@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getReportPrimaryAction,

@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Opcjonalne',
         new: 'Nowy',
         newFeature: 'Nowa funkcja',
+        beta: 'Beta',
         search: 'Szukaj',
         reports: 'Raporty',
         spend: 'Wydatki',
@@ -1416,7 +1417,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'Nazwa taga przekracza 255 znaków. Skróć ją lub wybierz inny tag.',
             invalidAmount: 'Wprowadź poprawną kwotę przed kontynuowaniem',
             invalidDistance: 'Wprowadź prawidłowy dystans przed kontynuowaniem',
-            invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
+            invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy przed kontynuowaniem',
             negativeDistanceNotAllowed: 'Końcowy odczyt musi być większy niż początkowy odczyt',
             distanceAmountTooLarge: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans lub obniż stawkę.',
             distanceAmountTooLargeReduceDistance: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans.',
@@ -1605,6 +1606,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby zmienić to na stałe dla wszystkich raportów).`,
             changedApproverMessage: (managerID: number) => `zmienił(a) akceptującego na <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `ponownie przypisał(a) akceptującego do <mention-user accountID="${managerID}"/> w wyniku aktualizacji przepływu pracy`,
             actions: {
                 addApprover: 'Dodaj zatwierdzającego',
                 addApproverSubtitle: 'Dodaj dodatkową osobę zatwierdzającą do istniejącego przepływu zatwierdzania.',
@@ -2079,6 +2081,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
+            showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
         },
         security: 'Bezpieczeństwo',
         signOut: 'Wyloguj się',
@@ -2704,6 +2707,12 @@ ${amount} dla ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Dodaj metodę płatności, aby wysyłać i odbierać płatności bezpośrednio w aplikacji.',
         defaultPaymentMethod: 'Domyślne',
         bankAccountLastFour: (lastFour: string) => `Konto bankowe • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agenci',
+        subtitle: 'Automatyzuj zadania za pomocą niestandardowych agentów.',
+        newAgent: 'Nowy agent',
+        emptyAgents: {title: 'Nie utworzono agentów', subtitle: 'Przestań robić wszystko ręcznie. Wydaj instrukcje agentowi i zaoszczędź mnóstwo czasu.'},
     },
     expenseRulesPage: {
         title: 'Reguły wydatków',
@@ -3466,6 +3475,11 @@ ${amount} dla ${merchant} - ${date}`,
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
         toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty wydatków, opłacać faktury lub włączyć Portfel Expensify.',
+        updatePersonalInfo: 'Aktualizuj konto bankowe',
+        updatePersonalInfoFailure: 'Nie można zaktualizować informacji o koncie bankowym. Spróbuj ponownie później.',
+        updateSuccessTitle: 'Konto bankowe zaktualizowane!',
+        updateSuccessHeader: 'Konto bankowe zaktualizowane',
+        updateSuccessMessage: 'Gratulacje, Twoje konto bankowe jest skonfigurowane i gotowe do przyjmowania zwrotów.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wpisz hasło do Expensify',
@@ -4790,6 +4804,7 @@ ${amount} dla ${merchant} - ${date}`,
 
                             Jeśli chcesz ustawić konkretnego dostawcę dla każdej karty, przejdź do *Ustawienia > Domeny > Karty firmowe*.
                         `),
+                        travelDescription: 'Wydatki na podróże służbowe zostaną wyeksportowane jako zapisy księgowe na konto NetSuite wskazane poniżej.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5362,6 +5377,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             oneMoreStepDescription: 'Wygląda na to, że musimy ręcznie zweryfikować Twoje konto bankowe. Przejdź do Concierge, gdzie czekają na Ciebie dalsze instrukcje.',
             gotIt: 'Rozumiem',
             goToConcierge: 'Przejdź do Concierge',
+            exportAsCSV: 'Eksportuj jako CSV',
+            csvColumnType: 'Typ',
+            csvColumnLimitType: 'Typ limitu',
+            csvColumnLimit: 'Limit',
         },
         categories: {
             deleteCategories: 'Usuń kategorie',
@@ -5949,6 +5968,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 `Jeśli usuniesz ${memberName} z tej przestrzeni roboczej, zastąpimy tę osobę jako kontakt techniczny użytkownikiem ${workspaceOwner}, właścicielem przestrzeni roboczej.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ma nierozliczony raport w trakcie przetwarzania, który wymaga działania. Poproś tę osobę o wykonanie wymaganej czynności przed jej usunięciem z przestrzeni roboczej.`,
+            allMembers: 'Wszyscy członkowie',
+            admins: 'Administratorzy',
+            approvers: 'Osoby zatwierdzające',
+            auditors: 'Audytorzy',
+            emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -6799,8 +6823,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             customRules: {
                 title: 'Polityka wydatków',
                 cardSubtitle: 'To tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność co do tego, co jest objęte.',
-                policyDocument: 'Dokument polityki',
-                policyText: 'Tekst polityki',
             },
             spendRules: {
                 title: 'Wydatki',
@@ -7472,6 +7494,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił dzień zakończenia okresu rozliczeniowego dla źródła karty „${feedName}”${newValue ? ` na „${newValue}”` : ''}${previousValue ? ` (wcześniej „${previousValue}”)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `dodano pole raportu typu ${fieldType} „${fieldName}”${defaultValue ? ` z domyślną wartością „${defaultValue}”` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg dotyczący zakupów kartą służbową`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -7740,6 +7763,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
+        askConcierge: (message: string) => `Zapytaj Concierge: „${message}”`,
         searchPlaceholder: 'Wyszukaj coś...',
         suggestions: 'Sugestie',
         suggestionsAvailable: (

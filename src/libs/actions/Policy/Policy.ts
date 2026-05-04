@@ -13,7 +13,6 @@ import type {
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
-    DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     DisablePolicyApprovalsParams,
@@ -67,7 +66,6 @@ import type {
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
-    UpdatePolicyRulesDocumentParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceClientIDParams,
     UpdateWorkspaceDescriptionParams,
@@ -81,10 +79,9 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildNextStepNew} from '@libs/NextStepUtils';
@@ -1526,7 +1523,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             addressZip,
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
         };
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
         API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
     }
 }
@@ -1852,103 +1849,6 @@ function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, curre
     const params: DeleteWorkspaceAvatarParams = {policyID};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
-}
-
-function updatePolicyRulesDocument(policyID: string, file: File, currentDocumentURL: string | undefined) {
-    const isPDF = file.type === 'application/pdf' || splitExtensionFromFileName(file.name ?? '').fileExtension.toLowerCase() === 'pdf';
-    if (!isPDF) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-            errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('attachmentPicker.notAllowedExtension')},
-        });
-        return;
-    }
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                rulesDocumentURL: file.uri,
-                errorFields: {
-                    rulesDocumentURL: null,
-                },
-                pendingFields: {
-                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    ];
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    rulesDocumentURL: null,
-                },
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                rulesDocumentURL: currentDocumentURL ?? '',
-                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-            },
-        },
-    ];
-
-    const params: UpdatePolicyRulesDocumentParams = {
-        policyID,
-        file,
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
-}
-
-function deletePolicyRulesDocument(policyID: string, currentDocumentURL: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                rulesDocumentURL: '',
-                errorFields: {
-                    rulesDocumentURL: null,
-                },
-                pendingFields: {
-                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    ];
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    rulesDocumentURL: null,
-                },
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                rulesDocumentURL: currentDocumentURL,
-                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-            },
-        },
-    ];
-
-    const params: DeletePolicyRulesDocumentParams = {policyID};
-
-    API.write(WRITE_COMMANDS.DELETE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -3068,17 +2968,29 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 /**
  * Creates a draft workspace for various money request flows
  */
-function createDraftWorkspace(
-    introSelected: OnyxEntry<IntroSelected>,
-    workspaceName: string,
-    currentUserAccountID: number,
-    currentUserEmail: string,
+type CreateDraftWorkspaceParams = {
+    introSelected: OnyxEntry<IntroSelected>;
+    workspaceName: string;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    policyOwnerEmail?: string;
+    makeMeAdmin?: boolean;
+    policyID?: string;
+    currency?: string;
+    file?: File;
+};
+
+function createDraftWorkspace({
+    introSelected,
+    workspaceName,
+    currentUserAccountID,
+    currentUserEmail,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyID = generatePolicyID(),
     currency = '',
-    file?: File,
-): CreateWorkspaceParams {
+    file,
+}: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
@@ -3235,7 +3147,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const isTravelOptionSelected = parts?.travel;
     const isCodingRulesOptionSelected = parts?.codingRules;
 
-    const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
+    const outputCurrency = isOverviewOptionSelected && policy?.outputCurrency ? policy?.outputCurrency : localCurrency;
 
     const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)) : [];
     const {customUnitID: distanceCustomUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
@@ -3250,7 +3162,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.POLICY
@@ -4040,7 +3952,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
  *
  * @returns policyID of the workspace we have created
  */
-// eslint-disable-next-line rulesdir/no-call-actions-from-actions
+
 function createWorkspaceFromIOUPayment(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction | undefined,
@@ -4062,7 +3974,8 @@ function createWorkspaceFromIOUPayment(
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency ?? currentUserLocalCurrency);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as iouReport?.currency could be an empty string
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency || currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
     const iouReportID = iouReport?.reportID;
 
@@ -7209,8 +7122,6 @@ export {
     updateGeneralSettings,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
-    updatePolicyRulesDocument,
-    deletePolicyRulesDocument,
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,

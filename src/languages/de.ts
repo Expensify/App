@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Optional',
         new: 'Neu',
         newFeature: 'Neue Funktion',
+        beta: 'Beta',
         search: 'Suche',
         reports: 'Berichte',
         spend: 'Ausgaben',
@@ -1422,7 +1423,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'Der Tagname überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie einen anderen Tag.',
             invalidAmount: 'Bitte gib vor dem Fortfahren einen gültigen Betrag ein',
             invalidDistance: 'Bitte gib eine gültige Entfernung ein, bevor du fortfährst',
-            invalidReadings: 'Bitte geben Sie sowohl Start- als auch Endstand ein',
+            invalidReadings: 'Bitte geben Sie sowohl Start- als auch Endstand ein, bevor Sie fortfahren',
             negativeDistanceNotAllowed: 'Endstand muss größer als Anfangsstand sein',
             distanceAmountTooLarge: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung oder reduziere den Satz.',
             distanceAmountTooLargeReduceDistance: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung.',
@@ -1612,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wähle eine Option, um die approvierende Person für diesen Bericht zu ändern. (Aktualisiere deine <a href="${workflowSettingLink}">Workspace-Einstellungen</a>, um dies dauerhaft für alle Berichte zu ändern.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
+            reassignedApproverMessage: (managerID: number) => `hat den Genehmigenden über eine Workflow-Aktualisierung neu zu <mention-user accountID="${managerID}"/> zugewiesen`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
                 addApproverSubtitle: 'Füge dem bestehenden Workflow eine weitere genehmigende Person hinzu.',
@@ -2087,6 +2089,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
+            showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
         },
         security: 'Sicherheit',
         signOut: 'Abmelden',
@@ -2718,6 +2721,12 @@ ${amount} für ${merchant} – ${date}`,
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standard',
         bankAccountLastFour: (lastFour: string) => `Bankkonto • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agenten',
+        subtitle: 'Automatisiere Aufgaben mit benutzerdefinierten Agenten.',
+        newAgent: 'Neue*r Agent*in',
+        emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen einen Agenten an und spare dir jede Menge Zeit.'},
     },
     expenseRulesPage: {
         title: 'Ausgabenregeln',
@@ -3488,6 +3497,11 @@ ${amount} für ${merchant} – ${date}`,
         confirmationStepHeader: 'Überprüfe deine Angaben.',
         confirmationStepSubHeader: 'Prüfen Sie die untenstehenden Angaben sorgfältig und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
         toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
+        updatePersonalInfo: 'Bankkonto aktualisieren',
+        updatePersonalInfoFailure: 'Die Bankkontoinformationen konnten nicht aktualisiert werden. Bitte versuchen Sie es später erneut.',
+        updateSuccessTitle: 'Bankkonto aktualisiert!',
+        updateSuccessHeader: 'Bankkonto aktualisiert',
+        updateSuccessMessage: 'Glückwunsch, dein Bankkonto ist eingerichtet und bereit, Rückerstattungen zu empfangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -4822,6 +4836,7 @@ ${amount} für ${merchant} – ${date}`,
 
                             Wenn du für jede Karte einen bestimmten Lieferanten festlegen möchtest, gehe zu *Einstellungen > Domains > Firmenkarten*.
                         `),
+                        travelDescription: 'Reisekosten werden als Journaleinträge in das unten angegebene NetSuite-Konto exportiert.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5403,6 +5418,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             oneMoreStepDescription: 'Es sieht so aus, als müssten wir Ihr Bankkonto manuell verifizieren. Bitte gehen Sie zu Concierge, wo bereits Anweisungen auf Sie warten.',
             gotIt: 'Verstanden',
             goToConcierge: 'Zu Concierge gehen',
+            exportAsCSV: 'Als CSV exportieren',
+            csvColumnType: 'Typ',
+            csvColumnLimitType: 'Limittyp',
+            csvColumnLimit: 'Limit',
         },
         categories: {
             deleteCategories: 'Kategorien löschen',
@@ -5987,6 +6006,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 `Wenn du ${memberName} aus diesem Workspace entfernst, ersetzen wir sie/ihn als technischen Kontakt durch ${workspaceOwner}, den/die Workspace-Inhaber:in.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} hat einen ausstehenden Bericht in Bearbeitung, zu dem eine Aktion erforderlich ist. Bitte bitten Sie diese Person, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Workspace entfernen.`,
+            allMembers: 'Alle Mitglieder',
+            admins: 'Admins',
+            approvers: 'Genehmigende',
+            auditors: 'Prüfer',
+            emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -6842,8 +6866,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
-                policyDocument: 'Richtliniendokument',
-                policyText: 'Richtlinientext',
             },
             spendRules: {
                 title: 'Ausgaben',
@@ -7518,6 +7540,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `Kartenfeed-Tag für das Abrechnungsperiodenende von „${feedName}“ geändert${newValue ? ` in „${newValue}“` : ''}${previousValue ? ` (zuvor „${previousValue}“)` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}-Berichtsfeld „${fieldName}“${defaultValue ? ` mit Standardwert „${defaultValue}“` : ''} hinzugefügt`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung für Firmenkartenkäufe`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -7786,6 +7809,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',
+        askConcierge: (message: string) => `Frage Concierge „${message}“`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (

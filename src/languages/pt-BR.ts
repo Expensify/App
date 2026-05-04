@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Opcional',
         new: 'Novo',
         newFeature: 'Novo recurso',
+        beta: 'Beta',
         search: 'Buscar',
         reports: 'Relatórios',
         spend: 'Gastos',
@@ -1415,7 +1416,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'O nome da tag excede 255 caracteres. Reduza-o ou escolha uma tag diferente.',
             invalidAmount: 'Insira um valor válido antes de continuar',
             invalidDistance: 'Insira uma distância válida antes de continuar',
-            invalidReadings: 'Insira as leituras de início e fim',
+            invalidReadings: 'Insira as leituras de início e fim antes de continuar',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
             distanceAmountTooLarge: 'O valor total é muito alto. Diminua a distância ou reduza a tarifa.',
             distanceAmountTooLargeReduceDistance: 'O valor total é muito alto. Diminua a distância.',
@@ -1604,6 +1605,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `reatribuiu o aprovador para <mention-user accountID="${managerID}"/> por meio de uma atualização do fluxo de trabalho`,
             actions: {
                 addApprover: 'Adicionar aprovador',
                 addApproverSubtitle: 'Adicione um aprovador adicional ao fluxo de aprovação existente.',
@@ -2076,6 +2078,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Registrar solicitações do Sentry no console',
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
+            showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
         },
         security: 'Segurança',
         signOut: 'Sair',
@@ -2704,6 +2707,12 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Adicione uma forma de pagamento para enviar e receber pagamentos diretamente no app.',
         defaultPaymentMethod: 'Padrão',
         bankAccountLastFour: (lastFour: string) => `Conta bancária • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agentes',
+        subtitle: 'Automatize tarefas com agentes personalizados.',
+        newAgent: 'Novo agente',
+        emptyAgents: {title: 'Nenhum agente criado', subtitle: 'Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo.'},
     },
     expenseRulesPage: {
         title: 'Regras de despesas',
@@ -3467,6 +3476,11 @@ ${amount} para ${merchant} - ${date}`,
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
         toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
+        updatePersonalInfo: 'Atualizar conta bancária',
+        updatePersonalInfoFailure: 'Não foi possível atualizar as informações da conta bancária. Por favor, tente novamente mais tarde.',
+        updateSuccessTitle: 'Conta bancária atualizada!',
+        updateSuccessHeader: 'Conta bancária atualizada',
+        updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -4793,6 +4807,7 @@ ${amount} para ${merchant} - ${date}`,
 
                             Se quiser definir um fornecedor específico para cada cartão, vá em *Configurações > Domínios > Cartões Corporativos*.
                         `),
+                        travelDescription: 'As despesas de viagem serão exportadas como lançamentos contábeis para a conta NetSuite especificada abaixo.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5366,6 +5381,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             oneMoreStepDescription: 'Parece que precisamos verificar sua conta bancária manualmente. Vá até o Concierge, onde as instruções estão esperando por você.',
             gotIt: 'Entendi',
             goToConcierge: 'Ir para o Concierge',
+            exportAsCSV: 'Exportar como CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo de limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Excluir categorias',
@@ -5955,6 +5974,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Se você remover ${memberName} deste workspace, nós vamos substituí-lo como contato técnico por ${workspaceOwner}, o proprietário do workspace.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tem um relatório pendente de processamento que requer ação. Peça para que concluam a ação necessária antes de removê-los do workspace.`,
+            allMembers: 'Todos os membros',
+            admins: 'Administradores',
+            approvers: 'Aprovadores',
+            auditors: 'Auditores',
+            emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -6805,8 +6829,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             customRules: {
                 title: 'Política de despesas',
                 cardSubtitle: 'Aqui é onde fica a política de despesas da sua equipe, para que todo mundo esteja alinhado sobre o que é coberto.',
-                policyDocument: 'Documento de política',
-                policyText: 'Texto da política',
             },
             spendRules: {
                 title: 'Gasto',
@@ -7473,6 +7495,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `changed card feed "${feedName}" statement period end day${newValue ? ` para "${newValue}"` : ''}${previousValue ? `(antes " ${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `adicionou o campo de relatório ${fieldType} "${fieldName}"${defaultValue ? ` com valor padrão "${defaultValue}"` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7726,6 +7749,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
+        askConcierge: (message: string) => `Perguntar ao Concierge “${message}”`,
         searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: (

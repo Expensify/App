@@ -120,7 +120,7 @@ function DatePicker({
             }
         },
         // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [autoFocus],
     );
 

@@ -19,7 +19,6 @@ const SCREENS = {
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
-    WORKSPACE_DOCUMENT: 'WorkspaceDocument',
     REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
@@ -123,6 +122,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
+        UPDATE_PERSONAL_BANK_ACCOUNT: 'Settings_Update_Personal_Bank_Account',
         ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
         CLOSE: 'Settings_Close',
@@ -143,6 +143,7 @@ const SCREENS = {
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
             NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: 'Settings_NewContactMethod_ConfirmMagicCode',
+            CONTACT_METHOD_SET_DEFAULT_CONFIRM: 'Settings_ContactMethod_SetDefault_Confirm',
             CONTACT_METHOD_VERIFY_ACCOUNT: 'Settings_ContactMethod_Verify_Account',
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
@@ -167,6 +168,10 @@ const SCREENS = {
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
+        },
+
+        AGENTS: {
+            ROOT: 'Settings_Agents',
         },
 
         RULES: {
@@ -786,6 +791,8 @@ const SCREENS = {
         CATEGORIES_SETTINGS: 'Categories_Settings',
         DYNAMIC_CATEGORIES_IMPORT: 'Dynamic_Categories_Import',
         DYNAMIC_CATEGORIES_IMPORTED: 'Dynamic_Categories_Imported',
+        DYNAMIC_SPEND_CATEGORY_SELECTOR: 'Dynamic_Spend_Category_Selector',
+        DYNAMIC_DEFAULT_CATEGORY_SELECTOR: 'Dynamic_Default_Category_Selector',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',
