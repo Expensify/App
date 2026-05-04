@@ -330,6 +330,7 @@ function SettlementButton({
                         iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
                         value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         description: account.description,
+                        shouldIgnoreCompactStyle: true,
                         onSelected: () => {
                             if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA)) {
                                 return;
@@ -422,7 +423,7 @@ function SettlementButton({
 
                 return createWorkspace({
                     introSelected,
-                    activePolicyID,
+                    activePolicy,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
                     betas,

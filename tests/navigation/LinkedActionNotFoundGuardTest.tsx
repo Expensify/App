@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
@@ -85,7 +85,7 @@ jest.mock('@hooks/useOnyx', () => ({
         if (key.startsWith('reportActions_')) {
             return [mockLinkedAction, {status: 'loaded'}];
         }
-        if (key.startsWith('reportMetadata_')) {
+        if (key.startsWith('reportLoadingState_')) {
             return [mockIsLoadingInitialReportActions, {status: 'loaded'}];
         }
         if (key.startsWith('report_')) {

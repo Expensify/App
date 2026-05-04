@@ -1,5 +1,5 @@
 import {endOfMonth, format, startOfMonth} from 'date-fns';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -84,7 +84,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
 
         // Both after and before must be set for a complete range
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- We intentionally use logical OR (||) instead of ?? because these values are strings and we want to treat empty strings as "not set" (i.e., falsy).
+
         return !!(values[CONST.SEARCH.DATE_MODIFIERS.AFTER] && values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
     };
 
@@ -127,7 +127,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
      * Callers must validate via hasDateSelected() before calling — this function
      * assumes the selection is complete (ON is set, or both AFTER and BEFORE are set).
      */
-    const getDateRange = useCallback((): {startDate: string; endDate: string} => {
+    const getDateRange = (): {startDate: string; endDate: string} => {
         const values = dateFilterBaseRef.current?.getDateValues();
         const dateOn = values?.[CONST.SEARCH.DATE_MODIFIERS.ON];
         const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
@@ -160,13 +160,13 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             startDate: format(startOfMonth(now), 'yyyy-MM-dd'),
             endDate: format(endOfMonth(now), 'yyyy-MM-dd'),
         };
-    }, []);
+    };
 
     /**
      * Handles PDF export — always requests fresh generation from the backend.
      * The useEffect below auto-downloads the file once generation completes.
      */
-    const processDownload = useCallback(() => {
+    const processDownload = () => {
         if (isGenerating) {
             return;
         }
@@ -185,7 +185,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
         setIsDownloading(true);
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [getDateRange, hasDateSelected, isDateRangeInvalid, isGenerating, policyID, translate]);
+    };
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {
