@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
@@ -55,48 +55,37 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const submitRef = useRef<View | HTMLElement>(null);
 
-    const shouldFetchReport = useMemo(() => {
-        return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
-    }, [reportActions, reportActionID]);
+    const shouldFetchReport = isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
 
-    const isLoading = useMemo(() => {
-        if (isOffline || isReportNotFound(report) || !reportActionReportID) {
-            return false;
-        }
+    let isLoading = false;
+    if (!(isOffline || isReportNotFound(report) || !reportActionReportID)) {
         const isEmptyReport = isEmptyObject(report);
-        return !!isLoadingApp || isEmptyReport || (reportLoadingState?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportActionReportID, isLoadingApp, report, reportLoadingState?.isLoadingInitialReportActions, shouldFetchReport]);
-
-    const fetchReport = useCallback(() => {
-        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas});
-    }, [reportActionReportID, introSelected, reportActionID, betas]);
+        isLoading = !!isLoadingApp || isEmptyReport || (reportLoadingState?.isLoadingInitialReportActions !== false && shouldFetchReport);
+    }
 
     useEffect(() => {
         if (!reportActionReportID || !shouldFetchReport) {
             return;
         }
 
-        fetchReport();
-    }, [reportActionReportID, fetchReport, shouldFetchReport]);
+        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas});
+    }, [reportActionReportID, shouldFetchReport, introSelected, reportActionID, betas]);
 
-    const onCarouselAttachmentChange = useCallback(
-        (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
-                reportID,
-                reportActionID: attachment.reportActionID,
-                attachmentID: attachment.attachmentID,
-                type,
-                source: SafeString(attachment.source),
-                accountID,
-                isAuthTokenRequired: attachment?.isAuthTokenRequired,
-                originalFileName: attachment?.file?.name,
-                attachmentLink: attachment?.attachmentLink,
-                hashKey,
-            });
-            Navigation.navigate(routeToNavigate);
-        },
-        [reportID, reportActionID, type, accountID, hashKey],
-    );
+    const onCarouselAttachmentChange = (attachment: Attachment) => {
+        const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
+            reportID,
+            reportActionID: attachment.reportActionID,
+            attachmentID: attachment.attachmentID,
+            type,
+            source: SafeString(attachment.source),
+            accountID,
+            isAuthTokenRequired: attachment?.isAuthTokenRequired,
+            originalFileName: attachment?.file?.name,
+            attachmentLink: attachment?.attachmentLink,
+            hashKey,
+        });
+        Navigation.navigate(routeToNavigate);
+    };
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -105,46 +94,28 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     // Skip API root normalization for search attachments because this route is only opened from preview,
     // which already passes a resolved source. Keep normalization for other types to support email entry points.
-    const source = useMemo(() => getValidatedImageSource(sourceParam, type !== CONST.ATTACHMENT_TYPE.SEARCH), [sourceParam, type]);
+    const source = getValidatedImageSource(sourceParam, type !== CONST.ATTACHMENT_TYPE.SEARCH);
     const modalType = useReportAttachmentModalType(source);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-            type,
-            report,
-            shouldShowNotFoundPage,
-            isAuthTokenRequired: !!isAuthTokenRequired,
-            attachmentLink: attachmentLink ?? '',
-            originalFileName: originalFileName ?? '',
-            isLoading,
-            source,
-            attachmentID,
-            accountID,
-            headerTitle,
-            submitRef,
-            onDownloadAttachment,
-            onCarouselAttachmentChange,
-        }),
-        [
-            accountID,
-            attachmentID,
-            attachmentLink,
-            headerTitle,
-            isAuthTokenRequired,
-            isLoading,
-            onCarouselAttachmentChange,
-            onDownloadAttachment,
-            originalFileName,
-            report,
-            shouldShowNotFoundPage,
-            source,
-            type,
-        ],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+        type,
+        report,
+        shouldShowNotFoundPage,
+        isAuthTokenRequired: !!isAuthTokenRequired,
+        attachmentLink: attachmentLink ?? '',
+        originalFileName: originalFileName ?? '',
+        isLoading,
+        source,
+        attachmentID,
+        accountID,
+        headerTitle,
+        submitRef,
+        onDownloadAttachment,
+        onCarouselAttachmentChange,
+    };
 
     return (
         <AttachmentModalContainer<typeof SCREENS.REPORT_ATTACHMENTS>
