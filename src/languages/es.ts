@@ -3827,7 +3827,7 @@ ${amount} para ${merchant} - ${date}`,
         selectCountry: 'Seleccione su país',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para que puedas invitar a un director a firmar en un paso posterior.`,
+                `Esta cuenta bancaria debe añadirse a través de un espacio de trabajo. Ve a <a href="${workspaceRoute}">Espacios de trabajo</a>, selecciona tu espacio de trabajo y luego navega a Flujos de trabajo > Pagos > Añadir cuenta bancaria.`,
         },
     },
     bankInfoStep: {
@@ -3874,7 +3874,7 @@ ${amount} para ${merchant} - ${date}`,
         error: {
             emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
             connectToWorkspace: (workspaceRoute: string) =>
-                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para invitar a un director a firmar.`,
+                `Esta cuenta bancaria debe añadirse a través de un espacio de trabajo. Ve a <a href="${workspaceRoute}">Espacios de trabajo</a>, selecciona tu espacio de trabajo y luego navega a Flujos de trabajo > Pagos > Añadir cuenta bancaria.`,
         },
     },
     agreementsStep: {
