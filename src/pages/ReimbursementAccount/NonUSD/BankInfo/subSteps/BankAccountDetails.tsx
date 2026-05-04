@@ -107,7 +107,8 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         country: '',
                     }}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    {...(InputComponent === TextInput ? {autoCorrect: false, spellCheck: false} : {})}
+                    autoCorrect={InputComponent === TextInput ? false : undefined}
+                    spellCheck={InputComponent === TextInput ? false : undefined}
                 />
             </View>
         );

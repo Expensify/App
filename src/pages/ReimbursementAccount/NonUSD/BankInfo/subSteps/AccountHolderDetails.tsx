@@ -140,7 +140,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         }}
                         hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                        {...(InputComponent === TextInput ? {autoCorrect: false, spellCheck: false} : {})}
+                        autoCorrect={InputComponent === TextInput ? false : undefined}
+                        spellCheck={InputComponent === TextInput ? false : undefined}
                     />
                 </View>
             );

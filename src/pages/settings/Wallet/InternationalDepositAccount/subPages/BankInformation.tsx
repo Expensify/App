@@ -109,7 +109,8 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
                                         lng: '',
                                     }}
                                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    {...(InputComponent === TextInput ? {autoCorrect: false, spellCheck: false} : {})}
+                                    autoCorrect={InputComponent === TextInput ? false : undefined}
+                                    spellCheck={InputComponent === TextInput ? false : undefined}
                                 />
                             </View>
                         );
