@@ -25,7 +25,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
     const {
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        searchQueryItem,
+        searchQueryItems,
         selection,
         textInputRef,
         textInputValue,
@@ -80,7 +80,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                 <SearchAutocompleteList
                     autocompleteQueryValue={autocompleteQueryValue}
                     handleSearch={handleSearchAction}
-                    searchQueryItem={searchQueryItem}
+                    searchQueryItems={searchQueryItems}
                     onListItemPress={onListItemPress}
                     textInputRef={textInputRef}
                     autocompleteSubstitutions={autocompleteSubstitutions}

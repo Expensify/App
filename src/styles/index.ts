@@ -111,11 +111,7 @@ type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFe
 type StyleFunction = (...args: any[]) => StyleObject;
 
 type StaticStyles = Record<string, StyleObject>;
-type DynamicStyles = Record<
-    string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    StyleFunction
->;
+type DynamicStyles = Record<string, StyleFunction>;
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -261,6 +257,13 @@ const webViewStyles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
         },
     }) satisfies WebViewStyle;
+
+const compactPopoverMenuItemBaseStyle = {
+    ...spacing.ph5,
+    ...spacing.pv1,
+    minHeight: variables.componentSizeLarge,
+    alignItems: 'center' as const,
+};
 
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
@@ -1807,6 +1810,13 @@ const staticStyles = (theme: ThemeColors) =>
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
+        },
+
+        compactPopoverMenuItemBase: compactPopoverMenuItemBaseStyle,
+
+        compactPopoverMenuItem: {
+            ...compactPopoverMenuItemBaseStyle,
+            height: variables.componentSizeLarge,
         },
 
         createMenuHeaderText: {
@@ -3636,6 +3646,16 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
         },
 
+        bottomDockedModalDismissButton: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: variables.iconSizeXSmall,
+            backgroundColor: theme.transparent,
+            zIndex: 1,
+        },
+
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
@@ -4010,6 +4030,12 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
         },
 
+        compactQuickReactionsContainer: {
+            ...spacing.ph4,
+            paddingTop: variables.spacing2,
+            gap: variables.spacing2,
+        },
+
         reactionListContainer: {
             maxHeight: variables.listItemHeightNormal * 5.75,
             ...spacing.pv2,
@@ -4201,8 +4227,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
-            minWidth: 320,
-            maxWidth: 375,
+            minWidth: variables.compactPopoverMenuWidth,
+            maxWidth: variables.compactPopoverMenuWidth,
         },
 
         formSpaceVertical: {
@@ -4807,7 +4833,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         transactionGroupListItemStyle: {
-            borderRadius: 8,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
             flex: 1,
@@ -4816,7 +4841,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
-            paddingVertical: 6,
         },
 
         searchQueryListItemStyle: {
@@ -4829,7 +4853,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         listTableHeader: {
             paddingVertical: 12,
-            paddingHorizontal: 32,
+            paddingHorizontal: 36,
         },
 
         listTableHeaderCompact: {
@@ -5365,6 +5389,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        agentsPageEmptyStateIllustration: {
+            width: 96,
+            height: 142,
+        },
+
         expensifyCardEmptyIllustration: {
             width: 280,
             height: 172,
@@ -5462,6 +5491,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        agentsPageEmptyStateSubtitle: {
+            maxWidth: 335,
+            alignSelf: 'center',
+        },
+
         emptyStateFolderWithPaperIconSize: {
             width: 160,
             height: 100,
@@ -5530,6 +5564,41 @@ const staticStyles = (theme: ThemeColors) =>
         workflowApprovalLimitText: {
             marginLeft: 32,
             paddingBottom: 0,
+        },
+
+        userPillsContainer: {
+            gap: 4,
+            marginTop: 4,
+            marginBottom: 4,
+            paddingRight: 12,
+        },
+
+        userPill: {
+            gap: 4,
+            paddingLeft: 5,
+            paddingRight: 7,
+            paddingVertical: 3,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 260,
+        },
+
+        userPillStandalone: {
+            marginTop: 4,
+            marginBottom: 4,
+        },
+
+        userPillText: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            flexShrink: 1,
+        },
+
+        userPillMoreText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         integrationIcon: {
@@ -5957,10 +6026,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
         chartContent: {
-            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            height: CHART_CONTENT_MIN_HEIGHT,
         },
         chartActivityIndicator: {
-            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            height: CHART_CONTENT_MIN_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
         },

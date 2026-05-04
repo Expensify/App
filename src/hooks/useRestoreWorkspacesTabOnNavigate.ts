@@ -35,27 +35,31 @@ function useRestoreWorkspacesTabOnNavigate() {
             return {};
         }
 
-        // Look inside TabNavigator for WORKSPACE_NAVIGATOR
-        const rootTabRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-        const rootTabState = getTabState(rootTabRoute);
-        const workspaceNavigatorRoute = rootTabState?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+        // Multiple TAB_NAVIGATOR instances can coexist in the root stack — when navigation from
+        // inside an RHP targets a tab, linkTo PUSHes a fresh TabNavigator above the modal, and that
+        // new instance's WORKSPACE_NAVIGATOR slot starts empty. Older instances kept alive by
+        // ensureTabNavigatorRoutes still hold the previous workspace state, so flatten every
+        // workspace route from every TabNavigator in stack order and take the most recent one.
+        const lastWorkspaceRoute = (rootState?.routes ?? [])
+            .filter((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)
+            .flatMap((tabNavigatorRoute) => {
+                const workspaceNavigatorRoute = getTabState(tabNavigatorRoute)?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+                const workspaceNavigatorState = workspaceNavigatorRoute?.state ?? (workspaceNavigatorRoute?.key ? getPreservedNavigatorState(workspaceNavigatorRoute.key) : undefined);
+                return workspaceNavigatorState?.routes?.filter((route) => isWorkspaceNavigatorRouteName(route.name)) ?? [];
+            })
+            .at(-1);
 
-        if (workspaceNavigatorRoute) {
-            const workspaceNavigatorState = workspaceNavigatorRoute.state ?? (workspaceNavigatorRoute.key ? getPreservedNavigatorState(workspaceNavigatorRoute.key) : undefined);
-            const lastWorkspaceRoute = workspaceNavigatorState?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
-            if (lastWorkspaceRoute) {
-                const tabState = lastWorkspaceRoute.state ?? (lastWorkspaceRoute.key ? getPreservedNavigatorState(lastWorkspaceRoute.key) : undefined);
-                return {lastWorkspacesTabNavigatorRoute: lastWorkspaceRoute, workspacesTabState: tabState, topmostFullScreenRoute};
-            }
-            return {topmostFullScreenRoute};
+        if (lastWorkspaceRoute) {
+            const tabState = lastWorkspaceRoute.state ?? (lastWorkspaceRoute.key ? getPreservedNavigatorState(lastWorkspaceRoute.key) : undefined);
+            return {lastWorkspacesTabNavigatorRoute: lastWorkspaceRoute, workspacesTabState: tabState, topmostFullScreenRoute};
         }
 
-        // Fall back to session storage when no route exists in the navigation tree
+        // Fall back to session storage when no workspace route exists anywhere in the navigation tree.
         const sessionRoute = getWorkspacesTabStateFromSessionStorage()
             ?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
             ?.state?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
         if (sessionRoute) {
-            return {lastWorkspacesTabNavigatorRoute: sessionRoute, workspacesTabState: sessionRoute.state};
+            return {lastWorkspacesTabNavigatorRoute: sessionRoute, workspacesTabState: sessionRoute.state, topmostFullScreenRoute};
         }
 
         return {topmostFullScreenRoute};
@@ -101,8 +105,9 @@ function useRestoreWorkspacesTabOnNavigate() {
             domain: lastViewedDomain,
             lastWorkspacesTabNavigatorRoute,
             topmostFullScreenRoute,
+            workspacesTabState,
         });
-    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute]);
+    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute, workspacesTabState]);
 }
 
 export default useRestoreWorkspacesTabOnNavigate;

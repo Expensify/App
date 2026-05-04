@@ -42,7 +42,6 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [loading, setLoading] = useState(false);
 
     const {translate, formatPhoneNumber} = useLocalize();
@@ -64,7 +63,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
                 return;
             }
-            setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
+            setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
             setLoading(true);
             linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
                 .then(() => {
