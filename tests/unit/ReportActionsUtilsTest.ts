@@ -37,6 +37,7 @@ import {
     getRemovedCardFeedMessage,
     getRenamedCardFeedMessage,
     getReportActionActorAccountID,
+    getRequireCompanyCardsEnabledMessage,
     getSendMoneyFlowAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
@@ -4290,6 +4291,38 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
             expect(result).toBe('disabled auto-pay approved reports');
+        });
+    });
+
+    describe('getRequireCompanyCardsEnabledMessage', () => {
+        it('should return enabled message when the company card requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
+            expect(result).toBe('enabled the company card purchases requirement');
+        });
+
+        it('should return disabled message when the company card requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
+            expect(result).toBe('disabled the company card purchases requirement');
         });
     });
 

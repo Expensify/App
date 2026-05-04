@@ -53,7 +53,6 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     };
 });
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 jest.mock('@hooks/useIsPolicyConnectedToUberReceiptPartner', () => ({__esModule: true, default: jest.fn(() => false)}));
 
 jest.mock('@libs/CardUtils', () => {
