@@ -51,7 +51,7 @@ on:
 jobs:
   build:
     name: Build iOS HybridApp
-    runs-on: macos-15-xlarge
+    runs-on: blacksmith-12vcpu-macos-latest
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}

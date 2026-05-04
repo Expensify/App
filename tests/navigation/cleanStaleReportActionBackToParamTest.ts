@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import type {NavigationState} from '@react-navigation/native';
 import cleanStaleReportActionBackToParam from '@src/pages/inbox/cleanStaleReportActionBackToParam';
 

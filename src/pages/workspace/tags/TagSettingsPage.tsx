@@ -115,9 +115,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
     const navigateToEditTagApprover = () => {
         Navigation.navigate(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name)
-                : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
+            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 

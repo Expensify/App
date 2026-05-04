@@ -76,18 +76,15 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setConfirmModalVisibility(false);
     };
 
-    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = useCallback(
-        (e) => {
-            if (allowNavigatingAwayRef.current) {
-                return;
-            }
-            e.preventDefault();
-            showConfirmModal();
-        },
-        [showConfirmModal],
-    );
+    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = (e) => {
+        if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
+            return;
+        }
+        e.preventDefault();
+        showConfirmModal();
+    };
 
-    useBeforeRemove(onBeforeRemove, !!transaction && !denyOutcomeScreen);
+    useBeforeRemove(onBeforeRemove);
 
     const onApproveTransaction = () => {
         addBreadcrumb('Approve tapped', {transactionID});
@@ -102,11 +99,12 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setIsDenyingTransaction(true);
         denyTransaction({transactionID}).then(({reason, httpStatusCode, message}) => {
             addBreadcrumb('Deny completed', {transactionID, reason, httpStatusCode, message});
-            if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_DENIED) {
+            if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.FLOW_OUTCOMES.TRANSACTION_DENIED) {
                 setDenyOutcomeScreen(<DeniedTransactionSuccessScreen />);
                 return;
             }
-            setDenyOutcomeScreen(authorizeTransactionConfig.failureScreens[reason] ?? <DeniedTransactionServerFailureScreen />);
+            const failureScreen = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
+            setDenyOutcomeScreen(failureScreen ?? <DeniedTransactionServerFailureScreen />);
         });
     };
 

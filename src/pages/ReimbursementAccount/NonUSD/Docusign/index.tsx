@@ -37,7 +37,6 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPage
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
             return;
         }

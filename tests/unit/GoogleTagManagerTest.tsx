@@ -41,7 +41,6 @@ jest.mock('@libs/Navigation/navigationRef', () => {
         index: 0,
     };
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: {
             getRootState: jest.fn(() => mockState),
@@ -60,10 +59,8 @@ jest.mock('@libs/Navigation/navigationRef', () => {
 
 // Mock react-navigation/native to prevent navigation errors
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actualNav,
         useNavigationState: () => true,
         useRoute: jest.fn(),
@@ -165,6 +162,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
         createWorkspace({
+            policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
             activePolicyID: undefined,
@@ -175,6 +173,7 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicyID: undefined,
             currentUserEmailParam: 'test@test.com',
@@ -185,6 +184,7 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicyID: undefined,
             currentUserEmailParam: 'test@test.com',

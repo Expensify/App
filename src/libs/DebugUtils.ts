@@ -9,6 +9,7 @@ import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Tr
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
+import {getCurrentUserEmail, getUserAccountID} from './actions/IOU';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -1462,7 +1463,7 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>, isRep
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, getCurrentUserEmail(), getUserAccountID(), undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
@@ -1487,10 +1488,21 @@ function getReasonAndReportActionForRBRInLHNRow(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     hasViolations: boolean,
     reportErrors: Errors,
+    isOffline: boolean,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+            report,
+            chatReport,
+            reportActions,
+            hasViolations,
+            reportErrors,
+            transactions,
+            isOffline,
+            transactionViolations,
+            isArchivedReport,
+        ) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

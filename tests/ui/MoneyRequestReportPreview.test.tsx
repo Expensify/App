@@ -59,7 +59,6 @@ jest.mock('@rnmapbox/maps', () => {
 const mockUseReportWithTransactionsAndViolations = jest.fn(() => defaultReportWithTransactionsAndViolations);
 
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
     __esModule: true,
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
@@ -159,7 +158,7 @@ const setReportPreviewData = (
 };
 
 const setHasOnceLoadedReportActions = async (hasOnceLoadedReportActions: boolean) => {
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockChatReport.chatReportID}`, {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockChatReport.chatReportID}`, {
         hasOnceLoadedReportActions,
     });
 };
