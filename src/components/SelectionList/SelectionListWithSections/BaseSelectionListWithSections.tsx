@@ -141,7 +141,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
-        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
+        onArrowUpDownCallback: () => {
+            setShouldDisableHoverStyle(true);
+            listRef.current?.queueProgrammaticScroll();
+        },
     });
 
     const getFocusedItem = (): TItem | undefined => {

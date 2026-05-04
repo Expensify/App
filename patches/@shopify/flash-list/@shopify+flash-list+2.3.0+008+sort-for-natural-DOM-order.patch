@@ -1,5 +1,40 @@
+diff --git a/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts b/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts
+index 08b83f3..27ed1ae 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts
++++ b/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts
+@@ -167,6 +167,30 @@ export interface FlashListRef<T> {
+      * });
+      */
+     scrollToIndex: (params: ScrollToIndexParams) => Promise<void>;
++    /**
++     * Announces an imminent programmatic scroll before `scrollToIndex` is
++     * actually called, so DOM-mutating side-effects gated on
++     * `isScrollingProgrammatically()` (notably the on-web sort applied by
++     * `ViewHolderCollection`) defer until the upcoming smooth scroll
++     * settles, rather than running synchronously and cancelling it.
++     *
++     * Useful for keyboard-navigation hooks that focus the new item first
++     * and call `scrollToIndex` afterwards: call `queueProgrammaticScroll()`
++     * before the focus assignment so the resulting `focusin` doesn't
++     * trigger an immediate sort that would later be cancelled by the
++     * smooth scroll.
++     *
++     * Cleared automatically when the next `scrollToIndex` is invoked
++     * (handed off to the in-flight flag) and again when the resulting
++     * scroll's momentum ends. Safe to call multiple times.
++     *
++     * @example
++     * // Inside an arrow-key navigation hook:
++     * listRef.current?.queueProgrammaticScroll();
++     * itemDomNode.focus();
++     * listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
++     */
++    queueProgrammaticScroll: () => void;
+     /**
+      * Scrolls to a specific item in the list.
+      *
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index e41278c..e9e4fef 100644
+index 9f3b776..c153718 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 @@ -58,7 +58,7 @@ const RecyclerViewComponent = (props, ref) => {
@@ -7,14 +42,16 @@ index e41278c..e9e4fef 100644
      // Initialize core RecyclerView manager and content offset management
      const { recyclerViewManager, velocityTracker } = useRecyclerViewManager(props);
 -    const { applyOffsetCorrection, computeFirstVisibleIndexForOffsetCorrection, applyInitialScrollIndex, handlerMethods, } = useRecyclerViewController(recyclerViewManager, ref, scrollViewRef, scrollAnchorRef);
-+    const { applyOffsetCorrection, computeFirstVisibleIndexForOffsetCorrection, applyInitialScrollIndex, handlerMethods, isScrollingProgrammatically, runAfterProgrammaticScroll, notifyProgrammaticScrollSettled, } = useRecyclerViewController(recyclerViewManager, ref, scrollViewRef, scrollAnchorRef);
++    const { applyOffsetCorrection, computeFirstVisibleIndexForOffsetCorrection, applyInitialScrollIndex, handlerMethods, isScrollingProgrammatically, isScrolling, runAfterProgrammaticScroll, notifyProgrammaticScrollSettled, notifyScrollActive, notifyScrollSettled, } = useRecyclerViewController(recyclerViewManager, ref, scrollViewRef, scrollAnchorRef);
      // Initialize view holder collection ref
      const viewHolderCollectionRef = useRef(null);
      // Hook to handle list loading
-@@ -238,6 +238,12 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -238,12 +238,23 @@ const RecyclerViewComponent = (props, ref) => {
                  return;
              }
              if (isMomentumEnd) {
++                // See `is-scrolling-flag.md`.
++                notifyScrollSettled();
 +                // Drain any pending callback registered via
 +                // `runAfterProgrammaticScroll` BEFORE the early return below
 +                // so the drain still fires while offset projection is still
@@ -24,25 +61,36 @@ index e41278c..e9e4fef 100644
                  computeFirstVisibleIndexForOffsetCorrection();
                  if (!recyclerViewManager.isOffsetProjectionEnabled) {
                      return;
-@@ -266,6 +272,7 @@ const RecyclerViewComponent = (props, ref) => {
+                 }
+                 recyclerViewManager.resetVelocityCompute();
+             }
++            else {
++                notifyScrollActive();
++            }
+             // Update scroll position and trigger re-render if needed
+             if (recyclerViewManager.updateScrollOffset(scrollOffset, velocity)) {
+                 setRenderId((prev) => prev + 1);
+@@ -266,6 +277,9 @@ const RecyclerViewComponent = (props, ref) => {
          computeFirstVisibleIndexForOffsetCorrection,
          horizontal,
          isHorizontalRTL,
 +        notifyProgrammaticScrollSettled,
++        notifyScrollActive,
++        notifyScrollSettled,
          recyclerViewManager,
          velocityTracker,
      ]);
-@@ -458,7 +465,7 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -458,7 +472,7 @@ const RecyclerViewComponent = (props, ref) => {
                          recyclerViewManager.animationOptimizationsEnabled = false;
                      }, CellRendererComponent: CellRendererComponent, ItemSeparatorComponent: ItemSeparatorComponent, isInLastRow: (index) => recyclerViewManager.isInLastRow(index), getChildContainerLayout: () => recyclerViewManager.hasLayout()
                          ? recyclerViewManager.getChildContainerDimensions()
 -                        : undefined, currentStickyIndex: currentStickyIndex, hideStickyHeaderRelatedCell: stickyHeaderHideRelatedCell, inverted: inverted }),
-+                        : undefined, currentStickyIndex: currentStickyIndex, hideStickyHeaderRelatedCell: stickyHeaderHideRelatedCell, inverted: inverted, isScrollingProgrammatically: isScrollingProgrammatically, runAfterProgrammaticScroll: runAfterProgrammaticScroll }),
++                        : undefined, currentStickyIndex: currentStickyIndex, hideStickyHeaderRelatedCell: stickyHeaderHideRelatedCell, inverted: inverted, isScrollingProgrammatically: isScrollingProgrammatically, isScrolling: isScrolling, runAfterProgrammaticScroll: runAfterProgrammaticScroll }),
                  renderEmpty,
                  renderFooter),
              stickyHeaderIndices && stickyHeaderIndices.length > 0
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-index 8e3db51..fc984d2 100644
+index 8e3db51..10d648a 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 @@ -3,17 +3,20 @@
@@ -50,13 +98,13 @@ index 8e3db51..fc984d2 100644
   * and coordinates with the RecyclerView context for layout changes.
   */
 -import React, { useEffect, useImperativeHandle, useLayoutEffect } from "react";
-+import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, } from "react";
++import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useReducer, useRef, } from "react";
 +import { Platform } from "react-native";
  import { ViewHolder } from "./ViewHolder";
  import { CompatView } from "./components/CompatView";
  import { useRecyclerViewContext } from "./RecyclerViewContextProvider";
 +const SORT_DELAY_MS = 1000;
-+const TAB_SCROLL_THRESHOLD_MS = 400;
++const RECENT_FOCUS_WINDOW_MS = 400;
  /**
   * ViewHolderCollection component that manages the rendering of multiple ViewHolder instances
   * and handles layout updates for the entire collection
@@ -64,11 +112,11 @@ index 8e3db51..fc984d2 100644
   */
  export const ViewHolderCollection = (props) => {
 -    const { data, renderStack, getLayout, refHolder, onSizeChanged, renderItem, extraData, viewHolderCollectionRef, getChildContainerLayout, onCommitLayoutEffect, CellRendererComponent, ItemSeparatorComponent, onCommitEffect, horizontal, getAdjustmentMargin, currentStickyIndex, hideStickyHeaderRelatedCell, isInLastRow, inverted, } = props;
-+    const { data, renderStack, getLayout, refHolder, onSizeChanged, renderItem, extraData, viewHolderCollectionRef, getChildContainerLayout, onCommitLayoutEffect, CellRendererComponent, ItemSeparatorComponent, onCommitEffect, horizontal, getAdjustmentMargin, currentStickyIndex, hideStickyHeaderRelatedCell, isInLastRow, inverted, isScrollingProgrammatically, runAfterProgrammaticScroll, } = props;
++    const { data, renderStack, getLayout, refHolder, onSizeChanged, renderItem, extraData, viewHolderCollectionRef, getChildContainerLayout, onCommitLayoutEffect, CellRendererComponent, ItemSeparatorComponent, onCommitEffect, horizontal, getAdjustmentMargin, currentStickyIndex, hideStickyHeaderRelatedCell, isInLastRow, inverted, isScrollingProgrammatically, isScrolling, runAfterProgrammaticScroll, } = props;
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +75,81 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +75,115 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -76,7 +124,10 @@ index 8e3db51..fc984d2 100644
 +    const containerRef = useRef(null);
 +    const lastFocusTimeRef = useRef(0);
 +    const renderEntriesRef = useRef(Array.from(renderStack.entries()));
-+    const [, setSortId] = useState(0);
++    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
++    // At most one deferred-sort timer is alive at a time. Any code path that
++    // is about to sort (or schedule a new sort) must first clear this.
++    const pendingSortTimeoutRef = useRef(null);
 +    const doSort = useCallback(() => {
 +        const entries = renderEntriesRef.current;
 +        const direction = inverted ? -1 : 1;
@@ -85,24 +136,58 @@ index 8e3db51..fc984d2 100644
 +            return;
 +        }
 +        entries.sort(([, a], [, b]) => direction * (a.index - b.index));
-+        setSortId((prev) => prev + 1);
++        bumpSortVersion();
 +        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [inverted]);
-+    // Defers `doSort` while a programmatic scroll animation is in flight.
-+    // Without this, committing the sort triggers `insertBefore` calls which
-+    // cause React's selection-preservation logic to write `scrollTop` on the
-+    // scroll container, cancelling the in-flight smooth scroll animation
-+    // (the "starts and freezes" bug on web). The deferred call runs once the
-+    // scroll settles.
++    const clearPendingSort = useCallback(() => {
++        if (pendingSortTimeoutRef.current !== null) {
++            clearTimeout(pendingSortTimeoutRef.current);
++            pendingSortTimeoutRef.current = null;
++        }
++    }, []);
++    const schedulePendingSort = useCallback(() => {
++        clearPendingSort();
++        pendingSortTimeoutRef.current = setTimeout(() => {
++            if (isScrolling()) {
++                schedulePendingSort();
++                return;
++            }
++            pendingSortTimeoutRef.current = null;
++            doSort();
++        }, SORT_DELAY_MS);
++        // `schedulePendingSort` self-references for the reschedule path; closure
++        // resolution at call-time is correct here.
++    }, [clearPendingSort, doSort, isScrolling]);
++    // Schedules or commits a sort, deferring while a programmatic scroll is
++    // in flight (otherwise the sort's `insertBefore` calls would let React's
++    // selection-preservation logic write `scrollTop`, cancelling the smooth
++    // scroll animation — the "starts and freezes" bug on web). When the
++    // scroll settles we wait an additional `SORT_DELAY_MS` so any pointer/
++    // focus events queued during the animation can land before the commit.
 +    const maybeDoSort = useCallback(() => {
++        // Evict any pending sort timer first. Either we're about to commit
++        // synchronously (the timer would be redundant), or we're about to
++        // defer — in which case a stale timer from a *previous* scroll's
++        // drain must die so it can't fire mid-scroll during rapid-fire arrow
++        // nav (where `isMomentumEnd` doesn't fire between presses).
++        clearPendingSort();
 +        if (isScrollingProgrammatically()) {
-+            runAfterProgrammaticScroll(() => {
-+                doSort();
-+            });
++            runAfterProgrammaticScroll(() => schedulePendingSort());
++            return;
++        }
++        if (isScrolling()) {
++            schedulePendingSort();
 +            return;
 +        }
 +        doSort();
-+    }, [isScrollingProgrammatically, runAfterProgrammaticScroll, doSort]);
++    }, [
++        isScrollingProgrammatically,
++        isScrolling,
++        runAfterProgrammaticScroll,
++        schedulePendingSort,
++        clearPendingSort,
++        doSort,
++    ]);
 +    if (Platform.OS === "web") {
 +        // Reconcile: remove stale keys, append new keys
 +        const existingKeys = new Set(renderEntriesRef.current.map(([key]) => key));
@@ -117,11 +202,8 @@ index 8e3db51..fc984d2 100644
 +        renderEntriesRef.current = Array.from(renderStack.entries());
 +    }
 +    useEffect(() => {
-+        if (Platform.OS !== "web") {
-+            return;
-+        }
 +        const container = containerRef.current;
-+        if (!container) {
++        if (Platform.OS !== "web" || !container) {
 +            return;
 +        }
 +        const onFocusIn = () => {
@@ -136,13 +218,13 @@ index 8e3db51..fc984d2 100644
 +        if (Platform.OS !== "web") {
 +            return;
 +        }
-+        const isRecentFocus = Date.now() - lastFocusTimeRef.current < TAB_SCROLL_THRESHOLD_MS;
++        const isRecentFocus = Date.now() - lastFocusTimeRef.current < RECENT_FOCUS_WINDOW_MS;
 +        if (isRecentFocus) {
 +            maybeDoSort();
 +            return;
 +        }
-+        const timeoutId = setTimeout(doSort, SORT_DELAY_MS);
-+        return () => clearTimeout(timeoutId);
++        schedulePendingSort();
++        return clearPendingSort;
 +        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [renderStack, renderId]);
 +    return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
@@ -153,10 +235,10 @@ index 8e3db51..fc984d2 100644
              // Suppress separators for items in the last row to prevent
              // height mismatch. The last data item has no separator (no
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 51b6f8c..309f338 100644
+index 51b6f8c..84e9be6 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-@@ -25,6 +25,17 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -25,6 +25,27 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
      const isUnmounted = useUnmountFlag();
      const [_, setRenderId] = useState(0);
      const pauseOffsetCorrection = useRef(false);
@@ -167,20 +249,41 @@ index 51b6f8c..309f338 100644
 +    // Backs `isScrollingProgrammatically()` so consumers can defer DOM work
 +    // that would otherwise cancel the in-flight smooth scroll on web (e.g.
 +    // sort-driven `insertBefore` reorderings).
-+    const isProgrammaticScrollActive = useRef(false);
++    const isProgrammaticScrollActiveRef = useRef(false);
++    // Set by the public `queueProgrammaticScroll()` API to announce that a
++    // `scrollToIndex` call is imminent. Lets `isScrollingProgrammatically()`
++    // start reporting true before the actual scroll starts — useful for
++    // keyboard-navigation hooks that focus the new item first and call
++    // `scrollToIndex` afterwards. Cleared at `scrollToIndex` entry (handoff
++    // to `isProgrammaticScrollActiveRef`) and again in
++    // `notifyProgrammaticScrollSettled` (defensive).
++    const isProgrammaticScrollQueuedRef = useRef(false);
++    // Source-agnostic "viewport in motion" flag.
++    const isScrollingRef = useRef(false);
 +    // Holds at most one callback registered via `runAfterProgrammaticScroll`,
 +    // drained from `notifyProgrammaticScrollSettled`.
 +    const pendingAfterScrollRef = useRef(null);
      const pendingAndroidInvertedRafId = useRef(null);
      const skipNextAndroidInvertedCorrection = useRef(false);
      const lastDataLengthRef = useRef(recyclerViewManager.getDataLength());
-@@ -180,6 +191,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -180,6 +201,39 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
          updateScrollOffsetWithCallback,
          computeFirstVisibleIndexForOffsetCorrection,
      ]);
-+    const isScrollingProgrammatically = useCallback(() => isProgrammaticScrollActive.current, []);
++    const isScrollingProgrammatically = useCallback(() => isProgrammaticScrollActiveRef.current ||
++        isProgrammaticScrollQueuedRef.current, []);
++    const isScrolling = useCallback(() => isScrollingRef.current, []);
 +    const runAfterProgrammaticScroll = useCallback((cb) => {
 +        pendingAfterScrollRef.current = cb;
++    }, []);
++    // Public API: announces an imminent programmatic scroll before
++    // `scrollToIndex` is called. Lets consumers signal "scroll is about to
++    // happen" so DOM-mutating side-effects gated on
++    // `isScrollingProgrammatically()` defer until the upcoming smooth scroll
++    // settles, even if the consumer focuses the target first and scrolls
++    // afterwards.
++    const queueProgrammaticScroll = useCallback(() => {
++        isProgrammaticScrollQueuedRef.current = true;
 +    }, []);
 +    // Invoked from `RecyclerView.onScrollHandler` inside the existing
 +    // `isMomentumEnd` branch — the moment FlashList's `VelocityTracker`
@@ -188,15 +291,34 @@ index 51b6f8c..309f338 100644
 +    // after the last scroll event). Drains the pending callback registered
 +    // via `runAfterProgrammaticScroll`, if any.
 +    const notifyProgrammaticScrollSettled = useCallback(() => {
-+        isProgrammaticScrollActive.current = false;
++        isProgrammaticScrollActiveRef.current = false;
++        isProgrammaticScrollQueuedRef.current = false;
 +        const cb = pendingAfterScrollRef.current;
 +        pendingAfterScrollRef.current = null;
 +        cb === null || cb === void 0 ? void 0 : cb();
 +    }, []);
++    const notifyScrollActive = useCallback(() => {
++        isScrollingRef.current = true;
++    }, []);
++    const notifyScrollSettled = useCallback(() => {
++        isScrollingRef.current = false;
++    }, []);
      const handlerMethods = useMemo(() => {
          return {
              get props() {
-@@ -289,6 +315,12 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -271,6 +325,11 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                     animated,
+                 });
+             },
++            /**
++             * Announces an imminent programmatic scroll. See
++             * `FlashListRef#queueProgrammaticScroll` for full semantics.
++             */
++            queueProgrammaticScroll,
+             /**
+              * Scrolls to a specific index in the list.
+              * Supports viewPosition and viewOffset for precise positioning.
+@@ -289,6 +348,17 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                          // Pause the scroll offset adjustments
                          pauseOffsetCorrection.current = true;
                          recyclerViewManager.setOffsetProjectionEnabled(false);
@@ -205,18 +327,70 @@ index 51b6f8c..309f338 100644
 +                        // not by the 200/300 ms timer below — that timer is a fixed
 +                        // heuristic for re-enabling offset correction and unrelated to
 +                        // the actual smooth-scroll completion time.
-+                        isProgrammaticScrollActive.current = true;
++                        //
++                        // Also hand the "queued" flag off to the "active" flag here so
++                        // a stale `queueProgrammaticScroll()` from before this call
++                        // can't keep gating sorts indefinitely.
++                        isProgrammaticScrollQueuedRef.current = false;
++                        isProgrammaticScrollActiveRef.current = true;
                          const getFinalOffset = () => {
                              const layout = recyclerViewManager.getLayout(index);
                              const offset = horizontal ? layout.x : layout.y;
-@@ -547,6 +579,9 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -493,6 +563,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+         setTimeout,
+         isUnmounted,
+         updateScrollOffsetWithCallback,
++        queueProgrammaticScroll,
+     ]);
+     const applyInitialScrollIndex = useCallback(() => {
+         var _a, _b, _c;
+@@ -547,6 +618,12 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
          computeFirstVisibleIndexForOffsetCorrection,
          applyInitialScrollIndex,
          handlerMethods,
 +        isScrollingProgrammatically,
++        isScrolling,
 +        runAfterProgrammaticScroll,
 +        notifyProgrammaticScrollSettled,
++        notifyScrollActive,
++        notifyScrollSettled,
      };
  }
  //# sourceMappingURL=useRecyclerViewController.js.map
 \ No newline at end of file
+diff --git a/node_modules/@shopify/flash-list/src/FlashListRef.ts b/node_modules/@shopify/flash-list/src/FlashListRef.ts
+index 07bac2a..beb2f72 100644
+--- a/node_modules/@shopify/flash-list/src/FlashListRef.ts
++++ b/node_modules/@shopify/flash-list/src/FlashListRef.ts
+@@ -181,6 +181,31 @@ export interface FlashListRef<T> {
+    */
+   scrollToIndex: (params: ScrollToIndexParams) => Promise<void>;
+ 
++  /**
++   * Announces an imminent programmatic scroll before `scrollToIndex` is
++   * actually called, so DOM-mutating side-effects gated on
++   * `isScrollingProgrammatically()` (notably the on-web sort applied by
++   * `ViewHolderCollection`) defer until the upcoming smooth scroll
++   * settles, rather than running synchronously and cancelling it.
++   *
++   * Useful when the focus assignment happens first and `scrollToIndex`
++   * follows a few ticks later — as long as the call is guaranteed to
++   * happen, queue it up front so the intervening `focusin` doesn't
++   * trigger an immediate sort that the smooth scroll would then cancel.
++   *
++   * Cleared automatically when the next `scrollToIndex` is invoked
++   * (handed off to the in-flight flag) and again when the resulting
++   * scroll's momentum ends. Safe to call multiple times.
++   *
++   * @example
++   * listRef.current?.queueProgrammaticScroll();
++   * itemDomNode.focus();
++   * setTimeout(() => {
++   *   listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
++   * }, 0);
++   */
++  queueProgrammaticScroll: () => void;
++
+   /**
+    * Scrolls to a specific item in the list.
+    *
