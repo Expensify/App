@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
@@ -116,15 +117,17 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     />
                 )}
                 {shouldShowColumnsButton && (
-                    <MenuItem
-                        icon={expensifyIcons.Columns}
-                        title={translate('search.editColumns')}
-                        onPress={() => {
-                            closeOverlay();
-                            openSearchColumns();
-                        }}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
-                    />
+                    <CompactMenuContext.Provider value>
+                        <MenuItem
+                            icon={expensifyIcons.Columns}
+                            title={translate('search.editColumns')}
+                            onPress={() => {
+                                closeOverlay();
+                                openSearchColumns();
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
+                        />
+                    </CompactMenuContext.Provider>
                 )}
             </ScrollView>
         );

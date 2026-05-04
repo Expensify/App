@@ -42,7 +42,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
     | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS
-    | typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS
+    | typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS
     | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
@@ -91,7 +91,7 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-        /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+
         const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
 
         useEffect(() => {

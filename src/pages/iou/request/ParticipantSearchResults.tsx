@@ -2,6 +2,7 @@ import lodashPick from 'lodash/pick';
 import React, {useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ContactPermissionModal from '@components/ContactPermissionModal';
@@ -412,7 +413,13 @@ function ParticipantSearchResults({
         );
 
     const onSelectRow = (option: Participant) => {
-        if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        const optionPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        if (
+            option.isPolicyExpenseChat &&
+            option.policyID &&
+            optionPolicy &&
+            shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
             return;
         }
@@ -480,7 +487,6 @@ function ParticipantSearchResults({
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={onSelectRow}
                 shouldSingleExecuteRowSelect
-                canShowProductTrainingTooltip={canShowManagerMcTest}
                 customListHeaderContent={importContactsButtonComponent}
                 customHeaderContent={
                     <ImportContactButton

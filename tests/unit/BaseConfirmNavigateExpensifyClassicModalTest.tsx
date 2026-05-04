@@ -30,7 +30,7 @@ jest.mock('@components/ConfirmModal', () => {
 Onyx.init({keys: ONYXKEYS});
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const CONFIG = require('@src/CONFIG');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const originalValue = CONFIG.default.IS_HYBRID_APP;
