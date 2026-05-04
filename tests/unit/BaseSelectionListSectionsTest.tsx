@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
 const mockScrollToIndex = jest.fn();
+const mockQueueProgrammaticScroll = jest.fn();
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -19,7 +20,7 @@ jest.mock('@shopify/flash-list', () => {
     const RN = jest.requireActual<typeof ReactNative>('react-native');
 
     const FlashList = ReactLocal.forwardRef<
-        {scrollToIndex: (params: {index: number}) => void},
+        {scrollToIndex: (params: {index: number}) => void; queueProgrammaticScroll: () => void},
         Omit<React.ComponentProps<typeof RN.ScrollView>, 'children'> & {
             data?: unknown[];
             renderItem?: (info: {item: unknown; index: number; target: string}) => React.ReactNode;
@@ -51,7 +52,10 @@ jest.mock('@shopify/flash-list', () => {
             },
             ref,
         ) => {
-            ReactLocal.useImperativeHandle(ref, () => ({scrollToIndex: mockScrollToIndex}));
+            ReactLocal.useImperativeHandle(ref, () => ({
+                scrollToIndex: mockScrollToIndex,
+                queueProgrammaticScroll: mockQueueProgrammaticScroll,
+            }));
 
             return ReactLocal.createElement(
                 RN.ScrollView,
