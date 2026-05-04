@@ -9,6 +9,12 @@ import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUt
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
+import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
+import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
+import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {setTransactionReport} from '@userActions/Transaction';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
@@ -20,12 +26,6 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import useScanCapture from '../hooks/useScanCapture';
-import type {ReceiptFile} from '../types';
-import buildReceiptFiles from '../utils/buildReceiptFiles';
-import getFileSource from '../utils/getFileSource';
-import startScanProcessSpan from '../utils/startScanProcessSpan';
-import useScanFileReadabilityCheck from '../utils/useScanFileReadabilityCheck';
 import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 
@@ -42,7 +42,7 @@ type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
  * ScanGlobalCreate — initiated from the FAB (+) button (no specific report).
  * Uses default expense policy to auto-select workspace, or navigates to participant picker.
  */
-function ScanGlobalCreate({report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanGlobalCreateProps) {
+function ScanGlobalCreate({report: _report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanGlobalCreateProps) {
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const selfDMReport = useSelfDMReport();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -54,31 +54,6 @@ function ScanGlobalCreate({report, iouType, reportID, transactionID, transaction
     const transactions = transaction ? [transaction] : [];
 
     useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), () => {});
-
-    const processReceipts = (files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
-
-        if (!isMultiScanEnabled) {
-            removeDraftTransactionsByIDs(Object.keys(draftTransactionIDs ?? {}), true);
-        }
-
-        const receiptFiles = buildReceiptFiles({
-            files,
-            getFileSource,
-            initialTransaction: transaction,
-            initialTransactionID: transactionID,
-            currentUserPersonalDetails,
-            reportID,
-            shouldAcceptMultipleFiles: true,
-            isMultiScanEnabled,
-            transactions,
-        });
-
-        startScanProcessSpan(isMultiScanEnabled);
-        navigateGlobalCreate(receiptFiles);
-    };
 
     const navigateGlobalCreate = (receiptFiles: ReceiptFile[]) => {
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
@@ -112,6 +87,31 @@ function ScanGlobalCreate({report, iouType, reportID, transactionID, transaction
         } else {
             navigateToParticipantPage(iouType, transactionID, reportID);
         }
+    };
+
+    const processReceipts = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+
+        if (!isMultiScanEnabled) {
+            removeDraftTransactionsByIDs(Object.keys(draftTransactionIDs ?? {}), true);
+        }
+
+        const receiptFiles = buildReceiptFiles({
+            files,
+            getFileSource,
+            initialTransaction: transaction,
+            initialTransactionID: transactionID,
+            currentUserPersonalDetails,
+            reportID,
+            shouldAcceptMultipleFiles: true,
+            isMultiScanEnabled,
+            transactions,
+        });
+
+        startScanProcessSpan(isMultiScanEnabled);
+        navigateGlobalCreate(receiptFiles);
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture((files: FileObject[]) => {

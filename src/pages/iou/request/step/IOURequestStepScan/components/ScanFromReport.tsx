@@ -4,6 +4,12 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
+import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
+import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
+import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
+import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUType} from '@src/CONST';
@@ -12,12 +18,6 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import useScanCapture from '../hooks/useScanCapture';
-import type {ReceiptFile} from '../types';
-import buildReceiptFiles from '../utils/buildReceiptFiles';
-import getFileSource from '../utils/getFileSource';
-import startScanProcessSpan from '../utils/startScanProcessSpan';
-import useScanFileReadabilityCheck from '../utils/useScanFileReadabilityCheck';
 import Camera from './Camera';
 import {useMultiScanState} from './MultiScanContext';
 
