@@ -1038,6 +1038,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path,
                         [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.route,
                         },

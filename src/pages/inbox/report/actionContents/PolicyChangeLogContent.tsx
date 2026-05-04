@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     getAddedApprovalRuleMessage,
@@ -82,6 +83,7 @@ import {
 import {getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type PolicyChangeLogMessageResult = string | {html: string};
@@ -216,11 +218,12 @@ function isHandledPolicyChangeLogAction(action: OnyxTypes.ReportAction): boolean
 
 type PolicyChangeLogContentProps = {
     action: OnyxTypes.ReportAction;
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyID: string | undefined;
 };
 
-function PolicyChangeLogContent({action, policy}: PolicyChangeLogContentProps) {
+function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps) {
     const {translate} = useLocalize();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const resolver = POLICY_CHANGE_LOG_RESOLVERS[action.actionName];
     if (!resolver) {

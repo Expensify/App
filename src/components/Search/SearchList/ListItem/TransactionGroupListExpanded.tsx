@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -92,6 +93,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const StyleUtils = useStyleUtils();
 
     const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
     const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
@@ -224,7 +226,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             isActionColumnWide={isActionColumnWide}
                         />
                     </View>
-                    <View style={[styles.borderBottom, styles.ml3, styles.mr3]} />
+                    <View style={[StyleUtils.getSelectedBorderBottomStyle(visibleTransactions.at(0)?.isSelected), styles.ml3, styles.mr3]} />
                 </>
             )}
             {visibleTransactions.map((transaction, index) => {

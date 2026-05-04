@@ -784,6 +784,7 @@ const SCREENS = {
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORY_DEFAULT_TAX_RATE: 'Category_Default_Tax_Rate',
         CATEGORY_FLAG_AMOUNTS_OVER: 'Category_Flag_Amounts_Over',
+        DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR: 'Dynamic_Expense_Limit_Type_Selector',
         CATEGORY_DESCRIPTION_HINT: 'Category_Description_Hint',
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',

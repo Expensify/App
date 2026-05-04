@@ -1836,7 +1836,7 @@ function updateDomainSecurityGroup(
     groupID: string,
     currentSecurityGroup: DomainSecurityGroup,
     newSettingValue: Partial<DomainSecurityGroup>,
-    settingsName: keyof Pick<DomainSecurityGroup, 'name'>,
+    settingsName: keyof Pick<DomainSecurityGroup, 'name' | 'enableStrictPolicyRules'>,
 ) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     const newSecurityGroup = {...currentSecurityGroup, ...newSettingValue};
@@ -1879,9 +1879,9 @@ function updateDomainSecurityGroup(
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    [settingsName]: currentSecurityGroup[settingsName],
+                    [settingsName]: currentSecurityGroup[settingsName] ?? null,
                 },
-            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

@@ -278,7 +278,7 @@
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
-"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	4
+"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-syntax"	4
