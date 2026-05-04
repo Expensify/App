@@ -23,15 +23,14 @@ function useAskConcierge() {
 
     return (searchQuery: string) => {
         openConciergeAnywhere();
-        const trimmedQuery = searchQuery.trim();
-        if (!trimmedQuery || !targetReport || !targetReportID) {
+        if (!targetReport || !targetReportID) {
             return;
         }
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
             ancestors: [],
-            text: trimmedQuery,
+            text: searchQuery,
             timezoneParam: timezone ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             shouldPlaySound: true,
