@@ -26,13 +26,12 @@ type UseBulkDuplicateActionParams = {
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -70,7 +69,6 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             personalDetails,
             isASAPSubmitBetaEnabled,
             introSelected,
-            activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
@@ -78,6 +76,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             draftTransactionIDs,
             betas,
             recentWaypoints,
+            currentUserAccountID: accountID,
+            currentUserLogin: currentUserLogin ?? '',
         });
 
         if (onAfterDuplicate) {

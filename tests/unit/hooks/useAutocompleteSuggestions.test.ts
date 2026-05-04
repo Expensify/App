@@ -7,7 +7,6 @@ import type {Policy} from '@src/types/onyx';
 const onyxData: Record<string, unknown> = {};
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (key: string) => [onyxData[key]],
 }));
@@ -81,7 +80,6 @@ jest.mock('@libs/SearchUIUtils', () => ({
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- mock must match the default export shape
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
@@ -90,7 +88,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     }),
 }));
 
-// eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 
 const defaultParams = {
@@ -99,7 +96,6 @@ const defaultParams = {
     allFeeds: {},
     options: {reports: [], personalDetails: []},
     draftComments: {},
-    nvpDismissedProductTraining: undefined,
     betas: [] as never[],
     countryCode: 1,
     loginList: {},

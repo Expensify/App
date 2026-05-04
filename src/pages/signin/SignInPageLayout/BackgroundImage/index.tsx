@@ -1,4 +1,5 @@
 import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';

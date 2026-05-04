@@ -150,7 +150,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
         () =>
-            buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [
+            buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, localeCompare, [
                 targetTransactionReport,
                 sourceTransactionReport,
             ]),
@@ -164,6 +164,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             targetTransactionPolicy,
             sourceTransactionPolicy,
             translate,
+            localeCompare,
         ],
     );
 
