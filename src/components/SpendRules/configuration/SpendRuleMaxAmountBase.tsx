@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +32,11 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
         Navigation.goBack();
     };
 
+    const onSubmit = ({maxAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM>) => {
+        onMaxAmountChange(maxAmount.trim());
+        goBack();
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -48,27 +53,24 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM}
-                    onSubmit={({maxAmount}) => {
-                        onMaxAmountChange(maxAmount.trim());
-                        goBack();
-                    }}
-                    submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={onSubmit}
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
+                            displayAsTextInput
+                            ref={inputCallbackRef}
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_AMOUNT}
                             currency={currencyCode}
                             defaultValue={maxAmount}
                             isCurrencyPressable={false}
-                            ref={inputCallbackRef}
-                            displayAsTextInput
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.spendRules.maxAmountHelp')}</Text>
                     </View>
