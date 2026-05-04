@@ -318,7 +318,7 @@ const DYNAMIC_ROUTES = {
     },
     SPEND_CATEGORY_SELECTOR: {
         path: 'spend-category-selector/:groupID',
-        entryScreens: [SCREENS.WORKSPACE.CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS],
         getRoute: (groupID: string) => `spend-category-selector/${groupID}` as const,
     },
     DEFAULT_CATEGORY_SELECTOR: {
