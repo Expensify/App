@@ -3,8 +3,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -15,11 +13,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -39,8 +38,9 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
-import getFileSize from './getFileSize';
+import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
+import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -55,6 +55,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
@@ -66,13 +67,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+    const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, policy, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID, policy],
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetails, privateIsArchived, policy, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, policy],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -99,22 +99,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
     }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
-    useEffect(() => {
-        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
-            return;
-        }
-        getFileSize(currentAttachment?.content).then((size) => {
-            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-            }
-
-            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-            }
-        });
-    }, [currentAttachment?.content, errorTitle, translate, shouldShowAttachment]);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -143,9 +128,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 text: message,
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
+                delegateAccountID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             return;
         }
 
@@ -157,7 +143,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,
-                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        participants:
+                            displayReport.participantsList
+                                ?.filter((u) => u.accountID !== personalDetail.accountID)
+                                .map((u) => ({
+                                    login: u.login ?? '',
+                                    accountID: u.accountID,
+                                })) ?? [],
+                        personalDetails,
                         newReportObject: report,
                         betas,
                     });
@@ -171,11 +164,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         currentUserAccountID: personalDetail.accountID,
                         text: message,
                         timezone: personalDetail.timezone,
+                        delegateAccountID,
                     });
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, {forceReplace: true});
+                Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
             () => {},
             fileType,
@@ -189,7 +183,24 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             shouldEnableMinHeight={canUseTouchScreen()}
             testID="ShareDetailsPage"
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    KeyboardUtils.dismiss();
+                }}
+                accessible={false}
+                sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
+            >
+                <HeaderWithBackButton
+                    title={translate('share.shareToExpensify')}
+                    shouldShowBackButton
+                />
+            </PressableWithoutFeedback>
+
+            <ScrollView
+                style={[styles.flex1, styles.appBG]}
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
                 <PressableWithoutFeedback
                     onPress={() => {
                         KeyboardUtils.dismiss();
@@ -197,11 +208,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     accessible={false}
                     sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                 >
-                    <HeaderWithBackButton
-                        title={translate('share.shareToExpensify')}
-                        shouldShowBackButton
-                    />
-
                     {!!report && (
                         <View>
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
@@ -261,16 +267,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         )}
                     </PressableWithoutFeedback>
                 </View>
-                <FixedFooter style={[styles.pt4]}>
-                    <Button
-                        success
-                        large
-                        text={translate('common.share')}
-                        style={styles.w100}
-                        onPress={handleShare}
-                    />
-                </FixedFooter>
-            </View>
+            </ScrollView>
+            <ShareButton onPress={handleShare} />
         </ScreenWrapper>
     );
 }

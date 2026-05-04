@@ -281,4 +281,172 @@ describe('CalendarPicker', () => {
         // then the label 24 should be clickable
         expect(screen.getByLabelText('Monday, February 24, 2003')).toBeEnabled();
     });
+
+    test('clicking next year arrow updates the displayed year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-06-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('next-year-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2026')).toBeTruthy();
+    });
+
+    test('clicking previous year arrow updates the displayed year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-06-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('prev-year-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2024')).toBeTruthy();
+    });
+
+    test('should block the previous year arrow when there are no available dates in the previous year', async () => {
+        const minDate = new Date('2023-01-01');
+        const value = new Date('2023-06-15');
+        render(
+            <CalendarPicker
+                minDate={minDate}
+                value={value}
+            />,
+        );
+
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('prev-year-arrow'));
+
+        // Year should still be 2023 since the button is disabled
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+    });
+
+    test('should block the next year arrow when there are no available dates in the next year', async () => {
+        const maxDate = new Date('2023-12-31');
+        const value = new Date('2023-06-15');
+        render(
+            <CalendarPicker
+                maxDate={maxDate}
+                value={value}
+            />,
+        );
+
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('next-year-arrow'));
+
+        // Year should still be 2023 since the button is disabled
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+    });
+
+    test('prev year arrow should clamp to minDate when navigating would go below it', () => {
+        const minDate = new Date('2023-11-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2024-03-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('prev-year-arrow'));
+
+        // Should clamp to minDate (November 2023), not land on March 2023
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(10) ?? '')).toBeTruthy();
+    });
+
+    test('next year arrow should clamp to maxDate when navigating would go above it', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2025-04-20');
+        const value = '2024-09-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('next-year-arrow'));
+
+        // Should clamp to maxDate (April 2025), not land on September 2025
+        expect(within(screen.getByTestId('currentYearText')).getByText('2025')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(3) ?? '')).toBeTruthy();
+    });
+
+    test('clicking next month arrow in December should update year to next year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-12-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('next-month-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2026')).toBeTruthy();
+        expect(screen.getByText(monthNames.at(0) ?? '')).toBeTruthy();
+    });
+
+    test('clicking previous month arrow in January should update year to previous year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-01-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('prev-month-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2024')).toBeTruthy();
+        expect(screen.getByText(monthNames.at(11) ?? '')).toBeTruthy();
+    });
+
+    test('month picker filtering should exclude months before minDate', () => {
+        const filteredMonths = DateUtils.getFilteredMonthItems(monthNames, 2023, 6, new Date('2023-06-01'), new Date('2030-12-31'));
+
+        // Months before June (index 5) should be excluded
+        expect(filteredMonths.find((m) => m.value === 0)).toBeUndefined();
+        expect(filteredMonths.find((m) => m.value === 4)).toBeUndefined();
+
+        // June and later months should be included
+        expect(filteredMonths.find((m) => m.value === 5)).toBeTruthy();
+        expect(filteredMonths.find((m) => m.value === 11)).toBeTruthy();
+        expect(filteredMonths).toHaveLength(7);
+    });
+
+    test('month picker filtering should exclude months after maxDate', () => {
+        const filteredMonths = DateUtils.getFilteredMonthItems(monthNames, 2023, 0, new Date('2020-01-01'), new Date('2023-09-30'));
+
+        // Months after September (index 8) should be excluded
+        expect(filteredMonths.find((m) => m.value === 10)).toBeUndefined();
+        expect(filteredMonths.find((m) => m.value === 11)).toBeUndefined();
+
+        // September and earlier months should be included
+        expect(filteredMonths.find((m) => m.value === 8)).toBeTruthy();
+        expect(filteredMonths.find((m) => m.value === 0)).toBeTruthy();
+        expect(filteredMonths).toHaveLength(9);
+    });
 });

@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     useProductTrainingContext: (): {
         renderProductTrainingTooltip: () => null;
         shouldShowProductTrainingTooltip: boolean;
@@ -23,9 +22,6 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
-
-// Mock useIsHomeRouteActive to avoid navigation state issues
-jest.mock('@navigation/helpers/useIsHomeRouteActive', () => (): boolean => false);
 
 let mockUseAnimatedStyleUpdater: () => Record<string, unknown>;
 // Silence react-native-reanimated warnings in Jest

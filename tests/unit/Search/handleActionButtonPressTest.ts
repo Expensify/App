@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -325,8 +324,9 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
-            ownerBillingGraceEndPeriod: undefined,
-            userBillingGraceEndPeriods: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -341,8 +341,9 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
-            ownerBillingGraceEndPeriod: undefined,
-            userBillingGraceEndPeriods: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -363,9 +364,9 @@ describe('handleBulkPayItemSelected', () => {
         isDelegateAccessRestricted: false,
         showDelegateNoAccessModal: jest.fn(),
         confirmPayment: jest.fn(),
-        userBillingGraceEndPeriods: undefined,
+        userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
-        ownerBillingGraceEndPeriod: undefined,
+        ownerBillingGracePeriodEnd: undefined,
     };
 
     beforeEach(async () => {
@@ -395,7 +396,7 @@ describe('handleBulkPayItemSelected', () => {
             ...baseParams,
             policy,
             amountOwed: 100,
-            ownerBillingGraceEndPeriod: pastDate,
+            ownerBillingGracePeriodEnd: pastDate,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));

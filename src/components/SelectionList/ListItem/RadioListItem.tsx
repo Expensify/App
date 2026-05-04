@@ -70,6 +70,7 @@ function RadioListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
+            errors={item.errors}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             accessibilityRole={accessibilityRole}

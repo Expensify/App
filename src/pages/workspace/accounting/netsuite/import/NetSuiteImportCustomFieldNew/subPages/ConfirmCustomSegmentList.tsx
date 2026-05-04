@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -23,7 +23,14 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     if (!values.mapping) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'ConfirmCustomSegmentStep'}} />;
+        return (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'ConfirmCustomSegmentStep'}}
+                />
+            </View>
+        );
     }
 
     return (

@@ -1,15 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import useOnyx from './useOnyx';
-
-const personalDetailMapper = (personalDetail: OnyxInputOrEntry<PersonalDetails>): OnyxInputOrEntry<PersonalDetails> =>
-    personalDetail && {
-        accountID: personalDetail.accountID,
-        login: personalDetail.login,
-        avatar: personalDetail.avatar,
-        pronouns: personalDetail.pronouns,
-    };
 
 /**
  * Subscribes to all personal details and transforms each one via the provided mapper.
@@ -27,5 +19,4 @@ function useMappedPersonalDetails<T>(mapper: (personalDetail: OnyxEntry<Personal
     return [transformed, metadata] as const;
 }
 
-export {personalDetailMapper};
 export default useMappedPersonalDetails;

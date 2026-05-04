@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -29,9 +28,8 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE};
     }
 
-    const isImage = Str.isImage(file.name);
     const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
+    if (file.size > maxFileSize) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE};
     }
 
@@ -80,7 +78,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
 }
 
 function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
-    if (item && item.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
+    if (item?.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
         return true;
     }
 

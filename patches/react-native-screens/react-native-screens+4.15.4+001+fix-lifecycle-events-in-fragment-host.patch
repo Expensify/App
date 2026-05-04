@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt
+index 65c6e30..3b9f2e2 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt
+@@ -293,7 +293,7 @@ open class ScreenFragment :
+         // check for `isTransitioning` should be enough since the child's animation should take only
+         // 20ms due to always being `StackAnimation.NONE` when nested stack being pushed
+         val parent = parentFragment
+-        if (parent == null || (parent is ScreenFragment && !parent.isTransitioning)) {
++        if (parent == null || parent !is ScreenFragment || (parent is ScreenFragment && !parent.isTransitioning)) {
+             // onViewAnimationStart/End is triggered from View#onAnimationStart/End method of the fragment's root
+             // view. We override an appropriate method of the StackFragment's
+             // root view in order to achieve this.

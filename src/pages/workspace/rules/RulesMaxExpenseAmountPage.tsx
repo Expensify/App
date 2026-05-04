@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,9 +34,12 @@ function RulesMaxExpenseAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const defaultValue =
-        policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount ? '' : convertToFrontendAmountAsString(policy?.maxExpenseAmount, policy?.outputCurrency);
+        policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount
+            ? ''
+            : convertToFrontendAmountAsString(policy?.maxExpenseAmount, getCurrencyDecimals(policy?.outputCurrency));
 
     return (
         <AccessOrNotFoundWrapper
@@ -56,7 +60,7 @@ function RulesMaxExpenseAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        setPolicyMaxExpenseAmount(policyID, maxExpenseAmount);
+                        setPolicyMaxExpenseAmount(policyID, maxExpenseAmount, policy?.maxExpenseAmount);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

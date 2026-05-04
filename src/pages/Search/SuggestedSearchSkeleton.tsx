@@ -45,7 +45,11 @@ const LHN = {
     },
 };
 
-function SuggestedSearchSkeleton() {
+type SuggestedSearchSkeletonProps = {
+    sectionCount: number;
+};
+
+function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -100,7 +104,7 @@ function SuggestedSearchSkeleton() {
     const navigationColumn = shouldRenderNavigationColumn ? (
         <View>
             <View>
-                {[0, 1, 2].map((i) => (
+                {Array.from({length: sectionCount}, (_, i) => (
                     <View
                         key={i}
                         style={[styles.mb4]}
