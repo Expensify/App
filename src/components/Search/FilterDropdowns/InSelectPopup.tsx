@@ -86,7 +86,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const alternateText = getAlternateText(report, {}, {isReportArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, reportParam: undefined});
+        const alternateText = getAlternateText(report, {}, {isReportArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, reportParam: reportData});
         return {...report, alternateText};
     });
 
@@ -95,7 +95,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
         : getSearchOptions({
               options,
               draftComments,
-              reports: undefined,
+              reports,
               betas: undefined,
               isUsedInChatFinder: false,
               countryCode,
@@ -124,7 +124,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
-            undefined,
+            reports,
             personalDetails,
             false,
             undefined,
