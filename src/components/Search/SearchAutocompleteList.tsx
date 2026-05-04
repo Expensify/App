@@ -55,8 +55,8 @@ type SearchAutocompleteListProps = {
     /** Callback to trigger search action * */
     handleSearch: (value: string) => void;
 
-    /** An optional item to always display on the top of the router list  */
-    searchQueryItem?: SearchQueryItem;
+    /** Optional items to always display at the top of the router list */
+    searchQueryItems?: SearchQueryItem[];
 
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
@@ -131,7 +131,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
 function SearchAutocompleteList({
     autocompleteQueryValue,
     handleSearch,
-    searchQueryItem,
+    searchQueryItems,
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
@@ -148,7 +148,6 @@ function SearchAutocompleteList({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -196,7 +195,6 @@ function SearchAutocompleteList({
         return getSearchOptions({
             options: listOptions,
             draftComments,
-            nvpDismissedProductTraining,
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
@@ -220,7 +218,6 @@ function SearchAutocompleteList({
     }, [
         listOptions,
         draftComments,
-        nvpDismissedProductTraining,
         betas,
         autocompleteQueryValue,
         countryCode,
@@ -297,7 +294,6 @@ function SearchAutocompleteList({
         allFeeds,
         options: listOptions ?? emptyOptionList,
         draftComments,
-        nvpDismissedProductTraining,
         betas,
         countryCode,
         loginList,
@@ -406,8 +402,8 @@ function SearchAutocompleteList({
             nextSuggestionsCount += section.data.filter((item) => item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length;
         };
 
-        if (searchQueryItem) {
-            pushSection({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
+        if (searchQueryItems && searchQueryItems.length > 0) {
+            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
@@ -497,7 +493,7 @@ function SearchAutocompleteList({
         recentReportsOptions,
         recentSearchesData,
         searchOptions,
-        searchQueryItem,
+        searchQueryItems,
         styles,
         translate,
         isLoadingOptions,

@@ -63,7 +63,6 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
-    onLayout,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -127,6 +126,18 @@ function IOURequestStepScan({
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
+    useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        const entryParentSpan = getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        if (entryParentSpan) {
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                parentSpan: entryParentSpan,
+            });
+        }
+    }, []);
+
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
@@ -149,6 +160,9 @@ function IOURequestStepScan({
             return;
         }
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
     }, [cameraPermissionStatus]);
 
     // Cancel spans on unmount if camera never initialized
@@ -164,6 +178,10 @@ function IOURequestStepScan({
             }
             // Always cancel the create expense span if camera never initialized
             cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+            // Cancel entry-to-scan spans if they haven't ended naturally
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
         };
     }, []);
 
@@ -178,6 +196,8 @@ function IOURequestStepScan({
             endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
 
         // Preload the confirmation screen module so its JS is parsed and ready
         // when we navigate after capture — eliminates cold-start module load cost.
@@ -237,7 +257,6 @@ function IOURequestStepScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
         reportID,
@@ -388,15 +407,7 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo || isEditing}
             testID="IOURequestStepScan"
         >
-            <View
-                style={styles.flex1}
-                onLayout={() => {
-                    if (!onLayout) {
-                        return;
-                    }
-                    onLayout(setTestReceiptAndNavigate);
-                }}
-            >
+            <View style={styles.flex1}>
                 {PDFValidationComponent}
                 <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
                     <View style={[styles.flex1]}>
@@ -618,9 +629,9 @@ function IOURequestStepScan({
 }
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
-// eslint-disable-next-line rulesdir/no-negated-variables -- withWritableReportOrNotFound HOC requires this pattern
+
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
+
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;

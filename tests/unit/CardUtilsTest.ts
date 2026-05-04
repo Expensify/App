@@ -31,6 +31,7 @@ import {
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
@@ -83,6 +84,7 @@ import type {
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {Connections} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -4079,5 +4081,88 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
         const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+});
+
+describe('getConnectionBankAccountsForReconciliation', () => {
+    it('returns empty array when connections is undefined', () => {
+        expect(getConnectionBankAccountsForReconciliation(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([]);
+    });
+
+    it('returns QBO bank accounts mapped to id and name', () => {
+        const connections = {
+            quickbooksOnline: {
+                data: {
+                    bankAccounts: [
+                        {id: 'qbo-1', name: 'QBO Checking'},
+                        {id: 'qbo-2', name: 'QBO Savings'},
+                    ],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([
+            {id: 'qbo-1', name: 'QBO Checking'},
+            {id: 'qbo-2', name: 'QBO Savings'},
+        ]);
+    });
+
+    it('returns Xero bank accounts mapped to id and name', () => {
+        const connections = {
+            xero: {
+                data: {
+                    bankAccounts: [{id: 'xero-1', name: 'Xero Account'}],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.XERO)).toEqual([{id: 'xero-1', name: 'Xero Account'}]);
+    });
+
+    it('returns only _bank type accounts for NetSuite', () => {
+        const connections = {
+            netsuite: {
+                options: {
+                    data: {
+                        payableList: [
+                            {id: 'ns-1', name: 'NS Bank', type: '_bank'},
+                            {id: 'ns-2', name: 'NS Credit Card', type: '_creditCard'},
+                            {id: 'ns-3', name: 'NS Bank 2', type: '_bank'},
+                        ],
+                    },
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toEqual([
+            {id: 'ns-1', name: 'NS Bank'},
+            {id: 'ns-3', name: 'NS Bank 2'},
+        ]);
+    });
+
+    it('returns Sage Intacct bank accounts', () => {
+        const connections = {
+            intacct: {
+                data: {
+                    bankAccounts: [{id: 'si-1', name: 'Intacct Account'}],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toEqual([{id: 'si-1', name: 'Intacct Account'}]);
+    });
+
+    it('returns QBD bank accounts mapped to id and name', () => {
+        const connections = {
+            quickbooksDesktop: {
+                data: {
+                    bankAccounts: [{id: 'qbd-1', name: 'QBD Checking'}],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBD)).toEqual([{id: 'qbd-1', name: 'QBD Checking'}]);
+    });
+
+    it('returns empty array when the connection has no bank accounts data', () => {
+        const connections = {
+            quickbooksOnline: {},
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([]);
     });
 });

@@ -127,7 +127,6 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_LOGIN = 'test@example.com';
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         login: CURRENT_USER_LOGIN,
@@ -624,7 +623,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -678,7 +677,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
