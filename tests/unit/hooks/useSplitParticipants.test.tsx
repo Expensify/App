@@ -12,7 +12,6 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useThemeStyles', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () =>
         new Proxy(
@@ -36,7 +35,6 @@ jest.mock('@components/MoneyRequestAmountInput', () => {
     }
     MoneyRequestAmountInputMock.displayName = 'MoneyRequestAmountInputMock';
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: MoneyRequestAmountInputMock,
     };

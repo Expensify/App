@@ -52,7 +52,6 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
     }
 
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: TextInputMock,
     };
