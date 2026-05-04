@@ -124,6 +124,7 @@ export default {
     tableRowPaddingVertical: 8,
     tableRowPaddingHorizontal: 12,
     tableGroupRowPaddingVertical: 4,
+    tableGroupRowHeight: 36,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
@@ -338,11 +339,11 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -126,
-    minimalTopBarWithFiltersOffset: -170,
+    minimalTopBarOffset: -118,
+    minimalTopBarWithFiltersOffset: -162,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 126,
-    searchListContentWithFiltersMarginTop: 170,
+    searchListContentMarginTop: 118,
+    searchListContentWithFiltersMarginTop: 162,
     searchTopBarZIndex: 9,
 
     scrollToNewTransactionOffset: 300,

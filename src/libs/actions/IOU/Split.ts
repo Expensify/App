@@ -216,7 +216,7 @@ type UpdateSplitTransactionsParams = {
         reportID: string;
         originalTransactionID: string;
         splitExpenses: SplitExpense[];
-        splitExpensesTotal?: number;
+        splitExpensesTotal: number | undefined;
     };
     searchContext?: (Partial<SearchStateContextValue & SearchActionsContextValue> & {activeGroupSearchHashes?: number[]}) | undefined;
     policyCategories: OnyxTypes.PolicyCategories | undefined;

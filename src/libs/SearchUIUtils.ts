@@ -283,6 +283,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
 };
 
 const taskColumnNamesToSortingProperty: TaskSorting = {
@@ -2036,7 +2037,7 @@ function getTransactionsSections({
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+        const report = getReportOrDraftReport(transactionItem.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         let shouldShow = true;
 
@@ -2492,7 +2493,7 @@ function createAndOpenSearchTransactionThread(
             currentUserLogin ?? '',
             currentUserAccountID,
             betas,
-            item.report,
+            getReportOrDraftReport(item.reportID) ?? item.report,
             reportActionToPass,
             transaction,
             transactionViolations,
@@ -2747,7 +2748,7 @@ function getReportSections({
             const transactionItem = {...data[key]};
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as OnyxTypes.Report | undefined;
+            const report = (getReportOrDraftReport(transactionItem.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`]) as OnyxTypes.Report | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
@@ -4084,6 +4085,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.expenses';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             return 'common.total';
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
@@ -5433,6 +5436,7 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
             CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+            CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);

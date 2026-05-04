@@ -332,20 +332,16 @@ function maxVisibleCount(areaWidth: number, itemWidth: number): number {
  * How far a label extends beyond its tick position after rotation.
  * Accounts for the rotatedLabelCenterCorrection translateX applied during rendering.
  */
-function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean): {left: number; right: number} {
+function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation): {left: number; right: number} {
     if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
         return {left: labelWidth / 2, right: labelWidth / 2};
     }
     if (rotation === LABEL_ROTATIONS.DIAGONAL) {
         const halfLH = lineHeight / 2;
-        if (rightAligned) {
-            return {
-                left: (labelWidth + halfLH) * SIN_45,
-                right: halfLH * SIN_45,
-            };
-        }
-        const overhang = (labelWidth / 2 + halfLH) * SIN_45;
-        return {left: overhang, right: overhang};
+        return {
+            left: (labelWidth + halfLH) * SIN_45,
+            right: halfLH * SIN_45,
+        };
     }
     return {left: lineHeight / 2, right: lineHeight / 2};
 }
@@ -358,7 +354,6 @@ function edgeLabelsFit({
     rotation,
     firstTickLeftSpace,
     lastTickRightSpace,
-    rightAligned,
 }: {
     firstLabelWidth: number;
     lastLabelWidth: number;
@@ -366,10 +361,9 @@ function edgeLabelsFit({
     rotation: LabelRotation;
     firstTickLeftSpace: number;
     lastTickRightSpace: number;
-    rightAligned: boolean;
 }): boolean {
-    const first = labelOverhang(firstLabelWidth, lineHeight, rotation, rightAligned);
-    const last = labelOverhang(lastLabelWidth, lineHeight, rotation, rightAligned);
+    const first = labelOverhang(firstLabelWidth, lineHeight, rotation);
+    const last = labelOverhang(lastLabelWidth, lineHeight, rotation);
     return first.left <= firstTickLeftSpace && last.right <= lastTickRightSpace;
 }
 
@@ -377,16 +371,12 @@ function edgeLabelsFit({
  * Maximum label width that fits within the available edge space at a given rotation.
  * Returns Infinity when the overhang at that edge doesn't depend on label width.
  */
-function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean, edge: 'first' | 'last'): number {
-    const halfLH = lineHeight / 2;
+function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, edge: 'first' | 'last'): number {
     if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
         return 2 * edgeSpace;
     }
     if (rotation === LABEL_ROTATIONS.DIAGONAL) {
-        if (rightAligned) {
-            return edge === 'first' ? Math.max(0, edgeSpace / SIN_45 - halfLH) : Infinity;
-        }
-        return Math.max(0, 2 * (edgeSpace / SIN_45 - halfLH));
+        return edge === 'first' ? Math.max(0, edgeSpace / SIN_45 - lineHeight / 2) : Infinity;
     }
     return Infinity;
 }

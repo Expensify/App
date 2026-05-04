@@ -12213,7 +12213,6 @@ function prepareOnboardingOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
-                choice: null,
                 createWorkspace: null,
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
@@ -13195,7 +13194,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
         return translate('iou.deleted');
     }
     if (stateNum === undefined || statusNum === undefined) {
-        return '';
+        return translate('common.unreported');
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -13226,7 +13225,7 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
         return theme.reportStatusBadge.deleted;
     }
     if (stateNum === undefined || statusNum === undefined) {
-        return undefined;
+        return theme.reportStatusBadge.unreported;
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -13305,6 +13304,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
+    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
 ] as const;
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
@@ -13350,6 +13350,8 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getTaxName(policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return transaction.withdrawalID ? transaction.withdrawalID : '';
         default:
             return '';
     }

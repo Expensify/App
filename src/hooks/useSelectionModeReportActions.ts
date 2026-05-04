@@ -47,6 +47,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -114,12 +115,14 @@ function useSelectionModeReportActions({
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -173,7 +176,7 @@ function useSelectionModeReportActions({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(report);
 
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
 
     // confirmPayment is declared below but used by usePaymentOptions; we use a ref to avoid a circular dependency.
     const confirmPaymentRef = useRef<(params: PaymentActionParams) => void>(() => {});
@@ -387,6 +390,7 @@ function useSelectionModeReportActions({
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
+                chatReportPolicy,
                 betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,

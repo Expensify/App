@@ -8379,6 +8379,11 @@ describe('SearchUIUtils', () => {
             const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
             expect(translationKey).toBe('common.category');
         });
+
+        it('should return correct translation key for WITHDRAWAL_ID column', () => {
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+            expect(translationKey).toBe('common.withdrawalID');
+        });
     });
 
     describe('createAndOpenSearchTransactionThread', () => {

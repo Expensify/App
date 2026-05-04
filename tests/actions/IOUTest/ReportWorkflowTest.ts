@@ -145,6 +145,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -294,6 +295,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -376,6 +378,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -650,6 +653,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -871,6 +875,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                activePolicy: undefined,
             });
             return waitForBatchedUpdates()
                 .then(async () => {
@@ -1102,6 +1107,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                activePolicy: undefined,
             });
 
             setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});

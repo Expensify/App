@@ -1494,6 +1494,7 @@ const CONST = {
                 RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
+                REASSIGN_APPROVER: 'REASSIGNAPPROVER',
                 REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SETTLEMENT_ACCOUNT_LOCKED: 'SETTLEMENTACCOUNTLOCKED',
@@ -1579,6 +1580,7 @@ const CONST = {
                     UPDATE_ADDRESS: 'POLICYCHANGELOG_UPDATE_ADDRESS',
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
+                    UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -7647,6 +7649,7 @@ const CONST = {
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
                 },
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
@@ -7688,6 +7691,7 @@ const CONST = {
                 TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                 AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 TOTAL: this.TABLE_COLUMNS.TOTAL,
+                WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
             };
         },
         get GROUP_CUSTOM_COLUMNS() {
@@ -9155,6 +9159,7 @@ const CONST = {
         ACCOUNT: {
             PROFILE: 'Account-Profile',
             WALLET: 'Account-Wallet',
+            AGENTS: 'Account-Agents',
             RULES: 'Account-Rules',
             PREFERENCES: 'Account-Preferences',
             SECURITY: 'Account-Security',
