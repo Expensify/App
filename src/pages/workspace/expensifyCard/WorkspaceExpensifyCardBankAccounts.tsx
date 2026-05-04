@@ -111,9 +111,12 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const verificationState = getVerificationState();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const handleVerifiedButtonPress = () => {
+        if (!policyID) {
+            return;
+        }
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.dismissModal();
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));

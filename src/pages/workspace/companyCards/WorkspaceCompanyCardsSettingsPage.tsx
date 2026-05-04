@@ -1,32 +1,46 @@
-import React, {useMemo, useState} from 'react';
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {startCardFeedRefresh} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+const ADVANCED_CSV_COLUMNS = new Set<string>([
+    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE,
+    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT,
+    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY,
+    CONST.CSV_IMPORT_COLUMNS.COMMENT,
+    CONST.CSV_IMPORT_COLUMNS.CATEGORY,
+    CONST.CSV_IMPORT_COLUMNS.TAG,
+]);
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -39,16 +53,19 @@ function WorkspaceCompanyCardsSettingsPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const {currencyList} = useCurrencyListState();
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+    const {showConfirmModal} = useConfirmModal();
 
     const [cardsList] = useCardsList(selectedFeed);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Table']);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -56,6 +73,11 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const isPending = !!selectedFeedData?.pending;
+    const isDirectFeedType = isDirectFeed(feed);
+    const isCsvFeed = isCSVUploadFeed(feed);
+    const storedMappings = selectedFeedData?.uploadLayoutSettings?.columnMappings;
+    const hadAdvancedFields = !!storedMappings && Object.keys(storedMappings).some((col) => ADVANCED_CSV_COLUMNS.has(col));
+
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
             return undefined;
@@ -77,7 +99,6 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
-        setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.goBack();
         if (feed) {
             const {cardList, ...cards} = cardsList ?? {};
@@ -149,22 +170,59 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
+                        {isDirectFeedType && (
+                            <MenuItem
+                                icon={icons.Sync}
+                                title={translate('workspace.companyCards.assignNewCards.title')}
+                                description={translate('workspace.companyCards.assignNewCards.description')}
+                                onPress={() => {
+                                    if (!selectedFeed) {
+                                        return;
+                                    }
+                                    if (!isUserValidated) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID, selectedFeed));
+                                        return;
+                                    }
+                                    startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+                                }}
+                            />
+                        )}
+                        {isCsvFeed && (
+                            <MenuItem
+                                icon={icons.Table}
+                                title={translate('spreadsheet.importSpreadsheet')}
+                                onPress={() => {
+                                    setAddNewCompanyCardStepAndData({
+                                        data: {
+                                            layoutType: feed,
+                                            companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
+                                            useAdvancedFields: hadAdvancedFields,
+                                            existingInstanceID: selectedFeedData?.uploadLayoutSettings?.instanceID ?? null,
+                                        },
+                                    });
+                                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
+                                }}
+                            />
+                        )}
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
-                            onPress={() => setDeleteCompanyCardConfirmModalVisible(true)}
+                            onPress={() => {
+                                showConfirmModal({
+                                    title: feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', feedName),
+                                    prompt: translate('workspace.moreFeatures.companyCards.removeCardFeedDescription'),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    deleteCompanyCardFeed();
+                                });
+                            }}
                         />
                     </View>
-                    <ConfirmModal
-                        isVisible={deleteCompanyCardConfirmModalVisible}
-                        onConfirm={deleteCompanyCardFeed}
-                        onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', feedName)}
-                        prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

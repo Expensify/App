@@ -112,6 +112,12 @@ const TEST_CASES = {
         policyIDWithErrors: undefined,
     },
     hasPolicyAdminCardFeedErrors: cardFeedErrorTestCases.admin,
+    hasLockedBankAccount: {
+        name: 'has locked bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
+        policyIDWithErrors: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const TEST_CASES_NON_ADMIN = {
@@ -173,7 +179,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             owner: userID,
             role: isAdmin ? 'admin' : 'user',
             employeeList: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 [userID]: {
                     email: userID,
                     errors:
@@ -212,6 +217,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                               error: 'Something went wrong',
                           }
                         : undefined,
+                accountData:
+                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
+                        ? {
+                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                          }
+                        : undefined,
             },
         },
         [ONYXKEYS.USER_WALLET]: {
@@ -232,7 +243,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                     : undefined,
         },
         [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             [userID]: {
                 partnerName: 'John Doe',
                 partnerUserID: userID,

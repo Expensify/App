@@ -1,5 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -23,14 +24,17 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
+import {setMoneyRequestDescription} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestDescription} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import KEYBOARD_SUBMIT_BEHAVIOR from './shouldDismissKeyboardBeforeDescriptionSubmit';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -154,7 +158,7 @@ function IOURequestStepDescription({
             return;
         }
 
-        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
@@ -176,7 +180,6 @@ function IOURequestStepDescription({
         shouldNavigateAfterSaveRef.current = true;
     };
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
@@ -216,6 +219,7 @@ function IOURequestStepDescription({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
             >
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -243,9 +247,8 @@ function IOURequestStepDescription({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
 export default IOURequestStepDescriptionWithWritableReportOrNotFound;

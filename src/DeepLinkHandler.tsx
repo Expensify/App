@@ -11,6 +11,7 @@ import Log from './libs/Log';
 import {endSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import type {Route} from './ROUTES';
+import {hasSeenTourSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
@@ -27,15 +28,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const initialUrlProcessed = useRef(false);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata)) {
+        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
             return;
         }
 
@@ -44,6 +46,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         // fire with stale conciergeReportID/introSelected values, causing a duplicate
         // openReportFromDeepLink() call.
         let cancelled = false;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report.
         // We race against a timeout to prevent permanently blocking NavigationRoot if getInitialURL() never resolves
@@ -51,7 +54,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         Promise.race([
             Linking.getInitialURL(),
             new Promise<null>((resolve) => {
-                setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
+                timeoutId = setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
             }),
         ])
             .then((url) => {
@@ -72,7 +75,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
                     // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
                     const isCurrentlyAuthenticated = hasAuthToken();
-                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, betas);
+                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
                 } else {
                     Report.doneCheckingPublicRoom();
                 }
@@ -99,15 +102,26 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, betas);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
         });
 
         return () => {
             cancelled = true;
+            clearTimeout(timeoutId);
             linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, betas]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
+    }, [
+        conciergeReportID,
+        introSelected,
+        betas,
+        allReportsMetadata.status,
+        sessionMetadata.status,
+        conciergeReportIDMetadata.status,
+        introSelectedMetadata.status,
+        isSelfTourViewedMetadata.status,
+        betasMetadata.status,
+    ]);
 
     // Safety net: if getInitialURL() resolves before the session loads, hasAuthToken() may return false
     // for an authenticated user, causing openReportFromDeepLink to take the wrong path. Once isAuthenticated

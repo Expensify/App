@@ -5,12 +5,13 @@ import Onyx from 'react-native-onyx';
 import useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptScan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockHandleMoneyRequestStepScanParticipants = jest.fn();
+const mockRemoveDraftTransactionsByIDs = jest.fn();
 const mockGetMoneyRequestParticipantOptions = jest.fn().mockReturnValue([]);
-const mockRemoveDraftTransactions = jest.fn();
 const mockRemoveTransactionReceipt = jest.fn();
 const mockSetMoneyRequestReceipt = jest.fn();
 const mockBuildOptimisticTransactionAndCreateDraft = jest.fn();
@@ -37,12 +38,12 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
 }));
 
 jest.mock('@userActions/TransactionEdit', () => ({
-    removeDraftTransactions: (...args: unknown[]) => mockRemoveDraftTransactions(...args),
+    removeDraftTransactionsByIDs: (...args: unknown[]) => mockRemoveDraftTransactionsByIDs(...args),
     removeTransactionReceipt: (...args: unknown[]) => mockRemoveTransactionReceipt(...args),
     buildOptimisticTransactionAndCreateDraft: (...args: unknown[]) => mockBuildOptimisticTransactionAndCreateDraft(...args),
 }));
 
-jest.mock('@userActions/IOU', () => ({
+jest.mock('@userActions/IOU/Receipt', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
 }));
 
@@ -62,8 +63,7 @@ function createDefaultParams(): Parameters<typeof useReceiptScan>[0] {
         getSource: (file: {uri?: string}) => file?.uri ?? 'file://image.png',
         backTo: undefined,
         backToReport: undefined,
-        isMultiScanEnabled: false,
-        isStartingScan: true,
+        routeName: SCREENS.MONEY_REQUEST.CREATE,
     };
 }
 
@@ -296,25 +296,6 @@ describe('useReceiptScan', () => {
             expect(result.current.receiptFiles).toHaveLength(1);
             expect(result.current.receiptFiles.at(0)).toEqual(receiptFile);
         });
-
-        it('should clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true};
-            const {result, rerender} = renderHook((p: Parameters<typeof useReceiptScan>[0]) => useReceiptScan(p), {
-                initialProps: multiScanParams,
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            const receiptFile = {file: {uri: 'picture.jpg'}, source: 'file://picture.jpg', transactionID: INITIAL_TRANSACTION_ID};
-            await act(async () => {
-                result.current.setReceiptFiles([receiptFile]);
-            });
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toHaveLength(1);
-
-            rerender({...multiScanParams, isMultiScanEnabled: false});
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toEqual([]);
-        });
     });
 
     describe('processReceipts', () => {
@@ -346,7 +327,7 @@ describe('useReceiptScan', () => {
             expect(mockHandleMoneyRequestStepScanParticipants).not.toHaveBeenCalled();
         });
 
-        it('should call removeDraftTransactions when creating and not multi-scan', async () => {
+        it('should call removeDraftTransactionsByIDs when creating and not multi-scan', async () => {
             const {result} = renderHook(() => useReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
 
@@ -355,7 +336,104 @@ describe('useReceiptScan', () => {
                 result.current.validateFiles(files);
             });
 
-            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(true);
+            expect(mockRemoveDraftTransactionsByIDs).toHaveBeenCalledWith([], true);
+        });
+
+        it('should not call removeDraftTransactionsByIDs when in editing mode', async () => {
+            const updateScanAndNavigate = jest.fn();
+            const editParams = {...params, action: CONST.IOU.ACTION.EDIT, updateScanAndNavigate};
+            const {result} = renderHook(() => useReceiptScan(editParams));
+            await waitForBatchedUpdatesWithAct();
+
+            const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
+            await act(async () => {
+                result.current.validateFiles(files);
+            });
+
+            expect(mockRemoveDraftTransactionsByIDs).not.toHaveBeenCalled();
+        });
+
+        it('should pass draft transaction IDs to removeDraftTransactionsByIDs when drafts exist', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`]: {transactionID: 'draft1', reportID: REPORT_ID, amount: 100} as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft2`]: {transactionID: 'draft2', reportID: REPORT_ID, amount: 200} as Transaction,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
+            await act(async () => {
+                result.current.validateFiles(files);
+            });
+
+            expect(mockRemoveDraftTransactionsByIDs).toHaveBeenCalledWith(expect.arrayContaining(['draft1', 'draft2']), true);
+        });
+
+        it('should always pass shouldExcludeInitialTransaction as true to removeDraftTransactionsByIDs', async () => {
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
+            await act(async () => {
+                result.current.validateFiles(files);
+            });
+
+            const calls = mockRemoveDraftTransactionsByIDs.mock.calls as Array<[string[], boolean]>;
+            expect(calls.length).toBeGreaterThan(0);
+            for (const call of calls) {
+                expect(call[1]).toBe(true);
+            }
+        });
+
+        it('should not call removeDraftTransactionsByIDs when multi-scan is enabled', async () => {
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
+            await act(async () => {
+                result.current.validateFiles(files);
+            });
+
+            expect(mockRemoveDraftTransactionsByIDs).not.toHaveBeenCalled();
+        });
+
+        it('should not call removeDraftTransactionsByIDs when isStartingScan is false', async () => {
+            const nonStartingParams = {...params, routeName: SCREENS.MONEY_REQUEST.STEP_SCAN};
+            const {result} = renderHook(() => useReceiptScan(nonStartingParams));
+            await waitForBatchedUpdatesWithAct();
+
+            const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
+            await act(async () => {
+                result.current.validateFiles(files);
+            });
+
+            expect(mockRemoveDraftTransactionsByIDs).not.toHaveBeenCalled();
+        });
+
+        it('should call removeDraftTransactionsByIDs with multiple draft IDs and shouldExcludeInitialTransaction true', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draftX`]: {transactionID: 'draftX', reportID: REPORT_ID, amount: 10} as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draftY`]: {transactionID: 'draftY', reportID: REPORT_ID, amount: 20} as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draftZ`]: {transactionID: 'draftZ', reportID: REPORT_ID, amount: 30} as Transaction,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
+            await act(async () => {
+                result.current.validateFiles(files);
+            });
+
+            expect(mockRemoveDraftTransactionsByIDs).toHaveBeenCalledWith(expect.arrayContaining(['draftX', 'draftY', 'draftZ']), true);
         });
 
         it('should navigate to confirmation step after processing files', async () => {

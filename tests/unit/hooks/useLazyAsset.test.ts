@@ -35,7 +35,7 @@ jest.mock('@hooks/useLazyAsset', () => {
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         ...actual,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
@@ -314,7 +314,7 @@ describe('useMemoizedLazyAsset', () => {
 
     it('returns PlaceholderIcon while loading', () => {
         // Our Jest mock for PlaceholderIcon exports the component directly (no default)
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
         const PlaceholderIcon = require('@components/Icon/PlaceholderIcon') as IconAsset;
         const importFn: () => Promise<{default: IconAsset}> = () => new Promise(() => {});
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));
@@ -361,10 +361,8 @@ describe('useMemoizedLazyExpensifyIcons', () => {
 
         mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
 
-        const names = ['AddReaction', 'Apple'] as const;
-
         // When: The hook is rendered
-        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(names));
+        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(['AddReaction', 'Apple']));
 
         // Then: The synchronous chunk should be used to initialize state
         expect(mockGetExpensifyIconsChunk).toHaveBeenCalled();
@@ -407,10 +405,8 @@ describe('useMemoizedLazyIllustrations', () => {
 
         mockGetIllustrationsChunk.mockReturnValue(mockChunk);
 
-        const names = ['Building', 'Tag'] as const;
-
         // When: The hook is rendered
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(names));
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['Building', 'Tag']));
 
         // Then: The synchronous chunk should be used to initialize state
         expect(mockGetIllustrationsChunk).toHaveBeenCalled();

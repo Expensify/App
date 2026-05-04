@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
@@ -11,8 +10,9 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
+import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -24,6 +24,8 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+
+Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -121,9 +123,6 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
-
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
@@ -252,10 +251,18 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
         };
         return Promise.resolve({default: mockIcon});
     }),
+    loadExpensifyIconsChunk: jest.fn(() => Promise.resolve({})),
+    getExpensifyIconsChunk: jest.fn(() => ({})),
+}));
+
+jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
+    loadIllustration: jest.fn(() => Promise.resolve({default: {src: 'mock-illustration', height: 20, width: 20}})),
+    loadIllustrationsChunk: jest.fn(() => Promise.resolve({})),
+    getIllustrationsChunk: jest.fn(() => ({})),
 }));
 
 jest.mock(
-    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -281,7 +288,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 
@@ -309,6 +316,16 @@ jest.mock('@shopify/react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
+    isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
+    createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
+    deleteKeys: jest.fn(() => Promise.resolve({success: true})),
+    getAllKeys: jest.fn(() => Promise.resolve({keys: []})),
+    signWithOptions: jest.fn(() => Promise.resolve({success: false})),
+    sha256: jest.fn(() => Promise.resolve({hash: ''})),
+    InputEncoding: {Base64: 'base64', Utf8: 'utf8'},
 }));
 
 jest.mock('victory-native', () => ({

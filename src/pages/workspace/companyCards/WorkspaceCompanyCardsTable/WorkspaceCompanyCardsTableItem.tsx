@@ -18,6 +18,7 @@ import {formatMaskedCardName, getCardFeedWithDomainID, lastFourNumbersFromCardNa
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -211,8 +212,8 @@ function WorkspaceCompanyCardTableItem({
                                             src={Expensicons.ArrowRight}
                                             fill={theme.icon}
                                             additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                            medium
-                                            isButtonIcon
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
                                         />
                                     </View>
                                 ) : (

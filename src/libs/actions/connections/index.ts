@@ -280,6 +280,14 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 
+/**
+ * Determines whether to use updateNetSuiteTokens (preserves config) or connectPolicyToNetSuite (full init)
+ * based on the connection's authentication and verification state.
+ */
+function shouldUseUpdateNetSuiteTokens(policy: OnyxEntry<Policy>): boolean {
+    return isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+}
+
 function setConnectionError(policyID: string, connectionName: PolicyConnectionName, errorMessage?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         connections: {
@@ -303,6 +311,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD;
             break;
         default:
             stageInProgress = null;
@@ -359,4 +370,5 @@ export {
     isConnectionInProgress,
     hasSynchronizationErrorMessage,
     setConnectionError,
+    shouldUseUpdateNetSuiteTokens,
 };

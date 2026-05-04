@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,6 +12,7 @@ import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
@@ -28,6 +30,9 @@ function WorkspaceConfirmationPage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
+    const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
@@ -50,6 +55,8 @@ function WorkspaceConfirmationPage() {
             type: params.planType,
             isSelfTourViewed,
             betas,
+            hasActiveAdminPolicies,
+            isAnnualSubscription,
         });
     };
     const currentUrl = getCurrentUrl();

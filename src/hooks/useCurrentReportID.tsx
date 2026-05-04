@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import React, {createContext, startTransition, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 
 type CurrentReportIDStateContextType = {
@@ -30,6 +30,9 @@ const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContex
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
+    // Tracks the most recently requested reportID synchronously so the dedupe
+    // check below stays accurate even while a startTransition is pending.
+    const pendingReportIDRef = useRef<string | undefined>('');
 
     /**
      * This function is used to update the currentReportID
@@ -47,21 +50,25 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
                 return;
             }
-            // Prevent unnecessary updates when the report ID hasn't changed
-            if (currentReportID === reportID) {
+            if (pendingReportIDRef.current === reportID) {
                 return;
             }
 
-            // Also prevent updates when both are undefined/null (no report context)
-            if (!currentReportID && !reportID) {
+            if (!pendingReportIDRef.current && !reportID) {
                 return;
             }
 
+            pendingReportIDRef.current = reportID;
             props.onSetCurrentReportID?.(reportID);
-            setCurrentReportID(reportID);
+            // Mark the report ID update as a non-urgent transition so React can keep the
+            // UI responsive to user input while the (potentially expensive) report screen
+            // re-render is processed in the background.
+            startTransition(() => {
+                setCurrentReportID(reportID);
+            });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
-        [setCurrentReportID, currentReportID],
+        [setCurrentReportID],
     );
 
     const actionsContextValue = useMemo<CurrentReportIDActionsContextType>(

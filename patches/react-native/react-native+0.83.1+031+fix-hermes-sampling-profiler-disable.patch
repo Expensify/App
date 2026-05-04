@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+@@ -34,7 +34,7 @@
+ void HermesSamplingProfiler::registerNatives() {
+   javaClassLocal()->registerNatives({
+       makeNativeMethod("enable", HermesSamplingProfiler::enable),
+-      makeNativeMethod("disable", HermesSamplingProfiler::enable),
++      makeNativeMethod("disable", HermesSamplingProfiler::disable),
+       makeNativeMethod(
+           "dumpSampledTraceToFile",
+           HermesSamplingProfiler::dumpSampledTraceToFile),

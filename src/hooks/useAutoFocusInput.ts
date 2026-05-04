@@ -2,7 +2,9 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
+import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
@@ -11,12 +13,14 @@ import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
     inputRef: RefObject<TextInput | null>;
+    cancelAutoFocus: () => void;
 };
 
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
@@ -24,12 +28,15 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
 
     const {splashScreenState} = useSplashScreenState();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
 
     const inputRef = useRef<TextInput | null>(null);
     const transitionEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isAutoFocusCancelledRef = useRef(false);
 
     const clearTransitionEndTimeout = useCallback(() => {
         if (!transitionEndTimeoutRef.current) {
@@ -39,8 +46,22 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         transitionEndTimeoutRef.current = null;
     }, []);
 
+    const cancelAutoFocus = () => {
+        isAutoFocusCancelledRef.current = true;
+        clearTransitionEndTimeout();
+        setIsScreenTransitionEnded(false);
+    };
+
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
+        if (
+            isScreenReaderEnabled ||
+            !isScreenTransitionEnded ||
+            !isInputInitialized ||
+            !inputRef.current ||
+            splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+            isPopoverVisible ||
+            isInLandscapeMode
+        ) {
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -55,17 +76,21 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
+    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
 
     useFocusEffect(
         useCallback(() => {
+            isAutoFocusCancelledRef.current = false;
             setIsScreenTransitionEnded(false);
             transitionEndTimeoutRef.current = setTimeout(() => {
+                if (isAutoFocusCancelledRef.current) {
+                    return;
+                }
                 setIsScreenTransitionEnded(true);
             }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
             const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
-                if (event?.data?.closing) {
+                if (event?.data?.closing || isAutoFocusCancelledRef.current) {
                     return;
                 }
                 clearTransitionEndTimeout();
@@ -112,5 +137,5 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         setIsInputInitialized(true);
     };
 
-    return {inputCallbackRef, inputRef};
+    return {inputCallbackRef, inputRef, cancelAutoFocus};
 }

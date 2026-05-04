@@ -8,10 +8,10 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 type TabNavigatorSkeletonProps = {
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps = {}) {
+function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     useSkeletonSpan('TabNavigatorSkeleton', reasonAttributes);

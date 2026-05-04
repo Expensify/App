@@ -38,12 +38,11 @@ jest.mock('@src/libs/API', () => ({
 // The jest-expo preset resolves to the .native.tsx file which defers rendering via onLayout (which never fires in tests).
 // Mock the deferred wrapper to directly render SearchAutocompleteList.
 jest.mock('@components/Search/DeferredSearchAutocompleteList', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const module = jest.requireActual<{default: React.ComponentType}>('@components/Search/SearchAutocompleteList');
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         default: module.default,
     };
 });
@@ -113,20 +112,18 @@ const getMockedPersonalDetails = (length = 10) =>
         length,
     );
 
-const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
-
 const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 const mockOnClose = jest.fn();
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
                 <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
                     <SearchRouter onRouterClose={mockOnClose} />
                 </OptionsListActionsContext.Provider>
@@ -141,7 +138,6 @@ function SearchRouterWrapper() {
  */
 async function flushAllUpdates() {
     for (let i = 0; i < 10; i++) {
-        // eslint-disable-next-line no-await-in-loop
         await act(async () => {
             jest.advanceTimersByTime(100);
             await waitForBatchedUpdates();

@@ -32,14 +32,17 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const currencySymbol = getCurrencySymbol(currency);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const isWorkflowsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED);
-    const defaultValue = convertToFrontendAmountAsString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency);
+    const defaultValue = convertToFrontendAmountAsString(
+        policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS,
+        getCurrencyDecimals(policy?.outputCurrency),
+    );
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
@@ -70,7 +73,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {
-                        setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount);
+                        setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount, policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

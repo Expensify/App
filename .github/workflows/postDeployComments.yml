@@ -23,6 +23,14 @@ on:
         description: Web deploy status
         required: true
         type: string
+      android_sentry_url:
+        description: URL to Sentry size analysis for Android
+        required: false
+        type: string
+      ios_sentry_url:
+        description: URL to Sentry size analysis for iOS
+        required: false
+        type: string
     secrets:
       OS_BOTIFY_TOKEN:
         description: Token for accessing Mobile-Expensify repository
@@ -81,8 +89,8 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -109,3 +117,5 @@ jobs:
           WEB: ${{ inputs.web }}
           DATE: ${{ inputs.date }}
           NOTE: ${{ inputs.note }}
+          ANDROID_SENTRY_URL: ${{ inputs.android_sentry_url }}
+          IOS_SENTRY_URL: ${{ inputs.ios_sentry_url }}

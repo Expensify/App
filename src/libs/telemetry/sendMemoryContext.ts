@@ -101,4 +101,3 @@ function cleanupMemoryTracking() {
 }
 
 export {cleanupMemoryTracking, initializeMemoryTracking};
-export default sendMemoryContext;

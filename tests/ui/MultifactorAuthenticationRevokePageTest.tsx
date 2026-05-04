@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthentication/RevokePage';
 import CONST from '@src/CONST';
 
@@ -12,7 +10,7 @@ jest.mock('@libs/API');
 const mockAPI = API as jest.Mocked<typeof API>;
 
 let mockBiometricStatus = {
-    localPublicKey: undefined as string | undefined,
+    localCredentialID: undefined as string | undefined,
     isCurrentDeviceRegistered: false,
     otherDeviceCount: 0,
     totalDeviceCount: 0,
@@ -79,15 +77,15 @@ jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => {
 });
 
 jest.mock('@components/FormHelpMessage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {Text} = require('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const mockReact = require('react');
     function MockFormHelpMessage({message}: {message?: string}) {
         if (!message) {
             return null;
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
         return mockReact.createElement(Text, null, message);
     }
     MockFormHelpMessage.displayName = 'FormHelpMessage';
@@ -106,7 +104,7 @@ jest.mock('@components/ConfirmModal', () => {
 
 function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
     mockBiometricStatus = {
-        localPublicKey: undefined,
+        localCredentialID: undefined,
         isCurrentDeviceRegistered: false,
         otherDeviceCount: 0,
         totalDeviceCount: 0,
@@ -135,7 +133,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
         it('shows "Revoke access" when exactly one device is registered', () => {
             // Given exactly one registered device (this device)
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             // When the page renders
             render(<MultifactorAuthenticationRevokePage />);
@@ -146,7 +144,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
         it('shows "Revoke all" when multiple devices are registered', () => {
             // Given this device plus one other device registered
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
 
             // When the page renders
             render(<MultifactorAuthenticationRevokePage />);
@@ -159,7 +157,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     describe('Inline "This device" Revoke button', () => {
         it('shows "this device" prompt with "Revoke access" confirm button', () => {
             // Given this device is the only registered device
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             // When the user presses the inline Revoke button next to "This device"
             render(<MultifactorAuthenticationRevokePage />);
@@ -178,7 +176,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     describe('Inline "Other devices" Revoke button', () => {
         it('shows "that device" prompt with "Revoke access" when revoking 1 other device', () => {
             // Given this device is registered and there is 1 other device
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
 
             // When the user presses the inline Revoke button next to "Other devices"
             render(<MultifactorAuthenticationRevokePage />);
@@ -194,7 +192,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
         it('shows "those devices" prompt with "Revoke access" when revoking 2+ others and this device is registered', () => {
             // Given this device is registered and there are 3 other devices
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 4, otherDeviceCount: 3});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 4, otherDeviceCount: 3});
 
             // When the user presses the inline Revoke button next to "Other devices"
             render(<MultifactorAuthenticationRevokePage />);
@@ -230,7 +228,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     describe('Bottom button confirmation modal', () => {
         it('shows "this device" prompt with "Revoke access" when only this device is registered', () => {
             // Given only this device is registered
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             // When the user presses the bottom "Revoke access" button
             render(<MultifactorAuthenticationRevokePage />);
@@ -275,7 +273,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
         it('shows "any device" prompt with "Revoke all" when this device + others are registered', () => {
             // Given this device and 2 other devices are registered
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 3, otherDeviceCount: 2});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 3, otherDeviceCount: 2});
 
             // When the user presses the bottom "Revoke all" button
             render(<MultifactorAuthenticationRevokePage />);
@@ -291,7 +289,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     describe('Revoke action params', () => {
         it('passes onlyKeyID when revoking this device', async () => {
             // Given this device is registered with key "key-this"
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             // When the user confirms revoking this device via the inline button
             render(<MultifactorAuthenticationRevokePage />);
@@ -311,7 +309,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
         it('passes exceptKeyID when revoking other devices while this device is registered', async () => {
             // Given this device is registered and there are other devices
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
 
             // When the user confirms revoking other devices via the inline button
             render(<MultifactorAuthenticationRevokePage />);
@@ -350,7 +348,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
         it('passes empty params when revoking all devices via bottom button', async () => {
             // Given this device and 1 other device are registered
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
 
             // When the user confirms revoking all via the bottom "Revoke all" button
             render(<MultifactorAuthenticationRevokePage />);
@@ -368,7 +366,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     describe('Error handling', () => {
         it('displays error message when revoke returns a non-200 status', async () => {
             mockRevokeCredentials.mockResolvedValueOnce({httpStatusCode: 500});
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
 
@@ -398,7 +396,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
         });
 
         it('hides confirm modal when cancel is pressed', () => {
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
 
@@ -418,7 +416,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
     describe('Explanation text', () => {
         it('shows explanation text when devices are registered', () => {
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
 
@@ -436,7 +434,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
     describe('ConfirmModal title', () => {
         it('shows "Revoke all" title on modal when revoking all devices', () => {
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});
 
             render(<MultifactorAuthenticationRevokePage />);
 
@@ -446,7 +444,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
         });
 
         it('shows "Revoke access" title on modal when revoking a single device', () => {
-            setBiometricStatus({localPublicKey: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
 
             render(<MultifactorAuthenticationRevokePage />);
 
@@ -458,7 +456,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     });
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const {revokeMultifactorAuthenticationCredentials} = jest.requireActual<typeof import('@libs/actions/MultifactorAuthentication')>('@libs/actions/MultifactorAuthentication');
 
 describe('revokeMultifactorAuthenticationCredentials', () => {
@@ -496,7 +494,7 @@ describe('revokeMultifactorAuthenticationCredentials', () => {
         const result = await revokeMultifactorAuthenticationCredentials({});
 
         expect(result.httpStatusCode).toBe(200);
-        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REVOKE_SUCCESSFUL);
+        expect(result.reason).toBeUndefined();
     });
 
     it('should return error response when API returns non-200', async () => {
@@ -513,6 +511,6 @@ describe('revokeMultifactorAuthenticationCredentials', () => {
         const result = await revokeMultifactorAuthenticationCredentials({onlyKeyID: 'key-123'});
 
         expect(result.httpStatusCode).toBe(0);
-        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNKNOWN_RESPONSE);
+        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
     });
 });

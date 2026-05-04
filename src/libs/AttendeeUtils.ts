@@ -4,6 +4,33 @@ import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
+function getNormalizedString(value?: string): string | undefined {
+    const normalizedValue = value?.trim();
+    if (normalizedValue) {
+        return normalizedValue;
+    }
+
+    return undefined;
+}
+
+function normalizeAttendee(attendee: Attendee): Attendee {
+    const {email, displayName: attendeeDisplayName, login: attendeeLogin, ...rest} = attendee;
+    const normalizedEmail = getNormalizedString(email);
+    const normalizedLogin = getNormalizedString(attendeeLogin);
+    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? normalizedLogin ?? '';
+
+    return {
+        ...rest,
+        displayName,
+        login: normalizedLogin,
+        ...(normalizedEmail ? {email: normalizedEmail} : {}),
+    };
+}
+
+function normalizeAttendees(attendees: Attendee[] | undefined): Attendee[] {
+    return (attendees ?? []).map(normalizeAttendee);
+}
+
 /** Formats the title for requiredFields menu item based on which fields are enabled in the policy category */
 function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
     const enabledFields: string[] = [];
@@ -106,4 +133,4 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     return violations;
 }
 
-export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation, syncMissingAttendeesViolation};
+export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation};

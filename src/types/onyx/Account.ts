@@ -110,6 +110,12 @@ type Account = {
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
 
+    /** The account ID of the partner manager */
+    partnerManagerAccountID?: number;
+
+    /** The email of the partner manager */
+    partnerManagerEmail?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
@@ -207,6 +213,9 @@ type Account = {
 
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
+
+    /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
+    isFromInternalDomain?: boolean;
 
     /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;

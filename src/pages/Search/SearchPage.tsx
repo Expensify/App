@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
@@ -25,16 +26,18 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
-    useDocumentTitle(translate('common.search'));
+    useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
+
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     useConfirmReadyToOpenApp();
+    useSearchPageSetup(currentSearchQueryJSON);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -54,7 +57,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isSorting, setIsSorting] = useState(false);
 
     let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data) {
+    if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
         searchResults = lastNonEmptySearchResults.current;
@@ -108,7 +111,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
+        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
                   const item = selectedTransactions[key];
@@ -118,7 +121,7 @@ function SearchPage({route}: SearchPageProps) {
                   return count + 1;
               }, 0)
             : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
+        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
@@ -137,6 +140,7 @@ function SearchPage({route}: SearchPageProps) {
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     footerData={footerData}
                     shouldShowFooter={shouldShowFooter}
+                    onSortPressedCallback={onSortPressedCallback}
                 />
             ) : (
                 <SearchPageWide

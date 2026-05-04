@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -70,6 +72,7 @@ function TagPicker({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -130,6 +133,8 @@ function TagPicker({
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
         label: translate('common.search'),
+        disableAutoFocus: true,
+        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
     const listItemTitleStyles = [styles.breakAll, styles.w100];
