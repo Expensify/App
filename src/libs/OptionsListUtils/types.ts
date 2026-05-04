@@ -220,7 +220,7 @@ type GetOptionsConfig = {
     includeUserToInvite?: boolean;
     shouldAcceptName?: boolean;
     countryCode?: number;
-    reportsCollection?: OnyxCollection<Report>;
+    reportsCollection: OnyxCollection<Report> | undefined;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;

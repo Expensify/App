@@ -78,11 +78,10 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, privateIsArchived, reportPolicy, reportAttributesDerived));
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const chatReport = reportData?.chatReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportData.chatReportID}`] : undefined;
         const alternateText = getAlternateText(
             report,
             {},
-            {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, reportParam: reportData, chatReportParam: chatReport},
+            {isReportArchived: privateIsArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, reportParam: reportData},
         );
         return {...report, alternateText};
     });
@@ -122,11 +121,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            reports,
             personalDetails,
             false,
             undefined,
             reportAttributesDerived,
-            reports,
         );
 
         sections.push(formattedResults.section);

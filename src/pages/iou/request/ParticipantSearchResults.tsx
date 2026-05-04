@@ -274,6 +274,7 @@ function ParticipantSearchResults({
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            undefined,
             personalDetails,
             true,
             undefined,

@@ -114,11 +114,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            reports,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
-            reports,
         );
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === currentUserAccountID);
 

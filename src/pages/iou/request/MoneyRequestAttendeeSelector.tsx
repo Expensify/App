@@ -217,11 +217,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
+            reports,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
-            reports,
         );
 
         newSections.push({

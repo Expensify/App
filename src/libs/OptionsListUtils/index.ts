@@ -228,6 +228,8 @@ const deprecatedLastReportActions: ReportActions = {};
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -254,7 +256,12 @@ Onyx.connect({
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
+            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
+            // to the transaction thread or the report itself.
+            // Cache the result for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
 
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
@@ -433,8 +440,7 @@ type GetAlternateTextConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID?: string;
-    reportParam?: OnyxEntry<Report>;
-    chatReportParam?: OnyxEntry<Report>;
+    reportParam: OnyxEntry<Report> | undefined;
 };
 
 /**
@@ -443,18 +449,7 @@ type GetAlternateTextConfig = {
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {
-        isReportArchived,
-        policy,
-        lastActorDetails = {},
-        visibleReportActionsData = {},
-        translate,
-        reportAttributesDerived,
-        policyTags,
-        conciergeReportID,
-        reportParam,
-        chatReportParam,
-    }: GetAlternateTextConfig,
+    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID, reportParam}: GetAlternateTextConfig,
 ) {
     const report = reportParam ?? getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -471,7 +466,6 @@ function getAlternateText(
             lastActorDetails,
             policy,
             isReportArchived,
-            chatReport: chatReportParam,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
@@ -619,7 +613,6 @@ function getLastMessageTextForReport({
     movedToReport,
     policy,
     isReportArchived = false,
-    chatReport,
     reportMetadata,
     visibleReportActionsDataParam,
     lastAction,
@@ -636,7 +629,6 @@ function getLastMessageTextForReport({
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
-    chatReport?: OnyxEntry<Report>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
     lastAction?: OnyxEntry<ReportAction>;
@@ -650,9 +642,8 @@ function getLastMessageTextForReport({
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
 
-    const resolvedChatReport = chatReport ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const transactionThreadReportID = reportID ? getOneTransactionThreadReportID(report, resolvedChatReport, deprecatedAllSortedReportActions[reportID]) : undefined;
+    const transactionThreadReportID = reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined;
 
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
@@ -1102,7 +1093,6 @@ function createOption({
             report,
             lastActorDetails,
             isReportArchived: result.private_isArchived,
-            chatReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? undefined,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
@@ -1124,7 +1114,6 @@ function createOption({
                           policyTags,
                           conciergeReportID,
                           reportParam: report,
-                          chatReportParam: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? undefined,
                       },
                   );
 
@@ -1171,23 +1160,18 @@ function createOption({
 /**
  * Get the option for a given report.
  */
-// `reportParam` is appended at the tail of the existing positional parameter list to avoid a breaking
-// change for the many call sites that already pass through `visibleReportActionsData` (which has a
-// default value). It is always optional, so it cannot violate the spirit of `default-param-last`.
-/* eslint-disable @typescript-eslint/default-param-last */
 function getReportOption(
     participant: Participant,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
+    reportParam: OnyxEntry<Report> | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     reportDrafts?: OnyxCollection<Report>,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    reportParam?: OnyxEntry<Report>,
 ): OptionData {
-    /* eslint-enable @typescript-eslint/default-param-last */
     const report = reportParam ?? getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -2295,7 +2279,7 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig,
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
-    reports?: OnyxCollection<Report>,
+    reports: OnyxCollection<Report> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -2345,7 +2329,6 @@ function prepareReportOptionsForDisplay(
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 reportParam: report,
-                chatReportParam: chatReport,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2426,7 +2409,7 @@ function prepareReportOptionsForDisplay(
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+function getRestrictedLogins(config: Omit<GetOptionsConfig, 'reportsCollection'>, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
     return {
         [CONST.EMAIL.MANAGER_MCTEST]: !canShowManagerMcTest || !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) || isCurrentUserMemberOfAnyPolicy(),
     };
@@ -2468,7 +2451,7 @@ function getValidOptions(
         reportAttributesDerived,
         sortedActions,
         ...config
-    }: GetOptionsConfig = {},
+    }: GetOptionsConfig = {reportsCollection: undefined},
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
 
@@ -2734,7 +2717,7 @@ function getValidOptions(
 type SearchOptionsConfig = {
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    reports?: OnyxCollection<Report>;
+    reports: OnyxCollection<Report> | undefined;
     betas?: Beta[];
     isUsedInChatFinder?: boolean;
     includeReadOnly?: boolean;
@@ -2982,11 +2965,11 @@ function formatSectionsFromSearchTerm(
     privateIsArchivedMap: Record<string, boolean>,
     currentUserAccountID: number,
     allPolicies: OnyxCollection<Policy>,
+    reportsParam: OnyxCollection<Report> | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    reportsParam?: OnyxCollection<Report>,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results

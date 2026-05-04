@@ -223,7 +223,7 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, undefined, reportAttributesDerived);
             }) ?? [],
         // getReportOrDraftReport (called inside getReportOption) falls back to its module-level allReportsDraft
         // connection, so we don't need to subscribe to COLLECTION.REPORT_DRAFT here.

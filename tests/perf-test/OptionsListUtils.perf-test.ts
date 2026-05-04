@@ -95,6 +95,7 @@ const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const options = createOptionList(personalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports, undefined);
 
 const ValidOptionsConfig = {
+    reportsCollection: undefined,
     betas: mockedBetas,
     includeRecentReports: true,
     includeTasks: true,
@@ -130,6 +131,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
+                reports: undefined,
                 options,
                 betas: mockedBetas,
                 draftComments: {},
@@ -191,6 +193,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    reportsCollection: undefined,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -254,6 +257,7 @@ describe('OptionsListUtils', () => {
                 {},
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
+                undefined,
                 mockedPersonalDetails,
                 true,
             ),
@@ -266,7 +270,9 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, mockedPersonalDetails, true));
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, undefined, mockedPersonalDetails, true),
+        );
     });
 
     test('[OptionsListUtils] createFilteredOptionList', async () => {
@@ -298,6 +304,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
+                reports: undefined,
                 options: optionLists,
                 betas: mockedBetas,
                 draftComments: {},

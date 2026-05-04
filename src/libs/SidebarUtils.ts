@@ -932,7 +932,6 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
-            chatReport: undefined,
             reportMetadata,
             reportAttributesDerived,
             policyTags,
