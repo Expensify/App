@@ -228,7 +228,7 @@
 "../../src/libs/PolicyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	2
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	3
-"../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	17
+"../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	2
