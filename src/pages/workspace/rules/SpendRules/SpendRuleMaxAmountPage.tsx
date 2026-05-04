@@ -1,27 +1,14 @@
-import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
-import AmountForm from '@components/AmountForm';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import SpendRuleMaxAmountBase from '@components/SpendRules/configuration/SpendRuleMaxAmountBase';
-import Text from '@components/Text';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/SpendRuleForm';
 
 type SpendRuleMaxAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT>;
 
