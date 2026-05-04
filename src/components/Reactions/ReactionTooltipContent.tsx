@@ -1,12 +1,12 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLocalizedEmojiName} from '@libs/EmojiUtils';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 
-type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'> & {
+type ReactionTooltipContentProps = {
     /**
      * A list of emoji codes to display in the tooltip.
      */
@@ -21,15 +21,18 @@ type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'cu
      * A list of account IDs to display in the tooltip.
      */
     accountIDs: number[];
+
+    /**
+     * The account ID of the current user.
+     */
+    currentUserAccountID: number;
 };
 
-function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCodes, emojiName}: ReactionTooltipContentProps) {
+function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const users = useMemo(
-        () => getPersonalDetailsByIDs({accountIDs, currentUserAccountID: currentUserPersonalDetails.accountID, shouldChangeUserDisplayName: true}),
-        [currentUserPersonalDetails.accountID, accountIDs],
-    );
+    const {translate, preferredLocale} = useLocalize();
+    const users = getPersonalDetailsByIDs({accountIDs, currentUserAccountID, shouldChangeUserDisplayName: true});
+    const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     const namesString = users
         .map((user) => user?.displayName)
@@ -51,7 +54,7 @@ function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCo
 
             <Text style={[styles.mt1, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{namesString}</Text>
 
-            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`${translate('emojiReactions.reactedWith')} :${emojiName}:`}</Text>
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`${translate('emojiReactions.reactedWith')} :${localizedEmojiName}:`}</Text>
         </View>
     );
 }

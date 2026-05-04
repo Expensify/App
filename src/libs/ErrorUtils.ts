@@ -8,7 +8,6 @@ import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {

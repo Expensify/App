@@ -159,7 +159,7 @@ const setReportPreviewData = (
 };
 
 const setHasOnceLoadedReportActions = async (hasOnceLoadedReportActions: boolean) => {
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockChatReport.chatReportID}`, {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockChatReport.chatReportID}`, {
         hasOnceLoadedReportActions,
     });
 };

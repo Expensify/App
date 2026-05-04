@@ -317,5 +317,3 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 }
 
 export default withPolicyConnections(NetSuiteAdvancedPage);
-
-export {shouldHideReimbursedReportsSection};

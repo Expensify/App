@@ -25,10 +25,8 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import Navigation from '@navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
-// eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -2612,6 +2610,33 @@ describe('SearchUIUtils', () => {
                     conciergeReportID: undefined,
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
+        });
+
+        it('should prefer preview delete over stale total when deriving expense report pending action', () => {
+            const localSearchResults: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    pendingFields: {
+                        total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: localSearchResults,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+            })[0] as TransactionReportGroupListItemType[];
+
+            expect(result.find((item) => item.reportID === reportID2)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         });
 
         it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
@@ -5314,7 +5339,7 @@ describe('SearchUIUtils', () => {
 
             it('should bypass status filter when isActionLoadingSet contains the report metadata key', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
-                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.REPORT_METADATA}${filterTestReportID}`]);
+                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${filterTestReportID}`]);
                 const [sections] = callGetTransactionsSections(data, {
                     queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
                     isActionLoadingSet: loadingSet,
@@ -5525,7 +5550,7 @@ describe('SearchUIUtils', () => {
 
             it('should bypass status filter when isActionLoadingSet contains the report metadata key', () => {
                 const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
-                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.REPORT_METADATA}${rptFilterReportID}`]);
+                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rptFilterReportID}`]);
                 const [sections] = callGetReportSections(data, {
                     queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
                     isActionLoadingSet: loadingSet,
@@ -7079,7 +7104,7 @@ describe('SearchUIUtils', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
                     personalDetailsList: {},
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+
                     transactions_1805965960759424086: {
                         amount: 0,
                         category: 'Employee Meals Remote (Fringe Benefit)',
@@ -7153,7 +7178,7 @@ describe('SearchUIUtils', () => {
                         displayName: 'You',
                         login: 'you@expensifail.com',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+
                     '2074551': {
                         accountID: 2074551,
                         avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake2.jpeg',
@@ -7161,7 +7186,7 @@ describe('SearchUIUtils', () => {
                         login: 'jason@expensifail.com',
                     },
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 policy_137DA25D273F2423: {
                     approvalMode: 'ADVANCED',
                     approver: '',
@@ -7188,7 +7213,7 @@ describe('SearchUIUtils', () => {
                     outputCurrency: 'USD',
                     isPolicyExpenseChatEnabled: true,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 report_6523565988285061: {
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
@@ -7210,7 +7235,7 @@ describe('SearchUIUtils', () => {
                     type: 'expense',
                     unheldTotal: -1000,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 transactions_1805965960759424086: {
                     amount: 0,
                     cardID: undefined,
@@ -7957,7 +7982,7 @@ describe('SearchUIUtils', () => {
             // Column order: after Tag and before Amount (and before Comments)
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TAG)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE));
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE));
-            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL));
         });
 
         test('Should not include Reimbursable column in expense report view when all expenses are reimbursable', () => {
@@ -8032,7 +8057,13 @@ describe('SearchUIUtils', () => {
 
             // Use custom columns to trigger the custom columns path
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [testTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                shouldShowCommentsColumn: true,
+            });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
             // COMMENTS should be at the end
@@ -8047,9 +8078,15 @@ describe('SearchUIUtils', () => {
                 merchant: 'Test Merchant',
             };
 
-            // Include COMMENTS in visible columns - it should not be duplicated
+            // COMMENTS is added via shouldShowCommentsColumn, not visibleColumns - it should not be duplicated
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [testTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                shouldShowCommentsColumn: true,
+            });
 
             // COMMENTS should appear only once
             const commentsCount = columns.filter((col) => col === CONST.SEARCH.TABLE_COLUMNS.COMMENTS).length;
@@ -8066,14 +8103,14 @@ describe('SearchUIUtils', () => {
                 convertedAmount: undefined,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
             // EXCHANGE_RATE should be hidden because no transaction has exchange rate data
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
             // Always-shown columns should still be present
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
-            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
         test('Should show EXCHANGE_RATE column when transaction has exchange rate data', () => {
@@ -8158,34 +8195,37 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
         });
 
-        test('Should hide empty ORIGINAL_AMOUNT column in expense report view with custom columns', () => {
+        test('Should hide empty AMOUNT column in expense report view when no conversion', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
                 transactionID: 'test',
                 merchant: 'Test Merchant',
-                originalAmount: undefined,
+                convertedAmount: undefined,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
-            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
         });
 
-        test('Should show ORIGINAL_AMOUNT column when transaction has original amount', () => {
+        test('Should show AMOUNT column when transaction has a real conversion (currencies differ)', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
                 transactionID: 'test',
                 merchant: 'Test Merchant',
-                originalAmount: 2500,
+                currency: 'EUR',
+                groupCurrency: 'USD',
+                groupExchangeRate: 1.1,
+                convertedAmount: 2500,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
-            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
         });
 
         test('Should show column if at least one transaction has data for it', () => {
@@ -8215,7 +8255,7 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
         });
 
-        test('Should always show RECEIPT, TYPE, DATE, COMMENTS, TOTAL_AMOUNT in custom columns regardless of data', () => {
+        test('Should always show RECEIPT, TYPE, DATE, TOTAL in custom columns regardless of data, and COMMENTS when shouldShowCommentsColumn is true', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
@@ -8224,17 +8264,32 @@ describe('SearchUIUtils', () => {
                 modifiedMerchant: '',
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
-            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [testTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                shouldShowCommentsColumn: true,
+            });
 
             // Always-shown columns should be present
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
-            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TYPE);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
             // MERCHANT should be hidden because no data
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+
+            // Without shouldShowCommentsColumn, COMMENTS should not appear
+            const columnsWithoutComments = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [testTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+            });
+            expect(columnsWithoutComments).not.toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
         });
     });
 

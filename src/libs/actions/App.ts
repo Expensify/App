@@ -121,9 +121,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
+    ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.IS_LOADING_APP,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
-    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -164,7 +164,6 @@ Onyx.connectWithoutView({
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
 
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             openApp();
         });
     },
@@ -572,6 +571,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    isAnnualSubscription?: boolean;
 };
 
 /**
@@ -598,6 +598,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        isAnnualSubscription = false,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -626,8 +627,18 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            isAnnualSubscription,
         });
-        Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
+
+        if (transitionFromOldDot) {
+            Navigation.navigate(routeToNavigate);
+        } else if (Navigation.isTopmostRouteModalScreen()) {
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(routeToNavigate),
+            });
+        } else {
+            Navigation.navigate(routeToNavigate, {forceReplace: true});
+        }
     });
 }
 
@@ -689,6 +700,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    isAnnualSubscription?: boolean;
 };
 
 /**
@@ -712,6 +724,7 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    isAnnualSubscription = false,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -732,6 +745,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        isAnnualSubscription,
     });
 }
 
@@ -908,7 +922,6 @@ export {
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     createWorkspaceWithPolicyDraft,

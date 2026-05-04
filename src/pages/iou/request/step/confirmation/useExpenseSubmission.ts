@@ -23,6 +23,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
@@ -35,11 +36,10 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {GpsPoint} from '@userActions/IOU';
-import {createDistanceRequest as createDistanceRequestIOUActions} from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
-import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {createDistanceRequest as createDistanceRequestIOUActions, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -111,6 +111,7 @@ type UseExpenseSubmissionParams = {
     isCategorizingTrackExpense: boolean;
     isSharingTrackExpense: boolean;
     isUnreported: boolean;
+    isPolicyExpenseChat: boolean;
 
     // Onyx values
     draftTransactionIDs: string[] | undefined;
@@ -144,6 +145,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isCategorizingTrackExpense,
         isSharingTrackExpense,
         isUnreported,
+        isPolicyExpenseChat,
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
@@ -215,11 +217,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const parentReportAction = useParentReportAction(viewTourTaskReport);
 
     // Derived values from transaction
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+        ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
+        : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
@@ -360,7 +365,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             return;
         }
-        if (iouType === CONST.IOU.TYPE.TRACK) {
+        if (isTrackExpense) {
             submitPerDiemExpenseForSelfDM({
                 selfDMReport,
                 policy,
@@ -379,6 +384,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
+                shouldHandleNavigation: shouldHandleNav,
             });
         } else {
             const isExpenseReport = isMoneyRequestReport(report);
@@ -432,6 +438,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                shouldHandleNavigation: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
@@ -527,7 +534,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         createDistanceRequestIOUActions({
             report,
             participants: selectedParticipantsArg,
-            currentUserLogin: currentUserPersonalDetails.login,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             iouType,
             existingTransaction: transaction,
@@ -603,7 +610,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+        if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
@@ -611,9 +618,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
 
-        // Split (startSplitBill, splitBill, splitBillAndOpenReport) and invoice (sendInvoice)
-        // flows handle their own navigation internally and don't participate in the
-        // dismiss-modal fast path. shouldHandleNavigation is not threaded through to them.
+        // Split (startSplitBill, splitBill, splitBillAndOpenReport) flows handle their own
+        // navigation internally and don't participate in the dismiss-modal fast path.
+        // shouldHandleNavigation is not threaded through to them.
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
@@ -743,12 +750,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                shouldHandleNavigation,
             });
             markSubmitExpenseEnd();
             return;
         }
 
-        if (!isPerDiemRequest && (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense)) {
+        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
