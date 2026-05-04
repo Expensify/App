@@ -148,7 +148,6 @@ type TransactionItemRowProps = {
     policyForMovingExpenses?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
-    shouldRemoveTotalColumnFlex?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -204,7 +203,6 @@ function TransactionItemRow({
     isLargeScreenWidth: isLargeScreenWidthProp,
     policyForMovingExpenses,
     isActionColumnWide: isActionColumnWideProp,
-    shouldRemoveTotalColumnFlex,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -550,7 +548,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide})]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}
@@ -563,7 +561,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide})]}
                     >
                         {shouldShowAttendees && (
                             <AmountCell
@@ -578,7 +576,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide})]}
                     >
                         <AmountCell
                             total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
