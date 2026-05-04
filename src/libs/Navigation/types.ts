@@ -336,10 +336,8 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
         policyID: string;
@@ -435,15 +433,21 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
         policyID?: string;
     };
-    [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: {
+        policyID: string;
+        groupID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: {
+        policyID: string;
+        customUnitID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: {
         policyID: string;
@@ -2638,6 +2642,7 @@ type SettingsSplitNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.AGENTS.ROOT]: undefined;
     [SCREENS.SETTINGS.RULES.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.HELP]: undefined;
@@ -3015,9 +3020,6 @@ type AttachmentModalScreensParamList = {
     [SCREENS.WORKSPACE_AVATAR]: AttachmentModalContainerModalProps & {
         policyID: string;
         letter?: UpperCaseCharacters;
-    };
-    [SCREENS.WORKSPACE_DOCUMENT]: AttachmentModalContainerModalProps & {
-        policyID: string;
     };
     [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;

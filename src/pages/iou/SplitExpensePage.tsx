@@ -289,6 +289,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isPerDiem,
             isCard,
             translate,
+            convertToDisplayString,
         });
         if (saveError) {
             setErrorMessage(saveError);
@@ -423,6 +424,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetailsAmount,
         currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
         translate,
+        convertToDisplayString,
     });
 
     const footerContent = (

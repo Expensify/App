@@ -73,6 +73,7 @@ import {
     getReportAction,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
     getReportActionText,
+    getRequireCompanyCardsEnabledMessage,
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
@@ -640,7 +641,11 @@ function computeReportNameBasedOnReportAction(
         return getPolicyChangeMessage(translate, parentReportAction);
     }
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+    if (
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+    ) {
         return Parser.htmlToText(getChangedApproverActionMessage(translate, parentReportAction));
     }
 
@@ -773,6 +778,10 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
         return getUpdatedCardFeedStatementPeriodMessage(translate, parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
+        return getRequireCompanyCardsEnabledMessage(translate, parentReportAction);
+    }
+
     if (isDynamicExternalWorkflowSubmitFailedAction(parentReportAction)) {
         return getDynamicExternalWorkflowSubmitFailedActionMessage(translate, parentReportAction);
     }

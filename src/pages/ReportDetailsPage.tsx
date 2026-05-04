@@ -2,7 +2,7 @@ import {StackActions} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -149,7 +149,7 @@ type ReportDetailsPageMenuItem = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     subtitle?: number;
     shouldShowRightIcon?: boolean;
-    subtitleStyle?: StyleProp<TextStyle>;
+    subtitleStyle?: StyleProp<ViewStyle>;
 };
 
 type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
@@ -455,6 +455,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
+            const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
                 translationKey: 'actionableMentionTrackExpense.submit',
@@ -477,6 +478,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                         transaction: iouTransaction,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
+                        currentUserLocalCurrency,
                     });
                 },
             });
@@ -501,6 +503,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                             transaction: iouTransaction,
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
                         });
                     },
                 });
@@ -524,6 +527,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                             transaction: iouTransaction,
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
                         });
                     },
                 });
@@ -648,24 +652,25 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         reportActionsForOriginalReportID,
         iouTransactionID,
         moneyRequestReport?.reportID,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        currentUserPersonalDetails.localCurrencyCode,
+        isTaskActionable,
+        isRootGroupChat,
+        leaveChat,
+        showLastMemberLeavingModal,
+        isSmallScreenWidth,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
         introSelected,
         draftTransactionIDs,
         activePolicy,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
         iouTransaction,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.email,
-        isTaskActionable,
         parentReport,
         delegateEmail,
-        isSmallScreenWidth,
-        isRootGroupChat,
-        leaveChat,
-        showLastMemberLeavingModal,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

@@ -197,6 +197,10 @@ const darkTheme = {
             backgroundColor: colors.tangerine700,
             textColor: colors.productDark900,
         },
+        unreported: {
+            backgroundColor: colors.productDark400,
+            textColor: colors.productDark900,
+        },
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,

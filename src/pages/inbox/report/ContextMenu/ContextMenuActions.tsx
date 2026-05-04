@@ -81,6 +81,7 @@ import {
     getReportAction,
     getReportActionMessageFragments,
     getReportActionMessageText,
+    getRequireCompanyCardsEnabledMessage,
     getRoomAvatarUpdatedMessage,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
@@ -958,6 +959,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
                     Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
+                    Clipboard.setString(getRequireCompanyCardsEnabledMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
@@ -1139,7 +1142,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedIndividualBudgetNotificationMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION)) {
                     setClipboardMessage(getUpdatedSharedBudgetNotificationMessage(translate, reportAction));
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+                } else if (
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+                ) {
                     setClipboardMessage(getChangedApproverActionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
                     setClipboardMessage(getMovedTransactionMessage(translate, reportAction, conciergeReportID));

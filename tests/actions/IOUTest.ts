@@ -484,6 +484,7 @@ describe('actions/IOU', () => {
                 transaction: transactionToCategorize,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -534,6 +535,7 @@ describe('actions/IOU', () => {
                 transaction: originalTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -573,6 +575,7 @@ describe('actions/IOU', () => {
                 transaction: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -607,6 +610,7 @@ describe('actions/IOU', () => {
                 amountOwed: 0,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -6760,7 +6764,6 @@ describe('actions/IOU', () => {
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
         beforeEach(() => {
             jest.mock('@libs/OdometerImageUtils', () => ({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __esModule: true,
                 default: jest.fn(),
             }));

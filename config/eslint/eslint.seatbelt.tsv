@@ -76,7 +76,6 @@
 "../../src/components/ImportSpreadsheet.tsx"	"react-hooks/refs"	1
 "../../src/components/InteractiveStepSubPageHeader.tsx"	"no-restricted-syntax"	1
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
-"../../src/components/LHNOptionsList/OptionRowLHN.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -117,7 +116,6 @@
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
 "../../src/components/Reactions/MiniQuickEmojiReactions.tsx"	"react-hooks/refs"	1
-"../../src/components/ReimbursementAccountLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/refs"	1
@@ -347,7 +345,6 @@
 "../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportDetailsPage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1

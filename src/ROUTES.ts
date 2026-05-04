@@ -304,6 +304,24 @@ const DYNAMIC_ROUTES = {
         path: 'imported',
         entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
     },
+    WORKSPACE_CATEGORIES_SETTINGS: {
+        path: 'categories-settings',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_CATEGORY_CREATE: {
+        path: 'category-new',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    SPEND_CATEGORY_SELECTOR: {
+        path: 'spend-category-selector/:groupID',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS],
+        getRoute: (groupID: string) => `spend-category-selector/${groupID}` as const,
+    },
+    DEFAULT_CATEGORY_SELECTOR: {
+        path: 'default-category-selector/:customUnitID',
+        entryScreens: [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS, SCREENS.WORKSPACE.PER_DIEM_SETTINGS],
+        getRoute: (customUnitID: string) => `default-category-selector/${customUnitID}` as const,
+    },
     WORKSPACE_INVITE: {
         path: 'invite',
         entryScreens: [SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MEMBERS],
@@ -391,7 +409,7 @@ const ROUTES = {
     SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
-        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
+        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${encodeURIComponent(jsonQuery)}` as const,
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
@@ -843,6 +861,7 @@ const ROUTES = {
     },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
+    SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -2161,10 +2180,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/avatar',
         getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
     },
-    WORKSPACE_DOCUMENT: {
-        route: 'workspaces/:policyID/document',
-        getRoute: (policyID: string) => `workspaces/${policyID}/document` as const,
-    },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
         getRoute: (policyID: string, inviterEmail: string) => `workspaces/${policyID}/join?email=${inviterEmail}` as const,
@@ -2353,14 +2368,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspaces/pay-and-downgrade` as const, backTo),
-    },
-    WORKSPACE_CATEGORIES_SETTINGS: {
-        route: 'workspaces/:policyID/categories/settings',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/settings` as const,
-    },
-    WORKSPACE_CATEGORY_CREATE: {
-        route: 'workspaces/:policyID/categories/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/new` as const,
     },
     WORKSPACE_CATEGORY_EDIT: {
         route: 'workspaces/:policyID/category/:categoryName/edit',
