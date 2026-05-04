@@ -363,7 +363,7 @@ function BaseVideoPlayer({
                 currentVideoPlayerRef.current = null;
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [currentVideoPlayerRef, mountedVideoPlayersRef, url],
     );
 
@@ -394,7 +394,7 @@ function BaseVideoPlayer({
 
             setCurrentlyPlayingURL(null);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [setCurrentlyPlayingURL],
     );
 

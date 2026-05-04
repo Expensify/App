@@ -13,6 +13,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
+    /** Whether to apply the theme fill color to the icon. Set to false for multi-colored icons like avatars. Defaults to true. */
+    shouldIconApplyFill?: boolean;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
     searchQuery?: string;
     autocompleteID?: string;
@@ -56,7 +58,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                 {!!item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
-                        fill={theme.icon}
+                        fill={item.shouldIconApplyFill !== false ? theme.icon : undefined}
                         additionalStyles={styles.mr3}
                         medium
                     />

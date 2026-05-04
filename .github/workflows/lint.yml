@@ -14,7 +14,7 @@ concurrency:
 jobs:
   lint:
     name: ESLint check
-    if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'push' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -25,7 +25,7 @@ jobs:
           # (so the auto-commit step below can push to the protected `main` branch).
           # PR runs use the default GITHUB_TOKEN so PR code can't borrow push-to-main
           # access via the persisted checkout credentials.
-          token: ${{ github.event_name == 'workflow_call' && secrets.OS_BOTIFY_COMMIT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'push' && secrets.OS_BOTIFY_COMMIT_TOKEN || github.token }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -68,7 +68,7 @@ jobs:
       # (i.e. invoked from preDeploy.yml, which only triggers on push to main).
       - name: Check for tightened eslint-seatbelt baseline
         id: seatbelt_diff
-        if: github.event_name == 'workflow_call'
+        if: github.event_name == 'push'
         run: |
           if git diff --quiet config/eslint/eslint.seatbelt.tsv; then
             echo "tightened=false" >> "$GITHUB_OUTPUT"

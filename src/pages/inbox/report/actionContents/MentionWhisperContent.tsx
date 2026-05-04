@@ -6,35 +6,38 @@ import type {ActionableItem} from '@components/ReportActionItem/ActionableItemBu
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {getActionableMentionWhisperMessage, getOriginalMessage, isSystemUserMentioned} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type MentionWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>;
     report: OnyxEntry<Report>;
     originalReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    personalPolicyID: string | undefined;
     originalReportID: string | undefined;
     resolveActionableMentionWhisper: (
         report: OnyxEntry<Report>,
         reportAction: OnyxEntry<ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         isReportArchived: boolean,
+        parentReport?: OnyxEntry<Report>,
     ) => void;
 };
 
-function MentionWhisperContent({action, report, originalReport, policy, personalPolicyID, originalReportID, resolveActionableMentionWhisper}: MentionWhisperContentProps) {
+function MentionWhisperContent({action, report, originalReport, originalReportID, resolveActionableMentionWhisper}: MentionWhisperContentProps) {
     const {translate} = useLocalize();
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const reportActionReport = originalReport ?? report;
     const reportPolicyID = report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 
     const isReportInPolicy = !!reportPolicyID && reportPolicyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== reportPolicyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
@@ -44,19 +47,40 @@ function MentionWhisperContent({action, report, originalReport, policy, personal
         buttons.push({
             text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         });
     }
     buttons.push(
         {
             text: 'actionableMentionWhisperOptions.inviteToChat',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         },
         {
             text: 'actionableMentionWhisperOptions.nothing',
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () => resolveActionableMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived),
+            onPress: () =>
+                resolveActionableMentionWhisper(
+                    reportActionReport,
+                    action,
+                    CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                    isOriginalReportArchived,
+                    originalReport ? report : undefined,
+                ),
         },
     );
 

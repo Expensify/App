@@ -52,6 +52,9 @@ type HideContextMenuParams = {
     callbacks?: {
         onHide?: () => void;
     };
+    /** Delay before hiding (ms). Run on the UI thread via Reanimated.
+     *  https://github.com/Expensify/App/issues/89069 */
+    hideDelayMs?: number;
 };
 type HideContextMenu = (params?: HideContextMenuParams) => void;
 
@@ -85,9 +88,11 @@ function registerEnsureContextMenuMounted(handler: (() => void) | null) {
     ensureContextMenuMounted = handler;
 }
 
+// How long the success icon (Checkmark / "Copied!") stays visible before the menu hides.
+const SUCCESS_STATE_HIDE_DELAY_MS = 800;
+
 /**
  * Hide the ReportActionContextMenu modal popover.
- * Hides the popover menu with an optional delay
  * @param [shouldDelay] - whether the menu should close after a delay
  * @param [onHideCallback] - Callback to be called after Context Menu is completely hidden
  */
@@ -96,30 +101,14 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
         return;
     }
 
-    const paramsWithCallback = {
+    contextMenuRef.current.hideContextMenu({
+        ...params,
         callbacks: {
             ...params?.callbacks,
             onHide: onHideCallback,
         },
-        ...params,
-    };
-
-    if (!shouldDelay) {
-        contextMenuRef.current.hideContextMenu(paramsWithCallback);
-        return;
-    }
-
-    // Save the active instanceID for which hide action was called.
-    // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
-    // If instance is not same, cancel the hide action
-    const instanceID = contextMenuRef.current.instanceIDRef.current;
-    setTimeout(() => {
-        if (contextMenuRef.current?.instanceIDRef.current !== instanceID) {
-            return;
-        }
-
-        contextMenuRef.current.hideContextMenu(paramsWithCallback);
-    }, 800);
+        ...(shouldDelay ? {hideDelayMs: SUCCESS_STATE_HIDE_DELAY_MS} : {}),
+    });
 }
 
 /**

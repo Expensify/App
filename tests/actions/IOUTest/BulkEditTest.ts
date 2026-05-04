@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
@@ -13,6 +11,9 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+const RORY_EMAIL = 'rory@expensifail.com';
+const RORY_ACCOUNT_ID = 3;
 
 describe('actions/IOU/BulkEdit', () => {
     describe('updateMultipleMoneyRequests', () => {
@@ -54,7 +55,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
             const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
@@ -69,6 +70,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -140,6 +143,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -200,6 +205,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -269,6 +276,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -342,6 +351,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -406,6 +417,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -468,6 +481,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -529,7 +544,6 @@ describe('actions/IOU/BulkEdit', () => {
                             required: true,
                             orderWeight: 0,
                             tags: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
                                 Engineering: {name: 'Engineering', enabled: true},
                             },
                         },
@@ -538,6 +552,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -592,6 +608,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -649,6 +667,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -713,6 +733,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -778,6 +800,8 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -854,6 +878,8 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -918,6 +944,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -970,7 +998,6 @@ describe('actions/IOU/BulkEdit', () => {
                     required: true,
                     orderWeight: 0,
                     tags: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         ValidTag: {name: 'ValidTag', enabled: true},
                     },
                 },
@@ -995,6 +1022,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1052,6 +1081,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1134,6 +1165,8 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1224,6 +1257,8 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1292,6 +1327,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1359,6 +1396,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1422,6 +1461,8 @@ describe('actions/IOU/BulkEdit', () => {
                 hash: undefined,
                 introSelected: undefined,
                 betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};

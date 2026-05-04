@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ASTNode} from '@components/Search/types';
+import type {ASTNode, SearchQueryJSON} from '@components/Search/types';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -1401,14 +1400,17 @@ describe('SearchQueryUtils', () => {
         });
 
         it('should not include view in query string when groupBy is removed after chart drill-down', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
+            const parsed = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
 
-            if (!queryJSON) {
+            if (!parsed) {
                 throw new Error('Failed to parse query string');
             }
 
-            queryJSON.groupBy = undefined;
-            queryJSON.view = CONST.SEARCH.VIEW.TABLE;
+            const queryJSON: SearchQueryJSON = {
+                ...parsed,
+                groupBy: undefined,
+                view: CONST.SEARCH.VIEW.TABLE,
+            };
 
             const result = buildSearchQueryString(queryJSON);
 
@@ -1999,28 +2001,31 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildSearchQueryJSON cache', () => {
-        test('mutating the returned object does not affect subsequent calls for the same query', () => {
+        test('mutating a spread copy does not affect the cached frozen object or later calls', () => {
             const query = `type:expense groupBy:category view:bar date:last-month merchant:test${Date.now()}`;
 
-            const first = buildSearchQueryJSON(query);
-            if (first) {
-                first.groupBy = undefined;
-                first.view = CONST.SEARCH.VIEW.TABLE;
-            }
+            const parsed = buildSearchQueryJSON(query);
+            expect(parsed).toBeDefined();
+            expect(Object.isFrozen(parsed)).toBe(true);
 
-            const second = buildSearchQueryJSON(query);
+            const mutableCopy = {...parsed};
+            mutableCopy.groupBy = undefined;
+            mutableCopy.view = CONST.SEARCH.VIEW.TABLE;
 
-            expect(second?.groupBy).toBe('category');
-            expect(second?.view).toBe('bar');
+            expect(buildSearchQueryJSON(query)?.groupBy).toBe('category');
+            expect(buildSearchQueryJSON(query)?.view).toBe('bar');
+            expect(mutableCopy.groupBy).toBeUndefined();
         });
 
-        test('returns equal result on repeated calls with the same query', () => {
+        test('returns the same reference on repeated calls with the same query', () => {
             const query = 'type:expense status:outstanding';
 
             const first = buildSearchQueryJSON(query);
             const second = buildSearchQueryJSON(query);
 
             expect(first).toEqual(second);
+            expect(first).toBe(second);
+            expect(Object.isFrozen(first)).toBe(true);
         });
 
         test('returns independent results for the same query with different rawQuery values', () => {
