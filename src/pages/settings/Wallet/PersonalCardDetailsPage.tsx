@@ -21,7 +21,6 @@ import {getCardFeedIcon, isCardConnectionBroken, isPersonalCard} from '@libs/Car
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
@@ -58,7 +57,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const cardBank = card?.bank ?? '';
     const isCardBroken = card ? isCardConnectionBroken(card) : false;
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const displayName = getDisplayNameOrDefault(cardholder);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
@@ -162,7 +160,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         card={card}
                         cardID={cardID}
                         cardholder={cardholder}
-                        displayName={displayName}
                         customCardNames={customCardNames}
                         expensifyIcons={expensifyIcons}
                         isCSVImportedPersonalCard={isCSVImportedPersonalCard}

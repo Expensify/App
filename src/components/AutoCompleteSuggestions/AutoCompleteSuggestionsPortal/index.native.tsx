@@ -7,9 +7,16 @@ import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
-function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, resetSuggestions = () => {}, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
+function AutoCompleteSuggestionsPortal<TSuggestion>({
+    left = 0,
+    width = 0,
+    bottom = 0,
+    resetSuggestions = () => {},
+    isInLandscapeMode = false,
+    ...props
+}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
-    const bottomPadding = getBottomSuggestionPadding(bottom);
+    const bottomPadding = getBottomSuggestionPadding(bottom, isInLandscapeMode);
     const styles = useMemo(() => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + bottomPadding}), [StyleUtils, left, width, bottom, bottomPadding]);
 
     if (!width) {
@@ -20,7 +27,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom
         <Portal hostName="suggestions">
             <TransparentOverlay onPress={resetSuggestions} />
             <View style={styles}>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                {}
                 <BaseAutoCompleteSuggestions<TSuggestion>
                     width={width}
                     // eslint-disable-next-line react/jsx-props-no-spreading

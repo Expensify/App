@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import Pusher from 'pusher-js/with-encryption';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';

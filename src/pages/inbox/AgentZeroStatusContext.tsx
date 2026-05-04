@@ -4,7 +4,7 @@ import React, {createContext, useContext, useEffect, useRef, useState} from 'rea
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {getReportChannelName} from '@libs/actions/Report';
+import {clearConciergeThinkingKickoff, getReportChannelName} from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import CONST from '@src/CONST';
@@ -77,6 +77,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 const MIN_DISPLAY_TIME = 300; // ms
 // Debounce delay for server label updates
 const DEBOUNCE_DELAY = 150; // ms
+const OPTIMISTIC_TIMEOUT = 120000; // 2 minutes
 
 /**
  * Inner gate — all Pusher, reasoning, label, and processing state.
@@ -100,6 +101,17 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     // Timestamp of the last label update — used to enforce MIN_DISPLAY_TIME
     const lastUpdateTimeRef = useRef<number>(0);
     const {isOffline} = useNetwork();
+
+    // Auto-kickoff "thinking" indicator when opened from search (where kickoffWaitingIndicator isn't accessible)
+    const [shouldKickoff] = useOnyx(ONYXKEYS.CONCIERGE_THINKING_KICKOFF);
+    useEffect(() => {
+        if (!shouldKickoff) {
+            return;
+        }
+        clearConciergeThinkingKickoff();
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot kickoff from search; Onyx flag is cleared immediately so it cannot cascade
+        setOptimisticStartTime(Date.now());
+    }, [shouldKickoff]);
 
     // Tracks the current agentZeroRequestID so the Pusher callback can detect new requests
     const agentZeroRequestIDRef = useRef('');
@@ -201,7 +213,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         // Immediate update when enough time has passed or when clearing the label
         if (remainingMinTime === 0 || targetLabel === '') {
             displayedLabelRef.current = targetLabel;
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- guarded by displayedLabelRef check above; fires once per serverLabel/optimistic transition
+
             setDisplayedLabel(targetLabel);
             lastUpdateTimeRef.current = now;
         } else {
@@ -222,6 +234,19 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
             clearTimeout(updateTimerRef.current);
         };
     }, [serverLabel, optimisticStartTime, translate]);
+
+    // Pusher updates carrying the server label can be silently dropped, leaving the optimistic indicator stuck forever.
+    useEffect(() => {
+        if (!optimisticStartTime) {
+            return;
+        }
+        const elapsed = Date.now() - optimisticStartTime;
+        const remaining = Math.max(0, OPTIMISTIC_TIMEOUT - elapsed);
+        const timer = setTimeout(() => {
+            setOptimisticStartTime(null);
+        }, remaining);
+        return () => clearTimeout(timer);
+    }, [optimisticStartTime]);
 
     const kickoffWaitingIndicator = () => {
         setOptimisticStartTime(Date.now());
