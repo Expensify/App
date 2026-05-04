@@ -1,0 +1,16 @@
+# @desc   From the Inbox tab, open a chat matching TARGET_CHAT in the LHN, type a message and send it. Triggers the ManualSendMessage Sentry span (Send press -> optimistic message fragment rendered). Assumes the user is signed in with at least one chat in the Inbox.
+# @pre    text="Inbox"
+# @pre    text="Navigates to a chat"
+# @post   label="Write something..." editable=true
+# @tag    chat
+# @tag    navigation
+# @tag    perf
+# @tag    sentry-ManualSendMessage
+env MESSAGE="Hello from agent-device ManualSendMessage flow"
+env TARGET_CHAT="Navigates to a chat"
+
+find "Inbox" "click"
+find "${TARGET_CHAT}" "click"
+is exists "label=\"Write something...\" editable=true"
+fill "label=\"Write something...\" editable=true" "${MESSAGE}"
+press "role=\"button\" label=\"Send\""

@@ -15,22 +15,24 @@ import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isAddCommentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
 import {
-    addSplitExpenseField,
     completeSplitBill,
     createDistanceRequest,
+    setDraftSplitTransaction,
+    splitBill,
+    startSplitBill,
+    updateSplitTransactions,
+    updateSplitTransactionsFromSplitExpensesFlow,
+} from '@userActions/IOU/Split';
+import {
+    addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     removeSplitExpenseField,
     resetSplitExpensesByDateRange,
-    setDraftSplitTransaction,
-    splitBill,
-    startSplitBill,
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
-    updateSplitTransactions,
-    updateSplitTransactionsFromSplitExpensesFlow,
-} from '@userActions/IOU/Split';
+} from '@userActions/IOU/SplitExpenseItems';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
@@ -84,7 +86,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -109,7 +110,6 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const unapprovedCashHash = 71801560;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -2088,6 +2088,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -2198,6 +2199,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
                     {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2258,6 +2260,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [{transactionID: splitTransactionID1, amount, created: DateUtils.getDBTime(), reportID: differentReportID}],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2310,6 +2313,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
             betas: [],
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -2421,6 +2425,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
                     {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2528,6 +2533,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [{transactionID: splitTransactionID1, amount, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2615,9 +2621,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
     });
 
     it('should set navigate-back URL and use backward navigation pattern when reverse-split deletes the last transaction in expense report', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const Report = jest.requireMock('@src/libs/actions/Report');
 
         // Given an expense report that is the only transaction in its parent chat,
@@ -2702,6 +2707,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID: reportID1,
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             searchContext: {
                 currentSearchHash: -2,
@@ -2729,23 +2735,22 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Then setDeleteTransactionNavigateBackUrl should be called with the parent chat route
         // because the expense report is being deleted and we need to suppress the "Not here" page
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
 
         // Then navigateBackOnDeleteTransaction should be used (which calls dismissToSuperWideRHP + goBack)
         // instead of dismissModalWithReport
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.dismissToSuperWideRHP).toHaveBeenCalled();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
     });
 
     it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const Report = jest.requireMock('@src/libs/actions/Report');
 
         // Given an expense report with two transactions (so it won't be deleted by the reverse split),
@@ -2837,6 +2842,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID: reportID2,
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             searchContext: {
                 currentSearchHash: -2,
@@ -2864,11 +2870,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Then setDeleteTransactionNavigateBackUrl should not be called because the expense report
         // still has other transactions and won't be deleted
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Report.setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
 
         // Then navigation should go to the expense report since it still exists
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID});
     });
 });
@@ -2892,6 +2898,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3069,6 +3076,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3250,6 +3258,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3440,6 +3449,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3511,7 +3521,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
         }
         await waitForBatchedUpdates();
 
@@ -3707,6 +3717,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -3787,6 +3798,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: 'split-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime()},
                     {transactionID: 'split-2', amount: amount / 2, description: 'Split 2', created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -3837,6 +3849,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -3917,6 +3930,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: 'offline-split-1', amount: amount / 2, description: 'Offline Split 1', created: DateUtils.getDBTime()},
                     {transactionID: 'offline-split-2', amount: amount / 2, description: 'Offline Split 2', created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -3968,6 +3982,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -4046,6 +4061,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: 'cat-tag-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime(), category: testCategory, tags: [testTag]},
                     {transactionID: 'cat-tag-2', amount: amount / 2, description: 'Split 2', created: DateUtils.getDBTime(), category: testCategory, tags: [testTag]},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4108,6 +4124,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -4222,6 +4239,7 @@ describe('updateSplitTransactions', () => {
                     description: `Split ${index + 1}`,
                     created: DateUtils.getDBTime(),
                 })),
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4266,7 +4284,7 @@ describe('updateSplitTransactions', () => {
         // Put the original transaction on hold before splitting it.
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
-        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, ancestors);
+        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, ancestors);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
@@ -4316,6 +4334,7 @@ describe('updateSplitTransactions', () => {
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4377,6 +4396,7 @@ describe('updateSplitTransactions', () => {
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4421,13 +4441,14 @@ describe('updateSplitTransactions', () => {
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
         // Put the split transaction 1 on hold before reverting it
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
-        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, ancestors2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, ancestors2);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
@@ -4454,6 +4475,7 @@ describe('updateSplitTransactions', () => {
                 reportID: expenseReport.reportID,
                 originalTransactionID,
                 splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4507,6 +4529,7 @@ describe('updateSplitTransactions', () => {
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -4532,6 +4555,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
                     {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4556,6 +4580,74 @@ describe('updateSplitTransactions', () => {
 
         const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
+    });
+
+    it('should preserve report total when deleting a split with correct splitExpensesTotal', async () => {
+        // This tests the bug where useDeleteTransactions was not passing splitExpensesTotal,
+        // causing the report total to be incorrect after offline split deletion.
+        // Without splitExpensesTotal, changesInReportTotal = sum(remaining splits) - 0 = remaining total,
+        // which incorrectly subtracts that from the report total again.
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        const reportID = expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const txID = originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+        // Split into 4 parts for clean division (amount=10000, each split = 2500)
+        const splitIDs = await splitToN(4, expenseReport, txID);
+
+        // Capture the report total after the initial split
+        const reportAfterSplit = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const totalAfterSplit = reportAfterSplit?.total ?? 0;
+
+        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
+        // "Delete" one split by calling updateSplitTransactions with only three remaining splits.
+        // Pass splitExpensesTotal = sum of remaining splits (this is what useDeleteTransactions now does).
+        const splitAmount = amount / 4;
+        const splitExpensesTotal = splitAmount * 3;
+
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID,
+                originalTransactionID: txID,
+                splitExpenses: [
+                    {transactionID: splitIDs.at(0) ?? '', amount: splitAmount, created: DateUtils.getDBTime()},
+                    {transactionID: splitIDs.at(1) ?? '', amount: splitAmount, created: DateUtils.getDBTime()},
+                    {transactionID: splitIDs.at(2) ?? '', amount: splitAmount, created: DateUtils.getDBTime()},
+                ],
+                splitExpensesTotal,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+        });
+        await waitForBatchedUpdates();
+
+        // With correct splitExpensesTotal: changesInReportTotal = remainingAmount - splitExpensesTotal = 0,
+        // so the report total should not change from the post-split value.
+        // Without splitExpensesTotal (the bug): changesInReportTotal = remainingAmount - 0 = remainingAmount,
+        // which would incorrectly subtract that from the total, resulting in totalAfterSplit + remainingAmount.
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(updatedReport?.total).toBe(totalAfterSplit);
     });
 });
 

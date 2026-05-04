@@ -211,7 +211,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         ...currentTransaction,
         comment: {
             ...currentTransaction?.comment,
@@ -1089,6 +1088,7 @@ function changeTransactionsReport({
                 originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
+                ...(shouldClearAmount && {convertedTaxAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
         });
@@ -1112,6 +1112,7 @@ function changeTransactionsReport({
                 originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
+                ...(shouldClearAmount && {convertedTaxAmount: transaction.convertedTaxAmount}),
             },
         });
 

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
 

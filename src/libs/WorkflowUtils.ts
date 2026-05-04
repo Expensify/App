@@ -1,5 +1,4 @@
 import {Str} from 'expensify-common';
-import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -148,7 +147,10 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
-    const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
+    const personalDetailsByEmail: PersonalDetailsList = {};
+    for (const [key, value] of Object.entries(personalDetails)) {
+        personalDetailsByEmail[value?.login ?? key] = value;
+    }
     const availableMembers: Member[] = [];
 
     for (const employee of Object.values(employees)) {

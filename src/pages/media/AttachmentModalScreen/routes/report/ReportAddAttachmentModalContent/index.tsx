@@ -40,7 +40,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isReportArchived = useReportIsArchived(reportID);
@@ -112,8 +112,10 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(validFiles) && validFiles.length === 0);
-    }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFiles]);
+        return (
+            !!isLoadingApp || isEmptyReport || (reportLoadingState?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(validFiles) && validFiles.length === 0)
+        );
+    }, [isOffline, report, reportID, isLoadingApp, reportLoadingState?.isLoadingInitialReportActions, shouldFetchReport, validFiles]);
 
     const onConfirm = useCallback(
         (f: FileObject | FileObject[]) => {

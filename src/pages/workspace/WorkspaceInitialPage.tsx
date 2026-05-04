@@ -170,7 +170,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
-        [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && (policy?.receiptPartners?.enabled ?? false),
+        [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
     } as PolicyFeatureStates;
@@ -184,7 +184,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
     const fetchPolicyData = () => {
         if (policyDraft?.id || !isFocused) {
@@ -451,10 +451,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() =>
-                        // On narrow, goBack() pops the workspace split; goBack with a route can't resolve inside TAB_NAVIGATOR.
-                        shouldUseNarrowLayout && !route.params?.backTo ? Navigation.goBack() : Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)
-                    }
+                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />

@@ -1,5 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import {formatRequireItemizedReceiptsOverText, getAvailableNonPersonalPolicyCategories, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
@@ -35,23 +36,17 @@ describe('formatRequireItemizedReceiptsOverText', () => {
     } as Policy;
 
     it('returns "Always" text when category amount is 0', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0);
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.always'));
     });
 
     it('returns "Never" text when category amount is DISABLED_MAX_EXPENSE_VALUE', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, CONST.DISABLED_MAX_EXPENSE_VALUE);
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, CONST.DISABLED_MAX_EXPENSE_VALUE, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
     });
 
     it('returns default text when category has no override', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, undefined);
-        expect(typeof result).toBe('string');
-        expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('returns default text when category amount is null', () => {
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, null);
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, undefined, convertToDisplayString);
         expect(typeof result).toBe('string');
         expect(result.length).toBeGreaterThan(0);
     });
@@ -61,7 +56,7 @@ describe('formatRequireItemizedReceiptsOverText', () => {
             ...mockPolicy,
             maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
         } as Policy;
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithDisabledItemizedReceipt, undefined);
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithDisabledItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
     });
 
@@ -70,7 +65,7 @@ describe('formatRequireItemizedReceiptsOverText', () => {
             ...mockPolicy,
             maxExpenseAmountNoItemizedReceipt: undefined,
         } as Policy;
-        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined);
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
     });
 });

@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';

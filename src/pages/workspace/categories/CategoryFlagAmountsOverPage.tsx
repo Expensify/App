@@ -1,9 +1,10 @@
-import React, {useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -12,8 +13,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -21,11 +24,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCategoryMaxAmount} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
-import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
-import ExpenseLimitTypeSelector from './ExpenseLimitTypeSelector/ExpenseLimitTypeSelector';
 
 type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER>;
 
@@ -39,8 +40,15 @@ function CategoryFlagAmountsOverPage({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM_DRAFT);
+    const expenseLimitType = formDraft?.expenseLimitType ?? policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const decodedCategoryName = getDecodedCategoryName(categoryName);
+
+    useEffect(() => {
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM);
+        };
+    }, []);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -59,7 +67,7 @@ function CategoryFlagAmountsOverPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                style={[styles.defaultModalContainer]}
+                style={styles.defaultModalContainer}
                 testID="CategoryFlagAmountsOverPage"
                 shouldEnableMaxHeight
             >
@@ -94,11 +102,12 @@ function CategoryFlagAmountsOverPage({
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
                     </View>
-                    <ExpenseLimitTypeSelector
-                        label={translate('common.type')}
-                        defaultValue={expenseLimitType}
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        title={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
+                        description={translate('common.type')}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
                         wrapperStyle={[styles.ph5, styles.mt3]}
-                        setNewExpenseLimitType={setExpenseLimitType}
                     />
                 </FormProvider>
             </ScreenWrapper>
