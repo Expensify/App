@@ -104,7 +104,7 @@ function BaseContent({
                                     onLayout={onLayout}
                                     style={[
                                         isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
-                                        isSmallScreenWidth ? undefined : styles.pv2,
+                                        isSmallScreenWidth ? styles.pv4 : styles.pv2,
                                         maxHeightStyle,
                                         containerStyles,
                                     ]}

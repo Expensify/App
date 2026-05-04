@@ -1,6 +1,8 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -36,6 +38,8 @@ function CheckmarkItem({
     iconHeight,
     ...rest
 }: CheckmarkItemProps): React.ReactElement | null {
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: CheckmarkItem.displayName, onSelect, disabled});
 
     if (!isAtActiveLevel) {
@@ -56,8 +60,9 @@ function CheckmarkItem({
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                // MenuItem renders rightIcon and the check as independent slots; suppress the check when both would show.
                 shouldShowSelectedItemCheck={!rightIcon}
+                wrapperStyle={StyleUtils.getItemBackgroundColorStyle(isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
+                shouldRemoveHoverBackground={isSelected}
                 onPress={onPress}
                 onFocus={onFocus}
                 focused={focused}

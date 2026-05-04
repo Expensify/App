@@ -24,7 +24,6 @@ function SubBackButton({backButtonText}: SubBackButtonProps): React.ReactElement
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const hasLabel = !!backButtonText;
     const labelText = backButtonText ?? translate('common.goBack');
 
     const {ref, focused, onPress, onFocus} = useFocusableRow({
@@ -38,15 +37,12 @@ function SubBackButton({backButtonText}: SubBackButtonProps): React.ReactElement
             ref={ref}
             icon={icons.BackArrow}
             iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
-            style={hasLabel ? styles.pv0 : undefined}
             additionalIconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}, styles.opacitySemiTransparent, styles.mr1]}
             iconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}]}
             wrapperStyle={[styles.ph5, styles.pv3]}
             innerContainerStyle={styles.alignItemsCenter}
             title={labelText}
             accessibilityLabel={`${translate('common.goBack')}, ${labelText}`}
-            titleStyle={hasLabel ? styles.createMenuHeaderText : undefined}
-            shouldShowBasicTitle={hasLabel}
             shouldCheckActionAllowedOnPress={false}
             onPress={onPress}
             onFocus={onFocus}
