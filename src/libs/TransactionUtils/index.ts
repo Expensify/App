@@ -1928,7 +1928,8 @@ function isViolationDismissed(
         return dismissedByEmails.length > 0;
     }
 
-    // If the admin is looking at an open report, we check for both, submitter and admin.
+    // On an open report, dismissals are honored across roles: admin/approver viewing accepts a dismissal recorded by the submitter,
+    // and submitter viewing accepts a dismissal recorded by an admin/approver.
     if (!iouReport) {
         return false;
     }
@@ -1941,6 +1942,10 @@ function isViolationDismissed(
         if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
             return true;
         }
+    }
+
+    if (isSubmitter && isOpenExpenseReport(iouReport) && dismissedByEmails.length > 0) {
+        return true;
     }
 
     return false;
