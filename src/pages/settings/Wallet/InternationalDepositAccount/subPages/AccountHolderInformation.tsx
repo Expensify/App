@@ -91,36 +91,40 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(b.id))
-                    .map((field, index) => (
-                        <View
-                            style={getStyle(field, index)}
-                            key={field.id}
-                        >
-                            <InputWrapper
-                                InputComponent={getInputComponent(field)}
-                                inputID={field.id}
-                                defaultValue={formValues[field.id]}
-                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                                description={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? field.label : undefined}
-                                items={getItems(field)}
-                                shouldAllowChange={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
-                                optionsList={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? CONST.ALL_COUNTRIES : undefined}
-                                value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
-                                shouldSaveDraft={!isEditing}
-                                renamedInputKeys={{
-                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
-                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
-                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderCity) ? '' : 'accountHolderCity',
-                                    state: '',
-                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderPostal) ? '' : 'accountHolderPostal',
-                                    country: '',
-                                    lat: '',
-                                    lng: '',
-                                }}
-                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            />
-                        </View>
-                    ))}
+                    .map((field, index) => {
+                        const InputComponent = getInputComponent(field);
+                        return (
+                            <View
+                                style={getStyle(field, index)}
+                                key={field.id}
+                            >
+                                <InputWrapper
+                                    InputComponent={InputComponent}
+                                    inputID={field.id}
+                                    defaultValue={formValues[field.id]}
+                                    label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                    description={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? field.label : undefined}
+                                    items={getItems(field)}
+                                    shouldAllowChange={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
+                                    optionsList={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? CONST.ALL_COUNTRIES : undefined}
+                                    value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
+                                    shouldSaveDraft={!isEditing}
+                                    renamedInputKeys={{
+                                        street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
+                                        street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
+                                        city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderCity) ? '' : 'accountHolderCity',
+                                        state: '',
+                                        zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderPostal) ? '' : 'accountHolderPostal',
+                                        country: '',
+                                        lat: '',
+                                        lng: '',
+                                    }}
+                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                    {...(InputComponent === TextInput ? {autoCorrect: false, spellCheck: false} : {})}
+                                />
+                            </View>
+                        );
+                    })}
             </View>
         </FormProvider>
     );

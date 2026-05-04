@@ -86,13 +86,14 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
         }
 
+        const InputComponent = getInputComponent(field);
         return (
             <View
                 style={styles.mb6}
                 key={field.id}
             >
                 <InputWrapper
-                    InputComponent={getInputComponent(field)}
+                    InputComponent={InputComponent}
                     inputID={field.id}
                     label={field.label}
                     aria-label={field.label}
@@ -106,6 +107,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         country: '',
                     }}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                    {...(InputComponent === TextInput ? {autoCorrect: false, spellCheck: false} : {})}
                 />
             </View>
         );

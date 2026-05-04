@@ -81,22 +81,26 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                         shouldShowFullPageOfflineView
                     />
                 </View>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => (
-                    <View
-                        style={(field.valueSet ?? []).length > 0 ? [styles.mhn5, styles.pv1] : [styles.pv2]}
-                        key={field.id}
-                    >
-                        <InputWrapper
-                            InputComponent={(field.valueSet ?? []).length > 0 ? ValuePicker : TextInput}
-                            inputID={field.id}
-                            defaultValue={formValues[field.id]}
-                            label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                            items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
-                            shouldSaveDraft={!isEditing}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                        />
-                    </View>
-                ))}
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => {
+                    const isValuePicker = (field.valueSet ?? []).length > 0;
+                    return (
+                        <View
+                            style={isValuePicker ? [styles.mhn5, styles.pv1] : [styles.pv2]}
+                            key={field.id}
+                        >
+                            <InputWrapper
+                                InputComponent={isValuePicker ? ValuePicker : TextInput}
+                                inputID={field.id}
+                                defaultValue={formValues[field.id]}
+                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
+                                shouldSaveDraft={!isEditing}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                {...(!isValuePicker ? {autoCorrect: false, spellCheck: false} : {})}
+                            />
+                        </View>
+                    );
+                })}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                     <Icon
                         src={icons.QuestionMark}
