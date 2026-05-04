@@ -100,8 +100,9 @@ function CardSection() {
     const viewPurchases = () => {
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            status: [CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.STATUS.EXPENSE.DELETED],
             merchant: CONST.EXPENSIFY_MERCHANT,
+            from: [`${session?.accountID}`],
         });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
