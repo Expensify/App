@@ -3898,7 +3898,7 @@ ${amount} dla ${merchant} - ${date}`,
         selectCountry: 'Wybierz kraj',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `To konto bankowe musi zostać dodane przez przestrzeń roboczą. Przejdź do <a href="${workspaceRoute}">Przestrzeni roboczych</a>, wybierz swoją przestrzeń roboczą, a następnie przejdź do Przepływy pracy > Płatności > Dodaj konto bankowe.`,
+                `To konto bankowe musi zostać powiązane z przestrzenią roboczą. Przejdź do <a href="${workspaceRoute}">Przestrzeni roboczych</a>, wybierz swoją przestrzeń roboczą, a następnie przejdź do Przepływy pracy > Płatności > Dodaj konto bankowe.`,
         },
     },
     bankInfoStep: {
@@ -3948,7 +3948,7 @@ ${amount} dla ${merchant} - ${date}`,
         error: {
             emailsMustBeDifferent: 'Adresy e-mail muszą być różne',
             connectToWorkspace: (workspaceRoute: string) =>
-                `To konto bankowe musi zostać dodane przez przestrzeń roboczą. Przejdź do <a href="${workspaceRoute}">Przestrzeni roboczych</a>, wybierz swoją przestrzeń roboczą, a następnie przejdź do Przepływy pracy > Płatności > Dodaj konto bankowe.`,
+                `To konto bankowe musi zostać powiązane z przestrzenią roboczą. Przejdź do <a href="${workspaceRoute}">Przestrzeni roboczych</a>, wybierz swoją przestrzeń roboczą, a następnie przejdź do Przepływy pracy > Płatności > Dodaj konto bankowe.`,
         },
     },
     agreementsStep: {

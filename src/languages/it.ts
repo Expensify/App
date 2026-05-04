@@ -3909,7 +3909,7 @@ ${amount} per ${merchant} - ${date}`,
         selectCountry: 'Seleziona paese',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Questo conto bancario deve essere aggiunto tramite uno spazio di lavoro. Vai su <a href="${workspaceRoute}">Spazi di lavoro</a>, seleziona il tuo spazio di lavoro, quindi vai su Flussi di lavoro > Pagamenti > Aggiungi conto bancario.`,
+                `Questo conto bancario deve essere collegato a uno spazio di lavoro. Vai su <a href="${workspaceRoute}">Spazi di lavoro</a>, seleziona il tuo spazio di lavoro, quindi vai su Flussi di lavoro > Pagamenti > Aggiungi conto bancario.`,
         },
     },
     bankInfoStep: {
@@ -3959,7 +3959,7 @@ ${amount} per ${merchant} - ${date}`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
             connectToWorkspace: (workspaceRoute: string) =>
-                `Questo conto bancario deve essere aggiunto tramite uno spazio di lavoro. Vai su <a href="${workspaceRoute}">Spazi di lavoro</a>, seleziona il tuo spazio di lavoro, quindi vai su Flussi di lavoro > Pagamenti > Aggiungi conto bancario.`,
+                `Questo conto bancario deve essere collegato a uno spazio di lavoro. Vai su <a href="${workspaceRoute}">Spazi di lavoro</a>, seleziona il tuo spazio di lavoro, quindi vai su Flussi di lavoro > Pagamenti > Aggiungi conto bancario.`,
         },
     },
     agreementsStep: {

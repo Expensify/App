@@ -3906,7 +3906,7 @@ ${amount} voor ${merchant} - ${date}`,
         selectCountry: 'Selecteer land',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Deze bankrekening moet worden toegevoegd via een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
+                `Deze bankrekening moet worden gekoppeld aan een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
         },
     },
     bankInfoStep: {
@@ -3956,7 +3956,7 @@ ${amount} voor ${merchant} - ${date}`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
             connectToWorkspace: (workspaceRoute: string) =>
-                `Deze bankrekening moet worden toegevoegd via een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
+                `Deze bankrekening moet worden gekoppeld aan een werkruimte. Ga naar <a href="${workspaceRoute}">Werkruimtes</a>, selecteer je werkruimte en navigeer vervolgens naar Workflows > Betalingen > Bankrekening toevoegen.`,
         },
     },
     agreementsStep: {

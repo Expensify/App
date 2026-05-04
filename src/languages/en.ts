@@ -3984,7 +3984,7 @@ const translations = {
         selectCountry: 'Select country',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `This bank account must be added through a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
+                `This bank account must be linked to a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
         },
     },
     bankInfoStep: {
@@ -4034,7 +4034,7 @@ const translations = {
         error: {
             emailsMustBeDifferent: 'Emails must be different',
             connectToWorkspace: (workspaceRoute: string) =>
-                `This bank account must be added through a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
+                `This bank account must be linked to a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
         },
     },
     agreementsStep: {

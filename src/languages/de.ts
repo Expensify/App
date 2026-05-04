@@ -3921,7 +3921,7 @@ ${amount} für ${merchant} – ${date}`,
         selectCountry: 'Land auswählen',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `Dieses Bankkonto muss über einen Arbeitsbereich hinzugefügt werden. Gehen Sie zu <a href="${workspaceRoute}">Arbeitsbereiche</a>, wählen Sie Ihren Arbeitsbereich und navigieren Sie dann zu Workflows > Zahlungen > Bankkonto hinzufügen.`,
+                `Dieses Bankkonto muss mit einem Arbeitsbereich verknüpft werden. Gehen Sie zu <a href="${workspaceRoute}">Arbeitsbereiche</a>, wählen Sie Ihren Arbeitsbereich und navigieren Sie dann zu Workflows > Zahlungen > Bankkonto hinzufügen.`,
         },
     },
     bankInfoStep: {
@@ -3971,7 +3971,7 @@ ${amount} für ${merchant} – ${date}`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
             connectToWorkspace: (workspaceRoute: string) =>
-                `Dieses Bankkonto muss über einen Arbeitsbereich hinzugefügt werden. Gehen Sie zu <a href="${workspaceRoute}">Arbeitsbereiche</a>, wählen Sie Ihren Arbeitsbereich und navigieren Sie dann zu Workflows > Zahlungen > Bankkonto hinzufügen.`,
+                `Dieses Bankkonto muss mit einem Arbeitsbereich verknüpft werden. Gehen Sie zu <a href="${workspaceRoute}">Arbeitsbereiche</a>, wählen Sie Ihren Arbeitsbereich und navigieren Sie dann zu Workflows > Zahlungen > Bankkonto hinzufügen.`,
         },
     },
     agreementsStep: {

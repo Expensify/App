@@ -3879,7 +3879,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         selectCountry: '国を選択',
         error: {
             connectToWorkspace: (workspaceRoute: string) =>
-                `この銀行口座はワークスペースから追加する必要があります。<a href="${workspaceRoute}">ワークスペース</a>に移動し、ワークスペースを選択して、ワークフロー > 支払い > 銀行口座を追加 に進んでください。`,
+                `この銀行口座はワークスペースにリンクする必要があります。<a href="${workspaceRoute}">ワークスペース</a>に移動し、ワークスペースを選択して、ワークフロー > 支払い > 銀行口座を追加 に進んでください。`,
         },
     },
     bankInfoStep: {
@@ -3929,7 +3929,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
             connectToWorkspace: (workspaceRoute: string) =>
-                `この銀行口座はワークスペースから追加する必要があります。<a href="${workspaceRoute}">ワークスペース</a>に移動し、ワークスペースを選択して、ワークフロー > 支払い > 銀行口座を追加 に進んでください。`,
+                `この銀行口座はワークスペースにリンクする必要があります。<a href="${workspaceRoute}">ワークスペース</a>に移動し、ワークスペースを選択して、ワークフロー > 支払い > 銀行口座を追加 に進んでください。`,
         },
     },
     agreementsStep: {
