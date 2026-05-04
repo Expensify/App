@@ -693,7 +693,7 @@ describe('Transaction', () => {
             expect(report?.total).toBe(0);
         });
 
-        it('should update the old report total when the currency is the same', async () => {
+        it('should reset the old report total to 0 when moving the last same-currency expense', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -738,11 +738,11 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total - transaction.amount);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
         });
 
-        it('should not update the old report total when the currency is different', async () => {
+        it('should reset the old report total to 0 when no expenses remain, even if the currency is different', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -787,8 +787,73 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
+        });
+
+        it('should reset the old report total to 0 after moving all same-currency expenses to a new report', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -300,
+                nonReimbursableTotal: -300,
+                currency: CONST.CURRENCY.USD,
+                transactionCount: 2,
+            };
+            const firstTransaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -100,
+                reimbursable: false,
+                currency: CONST.CURRENCY.USD,
+            };
+            const secondTransaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -200,
+                reimbursable: false,
+                currency: CONST.CURRENCY.USD,
+            };
+            const firstIOUAction = createIOUAction(firstTransaction, FAKE_OLD_REPORT_ID);
+            const secondIOUAction = createIOUAction(secondTransaction, FAKE_OLD_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`, firstTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+            });
+
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
+            };
+            changeTransactionsReport({
+                transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: fakeReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
         });
 
         it('should keep both reports stale and preserve the displayed totals for mixed-currency partial moves', async () => {
