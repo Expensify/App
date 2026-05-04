@@ -55,10 +55,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
-
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -70,6 +66,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
     const policyTagList = useReceiptErrorPolicyTagList(receiptError);
+
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
 
     const handleLinkPress = (href: string) => {
         if (!receiptError) {
