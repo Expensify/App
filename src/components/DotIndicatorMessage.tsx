@@ -6,7 +6,8 @@ import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useReceiptErrorPolicyTagList from '@hooks/useReceiptErrorPolicyTagList';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,9 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
-import type * as IOU from '@userActions/IOU';
+import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import type {RequestMoneyInformation} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
@@ -65,7 +69,29 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
-    const policyTagList = useReceiptErrorPolicyTagList(receiptError);
+    let retryParams: RequestMoneyInformation | undefined;
+    if (receiptError) {
+        retryParams =
+            typeof receiptError.retryParams === 'string' ? (JSON.parse(receiptError.retryParams) as RequestMoneyInformation) : (receiptError.retryParams as RequestMoneyInformation);
+    }
+
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(retryParams?.report);
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(retryParams?.action);
+    const moneyRequestReportID = isMoneyRequestReport ? retryParams?.report?.reportID : undefined;
+    const chatReportID = isMoneyRequestReport && !isMovingTransactionFromTrackExpense ? retryParams?.report?.chatReportID : undefined;
+
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [chatReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`);
+    const effectiveChatReport = chatReport ?? chatReportDraft;
+
+    const chatReportPolicyID = isMoneyRequestReport ? effectiveChatReport?.policyID : retryParams?.report?.policyID;
+    const parentChatReportPolicyID = isMovingTransactionFromTrackExpense ? undefined : chatReportPolicyID;
+    const policyTagList = useMoneyRequestPolicyTags({
+        existingIOUReportPolicyID: retryParams?.existingIOUReport?.policyID,
+        moneyRequestReportID,
+        parentChatReportPolicyID,
+        participantReportID: retryParams?.participantParams?.participant?.reportID,
+    });
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -78,7 +104,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
         if (href.endsWith('retry')) {
             if (receiptError.action === CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
-                const requestMoneyParams = receiptError.retryParams as IOU.RequestMoneyInformation;
+                const requestMoneyParams = receiptError.retryParams as RequestMoneyInformation;
                 requestMoneyParams.policyParams = {...(requestMoneyParams.policyParams ?? {}), policyTagList};
             }
             handleRetryPress(receiptError, dismissError, () => {
