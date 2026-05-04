@@ -2,6 +2,7 @@ import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,13 +10,14 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -39,9 +41,9 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const personalDetails = usePersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -56,11 +58,12 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
     const isEditing = issueNewCard?.isEditing;
     const hasCardRuleID = !!issueNewCard?.data?.cardRuleID;
     const hasCardRuleData = !!issueNewCard?.data?.cardRuleID || !!issueNewCard?.data?.cardRuleValue;
+    const restrictionAction = issueNewCard?.data?.cardRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
+    const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING;
 
     // JACK_TODO: Derive from state
     const [spendRuleEnabled, setSpendRulesEnabled] = useState(hasCardRuleData);
     const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
-    const [spendRuleOption, setSpendRuleOption] = useState<string>(CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING);
 
     const spendRuleTabs = [
         {
@@ -80,6 +83,27 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION.getRoute(policyID));
+    };
+
+    const handleSpendRuleOptionSelection = (option: string) => {
+        if (!policyID) {
+            return;
+        }
+
+        setIssueNewCardData(policyID, {spendRuleOption: option as ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_RULE_OPTION>});
+    };
+
+    const handleSelectRestrictionAction = (action: string) => {
+        if (!policyID) {
+            return;
+        }
+
+        setIssueNewCardData(policyID, {
+            cardRuleValue: {
+                ...issueNewCard?.data?.cardRuleValue,
+                restrictionAction: action as ValueOf<typeof CONST.SPEND_RULES.ACTION>,
+            },
+        });
     };
 
     const handleBackButtonPress = () => {
@@ -156,7 +180,7 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
                             equalWidth
                             tabs={spendRuleTabs}
                             activeTabKey={spendRuleOption}
-                            onTabPress={setSpendRuleOption}
+                            onTabPress={handleSpendRuleOptionSelection}
                         />
 
                         {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
@@ -170,7 +194,54 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
                             />
                         )}
 
-                        {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && <></>}
+                        {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && (
+                            <View>
+                                <View style={[styles.ph5, styles.pv3]}>
+                                    <SpendRuleRestrictionTypeToggle
+                                        restrictionAction={restrictionAction}
+                                        onSelect={handleSelectRestrictionAction}
+                                    />
+                                </View>
+                                {/* <MenuItemWithTopDescription
+                                    description={translate('common.merchant')}
+                                    onPress={() => {
+                                        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
+                                    }}
+                                    shouldShowRightIcon
+                                    title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
+                                    numberOfLinesTitle={2}
+                                    titleStyle={styles.flex1}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                />
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.rules.spendRules.spendCategory')}
+                                    onPress={() => {
+                                        clearError();
+                                        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
+                                    }}
+                                    shouldShowRightIcon
+                                    title={categoriesMenuTitle}
+                                    numberOfLinesTitle={2}
+                                    titleStyle={styles.flex1}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                />
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.rules.spendRules.maxAmount')}
+                                    onPress={() => {
+                                        clearError();
+                                        if (!selectedCurrency) {
+                                            openCurrencyMismatchModal();
+                                            return;
+                                        }
+                                        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
+                                    }}
+                                    shouldShowRightIcon
+                                    title={maxAmountMenuTitle}
+                                    titleStyle={styles.flex1}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                /> */}
+                            </View>
+                        )}
                     </View>
                 )}
                 <ToggleSettingOptionRow

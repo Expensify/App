@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -15,7 +16,6 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
-import SpendRulesSection from './SpendRules/SpendRulesSection';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
