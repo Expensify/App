@@ -21,7 +21,7 @@ function InboxSidePanel() {
         <IsInSidePanelContext.Provider value>
             <View style={[styles.flex1, styles.h100, styles.appBG]}>
                 <SidebarOrderedReportsContextProvider>
-                    <NavigationContainer independent>
+                    <NavigationContainer>
                         <Stack.Navigator screenOptions={{headerShown: false}}>
                             <Stack.Screen
                                 name="InboxList"
