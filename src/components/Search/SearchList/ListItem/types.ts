@@ -359,8 +359,8 @@ type ExpandedGroupTableHeaderItem = {
     transactionsQueryHash?: number;
 };
 
-type ExpandedGroupContentItem = {
-    itemType: 'expandedGroupContent';
+type ExpandedGroupSummaryHeaderItem = {
+    itemType: 'expandedGroupSummaryHeader';
     keyForList: string;
     parentGroupKeyForList: string;
     groupItem: TransactionGroupListItemType;
@@ -368,7 +368,7 @@ type ExpandedGroupContentItem = {
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
-type SearchFlashListItem = SearchListItem | ExpandedGroupTableHeaderItem | ExpandedGroupContentItem;
+type SearchFlashListItem = SearchListItem | ExpandedGroupTableHeaderItem | ExpandedGroupSummaryHeaderItem;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
@@ -464,10 +464,14 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
-        /** Whether this group is expanded (controlled from SearchList) */
-        isExpanded?: boolean;
-        /** Callback to toggle expansion from SearchList */
-        onToggleExpansion?: () => void;
+        /** Callback when expansion state changes */
+        onExpandChange?: (keyForList: string, isExpanded: boolean) => void;
+        /** Whether to hide the table header inside the expanded content */
+        shouldHideTableHeader?: boolean;
+        /** Whether to hide the group summary header (content-only mode for expanded groups) */
+        shouldHideHeader?: boolean;
+        /** Whether to hide the expanded content (header-only mode for sticky group header) */
+        shouldHideContent?: boolean;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -533,6 +537,6 @@ export type {
     ReportActionListItemType,
     UnreportedExpenseListItemType,
     ExpandedGroupTableHeaderItem,
-    ExpandedGroupContentItem,
+    ExpandedGroupSummaryHeaderItem,
     SearchFlashListItem,
 };

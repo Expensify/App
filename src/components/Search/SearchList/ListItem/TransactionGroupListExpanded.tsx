@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -10,7 +10,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,13 +17,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections, getTableMinWidth} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations, isDeletedTransaction} from '@libs/TransactionUtils';
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -33,7 +31,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type SearchResults from '@src/types/onyx/SearchResults';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
@@ -66,65 +63,16 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const isSelfFetching = !transactionsSnapshot;
-    const [fetchedSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${transactionsQueryJSON?.hash ?? ''}`);
-    const resolvedSnapshot = transactionsSnapshot ?? (isSelfFetching ? (fetchedSnapshot as SearchResults | undefined) : undefined);
 
-    const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
-    let resolvedTransactions: TransactionListItemType[];
-    if (!isSelfFetching || isExpenseReportType) {
-        resolvedTransactions = transactions;
-    } else if (!resolvedSnapshot?.data) {
-        resolvedTransactions = [];
-    } else {
-        const [sectionData] = getSections({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            data: resolvedSnapshot.data,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            isActionLoadingSet,
-            allReportMetadata,
-            cardFeeds,
-            conciergeReportID,
-        }) as [TransactionListItemType[], number, boolean];
-        resolvedTransactions = sectionData;
-    }
-
-    const resolvedSearchTransactions = useCallback(
-        (pageSize = 0) => {
-            if (!isSelfFetching || !transactionsQueryJSON) {
-                searchTransactions(pageSize);
-                return;
-            }
-            search({
-                queryJSON: transactionsQueryJSON,
-                searchKey: undefined,
-                offset: (resolvedSnapshot?.search?.offset ?? 0) + pageSize,
-                shouldCalculateTotals: false,
-                isLoading: !!resolvedSnapshot?.search?.isLoading,
-                isOffline,
-            });
-        },
-        [isSelfFetching, transactionsQueryJSON, searchTransactions, resolvedSnapshot?.search?.offset, resolvedSnapshot?.search?.isLoading, isOffline],
-    );
-
-    const transactionsSnapshotMetadata = resolvedSnapshot?.search;
-
-    const visibleTransactions = isExpenseReportType ? resolvedTransactions.slice(0, transactionsVisibleLimit) : resolvedTransactions;
+    const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
@@ -132,27 +80,28 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     let currentColumns = columns ?? [];
     if (!isExpenseReportType) {
-        if (!resolvedSnapshot?.data) {
+        if (!transactionsSnapshot?.data) {
             currentColumns = [];
         } else {
-            currentColumns = getColumnsToShow({currentAccountID: accountID, data: resolvedSnapshot?.data, visibleColumns, type: resolvedSnapshot?.search.type});
+            currentColumns = getColumnsToShow({currentAccountID: accountID, data: transactionsSnapshot?.data, visibleColumns, type: transactionsSnapshot?.search.type});
         }
     }
 
-    const shouldDisplayShowMoreButton = isExpenseReportType ? resolvedTransactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
+    // Currently only the transaction report groups have transactions where the empty view makes sense
+    const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
-    const shouldShowLoadingOnSearch = !!(!resolvedTransactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
+    const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const isAmountColumnWide = resolvedTransactions.some((transaction) => transaction.isAmountColumnWide);
-    const isTaxAmountColumnWide = resolvedTransactions.some((transaction) => transaction.isTaxAmountColumnWide);
-    const shouldShowYearForSomeTransaction = resolvedTransactions.some((transaction) => transaction.shouldShowYear);
+    const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
+    const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
+    const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
-    const isActionColumnWide = resolvedTransactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
+    const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
     const {markReportIDAsExpense} = useWideRHPActions();
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
@@ -197,7 +146,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             return;
         }
 
-        const siblingTransactionIDs = resolvedTransactions
+        const siblingTransactionIDs = transactions
             .filter((transaction) => transaction.reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((transaction) => transaction.transactionID);
 
@@ -213,7 +162,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (isExpenseReportType) {
             setTransactionsVisibleLimit((currentPageSize) => currentPageSize + CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         } else if (!isOffline && transactionsQueryJSON) {
-            resolvedSearchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }
     };
 
@@ -281,7 +230,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index);
-                const exportedReportActions = Object.values(resolvedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+                const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
 
                 const transactionRow = (
                     <TransactionItemRow

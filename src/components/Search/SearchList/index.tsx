@@ -45,11 +45,10 @@ import type BaseSearchListProps from './BaseSearchList/types';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
 import type TaskListItem from './ListItem/TaskListItem';
-import TransactionGroupListExpanded from './ListItem/TransactionGroupListExpanded';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
 import type {
-    ExpandedGroupContentItem,
+    ExpandedGroupSummaryHeaderItem,
     ExpandedGroupTableHeaderItem,
     ReportActionListItemType,
     SearchFlashListItem,
@@ -243,8 +242,8 @@ function ExpandedGroupTableHeader({item}: {item: ExpandedGroupTableHeaderItem}) 
     );
 }
 
-function isExpandedGroupItem(item: SearchFlashListItem): item is ExpandedGroupTableHeaderItem | ExpandedGroupContentItem {
-    return typeof item === 'object' && 'itemType' in item && typeof item.itemType === 'string';
+function isExpandedGroupItem(item: SearchFlashListItem): item is ExpandedGroupTableHeaderItem | ExpandedGroupSummaryHeaderItem {
+    return typeof item === 'object' && 'itemType' in item && (item.itemType === 'expandedGroupTableHeader' || item.itemType === 'expandedGroupSummaryHeader');
 }
 
 function SearchList({
@@ -279,19 +278,20 @@ function SearchList({
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
     const {hash, groupBy, type} = queryJSON;
 
     const [expandedGroupKeys, setExpandedGroupKeys] = useState<Set<string>>(new Set());
 
-    const toggleGroupExpansion = useCallback((keyForList: string) => {
+    const handleExpandChange = useCallback((keyForList: string, isExpanded: boolean) => {
         setExpandedGroupKeys((prev) => {
             const next = new Set(prev);
-            if (next.has(keyForList)) {
-                next.delete(keyForList);
-            } else {
+            if (isExpanded) {
                 next.add(keyForList);
+            } else {
+                next.delete(keyForList);
             }
             return next;
         });
@@ -323,33 +323,33 @@ function SearchList({
         const headerIndices: number[] = [];
 
         for (const item of data) {
-            result.push(item);
             const key = item.keyForList ?? '';
 
-            if (!expandedGroupKeys.has(key)) {
-                continue;
+            if (expandedGroupKeys.has(key)) {
+                const summaryHeaderItem: ExpandedGroupSummaryHeaderItem = {
+                    itemType: 'expandedGroupSummaryHeader',
+                    keyForList: `${key}_summaryHeader`,
+                    parentGroupKeyForList: key,
+                    groupItem: item,
+                };
+                headerIndices.push(result.length);
+                result.push(summaryHeaderItem);
+
+                const tableHeaderItem: ExpandedGroupTableHeaderItem = {
+                    itemType: 'expandedGroupTableHeader',
+                    keyForList: `${key}_tableHeader`,
+                    parentGroupKeyForList: key,
+                    columns: columns ?? [],
+                    groupBy,
+                    canSelectMultiple,
+                    isExpenseReportType,
+                    transactionsQueryHash: item.transactionsQueryJSON?.hash,
+                };
+                headerIndices.push(result.length);
+                result.push(tableHeaderItem);
             }
 
-            const tableHeaderItem: ExpandedGroupTableHeaderItem = {
-                itemType: 'expandedGroupTableHeader',
-                keyForList: `${key}_tableHeader`,
-                parentGroupKeyForList: key,
-                columns: columns ?? [],
-                groupBy,
-                canSelectMultiple,
-                isExpenseReportType,
-                transactionsQueryHash: item.transactionsQueryJSON?.hash,
-            };
-            headerIndices.push(result.length);
-            result.push(tableHeaderItem);
-
-            const contentItem: ExpandedGroupContentItem = {
-                itemType: 'expandedGroupContent',
-                keyForList: `${key}_content`,
-                parentGroupKeyForList: key,
-                groupItem: item,
-            };
-            result.push(contentItem);
+            result.push(item);
         }
 
         return {
@@ -564,33 +564,42 @@ function SearchList({
                 if (item.itemType === 'expandedGroupTableHeader') {
                     return <ExpandedGroupTableHeader item={item} />;
                 }
-                if (item.itemType === 'expandedGroupContent') {
+                if (item.itemType === 'expandedGroupSummaryHeader') {
+                    const {itemWithSelection} = applySelectionToItem(item.groupItem, canSelectMultiple, selectedTransactions);
                     return (
-                        <View style={styles.mh5}>
-                            <TransactionGroupListExpanded
+                        <View style={{backgroundColor: theme.appBG}}>
+                            <ListItem
                                 showTooltip
-                                canSelectMultiple={canSelectMultiple}
-                                onCheckboxPress={onCheckboxPress}
+                                isFocused={false}
                                 onSelectRow={onSelectRow}
+                                onLongPressRow={handleLongPressRow}
+                                onCheckboxPress={onCheckboxPress}
+                                canSelectMultiple={canSelectMultiple}
+                                item={itemWithSelection}
+                                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                                queryJSONHash={hash}
                                 columns={columns}
+                                policies={policies}
+                                policyForMovingExpenses={policyForMovingExpenses}
+                                isDisabled={false}
                                 groupBy={groupBy}
-                                accountID={personalDetails?.[0]?.accountID}
+                                searchType={type}
+                                lastPaymentMethod={lastPaymentMethod}
+                                personalPolicyID={personalPolicyID}
+                                userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                                ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                                personalDetails={personalDetails}
+                                userBillingFundID={userBillingFundID}
                                 isOffline={isOffline}
                                 violations={violations}
-                                transactions={item.groupItem.transactions}
-                                transactionsVisibleLimit={CONST.TRANSACTION.RESULTS_PAGE_SIZE}
-                                setTransactionsVisibleLimit={() => {}}
-                                isEmpty={item.groupItem.transactions.length === 0}
-                                shouldDisplayEmptyView={false}
-                                isExpenseReportType={type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
-                                transactionsQueryJSON={item.groupItem.transactionsQueryJSON}
-                                searchTransactions={() => {}}
-                                isInSingleTransactionReport={item.groupItem.transactions.length === 1}
-                                onLongPress={() => {}}
                                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onFocus={onFocus}
                                 onUndelete={handleUndelete}
-                                policyForMovingExpenses={policyForMovingExpenses}
-                                shouldHideTableHeader
+                                keyForList={item.groupItem.keyForList}
+                                isFirstItem={index === firstVisibleIndex}
+                                isLastItem={false}
+                                onExpandChange={handleExpandChange}
+                                shouldHideContent
                             />
                         </View>
                     );
@@ -646,16 +655,14 @@ function SearchList({
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                        isExpanded={isGroupExpanded}
-                        onToggleExpansion={isGroupItem ? () => toggleGroupExpansion(groupKey) : undefined}
+                        onExpandChange={handleExpandChange}
+                        shouldHideTableHeader={isGroupExpanded}
+                        shouldHideHeader={isGroupExpanded}
                     />
                 </Animated.View>
             );
         },
         [
-            type,
-            groupBy,
-            newTransactionIDByItemKey,
             shouldAnimate,
             expandedData.length,
             styles.overflowHidden,
@@ -685,8 +692,11 @@ function SearchList({
             firstVisibleIndex,
             lastVisibleIndex,
             expandedGroupKeys,
-            toggleGroupExpansion,
-            styles.mh5,
+            handleExpandChange,
+            newTransactionIDByItemKey,
+            type,
+            groupBy,
+            theme.appBG,
         ],
     );
 

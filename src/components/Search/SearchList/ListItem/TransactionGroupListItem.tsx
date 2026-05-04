@@ -85,8 +85,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     ownerBillingGracePeriodEnd,
     onUndelete,
     policyForMovingExpenses,
-    isExpanded: isExpandedProp,
-    onToggleExpansion,
+    onExpandChange,
+    shouldHideTableHeader,
+    shouldHideHeader,
+    shouldHideContent,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -119,8 +121,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
-    const [isExpandedLocal, setIsExpandedLocal] = useState(false);
-    const isExpanded = isExpandedProp ?? isExpandedLocal;
+    const [isExpanded, setIsExpanded] = useState(false);
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -264,24 +265,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
-        if (onToggleExpansion) {
-            onToggleExpansion();
-            if (!isExpanded) {
+        setIsExpanded((prev) => {
+            const newExpandedState = !prev;
+
+            if (newExpandedState) {
                 refreshTransactions();
             } else {
                 setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
             }
-        } else {
-            setIsExpandedLocal((prev) => {
-                const newExpandedState = !prev;
-                if (newExpandedState) {
-                    refreshTransactions();
-                } else {
-                    setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-                }
-                return newExpandedState;
-            });
-        }
+
+            onExpandChange?.(item.keyForList ?? '', newExpandedState);
+            return newExpandedState;
+        });
     };
 
     const onPress = () => {
@@ -525,8 +520,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
     }
 
-    const isControlledExpansion = !!onToggleExpansion;
-
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -562,46 +555,42 @@ function TransactionGroupListItem<TItem extends ListItem>({
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>
-                        {isControlledExpansion ? (
-                            getHeader(hovered)
-                        ) : (
-                            <AnimatedCollapsible
-                                isExpanded={isExpanded}
-                                header={getHeader(hovered)}
-                                onPress={onExpandIconPress}
-                                expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
-                                shouldShowToggleButton={isLargeScreenWidth}
-                                borderBottomStyle={isLargeScreenWidth && styles.borderNone}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
-                            >
-                                <TransactionGroupListExpandedItem
-                                    showTooltip={showTooltip}
-                                    canSelectMultiple={canSelectMultiple}
-                                    onCheckboxPress={onCheckboxPress}
-                                    onSelectRow={onSelectRow}
-                                    columns={columns}
-                                    groupBy={groupBy}
-                                    accountID={currentUserDetails.accountID}
-                                    isOffline={isOffline}
-                                    violations={filteredViolations}
-                                    transactions={transactions}
-                                    transactionsVisibleLimit={transactionsVisibleLimit}
-                                    setTransactionsVisibleLimit={setTransactionsVisibleLimit}
-                                    isEmpty={isEmpty}
-                                    shouldDisplayEmptyView={shouldDisplayEmptyView}
-                                    isExpenseReportType={isExpenseReportType}
-                                    transactionsSnapshot={transactionsSnapshot}
-                                    transactionsQueryJSON={groupItem.transactionsQueryJSON}
-                                    searchTransactions={searchTransactions}
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                    onLongPress={onExpandedRowLongPress}
-                                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                                    onUndelete={onUndelete}
-                                    policyForMovingExpenses={policyForMovingExpenses}
-                                    shouldHideTableHeader={false}
-                                />
-                            </AnimatedCollapsible>
-                        )}
+                        <AnimatedCollapsible
+                            isExpanded={shouldHideContent ? false : isExpanded}
+                            header={shouldHideHeader ? null : getHeader(hovered)}
+                            onPress={onExpandIconPress}
+                            expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
+                            shouldShowToggleButton={isLargeScreenWidth && !shouldHideHeader}
+                            borderBottomStyle={isLargeScreenWidth && styles.borderNone}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
+                        >
+                            <TransactionGroupListExpandedItem
+                                showTooltip={showTooltip}
+                                canSelectMultiple={canSelectMultiple}
+                                onCheckboxPress={onCheckboxPress}
+                                onSelectRow={onSelectRow}
+                                columns={columns}
+                                groupBy={groupBy}
+                                accountID={currentUserDetails.accountID}
+                                isOffline={isOffline}
+                                violations={filteredViolations}
+                                transactions={transactions}
+                                transactionsVisibleLimit={transactionsVisibleLimit}
+                                setTransactionsVisibleLimit={setTransactionsVisibleLimit}
+                                isEmpty={isEmpty}
+                                shouldDisplayEmptyView={shouldDisplayEmptyView}
+                                isExpenseReportType={isExpenseReportType}
+                                transactionsSnapshot={transactionsSnapshot}
+                                transactionsQueryJSON={groupItem.transactionsQueryJSON}
+                                searchTransactions={searchTransactions}
+                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                onLongPress={onExpandedRowLongPress}
+                                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onUndelete={onUndelete}
+                                policyForMovingExpenses={policyForMovingExpenses}
+                                shouldHideTableHeader={shouldHideTableHeader}
+                            />
+                        </AnimatedCollapsible>
                     </View>
                 )}
             </PressableWithFeedback>
