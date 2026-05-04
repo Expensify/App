@@ -976,6 +976,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         removeTransaction,
         conciergeReportID,
         delegateEmail,
+        backTo,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
