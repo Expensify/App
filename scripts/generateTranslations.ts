@@ -204,7 +204,7 @@ class TranslationGenerator {
             namedArgs: {
                 locales: {
                     description: 'Locales to generate translations for.',
-                    default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
+                    default: Object.values(TRANSLATION_TARGET_LOCALES),
                     parse: (val: string): TranslationTargetLocale[] => {
                         const rawLocales = val.split(',');
                         const validatedLocales: TranslationTargetLocale[] = [];
