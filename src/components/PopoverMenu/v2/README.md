@@ -1,6 +1,6 @@
 # PopoverMenu (v2)
 
-Compound, uncontrolled popover-menu primitives. Inspired by [Radix DropdownMenu](https://www.radix-ui.com/primitives/docs/components/dropdown-menu) — same anatomy, same composition rules — adapted for React Native.
+Compound popover-menu primitives — uncontrolled by default, controlled when needed. Inspired by [Radix DropdownMenu](https://www.radix-ui.com/primitives/docs/components/dropdown-menu) — same anatomy, same composition rules — adapted for React Native.
 
 ## Goals
 
@@ -35,7 +35,11 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
 </PopoverMenu.Root>
 ```
 
-Use `<PopoverMenu.ScrollableContent>` instead of `<PopoverMenu.Content>` when the row count is unbounded.
+Three content variants cover the full N regime:
+
+- **`<Content>`** — fits content; default. Use when the menu has bounded rows that comfortably fit (≤ ~20 typical).
+- **`<ScrollableContent>`** — wraps children in a `<ScrollView>` capped at window height. Use when N is bounded but might exceed viewport.
+- **`<VirtualizedContent>`** — FlashList-backed; takes `data` + `keyExtractor` + `renderItem` instead of children. Use when N is genuinely unbounded (hundreds+). Constraints: only `<Item>`/`<CheckmarkItem>` rows allowed (no `<Sub>`); arrow-key nav is limited to currently-visible rows (touch/click is the primary modality).
 
 ### Controlled mode
 
@@ -55,14 +59,14 @@ const [open, setOpen] = useState(false);
 </PopoverMenu.Root>
 ```
 
-`anchorRef` (on `<Root>`) and `anchorPosition` (on `<Content>` / `<ScrollableContent>`) are escape hatches for callers without a child `<Trigger>` element — e.g. event-coordinate anchors from long-press or right-click. `<Trigger>`'s captured rect always wins when present.
+`anchorRef` (on `<Root>`) and `anchorPosition` (on any content variant) are escape hatches for callers without a child `<Trigger>` element — e.g. event-coordinate anchors from long-press or right-click. `<Trigger>`'s captured rect always wins when present.
 
 ## Folder layout
 
 Grouped by feature, not by file type. Each subfolder owns its components, contexts, and hooks, and re-exports its public surface through a barrel (`index.ts`); the top-level [`index.tsx`](./index.tsx) re-exports each barrel.
 
 - **`root/`** — `<Root>` provider and `<Trigger>` button.
-- **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`) plus the internal scaffolding they share.
+- **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`, `<VirtualizedContent>`) plus the internal scaffolding they share.
 - **`rows/`** — leaf rows rendered inside content (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`).
 - **`sub/`** — `<Sub>`, `<SubTrigger>`, and `<SubContent>` (drill-down submenu primitives).
 
@@ -81,8 +85,8 @@ These are enforced at runtime — not just by convention.
 | Component | Must be rendered inside |
 |---|---|
 | `Trigger` | `Root` |
-| `Content`, `ScrollableContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `<SubContent>`) |
+| `Content`, `ScrollableContent`, `VirtualizedContent` | `Root` |
+| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `<SubContent>`). `<VirtualizedContent>` only allows `Item`/`CheckmarkItem` |
 | `SubTrigger`, `SubContent` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.
