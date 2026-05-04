@@ -33,6 +33,7 @@ import type {
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
+    OriginalMessagePolicyChangeLog,
     OriginalMessageReimbursed,
     OriginalMessageUnreportedTransaction,
     PolicyBudgetFrequency,
@@ -3905,6 +3906,221 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
     return getReportActionText(reportAction);
 }
 
+/** Mirrors Web-Expensify `Report_Action_PolicyChangeLog_SpendRuleMessage::preformattedText` */
+function getSpendRulePreformattedText(message: OriginalMessagePolicyChangeLog): string | undefined {
+    for (const key of ['changeLogText', 'text', 'displayMessage'] as const) {
+        const value = message?.[key];
+        if (typeof value === 'string' && value !== '') {
+            return value;
+        }
+    }
+    return undefined;
+}
+
+function cardCountFromSpendRuleMessage(message: OriginalMessagePolicyChangeLog): number {
+    const raw = message?.cardCount;
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        return raw;
+    }
+    if (typeof raw === 'string' && raw !== '' && /^\d+$/.test(raw)) {
+        return Number.parseInt(raw, 10);
+    }
+    return 0;
+}
+
+function spendRuleCardScopeFragment(message: OriginalMessagePolicyChangeLog): string {
+    const cardCount = cardCountFromSpendRuleMessage(message);
+    const cardName = typeof message?.cardName === 'string' ? message.cardName : '';
+    if (cardCount > 1) {
+        return `${cardCount} cards`;
+    }
+    if (cardName !== '') {
+        return cardName;
+    }
+    if (cardCount === 1) {
+        return '1 card';
+    }
+    let lastFour = typeof message?.cardLastFour === 'string' ? message.cardLastFour : '';
+    if (lastFour === '' && typeof message?.lastFour === 'string') {
+        lastFour = message.lastFour;
+    }
+    if (lastFour !== '') {
+        return `card ending in ${lastFour}`;
+    }
+    return '';
+}
+
+function normalizeSpendRuleEffect(raw: string): 'allow' | 'block' | '' {
+    const v = raw.toLowerCase();
+    if (v === 'allow' || v === 'block') {
+        return v;
+    }
+    return '';
+}
+
+function normalizeSpendRuleModeLabel(raw: string): string {
+    const v = raw.toLowerCase();
+    if (v === 'allow' || v === 'block') {
+        return v;
+    }
+    return '';
+}
+
+function normalizeSpendRuleMaxAmountComparison(raw: string): 'under' | 'over' | '' {
+    const v = raw.toLowerCase();
+    if (v === 'under' || v === 'over') {
+        return v;
+    }
+    return '';
+}
+
+function mixDescriptionFromSpendRuleMessage(message: OriginalMessagePolicyChangeLog): string {
+    if (typeof message?.mixDescription === 'string' && message.mixDescription !== '') {
+        return message.mixDescription;
+    }
+    const mixParts = message?.mixParts;
+    if (!Array.isArray(mixParts)) {
+        return '';
+    }
+    const parts: string[] = [];
+    for (const part of mixParts) {
+        if (typeof part === 'string' && part !== '') {
+            parts.push(part);
+        }
+    }
+    const n = parts.length;
+    if (n === 0) {
+        return '';
+    }
+    if (n === 1) {
+        return parts.at(0) ?? '';
+    }
+    const last = parts.pop();
+    return `${parts.join(', ')}, and ${last}`;
+}
+
+function spendRuleFallbackAddOrUpdate(message: OriginalMessagePolicyChangeLog, isAdd: boolean): string {
+    const verb = isAdd ? 'added' : 'updated';
+    const onCard = spendRuleCardScopeFragment(message);
+    if (onCard !== '') {
+        return `${verb} spend rule on ${onCard}`;
+    }
+    return `${verb} spend rule`;
+}
+
+/** Mirrors Web-Expensify `Report_Action_PolicyChangeLog_SpendRuleMessage::buildAddOrUpdate` (structured path only; caller handles preformatted text). */
+function spendRuleBuildAddOrUpdate(message: OriginalMessagePolicyChangeLog, isAdd: boolean): string {
+    const effect = normalizeSpendRuleEffect(String(message?.effect ?? message?.ruleEffect ?? ''));
+    if (effect === '') {
+        return spendRuleFallbackAddOrUpdate(message, isAdd);
+    }
+
+    const verb = effect === 'allow' ? 'allowed' : 'blocked';
+    const summaryTypeRaw = message?.summaryType ?? message?.spendRuleSummaryType ?? '';
+    const summaryType = typeof summaryTypeRaw === 'string' ? summaryTypeRaw : '';
+    const onCard = spendRuleCardScopeFragment(message);
+    const onSuffix = onCard !== '' ? ` on ${onCard}` : '';
+
+    switch (summaryType) {
+        case 'merchant': {
+            const merchant = typeof message?.merchant === 'string' ? message.merchant : '';
+            if (merchant === '') {
+                return spendRuleFallbackAddOrUpdate(message, isAdd);
+            }
+            return `${verb} ${merchant}${onSuffix}`;
+        }
+        case 'category': {
+            const category = typeof message?.category === 'string' ? message.category : '';
+            if (category === '') {
+                return spendRuleFallbackAddOrUpdate(message, isAdd);
+            }
+            return `${verb} ${category}${onSuffix}`;
+        }
+        case 'max_amount': {
+            const comparison = normalizeSpendRuleMaxAmountComparison(typeof message?.maxAmountComparison === 'string' ? message.maxAmountComparison : '');
+            const display = typeof message?.maxAmountDisplay === 'string' ? message.maxAmountDisplay : '';
+            if (comparison === '' || display === '') {
+                return spendRuleFallbackAddOrUpdate(message, isAdd);
+            }
+            return `${verb} amounts ${comparison} ${display}${onSuffix}`;
+        }
+        case 'mix': {
+            const mix = mixDescriptionFromSpendRuleMessage(message);
+            if (mix === '') {
+                return spendRuleFallbackAddOrUpdate(message, isAdd);
+            }
+            return `${verb} ${mix.replace(/\.\s*$/, '')}.`;
+        }
+        default:
+            return spendRuleFallbackAddOrUpdate(message, isAdd);
+    }
+}
+
+function isSpendRuleModeOnlyChange(message: OriginalMessagePolicyChangeLog): boolean {
+    const kind = message?.spendRuleChangeKind ?? message?.changeType ?? '';
+    return typeof kind === 'string' && kind.toLowerCase() === 'mode';
+}
+
+function spendRuleBuildModeChange(message: OriginalMessagePolicyChangeLog): string {
+    const from = normalizeSpendRuleModeLabel(typeof message?.fromSpendRuleMode === 'string' ? message.fromSpendRuleMode : String(message?.fromMode ?? ''));
+    const to = normalizeSpendRuleModeLabel(typeof message?.toSpendRuleMode === 'string' ? message.toSpendRuleMode : String(message?.toMode ?? ''));
+    const onCard = spendRuleCardScopeFragment(message);
+    if (from !== '' && to !== '' && onCard !== '') {
+        return `changed spend rule from ${from} to ${to} on ${onCard}`;
+    }
+    if (from !== '' && to !== '') {
+        return `changed spend rule from ${from} to ${to}`;
+    }
+    return 'updated spend rule';
+}
+
+function spendRuleBuildRemove(message: OriginalMessagePolicyChangeLog): string {
+    const scope = spendRuleCardScopeFragment(message);
+    if (scope !== '') {
+        return `removed spend rule from ${scope}`;
+    }
+    return 'removed spend rule';
+}
+
+function getAddExpensifyCardRuleMessage(_translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
+        return '';
+    }
+    const message = getOriginalMessage(reportAction) ?? {};
+    const pre = getSpendRulePreformattedText(message);
+    if (pre) {
+        return pre;
+    }
+    return spendRuleBuildAddOrUpdate(message, true);
+}
+
+function getUpdateExpensifyCardRuleMessage(_translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
+        return '';
+    }
+    const message = getOriginalMessage(reportAction) ?? {};
+    const pre = getSpendRulePreformattedText(message);
+    if (pre) {
+        return pre;
+    }
+    if (isSpendRuleModeOnlyChange(message)) {
+        return spendRuleBuildModeChange(message);
+    }
+    return spendRuleBuildAddOrUpdate(message, false);
+}
+
+function getRemoveExpensifyCardRuleMessage(_translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE)) {
+        return '';
+    }
+    const message = getOriginalMessage(reportAction) ?? {};
+    const pre = getSpendRulePreformattedText(message);
+    if (pre) {
+        return pre;
+    }
+    return spendRuleBuildRemove(message);
+}
+
 function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
@@ -4581,6 +4797,7 @@ export {
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getAddExpensifyCardRuleMessage,
     getAddedApprovalRuleMessage,
     getDeletedApprovalRuleMessage,
     getUpdatedApprovalRuleMessage,
@@ -4592,8 +4809,10 @@ export {
     getReportActionMessage,
     getReportActionMessageText,
     getReportActionText,
+    getRemoveExpensifyCardRuleMessage,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getUpdateExpensifyCardRuleMessage,
     isCardBrokenConnectionAction,
     getCardConnectionBrokenMessage,
     getTextFromHtml,

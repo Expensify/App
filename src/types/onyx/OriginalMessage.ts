@@ -764,6 +764,72 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
+
+    /** Preformatted spend rule changelog line from the server */
+    changeLogText?: string;
+
+    /** Alternate preformatted spend rule changelog key (`text`) */
+    text?: string;
+
+    /** Alternate preformatted spend rule changelog key (`displayMessage`) */
+    displayMessage?: string;
+
+    /** Spend rule summary discriminator (`merchant`, `category`, `max_amount`, or `mix`) */
+    summaryType?: string;
+
+    /** Alias for summaryType */
+    spendRuleSummaryType?: string;
+
+    /** Spend rule effect (`block` or `allow`) */
+    effect?: string;
+
+    /** Alias for effect */
+    ruleEffect?: string;
+
+    /** Merchant name for merchant summary */
+    merchant?: string;
+
+    /** Category label for category summary */
+    category?: string;
+
+    /** Max amount comparison (`under` or `over`) */
+    maxAmountComparison?: string;
+
+    /** Human-readable max amount (e.g. "$1,000") */
+    maxAmountDisplay?: string;
+
+    /** Pre-built mix summary description */
+    mixDescription?: string;
+
+    /** Mix summary fragments joined with Oxford "and" */
+    mixParts?: string[];
+
+    /** Single-card label (e.g. "Todd's Card") */
+    cardName?: string;
+
+    /** Number of cards when greater than 1 */
+    cardCount?: number | string;
+
+    /** Update kind (`mode` for block/allow toggle-only updates) */
+    spendRuleChangeKind?: string;
+
+    /** Alias for spendRuleChangeKind */
+    changeType?: string;
+
+    /** Previous spend rule mode for mode-only updates */
+    fromSpendRuleMode?: string;
+
+    /** Alias for fromSpendRuleMode */
+    fromMode?: string;
+
+    /** New spend rule mode for mode-only updates */
+    toSpendRuleMode?: string;
+
+    /** Alias for toSpendRuleMode */
+    toMode?: string;
+
+    /** Card last four when cardName is absent (alias) */
+    lastFour?: string;
 };
 
 /** Model of `join policy` report action */
