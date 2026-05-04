@@ -4,6 +4,7 @@ import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'r
 import type {SharedValue} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -42,6 +43,7 @@ function AskConciergeInput() {
     const theme = useTheme();
     const {translate} = useLocalize();
 
+    const [value, setValue] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const opacity = useSharedValue(1);
@@ -64,7 +66,7 @@ function AskConciergeInput() {
     }, []);
 
     useEffect(() => {
-        if (!isFocused) {
+        if (!isFocused || value !== '') {
             return;
         }
 
@@ -77,7 +79,7 @@ function AskConciergeInput() {
 
         const interval = setInterval(advance, PLACEHOLDER_CYCLE_MS);
         return () => clearInterval(interval);
-    }, [isFocused, opacity]);
+    }, [isFocused, opacity, value]);
 
     return (
         <Animated.View
@@ -98,7 +100,14 @@ function AskConciergeInput() {
                 <TextInput
                     nativeID={CONCIERGE_INPUT_ID}
                     accessibilityLabel={translate('reportActionCompose.askConciergeForHelp')}
-                    placeholder={isFocused ? PLACEHOLDERS.at(placeholderIndex) : STATIC_PLACEHOLDER}
+                    value={value}
+                    onChangeText={(text) => {
+                        setValue(text);
+                        if (text !== '') {
+                            opacity.set(1);
+                        }
+                    }}
+                    placeholder={isFocused && value === '' ? PLACEHOLDERS.at(placeholderIndex) : STATIC_PLACEHOLDER}
                     placeholderTextColor={theme.textSupporting}
                     style={{
                         flex: 1,
@@ -108,11 +117,11 @@ function AskConciergeInput() {
                         paddingLeft: 40,
                         paddingRight: 8,
                         height: '100%',
+                        ...FontUtils.fontFamily.platform.EXP_NEUE,
                     }}
                     underlineColorAndroid="transparent"
                     onFocus={() => {
                         setIsFocused(true);
-                        setPlaceholderIndex(0);
                         opacity.set(1);
                         isFocusedShared.set(true);
                     }}
