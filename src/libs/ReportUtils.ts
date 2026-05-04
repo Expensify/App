@@ -11638,43 +11638,28 @@ type PrepareOnboardingOnyxDataParams = {
     betas: OnyxEntry<Beta[]>;
 };
 
-function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
-    // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
-    // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
-    const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm your Expensify setup specialist. ";
-
-    let message = welcomeHeader;
+function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined): string {
+    // Optimistic placeholder painted while CompleteGuidedSetup is in flight. The server's
+    // `UserAPI::buildBespokeWelcomeMessage` reconciles via `optimisticConciergeReportActionID`
+    // and replaces this with the final body — including the guide block on TEAM 11+. Mirror
+    // the server's per-tier skeleton (header + Concierge intro + per-tier hint) here so the
+    // hand-off is visually continuous; the only change on reconciliation is the guide block
+    // appearing for non-MICRO cohorts.
+    //
+    // Markdown, not HTML: buildOptimisticAddCommentReportAction → getParsedComment escapes
+    // entities, so raw HTML tags would render as literal text.
+    const header = '# Welcome to Expensify 👋\n';
     switch (companySize) {
-        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
-        case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
-            message +=
-                'For an organization your size, the fastest path to value is setting up approval workflows, ' +
-                'connecting your accounting software, and rolling out the Expensify Card to your team. ' +
-                "I'm here to walk you through each step — just ask!";
-            break;
         case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
         case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
-            message +=
-                'For a growing team like yours, the fastest way to get value is to set up expense categories, ' +
-                'configure approval workflows, and invite your team members. ' +
-                "I'm here to walk you through each step — just ask!";
-            break;
+            return `${header}\nI'm Concierge, here for quick questions any time.\n\nMost teams your size start by connecting accounting, setting up approvals, and inviting everyone.`;
+        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
+            return `${header}\nI'm Concierge, here for quick questions any time.\n\nMost teams your size start by connecting accounting, setting up multi-level approvals, and rolling out the Expensify Card.`;
+        case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
+            return `${header}\nI'm Concierge, here for quick questions while your rollout gets planned.`;
         default:
-            message +=
-                'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
-                'invite your team members, and have them start snapping receipts right away. ' +
-                "I'm here to walk you through each step — just ask!";
-            break;
+            return `${header}\nI'm Concierge, and I'll help you get set up. For a team your size, the fastest path is adding a few expense categories, inviting everyone, and having them snap receipts.\n\nTry one of the suggestions, or reply with any questions.`;
     }
-
-    if (userReportedIntegration && userReportedIntegration !== 'other') {
-        const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
-        if (friendlyName) {
-            message += `\n\nSince you use ${friendlyName}, I can help you connect it so your expenses sync automatically — just say the word!`;
-        }
-    }
-
-    return message;
 }
 
 function prepareOnboardingOnyxData({
@@ -11702,15 +11687,10 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Phase 1 cohort (MANAGE_TEAM + micro company size) bypasses the beta gate — the backend
-    // handles gating via NVP, so all micro users get followups without needing the beta flag.
-    // Includes MICRO_SMALL, MICRO_MEDIUM, and the deprecated MICRO for backwards compatibility.
-    const isPhase1Cohort =
-        companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
-    // Followups path: MANAGE_TEAM + (Phase 1 cohort OR suggestedFollowups beta). Reaches every
-    // MANAGE_TEAM cohort user, including `+` aliases and phone-primary sign-ups.
-    const shouldUseFollowupsInsteadOfTasks =
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (isPhase1Cohort || Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration));
+    // Every MANAGE_TEAM signup uses the bespoke direct-post path. The server generates the
+    // per-tier welcome body in `UserAPI::buildBespokeWelcomeMessage`, so the App no longer
+    // needs a cohort gate or the suggestedFollowups beta to opt in.
+    const shouldUseFollowupsInsteadOfTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     // Post to #admins room when followups fire OR the existing tasks-in-admins predicate approves.
     const shouldPostTasksInAdminsRoom = shouldUseFollowupsInsteadOfTasks || isPostingTasksInAdminsRoom(engagementChoice);
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
@@ -11791,7 +11771,7 @@ function prepareOnboardingOnyxData({
     let bespokeAction: OptimisticReportAction | undefined;
 
     if (shouldUseFollowupsInsteadOfTasks) {
-        const bespokeMarkdown = getBespokeWelcomeMessage(companySize, userReportedIntegration);
+        const bespokeMarkdown = getBespokeWelcomeMessage(companySize);
         optimisticConciergeReportActionID = rand64();
         // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         bespokeAction = buildOptimisticAddCommentReportAction({
