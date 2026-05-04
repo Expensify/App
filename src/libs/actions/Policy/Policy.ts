@@ -5020,7 +5020,6 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
                 areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         };
-        ReportUtils.pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyUpdate);
         ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate);
     }
 

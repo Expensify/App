@@ -2138,25 +2138,10 @@ function getOptimisticPolicyState(
 }
 
 /**
- * Reads any pending transaction merges already pushed to the OnyxData object so callers running
- * after `pushTransactionAutoSelectionsOnyxData` see the auto-selected category/tag values when
- * computing violations.
- */
-function getPendingTransactionUpdate(onyxData: PolicyOptimisticOnyxData, transactionID: string): Partial<Transaction> {
-    const targetKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-    const merges: Partial<Transaction> = {};
-    for (const update of onyxData.optimisticData ?? []) {
-        if (update.onyxMethod === Onyx.METHOD.MERGE && update.key === targetKey) {
-            Object.assign(merges, update.value as Partial<Transaction>);
-        }
-    }
-    return merges;
-}
-
-/**
  * Auto-selects the sole remaining enabled category/tag for transactions on open or processing reports
  * when a category/tag is being deleted or disabled. Pushes optimistic transaction merges and matching
- * failure rollbacks to the provided OnyxData object.
+ * failure rollbacks to the provided OnyxData object, and returns the per-transaction updates so callers
+ * can hand them to `pushTransactionViolationsOnyxData` for violation recomputation.
  *
  * Call this BEFORE `pushTransactionViolationsOnyxData` so that violations are recomputed against
  * the auto-selected values (suppressing the violation that would otherwise be created).
@@ -2167,15 +2152,17 @@ function pushTransactionAutoSelectionsOnyxData(
     policyUpdate: Partial<Policy> = {},
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
-) {
+): Map<string, Partial<Transaction>> {
+    const autoSelections = new Map<string, Partial<Transaction>>();
+
     // Auto-selection is only meaningful when categories or tag lists are being updated
     if (isEmptyObject(categoriesUpdate) && isEmptyObject(tagListsUpdate)) {
-        return;
+        return autoSelections;
     }
 
     const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
     if (nonInvoiceReportItems.length === 0) {
-        return;
+        return autoSelections;
     }
 
     const {optimisticCategories, optimisticTagLists, hasDependentTagsValue, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
@@ -2271,6 +2258,8 @@ function pushTransactionAutoSelectionsOnyxData(
                 continue;
             }
 
+            autoSelections.set(transaction.transactionID, transactionUpdates);
+
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -2283,21 +2272,23 @@ function pushTransactionAutoSelectionsOnyxData(
             });
         }
     }
+
+    return autoSelections;
 }
 
 /**
  * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
- * If `pushTransactionAutoSelectionsOnyxData` was called earlier on the same OnyxData object, this
- * function picks up the auto-selected transaction values from `onyxData.optimisticData` and uses
- * them when computing violations — so a transaction whose category/tag was just auto-replaced will
- * not have a stale `*OutOfPolicy` violation pushed for it.
+ * Pass the map returned by `pushTransactionAutoSelectionsOnyxData` as `transactionAutoSelections` so
+ * a transaction whose category/tag was just auto-replaced is evaluated against the new value (and does
+ * not get a stale `*OutOfPolicy` violation).
  *
  * @param onyxData - The OnyxData object to push updates to
  * @param policyData - The current policy Data
  * @param policyUpdate - Changed policy properties, if none pass empty object
  * @param categoriesUpdate - Changed categories properties, if none pass empty object
  * @param tagListsUpdate - Changed tag properties, if none pass empty object
+ * @param transactionAutoSelections - Auto-selected category/tag updates per transactionID (from `pushTransactionAutoSelectionsOnyxData`)
  */
 function pushTransactionViolationsOnyxData(
     onyxData: PolicyOptimisticOnyxData,
@@ -2305,6 +2296,7 @@ function pushTransactionViolationsOnyxData(
     policyUpdate: Partial<Policy> = {},
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+    transactionAutoSelections: Map<string, Partial<Transaction>> = new Map<string, Partial<Transaction>>(),
 ) {
     const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
     if (nonInvoiceReportItems.length === 0) {
@@ -2326,8 +2318,8 @@ function pushTransactionViolationsOnyxData(
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
         for (const transaction of Object.values(transactions)) {
-            const pendingUpdate = getPendingTransactionUpdate(onyxData, transaction.transactionID);
-            const modifiedTransaction = isEmptyObject(pendingUpdate) ? transaction : {...transaction, ...pendingUpdate};
+            const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
+            const modifiedTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
 
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(

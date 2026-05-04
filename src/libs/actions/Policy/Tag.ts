@@ -204,8 +204,6 @@ function createPolicyTag({
         ],
     };
 
-    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
-
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
     const parameters = {
         policyID,
@@ -349,7 +347,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
         ],
     };
 
-    pushTransactionAutoSelectionsOnyxData(
+    const autoSelections = pushTransactionAutoSelectionsOnyxData(
         onyxData,
         policyData,
         {},
@@ -370,6 +368,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
                 tags: policyTagsOptimisticData,
             },
         },
+        autoSelections,
     );
 
     const parameters: SetPolicyTagsEnabled = {
@@ -459,8 +458,6 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
         ],
     };
 
-    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
-
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
     const parameters: SetPolicyTagListsRequired = {
         policyID,
@@ -536,9 +533,9 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         ],
     };
 
-    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+    const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData, autoSelections);
     const parameters = {
         policyID,
         tags: JSON.stringify(tagsToDelete),
@@ -746,8 +743,6 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
         ],
     };
 
-    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
-
     pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
     const parameters: RenamePolicyTagsParams = {
         policyID,
@@ -820,7 +815,6 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             value: null,
         });
-        pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyOptimisticData, {}, defaultTagList);
         pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, defaultTagList);
     } else if (!enabled) {
         const policyTag = PolicyUtils.getTagLists(policyData.tags).at(0);
@@ -857,11 +851,10 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
             },
         );
 
-        pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
+        const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
 
-        pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
+        pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData, autoSelections);
     } else {
-        pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyOptimisticData);
         pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
     }
 
@@ -1081,8 +1074,6 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     onyxData.failureData?.push(getUpdatedTagsOnyxData(!requiresTag));
     onyxData.successData?.push(getUpdatedTagsOnyxData(requiresTag));
 
-    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
-
     pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
     const parameters = {
         policyID,
@@ -1142,8 +1133,6 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
             },
         ],
     };
-
-    pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
     const parameters: SetPolicyTagsRequired = {
