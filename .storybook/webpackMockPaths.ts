@@ -10,6 +10,5 @@ export default {
     'react-native$': 'react-native-web',
     '@react-native-community/netinfo': path.resolve(dirname, '../__mocks__/@react-native-community/netinfo.ts'),
     '@react-navigation/native': path.resolve(dirname, '../__mocks__/@react-navigation/native'),
-    '@react-navigation/core': path.resolve(dirname, '../__mocks__/@react-navigation/core'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */
