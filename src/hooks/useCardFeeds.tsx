@@ -20,8 +20,10 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  *     1. Combined workspace and domain card feeds specific to the given policyID (or `undefined` if unavailable).
  *     2. The result metadata from the Onyx collection fetch.
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
+ *     4. Card feed status by domain ID.
+ *     5. Workspace account ID for the policy.
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -61,7 +63,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
 
     const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(allFeeds);
 
-    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus];
+    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus, workspaceAccountID];
 };
 
 export default useCardFeeds;

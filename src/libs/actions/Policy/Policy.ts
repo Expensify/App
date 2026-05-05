@@ -207,7 +207,7 @@ type BuildPolicyDataOptions = {
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
-    activePolicyID?: string;
+    activePolicy: OnyxEntry<Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam?: OnyxCollection<Report>;
@@ -218,12 +218,12 @@ type BuildPolicyDataOptions = {
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     betas: OnyxEntry<Beta[]>;
+    hasActiveAdminPolicies: boolean | undefined;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
 type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
     isSelfTourViewed: boolean | undefined;
-    hasActiveAdminPolicies: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -260,22 +260,6 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
 };
-
-const deprecatedAllPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            delete deprecatedAllPolicies[key];
-            return;
-        }
-
-        deprecatedAllPolicies[key] = val;
-    },
-});
 
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -2415,7 +2399,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         adminParticipant,
         hasOutstandingChildRequest = true,
         introSelected,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -2425,6 +2409,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = options;
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2450,7 +2435,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
-    const shouldSetCreatedPolicyAsActive = !activePolicyID || deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+    const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
@@ -2804,7 +2789,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID ?? null,
+            value: activePolicy?.id ?? null,
         });
     }
 
@@ -2820,7 +2805,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         successData.push(...optimisticCategoriesData.successData);
     }
 
-    if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
+    if (!hasActiveAdminPolicies && lastUsedPaymentMethod) {
         for (const report of Object.values(allReportsParam ?? {})) {
             if (report?.type !== CONST.REPORT.TYPE.IOU) {
                 continue;
@@ -3107,6 +3092,98 @@ function createDraftWorkspace({
     return params;
 }
 
+function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string}) {
+    const {
+        policyName: duplicatedPolicyName = '',
+        targetPolicyID: duplicatedPolicyID,
+        file: duplicatedPolicyFile,
+        parts: duplicatedParts,
+        localCurrency: duplicatedLocalCurrency,
+        distanceCustomUnitID: duplicatedDistanceCustomUnitID,
+        perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+    } = policyOptions;
+
+    const isMemberFeatureSelected = duplicatedParts?.people;
+    const isReportsFeatureSelected = duplicatedParts?.reports;
+    const isConnectionsFeatureSelected = duplicatedParts?.connections;
+    const isTaxesFeatureSelected = duplicatedParts?.taxes;
+    const isTagsFeatureSelected = duplicatedParts?.tags;
+    const isInvoicesFeatureSelected = duplicatedParts?.invoices;
+    const isDistanceRatesFeatureSelected = duplicatedParts?.distance;
+    const isRulesFeatureSelected = duplicatedParts?.expenses;
+    const isWorkflowsFeatureSelected = duplicatedParts?.exportLayouts;
+    const isPerDiemFeatureSelected = duplicatedParts?.perDiem;
+    const isOverviewFeatureSelected = duplicatedParts?.overview;
+    const isTravelFeatureSelected = duplicatedParts?.travel;
+    const isCodingRulesFeatureSelected = duplicatedParts?.codingRules;
+    const duplicatedOutputCurrency = isOverviewFeatureSelected ? sourcePolicy?.outputCurrency : duplicatedLocalCurrency;
+
+    const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
+        data
+            ? (Object.fromEntries(
+                  Object.entries(data).filter(([, value]) => {
+                      if (!value || typeof value !== 'object' || !('pendingAction' in value)) {
+                          return true;
+                      }
+                      return value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  }),
+              ) as Record<string, T>)
+            : undefined;
+
+    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.rules?.codingRules);
+    const employeeListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.employeeList);
+    const fieldListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.fieldList);
+    const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
+    const taxRatesWithoutPendingDelete = {
+        ...sourcePolicy?.taxRates,
+        taxes: filterPendingDeleteData(sourcePolicy?.taxRates?.taxes),
+    };
+
+    return {
+        ...sourcePolicy,
+        areCategoriesEnabled: true,
+        areTagsEnabled: isTagsFeatureSelected,
+        areDistanceRatesEnabled: isDistanceRatesFeatureSelected,
+        areInvoicesEnabled: isInvoicesFeatureSelected,
+        areRulesEnabled: isRulesFeatureSelected,
+        areWorkflowsEnabled: isWorkflowsFeatureSelected,
+        areReportFieldsEnabled: isReportsFeatureSelected,
+        areConnectionsEnabled: isConnectionsFeatureSelected,
+        arePerDiemRatesEnabled: isPerDiemFeatureSelected,
+        isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
+        travelSettings: undefined,
+        workspaceAccountID: undefined,
+        tax: isTaxesFeatureSelected ? sourcePolicy?.tax : undefined,
+        employeeList: isMemberFeatureSelected ? employeeListWithoutPendingDelete : {[sourcePolicy.owner]: sourcePolicy?.employeeList?.[sourcePolicy.owner]},
+        id: duplicatedPolicyID,
+        name: duplicatedPolicyName,
+        fieldList: isReportsFeatureSelected ? fieldListWithoutPendingDelete : undefined,
+        connections: isConnectionsFeatureSelected ? connectionsWithoutPendingDelete : undefined,
+        customUnits: getCustomUnitsForDuplication(sourcePolicy, isDistanceRatesFeatureSelected, isPerDiemFeatureSelected, {
+            distanceCustomUnitID: duplicatedDistanceCustomUnitID,
+            perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+        }),
+        taxRates: isTaxesFeatureSelected ? taxRatesWithoutPendingDelete : undefined,
+        rules: isCodingRulesFeatureSelected ? {codingRules: codingRulesWithoutPendingDelete} : undefined,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingFields: {
+            autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+        avatarURL: duplicatedPolicyFile?.uri,
+        originalFileName: duplicatedPolicyFile?.name,
+        outputCurrency: duplicatedOutputCurrency,
+        address: isOverviewFeatureSelected ? sourcePolicy?.address : undefined,
+    };
+}
+
 function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
     const {
         policyName = '',
@@ -3133,19 +3210,8 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         pendingChatMembers,
     } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName, currentUserAccountID, currentUserEmail);
     const isMemberOptionSelected = parts?.people;
-    const isReportsOptionSelected = parts?.reports;
-    const isConnectionsOptionSelected = parts?.connections;
     const isCategoriesOptionSelected = parts?.categories;
-    const isTaxesOptionSelected = parts?.taxes;
-    const isTagsOptionSelected = parts?.tags;
-    const isInvoicesOptionSelected = parts?.invoices;
-    const isDistanceRatesOptionSelected = parts?.distance;
-    const isRulesOptionSelected = parts?.expenses;
-    const isWorkflowsOptionSelected = parts?.exportLayouts;
-    const isPerDiemOptionSelected = parts?.perDiem;
     const isOverviewOptionSelected = parts?.overview;
-    const isTravelOptionSelected = parts?.travel;
-    const isCodingRulesOptionSelected = parts?.codingRules;
 
     const outputCurrency = isOverviewOptionSelected && policy?.outputCurrency ? policy?.outputCurrency : localCurrency;
 
@@ -3178,46 +3244,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {
-                ...policy,
-                areCategoriesEnabled: true,
-                areTagsEnabled: isTagsOptionSelected,
-                areDistanceRatesEnabled: isDistanceRatesOptionSelected,
-                areInvoicesEnabled: isInvoicesOptionSelected,
-                areRulesEnabled: isRulesOptionSelected,
-                areWorkflowsEnabled: isWorkflowsOptionSelected,
-                areReportFieldsEnabled: isReportsOptionSelected,
-                areConnectionsEnabled: isConnectionsOptionSelected,
-                arePerDiemRatesEnabled: isPerDiemOptionSelected,
-                isTravelEnabled: isTravelOptionSelected ? policy?.isTravelEnabled : undefined,
-                travelSettings: undefined,
-                workspaceAccountID: undefined,
-                tax: isTaxesOptionSelected ? policy?.tax : undefined,
-                employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
-                id: targetPolicyID,
-                name: policyName,
-                fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
-                connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected, {distanceCustomUnitID, perDiemCustomUnitID}),
-                taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
-                rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                pendingFields: {
-                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                avatarURL: file?.uri,
-                originalFileName: file?.name,
-                outputCurrency,
-                address: isOverviewOptionSelected ? policy?.address : undefined,
-            },
+            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID}),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6271,12 +6298,6 @@ function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEn
     API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
 }
 
-function getAdminPolicies(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL,
-    );
-}
-
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -6848,15 +6869,6 @@ function enablePolicyAutoReimbursementLimit(
     });
 }
 
-function clearAllPolicies() {
-    if (!deprecatedAllPolicies) {
-        return;
-    }
-    for (const key of Object.keys(deprecatedAllPolicies)) {
-        delete deprecatedAllPolicies[key];
-    }
-}
-
 function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -7186,7 +7198,6 @@ export {
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     hasInvoicingDetails,
-    clearAllPolicies,
     enablePolicyRules,
     setPolicyDefaultReportTitle,
     clearQBDErrorField,

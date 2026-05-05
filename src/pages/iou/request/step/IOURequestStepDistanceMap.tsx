@@ -173,7 +173,6 @@ function IOURequestStepDistanceMap({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -327,7 +326,6 @@ function IOURequestStepDistanceMap({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
             privateIsArchived: isArchived,
             selfDMReport,
             betas,
@@ -365,7 +363,6 @@ function IOURequestStepDistanceMap({
         quickAction,
         policyRecentlyUsedCurrencies,
         introSelected,
-        activePolicyID,
         policyForMovingExpenses,
         selfDMReport,
         betas,
