@@ -37,7 +37,9 @@ function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantN
     const emptyStateSubtitle =
         action === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.addMerchantToBlockSpend') : translate('workspace.rules.spendRules.addMerchantToAllowSpend');
 
-    const goBack = () => Navigation.goBack();
+    const goBack = () => {
+        Navigation.goBack();
+    };
 
     const navigateToMerchantEdit = (merchantIndex: string) => {
         Navigation.navigate(getEditMerchantRoute(merchantIndex));
