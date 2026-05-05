@@ -692,13 +692,6 @@ function initMoneyRequest({
                 waypoint1: {keyForList: 'stop_waypoint'},
             };
         }
-        // Initialize odometer readings for odometer type
-        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
-            comment.odometerStart = undefined;
-            comment.odometerEnd = undefined;
-            comment.odometerStartImage = undefined;
-            comment.odometerEndImage = undefined;
-        }
     }
 
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
@@ -2194,6 +2187,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
             reportActionID: currentReportActionID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -2425,12 +2419,21 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
-    const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
 
-    if (isPolicyExpenseChat || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat, selected: true, policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined}];
+    if (isPolicyExpenseChat || isSelfDMChat) {
+        participants = [
+            {
+                accountID: 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat,
+                selected: true,
+                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
+                isSelfDM: isSelfDMChat,
+            },
+        ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
