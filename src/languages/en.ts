@@ -1140,6 +1140,7 @@ const translations = {
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions have been added.` : '1 transaction has been added.',
+        importCompanyCardTransactionsPendingMessage: 'New cards and transactions may take some time to appear, please hang tight.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'No members have been added or updated.';

@@ -1102,6 +1102,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `このアップロードで追加される${count}人の新しいワークスペースメンバーについて、以下の内容を確認してください。既存のメンバーには、ロールの更新や招待メッセージは送信されません。`,
         }),
+        importCompanyCardTransactionsPendingMessage: '新しいカードや取引が表示されるまでに少し時間がかかる場合があります。しばらくお待ちください。',
     },
     receipt: {
         upload: '領収書をアップロード',
