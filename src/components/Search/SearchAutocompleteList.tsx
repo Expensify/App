@@ -55,8 +55,8 @@ type SearchAutocompleteListProps = {
     /** Callback to trigger search action * */
     handleSearch: (value: string) => void;
 
-    /** Optional items to always display at the top of the router list */
-    searchQueryItems?: SearchQueryItem[];
+    /** An optional item to always display on the top of the router list  */
+    searchQueryItem?: SearchQueryItem;
 
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
@@ -131,7 +131,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
 function SearchAutocompleteList({
     autocompleteQueryValue,
     handleSearch,
-    searchQueryItems,
+    searchQueryItem,
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
@@ -402,8 +402,8 @@ function SearchAutocompleteList({
             nextSuggestionsCount += section.data.filter((item) => item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length;
         };
 
-        if (searchQueryItems && searchQueryItems.length > 0) {
-            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
+        if (searchQueryItem) {
+            pushSection({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
@@ -493,7 +493,7 @@ function SearchAutocompleteList({
         recentReportsOptions,
         recentSearchesData,
         searchOptions,
-        searchQueryItems,
+        searchQueryItem,
         styles,
         translate,
         isLoadingOptions,

@@ -49,7 +49,6 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
-import useAskConcierge from './useAskConcierge';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
@@ -73,8 +72,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
-    const askConcierge = useAskConcierge();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -200,26 +198,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         ],
     );
 
-    const searchQueryItems = textInputValue?.trim()
-        ? [
-              {
-                  text: textInputValue,
-                  singleIcon: expensifyIcons.MagnifyingGlass,
-                  searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
-                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
-                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-              },
-              {
-                  text: translate('search.askConcierge', textInputValue),
-                  singleIcon: expensifyIcons.ConciergeAvatar,
-                  shouldIconApplyFill: false,
-                  searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
-                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-              },
-          ]
+    const searchQueryItem = textInputValue
+        ? {
+              text: textInputValue,
+              singleIcon: expensifyIcons.MagnifyingGlass,
+              searchQuery: textInputValue,
+              itemStyle: styles.activeComponentBG,
+              keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
+              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+          }
         : undefined;
 
     const shouldScrollRef = useRef(false);
@@ -321,12 +308,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         setAutocompleteSubstitutions,
                     });
                     setFocusAndScrollToRight();
-                } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE) {
-                    const {searchQuery} = item;
-                    backHistory(() => {
-                        askConcierge(searchQuery);
-                    });
-                    onRouterClose();
                 } else {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
@@ -354,14 +335,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             betas,
             contextualPoliciesMap,
             contextualReportsMap,
-            askConcierge,
         ],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
-    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(searchQueryItems?.length ?? 1, true), [searchQueryItems?.length]);
+    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -407,7 +387,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             <DeferredAutocompleteList
                 autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                 handleSearch={searchInServer}
-                searchQueryItems={searchQueryItems}
+                searchQueryItem={searchQueryItem}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}
                 onHighlightFirstItem={updateAndScrollToFocusedIndex}

@@ -93,9 +93,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (shouldHideSidePanel) {
-            setSessionStartTime(null);
-        } else if (!sessionStartTime) {
+        if (!shouldHideSidePanel) {
             setSessionStartTime(DateUtils.getDBTime());
         }
     }
@@ -137,11 +135,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = () => {
-        setSessionStartTime(DateUtils.getDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
-    };
-
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue = {
@@ -160,7 +153,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsValue = {
-        openSidePanel,
+        openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
         closeSidePanel,
     };
 
