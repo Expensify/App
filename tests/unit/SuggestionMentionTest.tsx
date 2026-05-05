@@ -121,7 +121,7 @@ describe('SuggestionMention', () => {
 
         mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
         mockUseArrowKeyFocusManager.mockReturnValue([0, mockSetHighlightedMentionIndex]);
-        mockUseCurrentReportIDState.mockReturnValue({currentReportID: ''});
+        mockUseCurrentReportIDState.mockReturnValue({currentReportID: '', currentRHPReportID: ''});
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'current@gmail.com'});
         mockUseDebounce.mockImplementation((callback) => {
             const callbackRef = React.useRef(callback);

@@ -691,6 +691,15 @@ function TransactionItemRow({
                         <ExportedIconCell reportActions={reportActions} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
+                    >
+                        <TextCell text={transactionItem.withdrawalID} />
+                    </View>
+                );
             default:
                 return null;
         }

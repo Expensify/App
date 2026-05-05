@@ -1,7 +1,8 @@
-import {activeAdminPoliciesSelector, lastWorkspaceNumberSelector} from '@selectors/Policy';
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setMoneyRequestAccountant} from '@libs/actions/IOU';
@@ -9,6 +10,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@libs/ReportUtils';
 import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccountantSelector';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -26,14 +28,11 @@ function IOURequestStepAccountant({
     },
 }: IOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {accountID, login, email = ''} = useCurrentUserPersonalDetails();
-
+    const {accountID, login, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
     const selector = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
-    const lastWorkspaceNumberWithEmailSelector = (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, email);
-
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
-    const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const setAccountant = (accountant: Accountant) => {
         setMoneyRequestAccountant(transactionID, accountant, true);
@@ -43,7 +42,15 @@ function IOURequestStepAccountant({
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         const hasActiveAdminWorkspaces = (adminPolicies?.length ?? 0) > 0;
         if (!hasActiveAdminWorkspaces) {
-            createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, action, generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate), accountID, email);
+            createDraftWorkspaceAndNavigateToConfirmationScreen(
+                introSelected,
+                transactionID,
+                action,
+                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                accountID,
+                email,
+                localCurrencyCode ?? CONST.CURRENCY.USD,
+            );
             return;
         }
 
