@@ -3,12 +3,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
@@ -28,7 +30,17 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        // Fix for issue where navigation state is lost after returning from device settings
+        // https://github.com/Expensify/App/issues/65992
+        const navigationState = navigationRef.current?.getState();
+        const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
+        const hasLostNavigationState = reportsSplitNavigator && !reportsSplitNavigator.state;
+
+        if (hasLostNavigationState) {
+            Navigation.navigate(backTo ?? ROUTES.INBOX);
+        } else {
+            Navigation.goBack(backTo);
+        }
     };
 
     const handleCapture = (file: FileObject, source: string) => {

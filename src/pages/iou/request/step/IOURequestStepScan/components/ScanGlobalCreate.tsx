@@ -26,7 +26,7 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
-import {useMultiScanState} from './MultiScanContext';
+import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
     iouType: IOUType;
@@ -48,10 +48,11 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {isMultiScanEnabled} = useMultiScanState();
+    const {disableMultiScan} = useMultiScanActions();
 
     const transactions = transaction ? [transaction] : [];
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), () => {});
+    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), disableMultiScan);
 
     const navigateGlobalCreate = (receiptFiles: ReceiptFile[]) => {
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {

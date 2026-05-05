@@ -10,7 +10,7 @@ import type Transaction from '@src/types/onyx/Transaction';
  * If the browser was refreshed, blob URLs cease to exist — this resets the scan flow
  * so the user can start over rather than seeing broken images.
  */
-function useScanFileReadabilityCheck(transactions: Array<Partial<Transaction>>, draftTransactionIDs: string[], setIsMultiScanEnabled: (value: boolean) => void) {
+function useScanFileReadabilityCheck(transactions: Array<Partial<Transaction>>, draftTransactionIDs: string[], disableMultiScan: () => void) {
     const hasValidated = useRef(false);
 
     useEffect(() => {
@@ -40,11 +40,11 @@ function useScanFileReadabilityCheck(transactions: Array<Partial<Transaction>>, 
             if (isAllScanFilesCanBeRead) {
                 return;
             }
-            setIsMultiScanEnabled(false);
+            disableMultiScan();
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
-    }, [setIsMultiScanEnabled, transactions, draftTransactionIDs]);
+    }, [disableMultiScan, transactions, draftTransactionIDs]);
 }
 
 export default useScanFileReadabilityCheck;

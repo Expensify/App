@@ -36,7 +36,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
-import {useMultiScanState} from './MultiScanContext';
+import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxEntry<Report>;
@@ -76,6 +76,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
+    const {disableMultiScan} = useMultiScanActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
@@ -87,7 +88,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), () => {});
+    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), disableMultiScan);
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {

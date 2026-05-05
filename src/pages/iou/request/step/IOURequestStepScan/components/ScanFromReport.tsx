@@ -19,7 +19,7 @@ import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
-import {useMultiScanState} from './MultiScanContext';
+import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 type ScanFromReportProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxEntry<Report>;
@@ -37,11 +37,12 @@ type ScanFromReportProps = WithCurrentUserPersonalDetailsProps & {
 function ScanFromReport({report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanFromReportProps) {
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isMultiScanEnabled} = useMultiScanState();
+    const {disableMultiScan} = useMultiScanActions();
 
     // TODO: derive transactions from useOptimisticDraftTransactions when wired up
     const transactions = transaction ? [transaction] : [];
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), () => {});
+    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), disableMultiScan);
 
     const processReceipts = (files: FileObject[]) => {
         if (files.length === 0) {
