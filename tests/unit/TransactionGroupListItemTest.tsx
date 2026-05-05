@@ -33,6 +33,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: jest.fn(),
         addListener: jest.fn(),
+        getState: jest.fn(() => undefined),
     }),
     useFocusEffect: jest.fn((callback: () => void) => callback()),
     useRoute: () => ({
