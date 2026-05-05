@@ -53,6 +53,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
     const isEditing = issueNewCard?.isEditing;
     const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
+    const isVirtualCard = issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
 
     const spendRuleID = issueNewCard?.data?.spendRuleID;
     const spendRuleForm = issueNewCard?.data.spendRuleValue ?? {};
@@ -201,18 +202,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     );
     const spendRuleMaxAmountTitle = Number.isFinite(spendRuleParsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), currencyCode) : '';
 
-    const existingSpendRuleTitleComponent = (
-        <View>
-            {spendRuleToCopySummary.map((summary) => (
-                <Text
-                    key={summary}
-                    numberOfLines={2}
-                >
-                    {summary}
-                </Text>
-            ))}
-        </View>
-    );
+    const existingSpendRuleTitle = spendRuleToCopySummary.join(', ');
 
     return (
         <InteractiveStepWrapper
@@ -253,8 +243,9 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
                         {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
-                                titleComponent={existingSpendRuleTitleComponent}
+                                title={existingSpendRuleTitle}
                                 shouldShowRightIcon
+                                // JACK_TODO
                                 description="Choose a rule"
                                 onPress={handleChooseSpendRule}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
@@ -309,34 +300,39 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                     </View>
                 )}
                 {!!spendRuleErrorMessage && <FormHelpMessage message={spendRuleErrorMessage} />}
-                <ToggleSettingOptionRow
-                    title={translate('workspace.card.issueNewCard.addExpirationDate')}
-                    subtitle={!expirationToggled ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
-                    isActive={expirationToggled}
-                    onToggle={setExpirationToggled}
-                    switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
-                    shouldPlaceSubtitleBelowSwitch
-                    wrapperStyle={[styles.mv3]}
-                />
-                {expirationToggled && (
+
+                {isVirtualCard && (
                     <>
-                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.VALID_FROM}
-                            label={translate('workspace.card.issueNewCard.startDate')}
-                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={minDate}
-                            defaultValue={issueNewCard?.data?.validFrom ?? format(minDate, CONST.DATE.FNS_FORMAT_STRING)}
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.card.issueNewCard.addExpirationDate')}
+                            subtitle={!expirationToggled ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
+                            isActive={expirationToggled}
+                            onToggle={setExpirationToggled}
+                            switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                            shouldPlaceSubtitleBelowSwitch
+                            wrapperStyle={[styles.mv3]}
                         />
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.VALID_THRU}
-                            label={translate('workspace.card.issueNewCard.endDate')}
-                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={minDate}
-                            defaultValue={issueNewCard?.data?.validThru}
-                        />
+                        {expirationToggled && (
+                            <>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
+                                <InputWrapper
+                                    InputComponent={DatePicker}
+                                    inputID={INPUT_IDS.VALID_FROM}
+                                    label={translate('workspace.card.issueNewCard.startDate')}
+                                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                    minDate={minDate}
+                                    defaultValue={issueNewCard?.data?.validFrom ?? format(minDate, CONST.DATE.FNS_FORMAT_STRING)}
+                                />
+                                <InputWrapper
+                                    InputComponent={DatePicker}
+                                    inputID={INPUT_IDS.VALID_THRU}
+                                    label={translate('workspace.card.issueNewCard.endDate')}
+                                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                    minDate={minDate}
+                                    defaultValue={issueNewCard?.data?.validThru}
+                                />
+                            </>
+                        )}
                     </>
                 )}
             </FormProvider>

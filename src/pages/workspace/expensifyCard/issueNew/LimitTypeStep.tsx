@@ -51,10 +51,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        if (issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
-            return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
-        }
-        return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
+        return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
     }, [isEditing, issueNewCard?.data?.cardType]);
 
     const onInputFocus = useCallback(() => {
