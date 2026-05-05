@@ -67,7 +67,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {subsidiaryList, receivableList, taxAccountsList, items, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
     const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
-    const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
+    const selectedItem = config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT ? findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem) : undefined;
     const travelPayableAccount = payableList?.find((account) => account.id === config?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
