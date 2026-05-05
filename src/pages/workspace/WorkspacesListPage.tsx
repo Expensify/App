@@ -1,6 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -211,7 +212,7 @@ function WorkspacesListPage() {
 
     const prevIsPendingDeleteRef = useRef(isPendingDelete);
 
-    const continueDeleteWorkspace = useCallback(() => {
+    const continueDeleteWorkspace = () => {
         // Read from refs to avoid stale closures when called from usePayAndDowngrade
         const policyID = policyIDToDeleteRef.current;
         const policyName = policyNameToDeleteRef.current;
@@ -256,33 +257,11 @@ function WorkspacesListPage() {
                 policyNameToDeleteRef.current = undefined;
             }
         });
-    }, [
-        activePolicyID,
-        closeModal,
-        accountIDToLogin,
-        defaultCardFeeds,
-        hasCardFeedOrExpensifyCard,
-        hasDeleteWorkspaceExpensifyCardsError,
-        isOffline,
-        lastAccessedWorkspacePolicyID,
-        lastPaymentMethod,
-        lastSelectedFeed,
-        lastSelectedExpensifyCardFeed,
-        isPendingDelete,
-        policies,
-        localeCompare,
-        reimbursementAccountError,
-        reportsToArchive,
-        showConfirmModal,
-        currentUserPersonalDetails.accountID,
-        transactionViolations,
-        personalPolicyID,
-        translate,
-    ]);
+    };
 
     const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(continueDeleteWorkspace);
 
-    const hideDeleteWorkspaceErrorModal = useCallback(() => {
+    const hideDeleteWorkspaceErrorModal = () => {
         setPolicyIDToDelete(undefined);
         policyIDToDeleteRef.current = undefined;
         policyNameToDeleteRef.current = undefined;
@@ -290,7 +269,7 @@ function WorkspacesListPage() {
             return;
         }
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
-    }, [setPolicyIDToDelete, policyToDelete]);
+    };
 
     const confirmLeaveAndHideModal = () => {
         if (!policyToLeave) {
@@ -337,9 +316,9 @@ function WorkspacesListPage() {
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(currentUserPersonalDetails.accountID, account?.canDowngrade, policies);
 
-    const resetLoadingSpinnerIconIndex = useCallback(() => {
+    const resetLoadingSpinnerIconIndex = () => {
         setLoadingSpinnerIconIndex(null);
-    }, []);
+    };
 
     useEffect(() => {
         const prevIsPendingDelete = prevIsPendingDeleteRef.current;
@@ -783,7 +762,6 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
-    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
             case 'workspace': {

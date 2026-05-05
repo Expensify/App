@@ -119,7 +119,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
     }, [approverTypes, selectedApproverType, changeApprover]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     const confirmButtonOptions = useMemo(
