@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';

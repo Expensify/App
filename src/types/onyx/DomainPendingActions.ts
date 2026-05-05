@@ -1,3 +1,5 @@
+import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
@@ -35,6 +37,36 @@ type DomainMemberPendingActions = {
 } & GeneralDomainMemberPendingAction;
 
 /**
+ * Represents the pending actions related to a domain's security group.
+ */
+type DomainSecurityGroupPendingActions = {
+    /**
+     * Pending action for the security group name
+     */
+    name?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the strictly enforce workspace rules setting
+     */
+    enableStrictPolicyRules?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the default security group ID
+     */
+    defaultSecurityGroupID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted expense workspace creation
+     */
+    enableRestrictedPolicyCreation?: OnyxCommon.PendingAction;
+
+    /**
+     * Base pending action for group-level operations (create, delete)
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/**
  * Pending actions triggered by user operations on the domain
  */
 type DomainPendingAction = {
@@ -67,7 +99,7 @@ type DomainPendingAction = {
      * Pending action for the domain itself
      */
     pendingAction?: OnyxCommon.PendingAction;
-};
+} & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupPendingActions>;
 
-export type {GeneralDomainMemberPendingAction};
+export type {GeneralDomainMemberPendingAction, DomainSecurityGroupPendingActions};
 export default DomainPendingAction;

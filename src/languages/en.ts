@@ -62,7 +62,6 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
-/* eslint-disable max-len */
 const translations = {
     common: {
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
@@ -91,6 +90,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         newFeature: 'New feature',
+        beta: 'Beta',
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
@@ -325,6 +325,7 @@ const translations = {
         letsStart: `Let's start`,
         showMore: 'Show more',
         showLess: 'Show less',
+        plusMore: ({count}: {count: number}) => `+${count} more`,
         merchant: 'Merchant',
         change: 'Change',
         category: 'Category',
@@ -893,6 +894,7 @@ const translations = {
         },
     },
     adminOnlyCanPost: 'Only admins can send messages in this room.',
+    readOnlyConversation: 'This conversation is read-only.',
     reportAction: {
         asCopilot: 'as copilot for',
         assistedBy: (agentName: string) => `assisted by ${agentName}`,
@@ -1002,6 +1004,12 @@ const translations = {
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
+            },
+            unlockBankAccount: {
+                workspaceTitle: 'Your business bank account has been locked',
+                personalTitle: 'Your bank account has been locked',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
             },
         },
         freeTrialSection: {
@@ -1473,7 +1481,7 @@ const translations = {
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing',
             invalidDistance: 'Please enter a valid distance before continuing',
-            invalidReadings: 'Please enter both start and end readings',
+            invalidReadings: 'Please enter both start & end readings to continue',
             negativeDistanceNotAllowed: 'End reading must be greater than start reading',
             distanceAmountTooLarge: 'The total amount is too large. Reduce the distance or lower the rate.',
             distanceAmountTooLargeReduceDistance: 'The total amount is too large. Reduce the distance.',
@@ -1525,11 +1533,11 @@ const translations = {
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
-        addUnreportedExpense: 'Add unreported expense',
-        selectUnreportedExpense: 'Select at least one expense to add to the report.',
-        emptyStateUnreportedExpenseTitle: 'No unreported expenses',
-        emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
-        addUnreportedExpenseConfirm: 'Add to report',
+        addExistingExpense: 'Add existing expense',
+        selectExistingExpense: 'Select at least one expense to add to the report.',
+        emptyStateExistingExpenseTitle: 'No existing expenses',
+        emptyStateExistingExpenseSubtitle: 'Looks like you don’t have any existing expenses. Try creating one below.',
+        addExistingExpenseConfirm: 'Add to report',
         newReport: 'New report',
         explainHold: () => ({
             one: "Explain why you're holding this expense.",
@@ -1662,6 +1670,7 @@ const translations = {
             header: (workflowSettingLink: string) =>
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
@@ -2143,6 +2152,7 @@ const translations = {
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
+            showBranchNameInTitle: 'Show branch name in browser title',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
@@ -2164,8 +2174,8 @@ const translations = {
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         helpPage: {
-            title: 'Help and support',
-            description: 'We are here to help you 24/7',
+            title: 'Got questions?',
+            description: "We're here to help, around the clock.",
             helpSite: 'Help site',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
@@ -2770,6 +2780,15 @@ const translations = {
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agents',
+        subtitle: 'Create agents to handle your workflow. Skip the manual work and get hours back in your day.',
+        newAgent: 'New agent',
+        emptyAgents: {
+            title: 'No agents created',
+            subtitle: 'Stop manually doing stuff. Instruct an agent instead and save yourself lots of time.',
+        },
     },
     expenseRulesPage: {
         title: 'Expense rules',
@@ -3448,6 +3467,7 @@ const translations = {
         whenClearStatus: 'When should we clear your status?',
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         cannotSetVacationDelegate: `You can't set a vacation delegate because you're currently the delegate for the following members:`,
+        addVacationDelegate: 'Add vacation delegate',
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: (nameOrEmail: string) => `as ${nameOrEmail}'s vacation delegate`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
@@ -3552,6 +3572,11 @@ const translations = {
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
         toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
+        updatePersonalInfo: 'Update bank account',
+        updatePersonalInfoFailure: 'Unable to update bank account information. Please try again later.',
+        updateSuccessTitle: 'Bank account updated!',
+        updateSuccessHeader: 'Bank account updated',
+        updateSuccessMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -4887,6 +4912,7 @@ const translations = {
 
                             If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
                         `),
+                        travelDescription: 'Travel expenses will export as journal entries to the NetSuite account specified below.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5334,6 +5360,10 @@ const translations = {
             euUkDisclaimer:
                 'Cards provided to EEA residents are issued by Transact Payments Malta Limited and cards provided to UK residents are issued by Transact Payments Limited pursuant to license by Visa Europe Limited. Transact Payments Malta Limited is duly authorized and regulated by the Malta Financial Services Authority as a Financial Institution under the Financial Institution Act 1994. Registration number C 91879. Transact Payments Limited is authorized and regulated by the Gibraltar Financial Service Commission.',
             issueCard: 'Issue card',
+            exportAsCSV: 'Export as CSV',
+            csvColumnType: 'Type',
+            csvColumnLimitType: 'Limit type',
+            csvColumnLimit: 'Limit',
             findCard: 'Find card',
             newCard: 'New card',
             name: 'Name',
@@ -5368,7 +5398,6 @@ const translations = {
                 monthly: 'Monthly',
             },
             cardDetails: 'Card details',
-            cardPending: ({name}: {name: string}) => `Card is currently pending and will be issued once ${name}'s account is validated.`,
             virtual: 'Virtual',
             physical: 'Physical',
             deactivate: 'Deactivate card',
@@ -5979,6 +6008,14 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            allMembers: 'All members',
+            admins: 'Admins',
+            approvers: 'Approvers',
+            auditors: 'Auditors',
+            emptyRoleFilter: {
+                title: 'No members match this filter',
+                subtitle: 'Invite a member or change the filter above.',
+            },
             importMembers: 'Import members',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
@@ -6281,7 +6318,6 @@ const translations = {
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
                         default: {
-                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
@@ -6331,13 +6367,14 @@ const translations = {
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                         return `Translation missing for stage: ${stage}`;
                     }
                 }
             },
             gusto: {
                 title: 'Gusto',
+                connect: 'Connect',
+                connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
                 approvalMode: 'Approval mode',
                 finalApprover: 'Final approver',
             },
@@ -6977,6 +7014,8 @@ const translations = {
                 merchants: 'Merchants',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
+                noCardsIssuedTitle: 'No Expensify Cards issued',
+                noCardsIssuedSubtitle: 'Issue Expensify Cards to create spend rules',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Airlines',
@@ -7452,6 +7491,7 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the company card purchases requirement`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -7548,6 +7588,9 @@ const translations = {
         setReceiptRequiredAmount: (newValue: string) => `set receipt required amount to "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `removed receipt required amount (previously "${oldValue}")`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `set itemized receipt required amount to "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) => `changed itemized receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `removed itemized receipt required amount (previously "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `set max expense amount to "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `removed max expense amount (previously "${oldValue}")`,
@@ -7621,8 +7664,8 @@ const translations = {
     search: {
         tabs: {
             expenseReports: 'Expense reports',
-            reports: 'All reports',
-            expenses: 'All expenses',
+            reports: 'Reports',
+            expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',
             pay: 'Ready to pay',
@@ -7755,6 +7798,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
+                centralInvoicing: 'Central invoicing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -7842,6 +7886,7 @@ const translations = {
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',
+        askConcierge: (message: string) => `Ask Concierge “${message}”`,
         searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
@@ -8773,9 +8818,9 @@ const translations = {
             collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
             pricing: 'Pricing',
         },
-        requestEarlyCancellation: {
-            title: 'Request early cancellation',
-            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+        cancelSubscription: {
+            title: 'Cancel subscription',
+            subtitle: 'What’s the main reason you’re canceling your subscription?',
             subscriptionCanceled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
@@ -8788,7 +8833,7 @@ const translations = {
                 subtitle:
                     'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
+            acknowledgement: `By requesting cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
         },
     },
     feedbackSurvey: {
@@ -8954,12 +8999,6 @@ const translations = {
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
         accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scan our test receipt</strong> to see how it works!</tooltip>',
-            manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
-            confirmation: '<tooltip>Now, <strong>submit your expense</strong> and watch the\nmagic happen!</tooltip>',
-            tryItOut: 'Try it out',
-        },
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
@@ -9132,7 +9171,7 @@ const translations = {
             resetDomain: 'Reset domain',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Please type <strong>${domainName}</strong> to confirm the domain reset.`,
             enterDomainName: 'Enter your domain name here',
-            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <bullet-list><bullet-item>Company card connections and any unreported expenses from those cards</bullet-item><bullet-item>SAML and group settings</bullet-item></bullet-list> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
+            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <bullet-list><bullet-item>Company card connections and any unreported expenses from those cards</bullet-item><bullet-item>SAML and group settings</bullet-item><bullet-item>Travel data and access to Expensify Travel</bullet-item></bullet-list> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
         domainMembers: 'Domain members',
         members: {
@@ -9163,7 +9202,9 @@ const translations = {
                 other: 'Close accounts',
             }),
             moveToGroup: 'Move to group',
+            domainGroup: 'Domain group',
             chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
+            chooseWhereToMoveName: ({name}: {name: string}) => `Choose where to move ${name}.`,
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
@@ -9184,6 +9225,7 @@ const translations = {
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             resetTwoFactorAuth: 'Reset two-factor authentication',
+            error: "Couldn't save this change. Please try again.",
         },
         groups: {
             title: 'Groups',
@@ -9193,6 +9235,22 @@ const translations = {
                     other: (count: number) => `${count} members`,
                 };
             },
+            defaultGroup: 'Default group for new members',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
+            makeDefault: 'Make default',
+            neverMind: 'Never mind',
+            permissions: 'Group permissions',
+            strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
+            strictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
+            restrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
+            restrictExpenseWorkspaceCreationDescription:
+                'Prevent members from being able to create an expense workspace or remove themselves from an expense workspace. This is useful for preventing people from using Expensify to submit reports for use outside your domain when combined with strict workspace enforcement.',
+            deleteGroup: 'Delete Group',
+            deleteGroupDangerConfirmationModal: 'Delete Group',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `Are you sure? This will reassign all members to the default group (${defaultGroupName}) and can't be undone.`,
+            deleteGroupError: 'Unable to delete this group. Please try again.',
         },
     },
 };

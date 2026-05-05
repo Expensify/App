@@ -13,10 +13,7 @@ import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-// Height constants
 const DESKTOP_HEIGHT = 28;
-const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
-const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
 
 type MoneyRequestReportGroupHeaderProps = {
     /** The grouped transaction data */
@@ -48,6 +45,9 @@ type MoneyRequestReportGroupHeaderProps = {
 
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
     pendingAction?: PendingAction;
+
+    /** Whether to use narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
 function MoneyRequestReportGroupHeader({
@@ -61,11 +61,13 @@ function MoneyRequestReportGroupHeader({
     isDisabled = false,
     onToggleSelection,
     pendingAction,
+    shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
 }: MoneyRequestReportGroupHeaderProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutHook} = useResponsiveLayoutOnWideRHP();
+    const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutHook;
 
     const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
     const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');
@@ -73,17 +75,9 @@ function MoneyRequestReportGroupHeader({
 
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const conditionalHeight = useMemo(
-        () => (shouldUseNarrowLayout ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX} : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}),
-        [shouldUseNarrowLayout, shouldShowCheckbox],
-    );
-
     const textStyle = useMemo(
-        () =>
-            shouldUseNarrowLayout
-                ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
-                : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT},
-        [shouldUseNarrowLayout, shouldShowCheckbox],
+        () => (shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT}),
+        [shouldUseNarrowLayout],
     );
 
     const handleToggleSelection = useCallback(() => {
@@ -92,7 +86,7 @@ function MoneyRequestReportGroupHeader({
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
-            <View style={[styles.reportLayoutGroupHeader, conditionalHeight]}>
+            <View style={[shouldUseNarrowLayout ? [styles.ph4, styles.pv3, styles.borderBottom] : [styles.reportLayoutGroupHeader, {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {shouldShowCheckbox && (
                         <Checkbox

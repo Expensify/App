@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -272,7 +273,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
                 />
             )}

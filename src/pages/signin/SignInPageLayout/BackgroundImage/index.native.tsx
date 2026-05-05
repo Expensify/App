@@ -1,6 +1,7 @@
 import {Image} from 'expo-image';
 import type {ImageProps as ExpoImageProps} from 'expo-image';
 import React, {useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -56,6 +57,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
     return (
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
             <Image
+                accessibilityIgnoresInvertColors
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
