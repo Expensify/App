@@ -106,7 +106,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
     };
 }
 
-function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendRuleForm | undefined {
+function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): SpendRuleForm | undefined {
     if (!cardRule || typeof cardRule !== 'object' || !('filters' in cardRule) || !('action' in cardRule)) {
         return undefined;
     }

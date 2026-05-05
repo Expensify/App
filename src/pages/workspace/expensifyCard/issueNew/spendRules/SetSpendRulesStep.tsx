@@ -13,13 +13,14 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
-import {getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryText, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -39,11 +40,13 @@ type SetSpendRulesStepProps = {
 };
 
 function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
+    const domainAccountID = useDefaultFundID(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
 
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -56,13 +59,17 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     }, [assigneeTimeZone]);
 
     const isEditing = issueNewCard?.isEditing;
-    const hasCardRuleID = !!issueNewCard?.data?.cardRuleID;
+    const cardRuleID = issueNewCard?.data?.cardRuleID;
     const spendRuleForm = issueNewCard?.data.cardRuleValue ?? {};
+    const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
+    const selectedRule = expensifyCardSettings?.cardRules?.[cardRuleID ?? ''];
     const hasCardRuleData = !!issueNewCard?.data?.cardRuleID || !!issueNewCard?.data?.cardRuleValue;
     const restrictionAction = issueNewCard?.data?.cardRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING;
 
-    // JACK_TODO: Derive from state
+    const spendRuleFormValue = getSpendRuleFormValuesFromCardRule(selectedRule);
+    const spendRuleSummary = spendRuleFormValue ? getSpendRuleSummaryText(spendRuleFormValue, currencyCode, translate, convertToDisplayString) : [];
+
     const [spendRuleEnabled, setSpendRulesEnabled] = useState(hasCardRuleData);
     const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
 
@@ -156,6 +163,19 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD)
         : '';
 
+    const titleComponent = (
+        <View>
+            {spendRuleSummary.map((summary) => (
+                <Text
+                    key={summary}
+                    numberOfLines={2}
+                >
+                    {summary}
+                </Text>
+            ))}
+        </View>
+    );
+
     return (
         <InteractiveStepWrapper
             wrapperID="SetExpiryOptions"
@@ -195,8 +215,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
                         {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
-                                // JACK_TODO
-                                title={hasCardRuleID ? 'Has a card rule selected' : ''}
+                                titleComponent={titleComponent}
                                 shouldShowRightIcon
                                 description="Choose a rule"
                                 onPress={handleChooseSpendRule}
