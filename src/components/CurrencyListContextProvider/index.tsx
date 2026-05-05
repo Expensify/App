@@ -33,12 +33,16 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     );
 
     const convertToDisplayString = useCallback(
-        (amountInCents: number, currencyCode: string): string => {
+        (amountInCents: number | undefined, currencyCode: string | undefined): string => {
             const decimals = getCurrencyDecimals(currencyCode);
-            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+            let currencyWithFallback = currencyCode;
+            if (!currencyCode) {
+                currencyWithFallback = CONST.CURRENCY.USD;
+            }
             return format(preferredLocale, convertedAmount, {
                 style: 'currency',
-                currency: currencyCode,
+                currency: currencyWithFallback,
 
                 // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
                 // See: https://github.com/Expensify/PHP-Libs/pull/834
@@ -81,5 +85,5 @@ function useCurrencyListActions(): CurrencyListActionsContextType {
     return useContext(CurrencyListActionsContext);
 }
 
-export {CurrencyListContextProvider, CurrencyListStateContext, CurrencyListActionsContext, useCurrencyListState, useCurrencyListActions};
+export {CurrencyListContextProvider, useCurrencyListState, useCurrencyListActions};
 export type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';

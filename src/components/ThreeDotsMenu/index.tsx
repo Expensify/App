@@ -65,7 +65,7 @@ function ThreeDotsMenu({
     };
 
     const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
-        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+        if (selectedItem?.shouldKeepModalOpen) {
             return;
         }
         setPopupMenuVisible(false);
@@ -166,7 +166,7 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles]}
+                        style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}

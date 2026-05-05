@@ -31,7 +31,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
         },
         {
@@ -43,13 +43,23 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean, cardID?: string) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {
@@ -59,6 +69,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         domain,
         isPersonal,
         feed: feed ? getCompanyCardFeed(feed) : undefined,
+        cardID,
     };
 
     const optimisticData = [
@@ -69,12 +80,22 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {

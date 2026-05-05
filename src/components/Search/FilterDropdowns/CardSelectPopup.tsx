@@ -4,6 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -100,31 +102,42 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
         !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()));
 
-    const sections =
-        searchAdvancedFiltersForm === undefined
-            ? []
-            : [
-                  {
-                      title: undefined,
-                      data: [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected].filter(searchFunction),
-                      sectionIndex: 0,
-                  },
-                  {
-                      title: translate('search.filters.card.cardFeeds'),
-                      data: cardFeedsSectionData.unselected.filter(searchFunction),
-                      sectionIndex: 1,
-                  },
-                  {
-                      title: translate('search.filters.card.individualCards'),
-                      data: individualCardsSectionData.unselected.filter(searchFunction),
-                      sectionIndex: 2,
-                  },
-                  {
-                      title: translate('search.filters.card.closedCards'),
-                      data: closedCardsSectionData.unselected.filter(searchFunction),
-                      sectionIndex: 3,
-                  },
-              ];
+    let sections: Array<Section<CardFilterItem>> = [];
+    let itemCount;
+    let sectionHeaderCount = 0;
+
+    if (searchAdvancedFiltersForm) {
+        const selectedData = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected].filter(searchFunction);
+        const unselectedCardFeedsData = cardFeedsSectionData.unselected.filter(searchFunction);
+        const unselectedIndividualCardsData = individualCardsSectionData.unselected.filter(searchFunction);
+        const unselectedClosedCardsData = closedCardsSectionData.unselected.filter(searchFunction);
+
+        itemCount = selectedData.length + unselectedCardFeedsData.length + unselectedIndividualCardsData.length + unselectedClosedCardsData.length;
+        sectionHeaderCount = [unselectedCardFeedsData.length, unselectedIndividualCardsData.length, unselectedClosedCardsData.length].filter(Boolean).length;
+
+        sections = [
+            {
+                title: undefined,
+                data: selectedData,
+                sectionIndex: 0,
+            },
+            {
+                title: translate('search.filters.card.cardFeeds'),
+                data: unselectedCardFeedsData,
+                sectionIndex: 1,
+            },
+            {
+                title: translate('search.filters.card.individualCards'),
+                data: unselectedIndividualCardsData,
+                sectionIndex: 2,
+            },
+            {
+                title: translate('search.filters.card.closedCards'),
+                data: unselectedClosedCardsData,
+                sectionIndex: 3,
+            },
+        ];
+    }
 
     const applyChanges = () => {
         const feeds = cardFeedsSectionData.selected.map((feed) => feed.cardFeedKey);
@@ -175,28 +188,31 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_CARD}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_CARD}
         >
-            {!!shouldShowLoadingState && (
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        color={theme.spinner}
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.pl3]}
-                        reasonAttributes={reasonAttributes}
-                    />
-                </View>
-            )}
-            {!shouldShowLoadingState && (
-                <View
-                    style={[
-                        styles.getSelectionListPopoverHeight(
-                            sections.flatMap((section) => section.data).length || 1,
-                            windowHeight,
-                            shouldShowSearchInput,
-                            isInLandscapeMode,
-                            isSmallScreenWidth,
-                        ),
-                    ]}
-                >
+            <View
+                style={[
+                    styles.getSelectionListPopoverHeight({
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we want to fallback to 1 when it's 0
+                        itemCount: itemCount || 1,
+                        itemHeight: variables.optionRowHeight,
+                        windowHeight,
+                        isInLandscapeMode,
+                        hasTitle: isSmallScreenWidth,
+                        isSearchable: shouldShowSearchInput,
+                        extraHeight: 28 * sectionHeaderCount,
+                    }),
+                ]}
+            >
+                {!!shouldShowLoadingState && (
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator
+                            color={theme.spinner}
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.pl3]}
+                            reasonAttributes={reasonAttributes}
+                        />
+                    </View>
+                )}
+                {!shouldShowLoadingState && (
                     <SelectionListWithSections<CardFilterItem>
                         sections={sections}
                         ListItem={CardListItem}
@@ -207,8 +223,8 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
                         shouldStopPropagation
                         canSelectMultiple
                     />
-                </View>
-            )}
+                )}
+            </View>
         </BasePopup>
     );
 }

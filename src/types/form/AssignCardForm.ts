@@ -14,5 +14,5 @@ type AssignCardForm = Form<
     }
 >;
 
+// eslint-disable-next-line import/prefer-default-export
 export type {AssignCardForm};
-export default INPUT_IDS;

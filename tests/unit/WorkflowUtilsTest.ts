@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
@@ -17,7 +19,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import createRandomPolicy from '../utils/collections/policies';
-import {buildPersonalDetails, localeCompare} from '../utils/TestHelper';
+import {buildPersonalDetails, localeCompare, translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
@@ -541,6 +544,191 @@ describe('WorkflowUtils', () => {
             expect(approvalWorkflows.at(0)?.members).toHaveLength(1);
             const memberEmails = availableMembers.map((m) => m.email).sort();
             expect(memberEmails).toEqual(['alice@example.com', 'bob@example.com']);
+        });
+
+        it('Should filter out Expensify team members for non-Expensify customers', () => {
+            const employees: PolicyEmployeeList = {
+                'alice@example.com': {
+                    email: 'alice@example.com',
+                    submitsTo: 'alice@example.com',
+                },
+                'guide@expensify.com': {
+                    email: 'guide@expensify.com',
+                    submitsTo: 'alice@example.com',
+                },
+                'concierge@team.expensify.com': {
+                    email: 'concierge@team.expensify.com',
+                    submitsTo: 'alice@example.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'alice@example.com'),
+                owner: 'alice@example.com',
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
+                'concierge@team.expensify.com': {accountID: 3, login: 'concierge@team.expensify.com', displayName: 'Concierge'},
+            };
+
+            const {approvalWorkflows, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+                currentUserLogin: 'alice@example.com',
+            });
+
+            const allEmails = availableMembers.map((m) => m.email);
+            expect(allEmails).not.toContain('guide@expensify.com');
+            expect(allEmails).not.toContain('concierge@team.expensify.com');
+            expect(allEmails).toContain('alice@example.com');
+
+            const workflowMemberEmails = approvalWorkflows.flatMap((w) => w.members.map((m) => m.email));
+            expect(workflowMemberEmails).not.toContain('guide@expensify.com');
+            expect(workflowMemberEmails).not.toContain('concierge@team.expensify.com');
+        });
+
+        it('Should not filter out Expensify team members when the policy owner is Expensify team', () => {
+            const employees: PolicyEmployeeList = {
+                'admin@expensify.com': {
+                    email: 'admin@expensify.com',
+                    submitsTo: 'admin@expensify.com',
+                },
+                'guide@expensify.com': {
+                    email: 'guide@expensify.com',
+                    submitsTo: 'admin@expensify.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'admin@expensify.com'),
+                owner: 'admin@expensify.com',
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'admin@expensify.com': {accountID: 1, login: 'admin@expensify.com', displayName: 'Admin'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
+            };
+
+            const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+                currentUserLogin: 'admin@expensify.com',
+            });
+
+            const allEmails = availableMembers.map((m) => m.email);
+            expect(allEmails).toContain('guide@expensify.com');
+            expect(allEmails).toContain('admin@expensify.com');
+        });
+
+        it('Should not filter out Expensify team members when currentUserLogin is not provided', () => {
+            const employees: PolicyEmployeeList = {
+                'alice@example.com': {
+                    email: 'alice@example.com',
+                    submitsTo: 'alice@example.com',
+                },
+                'guide@expensify.com': {
+                    email: 'guide@expensify.com',
+                    submitsTo: 'alice@example.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'alice@example.com'),
+                owner: 'alice@example.com',
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
+            };
+
+            const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+            });
+
+            const allEmails = availableMembers.map((m) => m.email);
+            expect(allEmails).toContain('guide@expensify.com');
+        });
+
+        it('Should redirect submitsTo through Expensify team members to the first non-Expensify approver', () => {
+            const employees: PolicyEmployeeList = {
+                'alice@example.com': {
+                    email: 'alice@example.com',
+                    submitsTo: 'guide@expensify.com',
+                },
+                'guide@expensify.com': {
+                    email: 'guide@expensify.com',
+                    forwardsTo: 'bob@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+                'bob@example.com': {
+                    email: 'bob@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'bob@example.com'),
+                owner: 'alice@example.com',
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
+                'bob@example.com': {accountID: 3, login: 'bob@example.com', displayName: 'Bob'},
+            };
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+                currentUserLogin: 'alice@example.com',
+            });
+
+            // Alice should submit to Bob (skipping the Expensify guide)
+            const aliceWorkflow = approvalWorkflows.find((w) => w.members.some((m) => m.email === 'alice@example.com'));
+            expect(aliceWorkflow?.approvers.at(0)?.email).toBe('bob@example.com');
+        });
+
+        it('Should filter out Expensify team members from approver chains', () => {
+            const employees: PolicyEmployeeList = {
+                'alice@example.com': {
+                    email: 'alice@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+                'bob@example.com': {
+                    email: 'bob@example.com',
+                    forwardsTo: 'guide@expensify.com',
+                    submitsTo: 'bob@example.com',
+                },
+                'guide@expensify.com': {
+                    email: 'guide@expensify.com',
+                    forwardsTo: 'carol@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+                'carol@example.com': {
+                    email: 'carol@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'bob@example.com'),
+                owner: 'alice@example.com',
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
+                'guide@expensify.com': {accountID: 3, login: 'guide@expensify.com', displayName: 'Guide'},
+                'carol@example.com': {accountID: 4, login: 'carol@example.com', displayName: 'Carol'},
+            };
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+                currentUserLogin: 'alice@example.com',
+            });
+
+            const approverEmails = approvalWorkflows.flatMap((w) => w.approvers.map((a) => a.email));
+            expect(approverEmails).not.toContain('guide@expensify.com');
         });
     });
 
@@ -1123,22 +1311,17 @@ describe('WorkflowUtils', () => {
     });
 
     describe('getApprovalLimitDescription', () => {
-        const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => {
-            if (key === 'workflowsApprovalLimitPage.forwardLimitDescription') {
-                return `Reports above ${params?.approvalLimit} forward to ${params?.approverName}`;
-            }
-            return key;
-        });
-
         beforeEach(() => {
-            mockTranslate.mockClear();
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
 
         it('Should return undefined when approver is undefined', () => {
             const result = getApprovalLimitDescription({
                 approver: undefined,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1151,7 +1334,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1164,7 +1348,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1177,7 +1362,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1190,7 +1376,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1206,7 +1393,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: personalDetailsWithEmail,
             });
 

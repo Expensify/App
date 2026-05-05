@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,7 +23,6 @@ import {
     saveWalletTransferMethodType,
     transferWalletBalance,
 } from '@libs/actions/PaymentMethods';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
@@ -37,6 +37,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const TRANSFER_TIER_NAMES = new Set<string>([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM]);
 
 function TransferBalancePage() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -56,7 +57,7 @@ function TransferBalancePage() {
         //     title: translate('transferAmountPage.instant'),
         //     description: translate('transferAmountPage.instantSummary',
         //         numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-        //         convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE)
+        //         convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE, CONST.CURRENCY.USD)
         //     ),
         //     icon: Expensicons.Bolt,
         //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
@@ -137,7 +138,7 @@ function TransferBalancePage() {
 
     const selectedAccount = getSelectedPaymentMethodAccount();
     const selectedPaymentType =
-        selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
+        selectedAccount?.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
     const calculatedFee = calculateWalletTransferBalanceFee(userWallet?.currentBalance ?? 0, selectedPaymentType);
     const transferAmount = userWallet?.currentBalance ?? 0 - calculatedFee;
@@ -206,12 +207,12 @@ function TransferBalancePage() {
                     )}
                     <View style={styles.ph5}>
                         <Text style={[styles.mt5, styles.mb3, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.fee')}</Text>
-                        <Text style={[styles.justifyContentStart]}>{convertToDisplayString(calculatedFee)}</Text>
+                        <Text style={[styles.justifyContentStart]}>{convertToDisplayString(calculatedFee, CONST.CURRENCY.USD)}</Text>
                     </View>
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
-                        buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount) : '')}
+                        buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount, CONST.CURRENCY.USD) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}

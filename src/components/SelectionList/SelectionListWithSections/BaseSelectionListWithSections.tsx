@@ -71,6 +71,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldScrollToFocusedIndex = true,
+    shouldClearInputOnSelect = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     isRowMultilineSupported = false,
@@ -78,7 +79,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldUseDefaultRightHandSideComponent,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
-    canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -104,7 +104,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     };
 
-    const scrollToIndex = (index: number) => {
+    const scrollToIndex = (index: number, animated = true) => {
         if (index < 0 || index >= flattenedData.length || !listRef.current) {
             return;
         }
@@ -113,7 +113,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         try {
-            listRef.current.scrollToIndex({index});
+            listRef.current.scrollToIndex({index, animated});
         } catch (error) {
             // FlashList may throw if layout for this index doesn't exist yet
             // This can happen when data changes rapidly (e.g., during search filtering)
@@ -165,7 +165,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 scrollToIndex(0);
             }
 
-            if (shouldShowTextInput) {
+            if (shouldShowTextInput && shouldClearInputOnSelect) {
                 textInputOptions?.onChangeText?.('');
             }
         }
@@ -353,7 +353,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
-                        canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                         shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                         shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}

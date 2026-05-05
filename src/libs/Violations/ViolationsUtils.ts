@@ -116,6 +116,7 @@ function getTagViolationsForSingleLevelTags(
  */
 function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], tagName: string) {
     const tagViolations = [...transactionViolations];
+    const policyTagKeys = getSortedTagKeys(policyTagList);
 
     if (!tagName) {
         for (const tagList of Object.values(policyTagList)) {
@@ -127,7 +128,15 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
         }
     } else {
         const tags = TransactionUtils.getTagArrayFromName(tagName);
-        if (Object.keys(policyTagList).length !== tags.length || tags.includes('')) {
+        // Only flag ALL_TAG_LEVELS_REQUIRED if a required tag level is empty or missing.
+        // Previously this used `tags.includes('')` and a length check which flagged any
+        // empty/missing level regardless of whether it was required, causing false violations
+        // when only some levels were filled (e.g. "Engineering" with non-required second level).
+        const hasEmptyRequiredLevel = policyTagKeys.some((key, index) => {
+            const tagValue = tags.at(index) ?? '';
+            return tagValue === '' && (policyTagList[key]?.required ?? true);
+        });
+        if (hasEmptyRequiredLevel) {
             tagViolations.push({
                 name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -386,7 +395,10 @@ const ViolationsUtils = {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const categoryKey = updatedTransaction.category;
-            const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
+            const categoryData = policyCategories?.[categoryKey ?? ''];
+            // A category being created optimistically (pendingAction === 'add') is treated as valid
+            // so in-situ creation doesn't trigger a "categoryOutOfPolicy" violation before the server confirms it.
+            const isCategoryInPolicy = categoryKey ? !!(categoryData?.enabled || categoryData?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
@@ -451,7 +463,6 @@ const ViolationsUtils = {
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
@@ -827,18 +838,31 @@ const ViolationsUtils = {
         return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
     },
 
-    getRBRMessages(
-        transaction: Transaction,
-        transactionViolations: TransactionViolation[],
-        translate: LocaleContextProps['translate'],
-        missingFieldError?: string,
-        transactionThreadActions?: ReportAction[],
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        cardList?: CardList,
-        isMarkAsCash?: boolean,
-    ): string {
+    getRBRMessages({
+        transaction,
+        transactionViolations,
+        translate,
+        missingFieldError,
+        transactionThreadActions,
+        tags,
+        companyCardPageURL,
+        connectionLink,
+        cardList,
+        isMarkAsCash,
+        canEdit = true,
+    }: {
+        transaction: Transaction;
+        transactionViolations: TransactionViolation[];
+        translate: LocaleContextProps['translate'];
+        missingFieldError?: string;
+        transactionThreadActions?: ReportAction[];
+        tags?: PolicyTagLists;
+        companyCardPageURL?: string;
+        connectionLink?: string;
+        cardList?: CardList;
+        isMarkAsCash?: boolean;
+        canEdit?: boolean;
+    }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
 
@@ -853,6 +877,7 @@ const ViolationsUtils = {
                 const message = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
+                    canEdit,
                     tags,
                     companyCardPageURL,
                     connectionLink,

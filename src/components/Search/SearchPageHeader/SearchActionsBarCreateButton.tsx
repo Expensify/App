@@ -187,12 +187,11 @@ function SearchActionsBarCreateButton() {
                         if (
                             !workspaceIDForReportCreation ||
                             (shouldRestrictUserBillableActions(
-                                workspaceIDForReportCreation,
+                                defaultChatEnabledPolicy,
                                 ownerBillingGracePeriodEnd,
                                 userBillingGracePeriodEnds,
                                 amountOwed,
-                                undefined,
-                                session?.accountID,
+                                currentUserPersonalDetails.accountID,
                             ) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
@@ -203,12 +202,11 @@ function SearchActionsBarCreateButton() {
                         // Default workspace is not restricted → create report directly
                         if (
                             !shouldRestrictUserBillableActions(
-                                workspaceIDForReportCreation,
+                                defaultChatEnabledPolicy,
                                 ownerBillingGracePeriodEnd,
                                 userBillingGracePeriodEnds,
                                 amountOwed,
-                                undefined,
-                                session?.accountID,
+                                currentUserPersonalDetails.accountID,
                             )
                         ) {
                             // Check if empty report confirmation should be shown
@@ -239,7 +237,8 @@ function SearchActionsBarCreateButton() {
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
             amountOwed,
-            session?.accountID,
+            currentUserPersonalDetails.accountID,
+            defaultChatEnabledPolicy,
         ],
     );
 

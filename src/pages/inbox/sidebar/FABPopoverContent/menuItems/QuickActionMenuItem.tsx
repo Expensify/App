@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
@@ -62,12 +63,17 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
     const policyChatForActivePolicy: OnyxTypes.Report =
         !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+
+    const quickActionReportPolicyID = getNonEmptyStringOnyxID(quickActionReport?.policyID);
+    const policyChatForActivePolicyPolicyID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID);
+
+    const [quickActionReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReportPolicyID ?? CONST.POLICY.ID_FAKE}`);
+    const [policyChatForActivePolicyPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyChatForActivePolicyPolicyID ?? CONST.POLICY.ID_FAKE}`);
 
     const isVisible =
         (quickAction?.action && quickActionReport
@@ -107,21 +113,12 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const quickActionSubtitle = !hideQABSubtitle ? getReportName(quickActionReport, reportAttributes) || translate('quickAction.updateDestination') : '';
 
-    const quickActionReportPolicyID = quickActionReport?.policyID;
-    const quickActionReportWorkspacePolicy = quickActionReportPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReportPolicyID}`] : undefined;
-    const policyChatWorkspacePolicy = policyChatForActivePolicy?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyChatForActivePolicy.policyID}`] : undefined;
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
             shouldRestrictAction &&
             quickActionReportPolicyID &&
-            shouldRestrictUserBillableActions(
-                quickActionReportPolicyID,
-                ownerBillingGracePeriodEnd,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                quickActionReportWorkspacePolicy,
-                session?.accountID,
-            )
+            quickActionReportPolicy &&
+            shouldRestrictUserBillableActions(quickActionReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
@@ -198,17 +195,11 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             onPress={() =>
                 interceptAnonymousUser(() => {
                     if (
-                        policyChatForActivePolicy?.policyID &&
-                        shouldRestrictUserBillableActions(
-                            policyChatForActivePolicy.policyID,
-                            ownerBillingGracePeriodEnd,
-                            userBillingGracePeriodEnds,
-                            amountOwed,
-                            policyChatWorkspacePolicy,
-                            session?.accountID,
-                        )
+                        policyChatForActivePolicyPolicyID &&
+                        policyChatForActivePolicyPolicy &&
+                        shouldRestrictUserBillableActions(policyChatForActivePolicyPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
                     ) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicyPolicyID));
                         return;
                     }
 
