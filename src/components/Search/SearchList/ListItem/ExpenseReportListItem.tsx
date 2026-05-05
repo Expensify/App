@@ -35,6 +35,9 @@ import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
+/**
+ * An expense report row in search results, showing status badge, total, and participants.
+ */
 function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
@@ -46,7 +49,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    onCheckboxPress,
+    onSelectionButtonPress,
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
@@ -165,9 +168,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
         amountOwed,
     ]);
 
-    const handleCheckboxPress = useCallback(() => {
-        onCheckboxPress?.(reportItem as unknown as TItem);
-    }, [onCheckboxPress, reportItem]);
+    const handleSelectionButtonPress = useCallback(() => {
+        onSelectionButtonPress?.(reportItem as unknown as TItem);
+    }, [onSelectionButtonPress, reportItem]);
 
     const listItemPressableStyle = useMemo(
         () => [
@@ -180,7 +183,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
-            !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
             !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
             !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
         ],
@@ -284,10 +286,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                !isLargeScreenWidth && !isLastItem && styles.borderBottom,
             ]}
             accessible={false}
             shouldShowRightCaret={false}
-            shouldUseDefaultRightHandSideCheckmark={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >
@@ -310,7 +312,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                                 isActionLoading={isActionLoading ?? isLoading}
                                 showTooltip={showTooltip}
                                 canSelectMultiple={canSelectMultiple}
-                                onCheckboxPress={handleCheckboxPress}
+                                onCheckboxPress={handleSelectionButtonPress}
                                 onButtonPress={handleOnButtonPress}
                                 isSelectAllChecked={!!reportItem.isSelected}
                                 isIndeterminate={false}
@@ -330,7 +332,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             isActionLoading={isActionLoading ?? isLoading}
                             showTooltip={showTooltip}
                             canSelectMultiple={canSelectMultiple}
-                            onCheckboxPress={handleCheckboxPress}
+                            onCheckboxPress={handleSelectionButtonPress}
                             onButtonPress={handleOnButtonPress}
                             isSelectAllChecked={!!reportItem.isSelected}
                             isIndeterminate={false}

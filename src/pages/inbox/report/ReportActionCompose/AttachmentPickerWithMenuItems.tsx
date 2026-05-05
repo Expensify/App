@@ -185,7 +185,7 @@ function AttachmentPickerWithMenuItems({
                 shouldRestrictAction &&
                 policy &&
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
@@ -193,7 +193,7 @@ function AttachmentPickerWithMenuItems({
 
             onSelected();
         },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, accountID],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

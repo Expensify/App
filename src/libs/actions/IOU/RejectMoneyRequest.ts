@@ -375,6 +375,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -467,6 +468,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);

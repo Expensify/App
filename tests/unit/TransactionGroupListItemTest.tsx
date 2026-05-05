@@ -425,7 +425,7 @@ describe('Empty Report Selection', () => {
         item: mockEmptyReport,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        onCheckboxPress: mockOnCheckboxPress,
+        onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
         keyForList: '1',

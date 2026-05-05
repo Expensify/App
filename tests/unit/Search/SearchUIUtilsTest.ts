@@ -2511,8 +2511,8 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResults.data,
-                    currentAccountID: 20745,
-                    currentUserEmail: '',
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
@@ -2606,8 +2606,8 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: searchResults.data,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},

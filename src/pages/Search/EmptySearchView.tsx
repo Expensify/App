@@ -333,7 +333,13 @@ function EmptySearchViewContent({
                                                   if (
                                                       !workspaceIDForReportCreation ||
                                                       (defaultChatEnabledPolicy &&
-                                                          shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                                                          shouldRestrictUserBillableActions(
+                                                              defaultChatEnabledPolicy,
+                                                              ownerBillingGracePeriodEnd,
+                                                              userBillingGracePeriodEnds,
+                                                              amountOwed,
+                                                              accountID,
+                                                          ) &&
                                                           groupPoliciesWithChatEnabled.length > 1)
                                                   ) {
                                                       // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -343,7 +349,13 @@ function EmptySearchViewContent({
 
                                                   if (
                                                       !defaultChatEnabledPolicy ||
-                                                      !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                                                      !shouldRestrictUserBillableActions(
+                                                          defaultChatEnabledPolicy,
+                                                          ownerBillingGracePeriodEnd,
+                                                          userBillingGracePeriodEnds,
+                                                          amountOwed,
+                                                          accountID,
+                                                      )
                                                   ) {
                                                       handleCreateReportClick();
                                                   } else {
