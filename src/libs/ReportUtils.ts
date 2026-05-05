@@ -5813,7 +5813,6 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         reportPolicy,
         parentReport,
         personalDetails as PersonalDetailsList,
-        conciergeReportID,
     );
 
     if (parentReportActionBasedName) {

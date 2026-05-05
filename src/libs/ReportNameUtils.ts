@@ -425,7 +425,6 @@ function computeReportNameBasedOnReportAction(
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -905,7 +904,6 @@ function computeReportName({
         reportPolicy,
         parentReport,
         personalDetailsList,
-        conciergeReportID,
     );
 
     if (parentReportActionBasedName) {
