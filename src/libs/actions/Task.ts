@@ -1223,11 +1223,6 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conci
         return undefined;
     }
 
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID);
-    if (!shouldDeleteTaskReport) {
-        return undefined;
-    }
-
     if (backTo) {
         return getFlattenedTaskDeleteBackTo(backTo);
     }
