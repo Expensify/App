@@ -33,7 +33,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {clearOdometerDraft, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
+import {clearOdometerDraft, saveOdometerDraft, removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,10 +41,10 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {useRegisterDistanceTabGuard} from '@pages/iou/request/DistanceTabGuardContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -171,7 +171,6 @@ function IOURequestStepDistanceOdometer({
         initialStartImageRef,
         initialEndImageRef,
         resetOdometerLocalState,
-        hasInitializedRefs,
     } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft});
 
     useEffect(() => {
@@ -472,6 +471,30 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
+    const getHasUnsavedChanges = () => {
+        if (!isFocused || isEditing || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current || backupHandledManually.current) {
+            return false;
+        }
+        const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
+        const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+        return hasReadingChanges || hasImageChanges;
+    };
+
+    const handleTabSwitchDiscard = async () => {
+        if (isEditingConfirmation) {
+            await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+            backupHandledManually.current = true;
+        } else {
+            setMoneyRequestOdometerReading(transactionID, null, null, isTransactionDraft);
+            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isTransactionDraft, true);
+            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isTransactionDraft, true);
+        }
+        resetOdometerLocalState();
+        setFormError('');
+    };
+
+    useRegisterDistanceTabGuard(CONST.TAB_REQUEST.DISTANCE_ODOMETER, getHasUnsavedChanges, handleTabSwitchDiscard);
+
     const handleSaveForLater = useCallback(async () => {
         shouldBypassDiscardConfirmationRef.current = true;
 
@@ -511,23 +534,7 @@ function IOURequestStepDistanceOdometer({
                 lastFocusedInputRef.current?.focus();
             });
         },
-        getHasUnsavedChanges: () => {
-            if (
-                !isFocused ||
-                isEditing ||
-                shouldBypassDiscardConfirmationRef.current ||
-                didSaveEditingConfirmationRef.current ||
-                !hasInitializedRefs.current ||
-                backupHandledManually.current
-            ) {
-                return false;
-            }
-            const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-            const hasImageChanges =
-                getOdometerImageUri(transaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
-                getOdometerImageUri(transaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current);
-            return hasReadingChanges || hasImageChanges;
-        },
+        getHasUnsavedChanges,
         onConfirm: isEditingConfirmation
             ? async () => {
                   await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
