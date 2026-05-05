@@ -17,11 +17,15 @@ export default function (): void {
         nativeAppStartTimeMs = undefined;
     }
 
-    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
-        name: CONST.TELEMETRY.SPAN_APP_STARTUP,
-        op: CONST.TELEMETRY.SPAN_APP_STARTUP,
-        startTime: nativeAppStartTimeMs,
-    });
+    startSpan(
+        CONST.TELEMETRY.SPAN_APP_STARTUP,
+        {
+            name: CONST.TELEMETRY.SPAN_APP_STARTUP,
+            op: CONST.TELEMETRY.SPAN_APP_STARTUP,
+            startTime: nativeAppStartTimeMs,
+        },
+        {nativeAppStartTimeEpochMs: nativeAppStartTimeMs},
+    );
 
     requestAnimationFrame(() => {
         // Use typeof guard — bare identifier throws ReferenceError if moduleInitPolyfill didn't run

@@ -2,6 +2,7 @@ import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 import CONST from '@src/CONST';
+import {markManualAppStartupLastNetworkStart} from './startupNetworkPerformance';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
@@ -10,12 +11,30 @@ type ActiveSpanEntry = {
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
+/** High-res time (same clock as `performance.now()`) for startup ↔ OpenApp/ReconnectApp benchmark; from Nitro epoch via `timeOrigin` when possible. */
+let appStartupBenchmarkPerformanceStart: number | undefined;
+
+function resolveAppStartupBenchmarkHighResStart(nativeAppStartTimeEpochMs: number | undefined, startedAt: number): number {
+    if (nativeAppStartTimeEpochMs !== undefined && nativeAppStartTimeEpochMs > 0) {
+        const timeOrigin = globalThis.performance?.timeOrigin;
+        if (timeOrigin !== undefined && timeOrigin > 0) {
+            const fromNativeWallClock = nativeAppStartTimeEpochMs - timeOrigin;
+            if (fromNativeWallClock >= 0) {
+                return fromNativeWallClock;
+            }
+        }
+    }
+    return startedAt;
+}
+
 type StartSpanExtraOptions = Partial<{
     /**
      * Minimum duration of the span in milliseconds. If the span is shorter than this duration, it will be discarded (filtered out) before sending to Sentry.
      *
      */
     minDuration: number;
+    /** Unix epoch ms from Nitro `AppStartTime` — aligns startup benchmark + User Timing with native process start */
+    nativeAppStartTimeEpochMs?: number;
 }>;
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
@@ -35,7 +54,13 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     if (extraOptions.minDuration) {
         span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
     }
-    activeSpans.set(spanId, {span, startTime: performance.now()});
+    const startedAt = performance.now();
+    activeSpans.set(spanId, {span, startTime: startedAt});
+    if (spanId === CONST.TELEMETRY.SPAN_APP_STARTUP) {
+        const benchmarkHighResStart = resolveAppStartupBenchmarkHighResStart(extraOptions.nativeAppStartTimeEpochMs, startedAt);
+        appStartupBenchmarkPerformanceStart = benchmarkHighResStart;
+        markManualAppStartupLastNetworkStart(benchmarkHighResStart);
+    }
 
     return span;
 }
@@ -50,6 +75,12 @@ function endSpan(spanId: string) {
     const now = performance.now();
     const durationMs = Math.round(now - startTime);
     console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
+
+    if (spanId === CONST.TELEMETRY.SPAN_APP_STARTUP) {
+        // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking
+        console.warn('[NitroFetchBenchmarks][ManualAppStartup] Ending span', {durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
+    }
+
     span.setStatus({code: 1});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
@@ -92,4 +123,8 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+function getAppStartupBenchmarkPerformanceStart(): number | undefined {
+    return appStartupBenchmarkPerformanceStart;
+}
+
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getAppStartupBenchmarkPerformanceStart, cancelSpan, cancelAllSpans, cancelSpansByPrefix};

@@ -1958,6 +1958,10 @@ const CONST = {
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        /** React Native User Timing (native-backed `global.performance`) — last HTTP during startup */
+        PERFORMANCE_MARK_MANUAL_APP_STARTUP_LAST_NETWORK_START: 'ManualAppStartupLastNetwork.start',
+        PERFORMANCE_MARK_MANUAL_APP_STARTUP_LAST_NETWORK_END: 'ManualAppStartupLastNetwork.end',
+        PERFORMANCE_MEASURE_MANUAL_APP_STARTUP_LAST_NETWORK: 'ManualAppStartupLastNetwork',
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',

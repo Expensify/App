@@ -1,4 +1,4 @@
-import {prefetchOnAppStart, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
+import {prefetchOnAppStart} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -12,8 +12,27 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import Log from './Log';
 import prepareRequestPayload from './prepareRequestPayload';
+import {getAppStartupBenchmarkPerformanceStart} from './telemetry/activeSpans';
+import {measureManualAppStartupLastNetworkComplete} from './telemetry/startupNetworkPerformance';
+
+let hasLoggedOpenOrReconnectAppStartupBenchmark = false;
+
+function logOpenOrReconnectAppStartupBenchmarkIfNeeded(url: string) {
+    if (hasLoggedOpenOrReconnectAppStartupBenchmark) {
+        return;
+    }
+    const benchmarkStart = getAppStartupBenchmarkPerformanceStart();
+    if (benchmarkStart === undefined) {
+        return;
+    }
+    const now = performance.now();
+    const durationMs = Math.round(now - benchmarkStart);
+    // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking (Log would omit from release logcat filters)
+    console.warn('[NitroFetchBenchmarks][ManualAppStartup] OpenApp/ReconnectApp request completed', {durationMs, timestamp: now, url});
+    measureManualAppStartupLastNetworkComplete();
+    hasLoggedOpenOrReconnectAppStartupBenchmark = true;
+}
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -54,6 +73,8 @@ const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQ
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
+const OPEN_OR_RECONNECT_APP_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]);
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -82,11 +103,21 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const shouldPrefetch = !!headers.prefetchKey;
     if (shouldPrefetch) {
+        // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking
+        console.warn('[NitroFetchBenchmarks][HttpUtils] Prefetching request', {url, method, body, headers});
         prefetchOnAppStart(url, init);
     }
 
-    return fetch(url, init)
+    const commandFromUrl = url.match(APICommandRegex)?.[1];
+    const isOpenOrReconnectAppRequest = commandFromUrl ? OPEN_OR_RECONNECT_APP_COMMANDS.has(commandFromUrl) : false;
+
+    const before = performance.now();
+    const fetchPromise = fetch(url, init)
         .then((response) => {
+            const after = performance.now();
+            // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking
+            console.warn(`[NitroFetchBenchmarks] fetch took ${after - before}ms (${url})`);
+
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
             if (match && addSkewList.has(match) && response.headers) {
@@ -170,6 +201,13 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
             return response;
         });
+
+    return fetchPromise.finally(() => {
+        if (!isOpenOrReconnectAppRequest) {
+            return;
+        }
+        logOpenOrReconnectAppStartupBenchmarkIfNeeded(url);
+    });
 }
 
 /**
