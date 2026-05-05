@@ -8443,7 +8443,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         markAsCashToIgnore: 'Segna come contante da ignorare e richiedi il pagamento.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
-                const fieldList = missingFields.join(missingFields.length > 2 ? ', ' : ' and ');
+                const fieldNames: Record<string, string> = {merchant: 'commerciante', date: 'data', amount: 'importo'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
                 return `Scansione della ricevuta non riuscita — ${fieldList} mancante.${canEdit ? ' Inserisci i dettagli manualmente.' : ''}`;
             }
             return `Scansione della ricevuta non riuscita.${canEdit ? 'Inserisci i dettagli manualmente.' : ''}`;

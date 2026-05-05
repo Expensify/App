@@ -8476,7 +8476,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         markAsCashToIgnore: 'Marquer comme paiement en espèces pour l’ignorer et demander un paiement.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
-                const fieldList = missingFields.join(missingFields.length > 2 ? ', ' : ' and ');
+                const fieldNames: Record<string, string> = {merchant: 'commerçant', date: 'date', amount: 'montant'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
                 return `L’analyse du reçu a échoué — ${fieldList} manquant.${canEdit ? ' Saisir les détails manuellement.' : ''}`;
             }
             return `L’analyse du reçu a échoué.${canEdit ? 'Saisir les détails manuellement.' : ''}`;

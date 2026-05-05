@@ -8662,7 +8662,9 @@ ${amount} para ${merchant} - ${date}`,
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
-                const fieldList = missingFields.join(missingFields.length > 2 ? ', ' : ' and ');
+                const fieldNames: Record<string, string> = {merchant: 'comerciante', date: 'fecha', amount: 'importe'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
                 return `No se pudo escanear el recibo — falta ${fieldList}.${canEdit ? ' Introduce los datos manualmente.' : ''}`;
             }
             return `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`;

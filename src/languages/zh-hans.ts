@@ -8190,7 +8190,9 @@ ${reportName}
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
             if (missingFields.length > 0) {
-                const fieldList = missingFields.join(missingFields.length > 2 ? ', ' : ' and ');
+                const fieldNames: Record<string, string> = {merchant: '商家', date: '日期', amount: '金额'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
                 return `收据扫描失败 — 缺少 ${fieldList}。${canEdit ? '手动输入详细信息。' : ''}`;
             }
             return `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`;
