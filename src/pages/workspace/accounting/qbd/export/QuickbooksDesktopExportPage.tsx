@@ -60,7 +60,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.path)),
             title: qbdConfig?.export.reimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.reimbursable}`) : undefined,
             subscribedSettings: [
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
