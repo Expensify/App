@@ -8341,7 +8341,7 @@ ${reportName}
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: '加盟店', date: '日付', amount: '金額'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join('、');
                 return `レシートのスキャンに失敗しました — ${fieldList}が不足しています。${canEdit ? '詳細を手動で入力してください。' : ''}`;
             }
             return `レシートのスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`;
