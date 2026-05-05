@@ -6,8 +6,6 @@ import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,12 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
-import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
-import type {RequestMoneyInformation} from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
@@ -59,6 +53,10 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
+    if (Object.keys(messages).length === 0) {
+        return null;
+    }
+
     // Fetch the keys, sort them, and map through each key to get the corresponding message
     const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
@@ -69,33 +67,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
-    let retryParams: RequestMoneyInformation | undefined;
-    if (receiptError) {
-        retryParams =
-            typeof receiptError.retryParams === 'string' ? (JSON.parse(receiptError.retryParams) as RequestMoneyInformation) : (receiptError.retryParams as RequestMoneyInformation);
-    }
-
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(retryParams?.report);
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(retryParams?.action);
-    const moneyRequestReportID = isMoneyRequestReport ? retryParams?.report?.reportID : undefined;
-    const chatReportID = isMoneyRequestReport && !isMovingTransactionFromTrackExpense ? retryParams?.report?.chatReportID : undefined;
-
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [chatReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`);
-    const effectiveChatReport = chatReport ?? chatReportDraft;
-
-    const chatReportPolicyID = isMoneyRequestReport ? effectiveChatReport?.policyID : retryParams?.report?.policyID;
-    const parentChatReportPolicyID = isMovingTransactionFromTrackExpense ? undefined : chatReportPolicyID;
-    const policyTagList = useMoneyRequestPolicyTags({
-        existingIOUReportPolicyID: retryParams?.existingIOUReport?.policyID,
-        moneyRequestReportID,
-        parentChatReportPolicyID,
-        participantReportID: retryParams?.participantParams?.participant?.reportID,
-    });
-
-    if (Object.keys(messages).length === 0) {
-        return null;
-    }
 
     const handleLinkPress = (href: string) => {
         if (!receiptError) {
@@ -103,10 +74,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         }
 
         if (href.endsWith('retry')) {
-            if (receiptError.action === CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
-                const requestMoneyParams = receiptError.retryParams as RequestMoneyInformation;
-                requestMoneyParams.policyParams = {...(requestMoneyParams.policyParams ?? {}), policyTagList};
-            }
             handleRetryPress(receiptError, dismissError, () => {
                 showConfirmModal({
                     prompt: translate('common.genericErrorMessage'),
