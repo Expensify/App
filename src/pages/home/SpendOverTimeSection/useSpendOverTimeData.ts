@@ -3,6 +3,7 @@ import {useEffect, useEffectEvent} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -52,6 +53,7 @@ function useSpendOverTimeData() {
     const {groupBy, view} = queryJSON ?? {};
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -99,6 +101,7 @@ function useSpendOverTimeData() {
                       bankAccountList,
                       allReportMetadata: undefined,
                       conciergeReportID: undefined,
+                      convertToDisplayString,
                   })[0],
                   localeCompare,
                   translate,

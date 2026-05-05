@@ -91,7 +91,6 @@ function IOURequestStepDistanceGPS({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -134,7 +133,6 @@ function IOURequestStepDistanceGPS({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
             privateIsArchived: isArchived,
             gpsCoordinates,
             gpsDistance: distance,

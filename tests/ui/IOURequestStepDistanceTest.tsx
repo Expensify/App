@@ -140,7 +140,6 @@ jest.mock('@components/DistanceRequest/DistanceRequestFooter', () => {
 });
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));

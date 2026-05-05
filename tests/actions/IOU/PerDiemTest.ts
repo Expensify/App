@@ -323,6 +323,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
                 bankAccountList: undefined,
+                conciergeReportID: undefined,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -414,6 +415,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
                 bankAccountList: undefined,
+                conciergeReportID: 'concierge_chat_001',
             });
 
             // Then: Verify the result structure and key values
@@ -549,6 +551,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
                 bankAccountList: undefined,
+                conciergeReportID: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -638,6 +641,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
                 bankAccountList: undefined,
+                conciergeReportID: 'concierge_chat_002',
             });
 
             // Then: Verify policy expense chat handling
@@ -714,6 +718,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 bankAccountList: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -790,6 +795,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
                 bankAccountList: undefined,
+                conciergeReportID: undefined,
             });
 
             // Then the result should be valid (personalDetails is correctly passed through the chain)
@@ -855,6 +861,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
                 bankAccountList: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();

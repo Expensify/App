@@ -145,6 +145,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -295,6 +296,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -378,6 +380,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -654,6 +657,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -877,6 +881,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                activePolicy: undefined,
             });
             return waitForBatchedUpdates()
                 .then(async () => {
@@ -1109,6 +1114,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                activePolicy: undefined,
             });
 
             setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
@@ -1466,11 +1472,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scanning transactions', async () => {
             const policyID = '2';
@@ -1522,11 +1528,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -1569,11 +1575,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transaction is not pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -1622,11 +1628,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeTruthy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeTruthy();
             // Then should return true when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeTruthy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
         it('should return false if the report is closed', async () => {
@@ -1655,9 +1661,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, [fakeTransaction])).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeFalsy();
         });
     });
 

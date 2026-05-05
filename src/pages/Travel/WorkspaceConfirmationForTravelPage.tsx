@@ -4,6 +4,7 @@ import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
@@ -20,9 +21,9 @@ type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorP
 function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTravelPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
+    const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
@@ -47,7 +48,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             currency: params.currency,
             file: params.avatarFile as File,
             introSelected,
-            activePolicyID,
+            activePolicy,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             betas,

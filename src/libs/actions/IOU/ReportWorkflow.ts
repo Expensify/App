@@ -111,6 +111,7 @@ function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
     // Only expense reports can be approved
@@ -129,7 +130,7 @@ function canApproveIOU(
     }
 
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === getUserAccountID();
+    const isCurrentUserManager = managerID === currentUserAccountID;
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
@@ -276,7 +277,7 @@ function getBadgeFromIOUReport(
     ) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
-    if (canApproveIOU(iouReport, policy, reportMetadata)) {
+    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
     }
     const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(

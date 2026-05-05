@@ -192,7 +192,7 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getCategoryTaxCodeAndAmount', () => {
+    describe('getCategoryTaxDetails', () => {
         it('should return the associated tax when the category matches the tax expense rules', () => {
             // Given a policy with tax expense rules associated with a category
             const category = 'Advertising';
@@ -204,11 +204,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-            // Then it should return the associated tax code and amount
+            // Then it should return the associated tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
             expect(categoryTaxAmount).toBe(5);
+            expect(categoryTaxValue).toBe('5%');
         });
 
         it("should return the default tax when the category doesn't match the tax expense rules", () => {
@@ -223,11 +224,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
             expect(categoryTaxAmount).toBe(0);
+            expect(categoryTaxValue).toBe('0%');
         });
 
         it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
@@ -254,11 +256,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_2');
             expect(categoryTaxAmount).toBe(9);
+            expect(categoryTaxValue).toBe('10%');
         });
 
         describe('should return undefined tax', () => {
@@ -276,11 +279,12 @@ describe('TransactionUtils', () => {
                 };
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
 
             it('if there are no policy tax expense rules', () => {
@@ -294,11 +298,12 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
         });
     });
@@ -327,6 +332,7 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.category).toBe(category);
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
+            expect(updatedTransaction.taxValue).toBe('5%');
         });
 
         it('should update transaction when distance is changed', () => {
@@ -1388,6 +1394,64 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
+        });
+    });
+
+    describe('getAttendeesListDisplayString', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'variant', caseFirst: 'upper'});
+
+        it('preserves insertion order when no localeCompare is provided', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
+        });
+
+        it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
+        });
+
+        it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
+            const attendees: Attendee[] = [
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
+        });
+
+        it('compares case-insensitively so the joined string matches pill order', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
+        });
+
+        it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
+            const attendees: Attendee[] = [
+                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
+                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
+        });
+
+        it('returns empty string for empty array', () => {
+            expect(TransactionUtils.getAttendeesListDisplayString([], localeCompare)).toBe('');
+        });
+
+        it('does not mutate the input array', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            const snapshot = [...attendees];
+            TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
+            expect(attendees).toEqual(snapshot);
         });
     });
 
@@ -2836,6 +2900,39 @@ describe('TransactionUtils', () => {
                 expect(result.change.category).toEqual(expect.arrayContaining(['Food', 'Travel']));
                 expect(result.change.billable).toEqual(expect.arrayContaining([true, false]));
             });
+        });
+    });
+
+    describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
+            const duplicatedTransaction = generateTransaction({
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: -500,
+                taxValue: '5%',
+            });
+
+            const reviewDuplicates = {
+                duplicates: [],
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                merchant: 'Updated Merchant',
+                category: 'Travel',
+                tag: 'Project',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 900,
+                description: 'Updated comment',
+                comment: duplicatedTransaction.comment ?? {},
+                reimbursable: false,
+                billable: true,
+            };
+
+            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-500);
+            expect(updatedTransaction.taxValue).toBe('5%');
         });
     });
 

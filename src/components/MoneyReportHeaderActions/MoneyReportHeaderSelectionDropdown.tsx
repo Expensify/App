@@ -20,6 +20,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExportActions from '@hooks/useExportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -86,6 +87,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const {selectedTransactionIDs, currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -117,6 +119,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const activePolicy = usePolicy(activePolicyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
@@ -219,7 +222,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     };
 
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
@@ -273,6 +276,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
+                chatReportPolicy,
                 betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,

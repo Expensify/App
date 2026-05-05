@@ -593,6 +593,61 @@ describe('ReportNameUtils', () => {
             expect(name).toBe('added card feed "Visa Commercial"');
         });
 
+        test('UPDATE_REQUIRE_COMPANY_CARDS_ENABLED parent action', () => {
+            const thread: Report = createWorkspaceThread(150);
+            const enabledParentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    enabled: true,
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the company card purchases requirement');
+
+            const disabledParentAction: ReportAction = {
+                ...enabledParentAction,
+                originalMessage: {
+                    enabled: false,
+                },
+            } as unknown as ReportAction;
+            const disabledReportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
+            };
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                disabledReportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the company card purchases requirement');
+        });
+
         test('DELETE_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(101);
             const parentAction: ReportAction = {

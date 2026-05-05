@@ -12,7 +12,11 @@
 import type {SpanAttributeValue} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from './activeSpans';
 
 type SubmitFollowUpAction = ValueOf<typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION>;
@@ -46,12 +50,19 @@ type TrackingState = {
     skipSubmitExpenseSpan: boolean;
 };
 
+// No real expense submit flow should take longer than this from button press
+// to destination visible. Anything beyond this is a stuck span (e.g. user
+// backgrounded mid-flow, destination screen never mounted, focus never fired).
+const SPAN_SAFETY_TIMEOUT_MS = 60_000;
+
 // Module-level mutable state. Safe because JS is single-threaded: each
-// mutation runs to completion before any queued rAF/InteractionManager callback
-// can execute. startTracking() calls cancelTracking() first, ensuring a clean
-// slate even if the previous flow's async callbacks haven't fired yet.
+// mutation runs to completion before any queued rAF callback can execute.
+// startTracking() calls cancelTracking() first, ensuring a clean slate
+// even if the previous flow's async callbacks haven't fired yet.
 let trackingState: TrackingState | null = null;
 let pendingSubmitFollowUpAction: PendingSubmitFollowUpAction = null;
+let safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let navListenerRegistered = false;
 
 // ---------------------------------------------------------------------------
 // Follow-up action state
@@ -117,15 +128,16 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
     // may have already been ended by SearchStaticList before createTransaction's
     // rAF fires. Setting pending without a span leaves stale state that would
     // cancel the next flow's span in the conflict check above.
-    const spanAfter = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-    if (!spanAfter) {
+    // Re-read the span after the cancel above since cancelSpan may have cleared it.
+    const activeSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+    if (!activeSpan) {
         return;
     }
 
     pendingSubmitFollowUpAction = {followUpAction, reportID};
-    spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+    activeSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
     if (reportID !== undefined) {
-        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+        activeSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
     }
 }
 
@@ -161,6 +173,8 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
         return;
     }
 
+    clearSafetyTimeout();
+
     // Uses performance.now() for the dev log duration because the Sentry span's internal
     // start time is not accessible via the public API. The Sentry span tracks its own
     // duration independently for production metrics; this timer is only for the dev log.
@@ -189,10 +203,19 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
     clearPendingSubmitFollowUpAction();
 }
 
+function clearSafetyTimeout() {
+    if (safetyTimeoutId === null) {
+        return;
+    }
+    clearTimeout(safetyTimeoutId);
+    safetyTimeoutId = null;
+}
+
 /**
  * Cancel the submit-to-visible span and clear the pending follow-up action.
  */
 function cancelSubmitFollowUpActionSpan() {
+    clearSafetyTimeout();
     cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
     clearPendingSubmitFollowUpAction();
     trackingState = null;
@@ -203,6 +226,11 @@ function cancelSubmitFollowUpActionSpan() {
 // ---------------------------------------------------------------------------
 
 function startTracking(context: SubmitExpenseContext, options?: StartTrackingOptions) {
+    if (!navListenerRegistered && navigationRef.addListener) {
+        navListenerRegistered = true;
+        navigationRef.addListener('state', cancelIfStaleForNavState);
+    }
+
     cancelTracking();
 
     const skip = options?.skipSubmitExpenseSpan ?? false;
@@ -233,6 +261,14 @@ function startTracking(context: SubmitExpenseContext, options?: StartTrackingOpt
         startTime: performance.now(),
         skipSubmitExpenseSpan: skip,
     };
+
+    safetyTimeoutId = setTimeout(() => {
+        safetyTimeoutId = null;
+        if (trackingState) {
+            Log.warn('[SubmitExpense] Safety timeout: span still open after 60s, cancelling');
+            cancelTracking();
+        }
+    }, SPAN_SAFETY_TIMEOUT_MS);
 }
 
 /**
@@ -284,6 +320,64 @@ function cancelTracking() {
  */
 function isTracking(): boolean {
     return trackingState !== null;
+}
+
+/**
+ * Check whether the pending span is still valid given the current navigation
+ * state. Call this on every navigation state change to cancel spans that can
+ * no longer complete (user navigated away from the expected destination).
+ */
+function cancelIfStaleForNavState() {
+    if (!trackingState) {
+        return;
+    }
+
+    const pending = pendingSubmitFollowUpAction;
+    if (!pending || !getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+        return;
+    }
+
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const lastRoute = rootState.routes.at(-1);
+    const hasModalOpen = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+
+    // While a modal/RHP is open, the submit flow may still be in progress
+    // (the confirmation screen itself is a modal). Don't cancel prematurely.
+    if (hasModalOpen) {
+        return;
+    }
+
+    const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
+    const activeTabName = getActiveTabName(topmostFullScreenRoute);
+    const isOnSearchRoot = activeTabName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+    const isOnReport = activeTabName === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+
+    switch (pending.followUpAction) {
+        case CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH:
+            if (!isOnSearchRoot) {
+                Log.info('[SubmitExpense] Stale span: expected search but user is elsewhere, cancelling');
+                cancelTracking();
+            }
+            break;
+        case CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT:
+            if (!isOnReport) {
+                Log.info('[SubmitExpense] Stale span: expected report but user is elsewhere, cancelling');
+                cancelTracking();
+            }
+            break;
+        case CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY:
+            if (!isOnSearchRoot && !isOnReport) {
+                Log.info('[SubmitExpense] Stale span: modal dismissed but user on unexpected screen, cancelling');
+                cancelTracking();
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 export {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction, getPendingSubmitFollowUpAction, cancelSubmitFollowUpActionSpan, startTracking, setFastPath, addOptimization, isTracking};
