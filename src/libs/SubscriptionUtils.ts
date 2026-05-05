@@ -533,28 +533,21 @@ function shouldCalculateBillNewDot(currentUserAccountID: number, canDowngrade: b
     return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
 
-/** SUBSCRIPTION_PRICES only defines team and corporate; Submit uses corporate rates (same plan card branch as control). */
-function getPlanKeyForSubscriptionPrices(plan: PersonalPolicyTypeExcludedProps): typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM {
-    return plan === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.CORPORATE : plan;
-}
-
 function getSubscriptionPrice(
     plan: PersonalPolicyTypeExcludedProps | null,
     preferredCurrency: PreferredCurrency,
     privateSubscriptionType: SubscriptionType | undefined,
     hasTeam2025Pricing: boolean,
 ): number {
-    if (!privateSubscriptionType || !plan) {
+    if (!privateSubscriptionType || !plan || plan === CONST.POLICY.TYPE.SUBMIT) {
         return 0;
     }
 
-    const planKey = getPlanKeyForSubscriptionPrices(plan);
-
-    if (hasTeam2025Pricing && planKey === CONST.POLICY.TYPE.TEAM) {
-        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][planKey][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
+    if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
     }
 
-    return CONST.SUBSCRIPTION_PRICES[preferredCurrency][planKey][privateSubscriptionType];
+    return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
 }
 
 function shouldUseSimplifiedCollectSubscriptionUI(plan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
