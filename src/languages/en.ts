@@ -8443,7 +8443,14 @@ const translations = {
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'merchant', date: 'date', amount: 'amount'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join(' and ');
+                } else {
+                    fieldList = `${translated.slice(0, translated.length - 1).join(', ')}, and ${translated.at(-1)}`;
+                }
                 return `Receipt scanning failed — missing ${fieldList}.${canEdit ? ' Enter details manually.' : ''}`;
             }
             return `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`;
