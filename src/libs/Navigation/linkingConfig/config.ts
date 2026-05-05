@@ -857,6 +857,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANTS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANTS.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANT_EDIT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANT_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_CATEGORY]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_CATEGORY.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MAX_AMOUNT]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MAX_AMOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.route,
                         },

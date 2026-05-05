@@ -860,7 +860,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalNamePage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardAddWorkEmailPage').default,
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardRuleSelectionPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleSelectionPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANTS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMerchantsPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANT_EDIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMerchantEditPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMaxAmountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardVerifyWorkAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts').default,

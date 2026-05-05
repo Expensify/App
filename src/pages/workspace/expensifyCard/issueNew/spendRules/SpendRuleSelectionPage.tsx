@@ -25,9 +25,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceExpensifyCardRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION>;
+type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION>;
 
-function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCardRuleSelectionPageProps) {
+function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const {policyID} = route.params;
 
     const theme = useTheme();
@@ -92,7 +92,7 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID="WorkspaceExpensifyCardRuleSelectionPage"
+                testID="SpendRuleSelectionPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -108,7 +108,7 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.pl3]}
                             reasonAttributes={{
-                                context: 'WorkspaceExpensifyCardRuleSelectionPage',
+                                context: 'SpendRuleSelectionPage',
                                 isLoadingFromOnyx: true,
                             }}
                         />
@@ -138,4 +138,4 @@ function WorkspaceExpensifyCardRuleSelectionPage({route}: WorkspaceExpensifyCard
     );
 }
 
-export default WorkspaceExpensifyCardRuleSelectionPage;
+export default SpendRuleSelectionPage;
