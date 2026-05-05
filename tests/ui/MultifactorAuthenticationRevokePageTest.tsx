@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthentication/RevokePage';
 import CONST from '@src/CONST';
 
@@ -20,7 +18,6 @@ let mockBiometricStatus = {
 };
 
 jest.mock('@hooks/useBiometricRegistrationStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => mockBiometricStatus,
 }));
@@ -39,7 +36,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: (key: string) => key,
@@ -47,7 +43,6 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () =>
         new Proxy(
@@ -79,15 +74,15 @@ jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => {
 });
 
 jest.mock('@components/FormHelpMessage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {Text} = require('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const mockReact = require('react');
     function MockFormHelpMessage({message}: {message?: string}) {
         if (!message) {
             return null;
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
         return mockReact.createElement(Text, null, message);
     }
     MockFormHelpMessage.displayName = 'FormHelpMessage';
@@ -458,7 +453,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
     });
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 const {revokeMultifactorAuthenticationCredentials} = jest.requireActual<typeof import('@libs/actions/MultifactorAuthentication')>('@libs/actions/MultifactorAuthentication');
 
 describe('revokeMultifactorAuthenticationCredentials', () => {

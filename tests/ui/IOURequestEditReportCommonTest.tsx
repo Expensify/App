@@ -187,7 +187,7 @@ describe('IOURequestEditReportCommon', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the not found page should be displayed
-            // eslint-disable-next-line rulesdir/no-negated-variables
+
             const fullPageNotFoundView = screen.getByTestId('FullPageNotFoundView');
             expect(fullPageNotFoundView).toBeVisible();
         });

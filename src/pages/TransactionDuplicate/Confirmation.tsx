@@ -57,6 +57,7 @@ function Confirmation() {
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [duplicatedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
@@ -73,25 +74,44 @@ function Confirmation() {
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
     );
+    const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
+    const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
+    const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
+    const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
+    const taxData = useMemo(() => {
+        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
+        // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
+        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+            return;
+        }
+
+        return {
+            taxAmount: -reviewDuplicatesTaxAmount,
+            taxValue: taxRate?.value,
+            taxCode,
+        };
+    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserLogin = currentUserPersonalDetails?.login;
+    const childReportID = reportAction?.childReportID;
 
     const handleMergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-        if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
-        }
-        mergeDuplicates({...transactionsMergeParams, currentUserAccountID: currentUserPersonalDetails.accountID, currentUserLogin: currentUserPersonalDetails?.login ?? ''});
+        const transactionThreadReportID = childReportID ?? generateReportID();
+        const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
+        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? ''});
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
         Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams, currentUserPersonalDetails.accountID, currentUserPersonalDetails?.login, isSuperWideRHPDisplayed]);
+    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates(transactionsMergeParams);
+        resolveDuplicates({...transactionsMergeParams, ...taxData});
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams]);
+    }, [transactionsMergeParams, taxData]);
 
     const contextMenuStateValue = useMemo(
         () => ({
@@ -117,7 +137,6 @@ function Confirmation() {
 
     const isDismissingRef = useRef(false);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(report) ||
         (!ReportUtils.isValidReport(report) && !isDismissingRef.current) ||

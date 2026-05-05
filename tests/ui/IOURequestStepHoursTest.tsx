@@ -2,6 +2,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -109,21 +110,23 @@ describe('IOURequestStepHours', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <LocaleContextProvider>
-                        <IOURequestStepHours
-                            route={{
-                                key: 'IOURequestStepHours',
-                                params: {
-                                    iouType,
-                                    reportID: REPORT_ID,
-                                    transactionID: TRANSACTION_ID,
-                                    action,
-                                    reportActionID: '1',
-                                },
-                                name: routeName,
-                            }}
-                            // @ts-expect-error we don't need navigation param here
-                            navigation={undefined}
-                        />
+                        <CurrencyListContextProvider>
+                            <IOURequestStepHours
+                                route={{
+                                    key: 'IOURequestStepHours',
+                                    params: {
+                                        iouType,
+                                        reportID: REPORT_ID,
+                                        transactionID: TRANSACTION_ID,
+                                        action,
+                                        reportActionID: '1',
+                                    },
+                                    name: routeName,
+                                }}
+                                // @ts-expect-error we don't need navigation param here
+                                navigation={undefined}
+                            />
+                        </CurrencyListContextProvider>
                     </LocaleContextProvider>
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,

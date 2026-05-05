@@ -45,8 +45,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
-import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
-import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -1244,19 +1242,6 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
-    const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-
-    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID) {
-        // Existing reports may already have a server-computed or manually changed approver.
-        return existingManagerID;
-    }
-
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    return submitToAccountID > CONST.DEFAULT_NUMBER_ID ? submitToAccountID : existingManagerID;
-}
-
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
@@ -2141,32 +2126,6 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
-/**
- * Builds a source URL for rendering a policy document PDF.
- * Local blob/file URIs (from optimistic uploads) are returned directly.
- * Remote URLs are routed through the authenticated GetPolicyRulesDocument streaming endpoint.
- * The stored URL (which contains a unique timestamp per upload) is appended as a version
- * parameter so the browser treats each replacement as a distinct resource.
- */
-function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
-    if (!rulesDocumentURL || !policyID) {
-        return '';
-    }
-
-    const isLocalFile = rulesDocumentURL.startsWith('blob:') || rulesDocumentURL.startsWith('file:');
-    if (isLocalFile) {
-        return rulesDocumentURL;
-    }
-
-    return addEncryptedAuthTokenToURL(
-        // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
-        // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
-        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyRulesDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
-        encryptedAuthToken,
-        true,
-    );
-}
-
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
@@ -2298,7 +2257,6 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
-    getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
@@ -2341,7 +2299,6 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
-    getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
 };

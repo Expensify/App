@@ -28,7 +28,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     const {
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        searchQueryItem,
+        searchQueryItems,
         selection,
         textInputRef,
         textInputValue,
@@ -74,6 +74,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     inputStyle={isAutocompleteListVisible ? undefined : styles.fontSizeLabel}
                     inputContainerStyle={isAutocompleteListVisible ? undefined : styles.ph2}
                     touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputWideTouchableWrapper}
+                    clearButtonStyle={isAutocompleteListVisible ? undefined : styles.mh0}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption();
                         if (focusedOption) {
@@ -97,7 +98,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
                             handleSearch={handleSearchAction}
-                            searchQueryItem={searchQueryItem}
+                            searchQueryItems={searchQueryItems}
                             onListItemPress={onListItemPress}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
