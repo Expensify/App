@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ASTNode} from '@components/Search/types';
+import type {ASTNode, SearchQueryJSON} from '@components/Search/types';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -650,6 +649,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
@@ -680,6 +680,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
@@ -715,6 +716,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
@@ -753,6 +755,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('limit:25');
@@ -776,6 +779,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).not.toContain('limit:');
@@ -799,6 +803,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('limit:50');
@@ -985,6 +990,102 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result.dateRange).toBeUndefined();
+        });
+
+        describe('date preset and range merging', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-04-15T12:00:00Z'));
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            test('merges date preset with inclusive range into a single range', () => {
+                const queryString = 'type:expense date:year-to-date date>=2026-04-01 date<=2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBeUndefined();
+                expect(result.dateAfter).toBeUndefined();
+                expect(result.dateBefore).toBeUndefined();
+                expect(result.dateRange).toBe('2026-04-01,2026-04-15');
+            });
+
+            test('removes redundant date preset when date is fully included in the preset range', () => {
+                const queryString = 'type:expense date:last-12-months date>=2026-04-01 date<=2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBeUndefined();
+                expect(result.dateAfter).toBeUndefined();
+                expect(result.dateBefore).toBeUndefined();
+                expect(result.dateRange).toBe('2026-04-01,2026-04-30');
+            });
+
+            test('merges all date-based filters, not only "date"', () => {
+                const queryString = 'type:expense approved:year-to-date approved>=2026-04-01 approved<=2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.approvedOn).toBeUndefined();
+                expect(result.approvedAfter).toBeUndefined();
+                expect(result.approvedBefore).toBeUndefined();
+                expect(result.approvedRange).toBe('2026-04-01,2026-04-15');
+            });
+
+            test('merges date preset and strict inequalities into a single range', () => {
+                const queryString = 'type:expense date:year-to-date date>2026-04-01 date<2026-04-30';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBeUndefined();
+                expect(result.dateAfter).toBeUndefined();
+                expect(result.dateBefore).toBeUndefined();
+                expect(result.dateRange).toBe('2026-04-02,2026-04-15');
+            });
+
+            test('does not modify a standalone preset without other date constraints', () => {
+                const queryString = 'type:expense date:last-12-months';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateOn).toBe('last-12-months');
+                expect(result.dateRange).toBeUndefined();
+            });
+
+            test('merges multiple ranges into one', () => {
+                const queryString = 'type:expense date>=2026-04-01 date<=2026-04-30 date>=2026-03-01 date<=2026-04-15';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                expect(result.dateRange).toBe('2026-04-01,2026-04-15');
+            });
         });
 
         test('hydrates explicit report field range flag from inclusive range boundaries', () => {
@@ -1299,14 +1400,17 @@ describe('SearchQueryUtils', () => {
         });
 
         it('should not include view in query string when groupBy is removed after chart drill-down', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
+            const parsed = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
 
-            if (!queryJSON) {
+            if (!parsed) {
                 throw new Error('Failed to parse query string');
             }
 
-            queryJSON.groupBy = undefined;
-            queryJSON.view = CONST.SEARCH.VIEW.TABLE;
+            const queryJSON: SearchQueryJSON = {
+                ...parsed,
+                groupBy: undefined,
+                view: CONST.SEARCH.VIEW.TABLE,
+            };
 
             const result = buildSearchQueryString(queryJSON);
 
@@ -1897,28 +2001,31 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildSearchQueryJSON cache', () => {
-        test('mutating the returned object does not affect subsequent calls for the same query', () => {
+        test('mutating a spread copy does not affect the cached frozen object or later calls', () => {
             const query = `type:expense groupBy:category view:bar date:last-month merchant:test${Date.now()}`;
 
-            const first = buildSearchQueryJSON(query);
-            if (first) {
-                first.groupBy = undefined;
-                first.view = CONST.SEARCH.VIEW.TABLE;
-            }
+            const parsed = buildSearchQueryJSON(query);
+            expect(parsed).toBeDefined();
+            expect(Object.isFrozen(parsed)).toBe(true);
 
-            const second = buildSearchQueryJSON(query);
+            const mutableCopy = {...parsed};
+            mutableCopy.groupBy = undefined;
+            mutableCopy.view = CONST.SEARCH.VIEW.TABLE;
 
-            expect(second?.groupBy).toBe('category');
-            expect(second?.view).toBe('bar');
+            expect(buildSearchQueryJSON(query)?.groupBy).toBe('category');
+            expect(buildSearchQueryJSON(query)?.view).toBe('bar');
+            expect(mutableCopy.groupBy).toBeUndefined();
         });
 
-        test('returns equal result on repeated calls with the same query', () => {
+        test('returns the same reference on repeated calls with the same query', () => {
             const query = 'type:expense status:outstanding';
 
             const first = buildSearchQueryJSON(query);
             const second = buildSearchQueryJSON(query);
 
             expect(first).toEqual(second);
+            expect(first).toBe(second);
+            expect(Object.isFrozen(first)).toBe(true);
         });
 
         test('returns independent results for the same query with different rawQuery values', () => {
@@ -2261,6 +2368,103 @@ describe('SearchQueryUtils', () => {
             expect(result).toHaveLength(1);
             expect(typeof result.at(0)?.value).toBe('string');
         });
+
+        it('should resolve a regular Expensify Card feed filter to its label', () => {
+            const cardList: OnyxTypes.CardList = {
+                '111': {
+                    cardID: 111,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    fundID: '12345',
+                } as OnyxTypes.Card,
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}`}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                cardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.EXPENSIFY_CARD.BANK);
+        });
+
+        it('should resolve a Travel Invoicing feed filter (3-segment key) to the translated label', () => {
+            const cardList: OnyxTypes.CardList = {
+                '222': {
+                    cardID: 222,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    fundID: '12345',
+                    nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US},
+                } as OnyxTypes.Card,
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                cardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.centralInvoicing'));
+        });
+
+        it('should fall back to the raw feed key when a non-Plaid feed is not in the display table', () => {
+            const feedKey = '99999_Unknown Bank';
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: feedKey}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(feedKey);
+        });
+
+        it('should drop a Plaid feed filter when the display table has no matching entry', () => {
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `99999_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}_unknown`}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(0);
+        });
     });
 
     describe('buildUserReadableQueryString', () => {
@@ -2297,6 +2501,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('in:');
@@ -2329,6 +2534,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('from:"Jane Doe"');
@@ -2360,6 +2566,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain(`from:${CONST.SEARCH.ME}`);
@@ -2383,6 +2590,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result.endsWith(' ')).toBe(true);

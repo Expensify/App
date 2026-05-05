@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';

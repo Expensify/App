@@ -5,12 +5,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -61,6 +61,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentUR
 }
 
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -81,7 +82,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
-    }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
         if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -89,7 +90,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
-    }, [policy?.maxExpenseAmount, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
         if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -140,7 +141,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
-    }, [policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
 
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {

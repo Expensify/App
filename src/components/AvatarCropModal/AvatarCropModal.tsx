@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -15,6 +16,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -54,12 +56,15 @@ type AvatarCropModalProps = {
     buttonLabel?: string;
 };
 
+const LANDSCAPE_MODE_SLIDER_CONTAINER_MIN_WIDTH = 300;
+
 // This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage, buttonLabel}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Rotate', 'Zoom']);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
@@ -407,7 +412,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                     rotation={rotation}
                                     maskImage={maskImage}
                                 />
-                                <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
+                                <View
+                                    style={[
+                                        styles.mt5,
+                                        styles.justifyContentBetween,
+                                        styles.alignItemsCenter,
+                                        styles.flexRow,
+                                        StyleUtils.getWidthStyle(isInLandscapeMode ? Math.max(imageContainerSize, LANDSCAPE_MODE_SLIDER_CONTAINER_MIN_WIDTH) : imageContainerSize),
+                                    ]}
+                                >
                                     <Icon
                                         src={expensifyIcons.Zoom}
                                         fill={theme.icon}

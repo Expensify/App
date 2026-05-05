@@ -41,7 +41,7 @@ on:
 
 jobs:
   createNewVersion:
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-latest
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:

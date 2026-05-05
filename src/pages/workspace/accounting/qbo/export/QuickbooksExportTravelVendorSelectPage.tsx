@@ -1,6 +1,5 @@
 import React from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -64,9 +63,8 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksExportTravelVendorSelectPage"
-            title="workspace.qbo.travelInvoicingVendor"
+            title="workspace.common.travelInvoicingVendor"
             data={data}
-            listItem={RadioListItem}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
