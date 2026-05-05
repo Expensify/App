@@ -24,7 +24,6 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -53,12 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -872,7 +867,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'um agente de suporte humano',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `criou este relatório para manter todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência escolhida por você`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `criou este relatório para quaisquer despesas retidas do relatório excluído nº ${reportID}`
                 : `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
@@ -1117,6 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste upload. Membros existentes não receberão nenhuma atualização de função nem mensagens de convite.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'Novos cartões e transações podem levar algum tempo para aparecer, aguarde um momento.',
     },
     receipt: {
         upload: 'Carregar recibo',
@@ -1407,8 +1403,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `definiu ${translatedChangedField} como ${newMerchant}, o que definiu o valor como ${newAmountToDisplay}`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `o ${valueName} (antes ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `o ${valueName} para ${newValueToDisplay} (antes ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `o ${valueName} para ${newValueToDisplay} (antes ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `alterou ${translatedChangedField} para ${newMerchant} (antes ${oldMerchant}), o que atualizou o valor para ${newAmountToDisplay} (antes ${oldAmountToDisplay})`,
         basedOnAI: 'com base na atividade anterior',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `com base nas <a href="${rulesLink}">regras do workspace</a>` : 'com base na regra do workspace'),
@@ -2197,6 +2193,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Sua conta está bloqueada',
         chatToConciergeToUnlock: 'Converse com o Concierge para resolver questões de segurança e desbloquear sua conta.',
         chatWithConcierge: 'Converse com o Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gerenciamento de dispositivos',
+        description: 'Gerencie todos os dispositivos nos quais você fez login com sua conta do Expensify.',
+        revoke: 'Revogar',
+        unknownDevice: 'Dispositivo Desconhecido',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',
@@ -3515,8 +3517,8 @@ ${amount} para ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Insira um número de telefone válido sem parênteses ou traços. Se você estiver fora dos EUA, inclua o código do seu país (por exemplo, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'E-mail inválido',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é membro de ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é administrador(a) de ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} já é membro de ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} já é administrador(a) de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Ao continuar com o pedido para ativar sua Expensify Wallet, você confirma que leu, compreende e aceita',
@@ -7003,7 +7005,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     label: 'Controle',
                     description: 'Para organizações com requisitos avançados.',
                 },
-                submit2026: {label: 'Enviar', description: 'Para funcionários que desejam enviar despesas ao empregador.'},
+                submit2026: {
+                    label: 'Enviar',
+                    description: 'Para funcionários que desejam enviar despesas ao empregador.',
+                },
             },
             description: 'Escolha o plano ideal para você. Para ver a lista detalhada de recursos e preços, confira nosso',
             subscriptionLink: 'página de ajuda sobre tipos de plano e preços',
@@ -8368,7 +8373,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         missingCategory: 'Categoria ausente',
         missingComment: 'Descrição obrigatória para a categoria selecionada',
         missingAttendees: 'Vários participantes são obrigatórios para esta categoria',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Faltando ${tagName ?? 'etiqueta'}`,
+        missingTag: (tagName?: string) => `Faltando ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -9206,6 +9211,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Tem certeza? Isso reatribuirá todos os membros ao grupo padrão (${defaultGroupName}) e não poderá ser desfeito.`,
             deleteGroupError: 'Não foi possível excluir este grupo. Tente novamente.',
+            preferredWorkspace: 'Espaço de trabalho preferido',
+            preferredWorkspaceDescription: (enabled: boolean) =>
+                `Todos os novos relatórios e despesas serão criados ${enabled ? 'no espaço de trabalho preferido selecionado' : 'neste espaço de trabalho'}.`,
+            preferredWorkspaceSelectDescription: 'Todas as novas despesas e relatórios serão criados neste espaço de trabalho.',
+            noWorkspacesMessage: 'Não há espaços de trabalho neste domínio. Um espaço de trabalho é necessário para ativar esta restrição.',
+            restrictDefaultLoginSelection: 'Restringir seleção de login padrão',
+            restrictDefaultLoginSelectionDescription:
+                'Impede que os membros alterem o e-mail de login para um endereço fora do domínio da empresa, evitando que burlem restrições de políticas.',
         },
     },
     proactiveAppReview: {

@@ -24,7 +24,6 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -53,12 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -876,7 +871,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'un agent humain',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `a créé cette note de frais pour regrouper toutes les dépenses de <a href="${reportUrl}">${reportName}</a> qui n'ont pas pu être soumises à la fréquence que vous avez choisie`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `a créé cette note de frais pour toutes les dépenses retenues de la note de frais supprimée n°${reportID}`
                 : `a créé cette note de frais pour toutes les dépenses retenues provenant de <a href="${reportUrl}">${reportName}</a>`,
@@ -1123,6 +1118,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Veuillez confirmer les détails ci-dessous pour les ${count} nouveaux membres de l’espace de travail qui seront ajoutés dans le cadre de ce téléversement. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -1415,8 +1411,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `défini le ${translatedChangedField} sur ${newMerchant}, ce qui a défini le montant sur ${newAmountToDisplay}`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `le ${valueName} (anciennement ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `le ${valueName} sur ${newValueToDisplay} (précédemment ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `le ${valueName} sur ${newValueToDisplay} (précédemment ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `a modifié ${translatedChangedField} en ${newMerchant} (auparavant ${oldMerchant}), ce qui a mis à jour le montant à ${newAmountToDisplay} (auparavant ${oldAmountToDisplay})`,
         basedOnAI: 'd’après l’activité précédente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) =>
@@ -2212,6 +2208,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Votre compte est verrouillé',
         chatToConciergeToUnlock: 'Discutez avec Concierge pour résoudre vos problèmes de sécurité et déverrouiller votre compte.',
         chatWithConcierge: 'Discuter avec Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestion des appareils',
+        description: 'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify.',
+        revoke: 'Révoquer',
+        unknownDevice: 'Appareil Inconnu',
     },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',
@@ -3545,8 +3547,8 @@ ${amount} pour ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Veuillez saisir un numéro de téléphone valide sans parenthèses ni tirets. Si vous êtes en dehors des États-Unis, veuillez inclure votre indicatif de pays (p. ex. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'E-mail invalide',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} est déjà membre de ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} est déjà administrateur de ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} est déjà membre de ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} est déjà administrateur de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'En poursuivant la demande d’activation de votre Portefeuille Expensify, vous confirmez que vous avez lu, compris et accepté',
@@ -7064,7 +7066,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     label: 'Contrôle',
                     description: 'Pour les organisations ayant des exigences avancées.',
                 },
-                submit2026: {label: 'Envoyer', description: 'Pour les employé·e·s qui souhaitent soumettre des notes de frais à leur employeur.'},
+                submit2026: {
+                    label: 'Soumettre',
+                    description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
+                },
             },
             description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
             subscriptionLink: "page d'aide sur les types de forfaits et les tarifs",
@@ -8437,7 +8442,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         missingCategory: 'Catégorie manquante',
         missingComment: 'Description requise pour la catégorie sélectionnée',
         missingAttendees: 'Plusieurs participants sont requis pour cette catégorie',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `${tagName ?? 'tag'} manquant`,
+        missingTag: (tagName?: string) => `${tagName ?? 'tag'} manquant`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -9258,7 +9263,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
-            error: 'Impossible d’enregistrer cette modification. Veuillez réessayer.',
+            error: 'Impossible d\’enregistrer cette modification. Veuillez réessayer.',
         },
         groups: {
             title: 'Groupes',
@@ -9280,6 +9285,14 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Êtes-vous sûr ? Cela réaffectera tous les membres au groupe par défaut (${defaultGroupName}) et ne pourra pas être annulé.`,
             deleteGroupError: 'Impossible de supprimer ce groupe. Veuillez réessayer.',
+            preferredWorkspace: 'Espace de travail préféré',
+            preferredWorkspaceDescription: (enabled: boolean) =>
+                `Tous les nouveaux rapports et dépenses seront créés dans ${enabled ? "l'espace de travail préféré sélectionné" : 'cet espace de travail'}.`,
+            preferredWorkspaceSelectDescription: 'Toutes les nouvelles dépenses et tous les nouveaux rapports seront créés dans cet espace de travail.',
+            noWorkspacesMessage: "Il n'y a aucun espace de travail sur ce domaine. Un espace de travail est requis pour activer cette restriction.",
+            restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
+            restrictDefaultLoginSelectionDescription:
+                'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
         },
     },
     proactiveAppReview: {

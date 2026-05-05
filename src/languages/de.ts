@@ -24,7 +24,6 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -53,12 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -873,7 +868,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'einem menschlichen Support-Mitarbeiter',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die nicht mit der von dir gewählten Häufigkeit eingereicht werden konnten`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus dem gelöschten Bericht #${reportID} erstellt`
                 : `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a> erstellt`,
@@ -1119,6 +1114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -1413,8 +1409,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `lege ${translatedChangedField} auf ${newMerchant} fest, wodurch der Betrag auf ${newAmountToDisplay} gesetzt wurde`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `der/die/das ${valueName} (zuvor ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `die/den/das ${valueName} auf ${newValueToDisplay} (zuvor ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `die/den/das ${valueName} auf ${newValueToDisplay} (zuvor ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `hat ${translatedChangedField} in ${newMerchant} geändert (vorher ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (vorher ${oldAmountToDisplay})`,
         basedOnAI: 'basierend auf bisherigen Aktivitäten',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basierend auf den <a href="${rulesLink}">Workspace-Regeln</a>` : 'basierend auf dem Workspace-Regelwerk'),
@@ -2207,6 +2203,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Dein Konto ist gesperrt',
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto zu entsperren.',
         chatWithConcierge: 'Mit Concierge chatten',
+    },
+    deviceManagementPage: {
+        title: 'Geräteverwaltung',
+        description: 'Verwalten Sie alle Geräte, auf denen Sie sich mit Ihrem Expensify-Konto angemeldet haben.',
+        revoke: 'Widerrufen',
+        unknownDevice: 'Unbekanntes Gerät',
     },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
@@ -3536,8 +3538,8 @@ ${amount} für ${merchant} – ${date}`,
     messages: {
         errorMessageInvalidPhone: `Bitte gib eine gültige Telefonnummer ohne Klammern oder Bindestriche ein. Wenn du außerhalb der USA bist, füge bitte deine Ländervorwahl hinzu (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Ungültige E-Mail',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ist bereits Mitglied von ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} ist bereits Administrator*in von ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} ist bereits Mitglied von ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} ist bereits Administrator*in von ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Indem Sie mit der Anfrage zur Aktivierung Ihres Expensify Wallets fortfahren, bestätigen Sie, dass Sie dies gelesen haben, verstehen und akzeptieren',
@@ -7041,7 +7043,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     label: 'Steuerung',
                     description: 'Für Organisationen mit erweiterten Anforderungen.',
                 },
-                submit2026: {label: 'Senden', description: 'Für Mitarbeitende, die Spesen bei ihrem Arbeitgeber einreichen möchten.'},
+                submit2026: {
+                    label: 'Einreichen',
+                    description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
+                },
             },
             description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',
             subscriptionLink: 'Hilfeseite zu Plantypen und Preisen',
@@ -8413,7 +8418,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         missingCategory: 'Fehlende Kategorie',
         missingComment: 'Beschreibung für die ausgewählte Kategorie erforderlich',
         missingAttendees: 'Für diese Kategorie sind mehrere Teilnehmende erforderlich',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Fehlend ${tagName ?? 'Tag'}`,
+        missingTag: (tagName?: string) => `Fehlend ${tagName ?? 'Tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -9255,6 +9260,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Bist du sicher? Dadurch werden alle Mitglieder der Standardgruppe (${defaultGroupName}) neu zugewiesen und dies kann nicht rückgängig gemacht werden.`,
             deleteGroupError: 'Diese Gruppe konnte nicht gelöscht werden. Bitte versuche es erneut.',
+            preferredWorkspace: 'Bevorzugter Arbeitsbereich',
+            preferredWorkspaceDescription: (enabled: boolean) => `Alle neuen Berichte und Ausgaben werden im ${enabled ? 'ausgewählten bevorzugten' : 'diesem'} Arbeitsbereich erstellt.`,
+            preferredWorkspaceSelectDescription: 'Alle neuen Ausgaben und Berichte werden in diesem Arbeitsbereich erstellt.',
+            noWorkspacesMessage: 'Es gibt keine Arbeitsbereiche in dieser Domain. Ein Arbeitsbereich ist erforderlich, um diese Einschränkung zu aktivieren.',
+            restrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
+            restrictDefaultLoginSelectionDescription:
+                'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
         },
     },
     proactiveAppReview: {

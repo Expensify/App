@@ -406,11 +406,10 @@ function ReportFieldsListValuesPage({
                         onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={toggleValue}
+                        onSelectionButtonPress={toggleValue}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress

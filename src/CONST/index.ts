@@ -887,6 +887,7 @@ const CONST = {
         BULK_DUPLICATE_REPORT: 'bulkDuplicateReport',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
+        SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
     },
     BUTTON_STATES: {
@@ -3537,6 +3538,7 @@ const CONST = {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
+            EDITOR: 'editor',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
@@ -4148,8 +4150,6 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
-            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
-            SELECT_DIRECT_STATEMENT_CLOSE_DATE: 'SelectDirectStatementCloseDate',
             IMPORT_FROM_FILE: 'ImportFromFile',
         },
         CARD_TYPE: {
@@ -6397,6 +6397,10 @@ const CONST = {
         SCROLLING: 'scrolling',
         TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
+    SELECTION_BUTTON_POSITION: {
+        LEFT: 'left',
+        RIGHT: 'right',
+    },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
     ICON_TEST_ID: 'Icon',
@@ -7517,6 +7521,10 @@ const CONST = {
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
+
+    // Max time (ms) to wait for a transaction thread report before falling back to renderable content.
+    SKELETON_LOADING_TIMEOUT_MS: 10000,
+
     NEW_EXPENSIFY_PATH: '/New Expensify',
     RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
@@ -8612,6 +8620,7 @@ const CONST = {
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
+        HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
     },
 
     DEBUG: {
@@ -8720,6 +8729,7 @@ const CONST = {
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
+    SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -9283,6 +9293,8 @@ const CONST = {
         },
         MERGE_EXPENSE: {
             MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
+            RECEIPT_ITEM: 'MergeExpense-ReceiptItem',
+            FIELD_VALUE_OPTION: 'MergeExpense-FieldValueOption',
         },
         IOU_REQUEST_STEP: {
             DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',
@@ -9339,9 +9351,6 @@ const CONST = {
                 CHOOSE_FILE: 'OdometerImage-ChooseFile',
                 CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
-        },
-        NEW_CHAT: {
-            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
         WORKSPACE_EXPENSIFY_CARD: {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
@@ -9625,6 +9634,7 @@ const CONST = {
             REVOKE_MFA: 'SettingsSecurity-RevokeMFA',
             MERGE_ACCOUNTS: 'SettingsSecurity-MergeAccounts',
             LOCK_UNLOCK_ACCOUNT: 'SettingsSecurity-LockUnlockAccount',
+            DEVICE_MANAGEMENT: 'SettingsSecurity-DeviceManagement',
             CLOSE_ACCOUNT: 'SettingsSecurity-CloseAccount',
             ADD_COPILOT: 'SettingsSecurity-AddCopilot',
             DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
@@ -9755,6 +9765,12 @@ const CONST = {
         USER_LOCATION: 'user-location',
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
+    },
+
+    PARTNER_ID: {
+        IPHONE: 14,
+        ANDROID: 16,
+        NEWDOT: 83,
     },
 } as const;
 

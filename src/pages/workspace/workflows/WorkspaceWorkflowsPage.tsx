@@ -49,10 +49,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canEditWorkspaceSettings,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
     isControlPolicy,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
+    isGroupPolicy as isGroupPolicyUtil,
     isPolicyAdmin as isPolicyAdminUtil,
     isSubmitPolicy,
 } from '@libs/PolicyUtils';
@@ -652,7 +653,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
@@ -665,7 +666,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                shouldShowNotFoundPage={!isGroupPolicy || !canEditWorkspaceSettings(policy)}
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

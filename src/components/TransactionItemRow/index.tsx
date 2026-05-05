@@ -589,7 +589,8 @@ function TransactionItemRow({
                 const hasConvertedAmount = transactionItem.convertedAmount != null;
                 // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
                 // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
-                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport, false, true) : getAmount(transactionItem, isFromExpenseReport, false, true);
+                // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
+                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
                 // When converted, display in the report's output currency; otherwise use the transaction's own currency.
                 const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
                 return (
@@ -794,7 +795,6 @@ function TransactionItemRow({
                                     disabled={isDisabled}
                                     onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                     accessibilityLabel={CONST.ROLE.RADIO}
-                                    shouldUseNewStyle
                                 />
                             </View>
                         )}
@@ -850,7 +850,6 @@ function TransactionItemRow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                shouldUseNewStyle
                             />
                         </View>
                     )}

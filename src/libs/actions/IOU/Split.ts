@@ -974,6 +974,7 @@ function completeSplitBill(
                 payeeEmail: currentUserEmailForIOUSplit,
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
+                currentUserAccountID: sessionAccountID,
             });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
@@ -1655,6 +1656,7 @@ function createSplitsAndOnyxData({
                 payeeEmail: currentUserEmailForIOUSplit,
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
+                currentUserAccountID,
             });
 
         // Add optimistic personal details for new participants

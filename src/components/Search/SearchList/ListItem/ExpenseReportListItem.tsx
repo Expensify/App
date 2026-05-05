@@ -35,6 +35,9 @@ import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
+/**
+ * An expense report row in search results, showing status badge, total, and participants.
+ */
 function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
@@ -46,7 +49,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    onCheckboxPress,
+    onHoldMenuOpen,
+    onSelectionButtonPress,
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
@@ -146,6 +150,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
             ownerBillingGracePeriodEnd,
             amountOwed,
         });
@@ -161,13 +166,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        onHoldMenuOpen,
         ownerBillingGracePeriodEnd,
         amountOwed,
     ]);
 
-    const handleCheckboxPress = useCallback(() => {
-        onCheckboxPress?.(reportItem as unknown as TItem);
-    }, [onCheckboxPress, reportItem]);
+    const handleSelectionButtonPress = useCallback(() => {
+        onSelectionButtonPress?.(reportItem as unknown as TItem);
+    }, [onSelectionButtonPress, reportItem]);
 
     const listItemPressableStyle = useMemo(
         () => [
@@ -287,7 +293,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             ]}
             accessible={false}
             shouldShowRightCaret={false}
-            shouldUseDefaultRightHandSideCheckmark={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >
@@ -310,7 +315,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                                 isActionLoading={isActionLoading ?? isLoading}
                                 showTooltip={showTooltip}
                                 canSelectMultiple={canSelectMultiple}
-                                onCheckboxPress={handleCheckboxPress}
+                                onCheckboxPress={handleSelectionButtonPress}
                                 onButtonPress={handleOnButtonPress}
                                 isSelectAllChecked={!!reportItem.isSelected}
                                 isIndeterminate={false}
@@ -330,7 +335,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             isActionLoading={isActionLoading ?? isLoading}
                             showTooltip={showTooltip}
                             canSelectMultiple={canSelectMultiple}
-                            onCheckboxPress={handleCheckboxPress}
+                            onCheckboxPress={handleSelectionButtonPress}
                             onButtonPress={handleOnButtonPress}
                             isSelectAllChecked={!!reportItem.isSelected}
                             isIndeterminate={false}
