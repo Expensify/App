@@ -38,6 +38,17 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
+const isEmojiImage = (image: HTMLImageElement): boolean => {
+    const dataset = image.dataset;
+
+    return !!(
+        dataset.stringifyEmoji !== undefined || // For Slack
+        dataset.emoji !== undefined || // For gmail
+        dataset.stringifyType === 'emoji' ||
+        Object.keys(dataset).some((key) => key.toLowerCase().includes('emoji'))
+    );
+};
+
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
     /**
      * Set pasted text to clipboard
@@ -148,15 +159,15 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
+                const embeddedImages = Array.from(htmlDocument.images);
 
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset?.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
+                for (const image of embeddedImages) {
+                    if (!isEmojiImage(image) || !image.alt) {
+                        continue;
                     }
+
+                    image.replaceWith(htmlDocument.createTextNode(image.alt));
                 }
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
                 // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
@@ -164,7 +175,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     handlePastePlainText(event);
                     return;
                 }
-                handlePastedHTML(pastedHTML);
+                handlePastedHTML(htmlDocument.body.innerHTML);
                 return;
             }
             handlePastePlainText(event);
