@@ -11522,40 +11522,6 @@ function hasForwardedAction(reportID: string, reportActions?: MoveExpenseReportA
     return getMoveExpenseReportActions(reportID, reportActions).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-const MOVE_FORWARDING_WORKFLOW_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
-    CONST.REPORT.ACTIONS.TYPE.APPROVED,
-    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-    CONST.REPORT.ACTIONS.TYPE.REROUTE,
-    CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-]);
-
-const MOVE_FORWARDING_RESET_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
-    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
-    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-    CONST.REPORT.ACTIONS.TYPE.REOPENED,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-]);
-
-/**
- * Returns true when the latest workflow action for the current processing cycle indicates the report
- * has already been advanced away from the original submit-to approver.
- */
-function hasCurrentForwardingWorkflowAction(reportID: string, reportActions?: MoveExpenseReportActions): boolean {
-    const sortedReportActions = getSortedReportActions(
-        getMoveExpenseReportActions(reportID, reportActions).filter((action): action is ReportAction => !!action && !isDeletedAction(action) && !isPendingRemove(action)),
-        true,
-    );
-    const latestWorkflowAction = sortedReportActions.find((action) => MOVE_FORWARDING_WORKFLOW_ACTIONS.has(action.actionName) || MOVE_FORWARDING_RESET_ACTIONS.has(action.actionName));
-
-    if (!latestWorkflowAction) {
-        return false;
-    }
-
-    return MOVE_FORWARDING_WORKFLOW_ACTIONS.has(latestWorkflowAction.actionName);
-}
-
 /**
  * Snapshot fallback for Search results that know the report is waiting on a forwarded-to manager
  * before the FORWARDED report action is loaded locally.
@@ -11582,10 +11548,10 @@ function hasForwardedSnapshotEvidence(iouReport: OnyxInputOrEntry<Report>, polic
 
 /**
  * Move-expense fallback for when the FORWARDED report action is missing locally.
- * We require current workflow or snapshot evidence, not only submitToAccountID !== managerID,
+ * We require snapshot evidence, not only submitToAccountID !== managerID,
  * because policy approver changes can create the same mismatch for reports that were never forwarded.
  */
-function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, reportActions?: MoveExpenseReportActions, policy?: OnyxEntry<Policy>): boolean {
+function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
     const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
 
     if (!iouReport || !reportPolicy || !iouReport.reportID || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
@@ -11598,7 +11564,7 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, report
         return false;
     }
 
-    return hasCurrentForwardingWorkflowAction(iouReport.reportID, reportActions) || hasForwardedSnapshotEvidence(iouReport, reportPolicy, submitToAccountID);
+    return hasForwardedSnapshotEvidence(iouReport, reportPolicy, submitToAccountID);
 }
 
 function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>, reportActions?: MoveExpenseReportActions, policy?: OnyxEntry<Policy>): boolean {
@@ -11606,7 +11572,7 @@ function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report
         return false;
     }
 
-    return hasForwardedAction(iouReport.reportID, reportActions) || hasForwardedByManagerChange(iouReport, reportActions, policy);
+    return hasForwardedAction(iouReport.reportID, reportActions) || hasForwardedByManagerChange(iouReport, policy);
 }
 
 function isReportOutstanding(
