@@ -2194,6 +2194,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
             reportActionID: currentReportActionID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);

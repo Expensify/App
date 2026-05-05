@@ -51,6 +51,9 @@ type ImportedSpreadsheet = {
     /** Whether final modal should be opened */
     shouldFinalModalBeOpened: boolean;
 
+    /** Whether to show a pending message in the final modal informing that cards and transactions may take time to appear */
+    shouldShowPendingMessage?: boolean;
+
     /** Texts to display depending on request success/failure */
     importFinalModal: ImportFinalModalUnion;
 

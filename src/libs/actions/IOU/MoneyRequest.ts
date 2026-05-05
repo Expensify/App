@@ -65,7 +65,6 @@ type CreateTransactionParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
@@ -113,7 +112,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     files: ReceiptFile[];
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
@@ -159,7 +157,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     privateIsArchived?: boolean;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
@@ -192,7 +189,6 @@ function createTransaction({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     files,
     participant,
     gpsPoint,
@@ -248,7 +244,6 @@ function createTransaction({
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 introSelected,
-                activePolicyID,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -342,7 +337,6 @@ function handleMoneyRequestStepScanParticipants({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -456,7 +450,6 @@ function handleMoneyRequestStepScanParticipants({
                             quickAction,
                             policyRecentlyUsedCurrencies,
                             introSelected,
-                            activePolicyID,
                             files,
                             participant,
                             gpsPoint,
@@ -486,7 +479,6 @@ function handleMoneyRequestStepScanParticipants({
                             quickAction,
                             policyRecentlyUsedCurrencies,
                             introSelected,
-                            activePolicyID,
                             files,
                             participant,
                             policyParams: {policy},
@@ -514,7 +506,6 @@ function handleMoneyRequestStepScanParticipants({
                 quickAction,
                 policyRecentlyUsedCurrencies,
                 introSelected,
-                activePolicyID,
                 files,
                 participant,
                 policyParams: {policy},
@@ -599,7 +590,6 @@ function handleMoneyRequestStepDistanceNavigation({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     privateIsArchived,
     selfDMReport,
     gpsCoordinates,
@@ -730,7 +720,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserLogin ?? '',
                     introSelected,
-                    activePolicyID,
                     quickAction,
                     recentWaypoints,
                     betas,

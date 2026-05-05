@@ -184,7 +184,7 @@ type GetTrackExpenseInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID: string | undefined;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
@@ -857,7 +857,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         currentUserAccountIDParam,
         currentUserEmailParam,
         introSelected,
-        activePolicyID,
+        activePolicy,
         quickAction,
         betas,
         isSelfTourViewed,
@@ -1004,7 +1004,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserAccountIDParam,
             currentUserEmailParam,
             introSelected,
-            activePolicyID,
+            activePolicy,
+            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
+            hasActiveAdminPolicies: undefined,
             betas,
             isSelfTourViewed,
         });
@@ -1132,6 +1134,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isPersonalTrackingExpense: !shouldUseMoneyReport,
         existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -2332,7 +2335,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserAccountIDParam,
         currentUserEmailParam,
         introSelected,
-        activePolicyID,
+        activePolicy,
         quickAction,
         recentWaypoints = [],
         betas,
@@ -2482,7 +2485,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserAccountIDParam,
         currentUserEmailParam,
         introSelected,
-        activePolicyID,
+        activePolicy,
         quickAction,
         betas,
         isSelfTourViewed,
