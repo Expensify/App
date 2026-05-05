@@ -102,7 +102,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
                 selectedItems={selectedCategories}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={toggleCategory}
-                onCheckboxPress={toggleCategory}
+                onSelectionButtonPress={toggleCategory}
                 onSelectAll={filteredCategoryItems.length > 0 ? toggleSelectAll : undefined}
                 textInputOptions={{
                     value: inputValue,
