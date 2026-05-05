@@ -116,8 +116,8 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            // Select admin option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
+            // Select admin option by clicking the checkbox
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -165,8 +165,8 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
             });
 
-            // Select member option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${USER_OPTION}`));
+            // Select member option by clicking the checkbox
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${USER_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -214,8 +214,8 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
             });
 
-            // Select auditor option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
+            // Select auditor option by clicking the checkbox
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -266,9 +266,9 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            // Select options by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
+            // Select options by clicking the checkboxes
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button

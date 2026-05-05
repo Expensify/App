@@ -28,6 +28,8 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
     const promptText = spreadsheet?.importFinalModal?.promptKey
         ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
         : '';
+    const pendingText = spreadsheet?.shouldShowPendingMessage ? translate('spreadsheet.importCompanyCardTransactionsPendingMessage') : '';
+    const fullPromptText = pendingText ? `${promptText} ${pendingText}` : promptText;
 
     useEffect(() => {
         if (!isVisible || !titleText || !promptText || !spreadsheet?.importFinalModal) {
@@ -36,7 +38,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
         showConfirmModal({
             id: 'import-spreadsheet-confirm-modal',
             title: titleText,
-            prompt: promptText,
+            prompt: fullPromptText,
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
             shouldHandleNavigationBack,
@@ -48,7 +50,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
         // We don't need the callbacks as dependencies as they are unstable
         // references that cause an infinite re-render loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible, titleText, promptText, spreadsheet?.importFinalModal, shouldHandleNavigationBack]);
+    }, [isVisible, titleText, fullPromptText, spreadsheet?.importFinalModal, shouldHandleNavigationBack]);
 
     return null;
 }

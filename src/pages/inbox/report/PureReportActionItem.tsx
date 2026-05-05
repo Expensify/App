@@ -53,7 +53,6 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getChangedApproverActionMessage,
@@ -145,14 +144,8 @@ import TripSummary from './TripSummary';
 import WhisperBanner from './WhisperBanner';
 
 type PureReportActionItemProps = {
-    /** The personal policy ID */
-    personalPolicyID: string | undefined;
-
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
-
-    /** Policy for this action */
-    policy?: OnyxEntry<OnyxTypes.Policy>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -207,9 +200,6 @@ type PureReportActionItemProps = {
 
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
-
-    /** Parent report */
-    parentReport?: OnyxTypes.Report;
 
     /** Personal details list */
     personalDetails?: OnyxTypes.PersonalDetailsList;
@@ -281,9 +271,6 @@ type PureReportActionItemProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
-
-    /** Report metadata for the report */
-    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -293,10 +280,8 @@ const emptyHTML = <RenderHTML html="" />;
 const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
 
 function PureReportActionItem({
-    personalPolicyID,
     action,
     report,
-    policy,
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
@@ -313,7 +298,6 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     linkedTransactionRouteError,
-    parentReport,
     personalDetails,
     originalReportID = '-1',
     originalReport,
@@ -332,7 +316,6 @@ function PureReportActionItem({
     isTryNewDotNVPDismissed = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
-    reportMetadata,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -363,7 +346,6 @@ function PureReportActionItem({
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
 
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -736,7 +718,6 @@ function PureReportActionItem({
                 <ReimbursementQueuedContent
                     action={action}
                     report={report}
-                    parentReport={parentReport}
                     iouReport={iouReport}
                     personalDetails={personalDetails}
                 />
@@ -753,7 +734,6 @@ function PureReportActionItem({
                 <ModifiedExpenseContent
                     action={action}
                     report={report}
-                    childReport={childReport}
                     originalReport={originalReport}
                 />
             );
@@ -761,9 +741,8 @@ function PureReportActionItem({
             children = (
                 <ApprovalFlowContent
                     action={action}
-                    policy={policy}
-                    reportMetadata={reportMetadata}
-                    childReport={childReport}
+                    policyID={report?.policyID}
+                    reportID={reportID}
                     originalReport={originalReport}
                 />
             );
@@ -771,7 +750,7 @@ function PureReportActionItem({
             children = (
                 <PaymentContent
                     action={action}
-                    policy={policy}
+                    policyID={report?.policyID}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
@@ -803,7 +782,7 @@ function PureReportActionItem({
             children = (
                 <PolicyChangeLogContent
                     action={action}
-                    policy={policy}
+                    policyID={report?.policyID}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
@@ -811,7 +790,6 @@ function PureReportActionItem({
                 <MovedTransactionAction
                     action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
                     emptyHTML={emptyHTML}
-                    childReport={childReport}
                     originalReport={originalReport}
                 />
             );
@@ -831,7 +809,6 @@ function PureReportActionItem({
             children = (
                 <UnreportedTransactionAction
                     action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>}
-                    childReport={childReport}
                     originalReport={originalReport}
                 />
             );
@@ -854,7 +831,7 @@ function PureReportActionItem({
                     action={action}
                     reportID={reportID}
                     originalReportID={originalReportID}
-                    policy={policy}
+                    policyID={report?.policyID}
                 />
             );
         } else if (isActionableMentionWhisper(action)) {
@@ -863,8 +840,6 @@ function PureReportActionItem({
                     action={action}
                     report={report}
                     originalReport={originalReport}
-                    policy={policy}
-                    personalPolicyID={personalPolicyID}
                     originalReportID={originalReportID}
                     resolveActionableMentionWhisper={resolveActionableMentionWhisper}
                 />
@@ -893,12 +868,10 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM)) {
             children = <ReportActionItemBasicMessage message={translate('report.actions.type.leftTheChat')} />;
         } else if (isCardIssuedAction(action)) {
-            const shouldNavigateToCardDetails = isPolicyAdmin(policy);
             children = (
                 <IssueCardMessage
                     action={action}
                     policyID={report?.policyID}
-                    shouldNavigateToCardDetails={shouldNavigateToCardDetails}
                 />
             );
         } else if (isCardBrokenConnectionAction(action)) {
@@ -930,7 +903,11 @@ function PureReportActionItem({
             children = <CreateHarvestReportAction reportNameValuePairsOriginalID={reportNameValuePairsOriginalID} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
             children = <CreatedReportForUnapprovedTransactionsAction action={action} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+        } else if (
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+        ) {
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
@@ -1067,13 +1044,12 @@ function PureReportActionItem({
                 contextMenuStateValue={contextMenuStateValue}
                 contextMenuActionsValue={contextMenuActionsValue}
                 parentReportAction={parentReportAction}
-                parentReport={parentReport}
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             />
         );
-    }, [contextMenuStateValue, contextMenuActionsValue, parentReportAction, parentReport, draftMessage, shouldHideThreadDividerLine, parentReportActionForTransactionThread]);
+    }, [contextMenuStateValue, contextMenuActionsValue, parentReportAction, draftMessage, shouldHideThreadDividerLine, parentReportActionForTransactionThread]);
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
         return createdActionContent;
@@ -1225,7 +1201,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
     const nextParentReportAction = nextProps.parentReportAction;
     return (
-        prevProps.personalPolicyID === nextProps.personalPolicyID &&
         prevProps.displayAsGroup === nextProps.displayAsGroup &&
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
         deepEqual(prevProps.action, nextProps.action) &&
@@ -1256,7 +1231,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-        prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
@@ -1266,7 +1240,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
-        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
-        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction
+        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
     );
 });

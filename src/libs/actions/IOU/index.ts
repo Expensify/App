@@ -62,7 +62,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     buildOptimisticTransaction,
     getAmount,
-    getCategoryTaxCodeAndAmount,
+    getCategoryTaxDetails,
     getCurrency,
     getDistanceInMeters,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -899,15 +899,13 @@ function setMoneyRequestCategory(transactionID: string, category: string, policy
         return;
     }
     if (!policy) {
-        setMoneyRequestTaxRate(transactionID, '');
-        setMoneyRequestTaxAmount(transactionID, null);
+        setMoneyRequestTaxRateValues(transactionID, {taxCode: '', taxAmount: null, taxValue: null});
         return;
     }
     const transaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(category, transaction, policy);
-    if (categoryTaxCode && categoryTaxAmount !== undefined) {
-        setMoneyRequestTaxRate(transactionID, categoryTaxCode);
-        setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
+    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy);
+    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+        setMoneyRequestTaxRateValues(transactionID, {taxCode: categoryTaxCode, taxAmount: categoryTaxAmount, taxValue: categoryTaxValue});
     }
 }
 
@@ -2196,6 +2194,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
             reportActionID: currentReportActionID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -2427,12 +2426,21 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
-    const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
 
-    if (isPolicyExpenseChat || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat, selected: true, policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined}];
+    if (isPolicyExpenseChat || isSelfDMChat) {
+        participants = [
+            {
+                accountID: 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat,
+                selected: true,
+                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
+                isSelfDM: isSelfDMChat,
+            },
+        ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
