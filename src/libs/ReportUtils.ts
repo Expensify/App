@@ -11643,7 +11643,7 @@ function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined
     //
     // Markdown, not HTML: buildOptimisticAddCommentReportAction → getParsedComment escapes
     // entities, so raw HTML tags would render as literal text.
-    const header = '# Welcome to Expensify 👋\n';
+    const header = "# Your free trial has started! Let's get you set up.\n";
     switch (companySize) {
         case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
         case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
@@ -11653,7 +11653,7 @@ function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined
         case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
             return `${header}\nI'm Concierge, here for quick questions while your rollout gets planned.`;
         default:
-            return `${header}\nI'm Concierge, and I'll help you get set up. For a team your size, the fastest path is adding a few expense categories, inviting everyone, and having them snap receipts.\n\nTry one of the suggestions, or reply with any questions.`;
+            return `${header}\nFor a team your size, the fastest path is adding a few expense categories, inviting everyone, and having them snap receipts.\n\nTry one of the suggestions, or reply with any questions.`;
     }
 }
 
