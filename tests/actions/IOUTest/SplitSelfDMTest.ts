@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';

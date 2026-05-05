@@ -3,7 +3,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UnsupportedFormulaValueErrorParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, PaidElsewhereParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 const translations: TranslationDeepObject<typeof en> = {
@@ -802,7 +802,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'un agente de soporte humano',
         harvestCreatedExpenseReport: (reportUrl, reportName) =>
             `creó este informe para contener todos los gastos de <a href="${reportUrl}">${reportName}</a> que no se pudieron enviar con la frecuencia que elegiste`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl, reportName, reportID, isReportDeleted) =>
             isReportDeleted
                 ? `creó este informe para cualquier gasto retenido del informe eliminado #${reportID}`
                 : `creó este informe para cualquier gasto retenido de <a href="${reportUrl}">${reportName}</a>`,
@@ -866,7 +866,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Arreglar la conexión de la tarjeta personal de ${cardName}` : 'Arreglar la conexión de la tarjeta personal'),
-                subtitle: 'Monedero',
+                subtitle: 'Billetera',
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
@@ -902,6 +902,12 @@ const translations: TranslationDeepObject<typeof en> = {
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
                 subtitle: 'Suscripción',
+            },
+            unlockBankAccount: {
+                workspaceTitle: 'Tu cuenta bancaria empresarial ha sido bloqueada',
+                personalTitle: 'Tu cuenta bancaria ha sido bloqueada',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Billetera',
             },
         },
         freeTrialSection: {
@@ -1050,6 +1056,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
+        importCompanyCardTransactionsPendingMessage: 'Las nuevas tarjetas y transacciones pueden tardar un poco en aparecer.',
         importSuccessfulTitle: 'Importar categorías',
         importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
@@ -1357,9 +1364,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `estableció la ${translatedChangedField} a ${newMerchant}, lo que estableció el importe a ${newAmountToDisplay}`,
         removedTheRequest: (valueName, oldValueToDisplay) =>
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}) =>
+        updatedTheRequest: (valueName, newValueToDisplay, oldValueToDisplay) =>
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}) =>
+        updatedTheDistanceMerchant: (translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay) =>
             `cambió la ${translatedChangedField} a ${newMerchant} (previamente ${oldMerchant}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         basedOnAI: 'basado en actividad pasada',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `basado en <a href="${rulesLink}">reglas del espacio de trabajo</a>` : 'basado en regla del espacio de trabajo'),
@@ -3298,6 +3305,7 @@ ${amount} para ${merchant} - ${date}`,
         whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
         setVacationDelegate: 'Configura un delegado de vacaciones para aprobar informes en tu nombre mientras estás fuera de la oficina.',
         cannotSetVacationDelegate: `No puedes establecer un delegado de vacaciones porque actualmente eres el delegado de los siguientes miembros:`,
+        addVacationDelegate: 'Agregar delegado de vacaciones',
         vacationDelegateError: 'Hubo un error al actualizar tu delegado de vacaciones.',
         asVacationDelegate: (managerName) => `como delegado de vacaciones de ${managerName}`,
         toAsVacationDelegate: (submittedToName, vacationDelegateName) => `a ${submittedToName} como delegado de vacaciones de ${vacationDelegateName}`,
@@ -3435,8 +3443,8 @@ ${amount} para ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Correo electrónico inválido',
-        userIsAlreadyMember: ({login, name}) => `${login} ya es miembro de ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}) => `${login} ya es administrador de ${name}`,
+        userIsAlreadyMember: (login, name) => `${login} ya es miembro de ${name}`,
+        userIsAlreadyAnAdmin: (login, name) => `${login} ya es administrador de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar tu Billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -5249,7 +5257,6 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensual',
             },
             cardDetails: 'Datos de la tarjeta',
-            cardPending: ({name}: {name: string}) => `La tarjeta está pendiente y se emitirá una vez que la cuenta de ${name} haya sido validada.`,
             virtual: 'Virtual',
             physical: 'Física',
             deactivate: 'Desactivar tarjeta',
@@ -7085,6 +7092,9 @@ ${amount} para ${merchant} - ${date}`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue, newValue) => `cambió el importe requerido del recibo a "${newValue}" (antes "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue) => `eliminó el importe requerido del recibo (antes "${oldValue}")`,
+        setItemizedReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo detallado en "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue, newValue) => `cambió el importe requerido del recibo detallado a "${newValue}" (antes "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue) => `eliminó el importe requerido del recibo detallado (antes "${oldValue}")`,
 
         setMaxExpenseAmount: (newValue) => `estableció el importe máximo del gasto en "${newValue}"`,
         changedMaxExpenseAmount: (oldValue, newValue) => `cambió el importe máximo del gasto a "${newValue}" (antes "${oldValue}")`,
@@ -8568,7 +8578,7 @@ ${amount} para ${merchant} - ${date}`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingAttendees: 'Se requieren múltiples asistentes para esta categoría',
-        missingTag: ({tagName} = {}) => `Falta ${tagName ?? 'etiqueta'}`,
+        missingTag: (tagName) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}) => {
             switch (type) {
                 case 'distance':
@@ -9380,7 +9390,9 @@ ${amount} para ${merchant} - ${date}`,
             reportSuspiciousActivityConfirmationPrompt:
                 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
             moveToGroup: 'Mover al grupo',
+            domainGroup: 'Grupo de dominio',
             chooseWhereToMove: ({count}: {count: number}) => `Elige a dónde mover ${count} ${count === 1 ? 'miembro' : 'miembros'}.`,
+            chooseWhereToMoveName: ({name}: {name: string}) => `Elige a dónde mover a ${name}.`,
         },
         common: {
             settings: 'Configuración',
@@ -9405,6 +9417,17 @@ ${amount} para ${merchant} - ${date}`,
                 `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
             makeDefault: 'Establecer como predeterminado',
             neverMind: 'No importa',
+            permissions: 'Permisos de grupo',
+            strictlyEnforceWorkspaceRules: 'Hacer cumplir estrictamente las reglas del espacio de trabajo',
+            strictlyEnforceWorkspaceRulesDescription: 'Todas las reglas del espacio de trabajo deben cumplirse antes de enviar un informe. No se permiten excepciones manuales.',
+            restrictExpenseWorkspaceCreation: 'Restringir la creación/eliminación de espacios de trabajo de gastos',
+            restrictExpenseWorkspaceCreationDescription:
+                'Evita que los miembros creen un espacio de trabajo de gastos o se eliminen a sí mismos de uno. Esto, cuando se combina con la aplicación estricta de espacios de trabajo, es útil para evitar que se utilice Expensify para enviar informes destinados a usarse fuera de tu dominio.',
+            deleteGroup: 'Eliminar grupo',
+            deleteGroupDangerConfirmationModal: 'Eliminar grupo',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `¿Estás seguro? Esto reasignará a todos los miembros al grupo predeterminado (${defaultGroupName}) y no se puede deshacer.`,
+            deleteGroupError: 'No se pudo eliminar este grupo. Por favor, inténtalo de nuevo.',
         },
     },
     gps: {

@@ -12,6 +12,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -362,6 +363,8 @@ function Search({
         selector: savedSearchSelector,
     });
 
+    const {convertToDisplayString} = useCurrencyListActions();
+
     const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
@@ -554,6 +557,7 @@ function Search({
             conciergeReportID,
             onyxPersonalDetailsList,
             policyForMovingExpenses,
+            convertToDisplayString,
         });
         return {
             baseFilteredData: filteredData1,
@@ -586,6 +590,7 @@ function Search({
         conciergeReportID,
         onyxPersonalDetailsList,
         policyForMovingExpenses,
+        convertToDisplayString,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -622,6 +627,7 @@ function Search({
                 cardFeeds,
                 allReportMetadata,
                 conciergeReportID,
+                convertToDisplayString,
             });
             return {
                 ...item,
@@ -645,6 +651,7 @@ function Search({
         bankAccountList,
         allReportMetadata,
         conciergeReportID,
+        convertToDisplayString,
     ]);
 
     const hasLoadedAllTransactions = useMemo(() => {

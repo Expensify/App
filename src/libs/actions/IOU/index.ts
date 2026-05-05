@@ -2345,6 +2345,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             isPersonalTrackingExpense: isSelfDMSplit,
             ...(shouldGenerateTransactionThreadReport !== undefined ? {shouldGenerateTransactionThreadReport} : {}),
             reportActionID: currentReportActionID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);

@@ -14,15 +14,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isAddCommentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
-import {
-    completeSplitBill,
-    createDistanceRequest,
-    setDraftSplitTransaction,
-    splitBill,
-    startSplitBill,
-    updateSplitTransactions,
-    updateSplitTransactionsFromSplitExpensesFlow,
-} from '@userActions/IOU/Split';
+import {completeSplitBill, createDistanceRequest, setDraftSplitTransaction, splitBill, startSplitBill} from '@userActions/IOU/Split';
 import {
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
@@ -33,6 +25,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
+import {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
@@ -2088,6 +2081,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -2198,6 +2192,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
                     {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2258,6 +2253,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [{transactionID: splitTransactionID1, amount, created: DateUtils.getDBTime(), reportID: differentReportID}],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2310,6 +2306,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
             betas: [],
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -2421,6 +2418,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
                     {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2528,6 +2526,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [{transactionID: splitTransactionID1, amount, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             policyCategories: undefined,
             policy: undefined,
@@ -2701,6 +2700,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID: reportID1,
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             searchContext: {
                 currentSearchHash: -2,
@@ -2835,6 +2835,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 reportID: reportID2,
                 originalTransactionID: originalTransaction.transactionID,
                 splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             searchContext: {
                 currentSearchHash: -2,
@@ -2890,6 +2891,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3067,6 +3069,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3248,6 +3251,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3438,6 +3442,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3705,6 +3710,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -3785,6 +3791,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: 'split-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime()},
                     {transactionID: 'split-2', amount: amount / 2, description: 'Split 2', created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -3835,6 +3842,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -3915,6 +3923,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: 'offline-split-1', amount: amount / 2, description: 'Offline Split 1', created: DateUtils.getDBTime()},
                     {transactionID: 'offline-split-2', amount: amount / 2, description: 'Offline Split 2', created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -3966,6 +3975,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -4044,6 +4054,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: 'cat-tag-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime(), category: testCategory, tags: [testTag]},
                     {transactionID: 'cat-tag-2', amount: amount / 2, description: 'Split 2', created: DateUtils.getDBTime(), category: testCategory, tags: [testTag]},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4106,6 +4117,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
@@ -4220,6 +4232,7 @@ describe('updateSplitTransactions', () => {
                     description: `Split ${index + 1}`,
                     created: DateUtils.getDBTime(),
                 })),
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4455,6 +4468,7 @@ describe('updateSplitTransactions', () => {
                 reportID: expenseReport.reportID,
                 originalTransactionID,
                 splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4534,6 +4548,7 @@ describe('updateSplitTransactions', () => {
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
                     {transactionID: splitTransactionID2, amount: amount / 2, created: DateUtils.getDBTime()},
                 ],
+                splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
             policyCategories: undefined,
@@ -4558,6 +4573,74 @@ describe('updateSplitTransactions', () => {
 
         const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
+    });
+
+    it('should preserve report total when deleting a split with correct splitExpensesTotal', async () => {
+        // This tests the bug where useDeleteTransactions was not passing splitExpensesTotal,
+        // causing the report total to be incorrect after offline split deletion.
+        // Without splitExpensesTotal, changesInReportTotal = sum(remaining splits) - 0 = remaining total,
+        // which incorrectly subtracts that from the report total again.
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        const reportID = expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const txID = originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+        // Split into 4 parts for clean division (amount=10000, each split = 2500)
+        const splitIDs = await splitToN(4, expenseReport, txID);
+
+        // Capture the report total after the initial split
+        const reportAfterSplit = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const totalAfterSplit = reportAfterSplit?.total ?? 0;
+
+        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
+        // "Delete" one split by calling updateSplitTransactions with only three remaining splits.
+        // Pass splitExpensesTotal = sum of remaining splits (this is what useDeleteTransactions now does).
+        const splitAmount = amount / 4;
+        const splitExpensesTotal = splitAmount * 3;
+
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID,
+                originalTransactionID: txID,
+                splitExpenses: [
+                    {transactionID: splitIDs.at(0) ?? '', amount: splitAmount, created: DateUtils.getDBTime()},
+                    {transactionID: splitIDs.at(1) ?? '', amount: splitAmount, created: DateUtils.getDBTime()},
+                    {transactionID: splitIDs.at(2) ?? '', amount: splitAmount, created: DateUtils.getDBTime()},
+                ],
+                splitExpensesTotal,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+        });
+        await waitForBatchedUpdates();
+
+        // With correct splitExpensesTotal: changesInReportTotal = remainingAmount - splitExpensesTotal = 0,
+        // so the report total should not change from the post-split value.
+        // Without splitExpensesTotal (the bug): changesInReportTotal = remainingAmount - 0 = remainingAmount,
+        // which would incorrectly subtract that from the total, resulting in totalAfterSplit + remainingAmount.
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(updatedReport?.total).toBe(totalAfterSplit);
     });
 });
 

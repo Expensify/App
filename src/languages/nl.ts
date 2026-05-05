@@ -24,7 +24,6 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -53,12 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -95,7 +90,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Optioneel',
         new: 'Nieuw',
         newFeature: 'Nieuwe functie',
-        beta: 'Beta',
+        beta: 'Bèta',
         search: 'Zoeken',
         reports: 'Rapporten',
         spend: 'Uitgaven',
@@ -872,7 +867,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'een menselijke medewerker',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `heeft dit rapport gemaakt om alle uitgaven van <a href="${reportUrl}">${reportName}</a> te bewaren die niet konden worden ingediend op de door jou gekozen frequentie`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `heeft dit rapport gemaakt voor alle vastgehouden uitgaven uit verwijderd rapport nr. ${reportID}`
                 : `heeft dit rapport gemaakt voor alle vastgehouden uitgaven van <a href="${reportUrl}">${reportName}</a>`,
@@ -958,6 +953,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             validateAccount: {title: 'Valideer je account om Expensify te blijven gebruiken', subtitle: 'Account', cta: 'Valideren'},
             fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
+            unlockBankAccount: {
+                workspaceTitle: 'Je zakelijke bankrekening is geblokkeerd',
+                personalTitle: 'Je bankrekening is vergrendeld',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Portemonnee',
+            },
         },
         assignedCards: 'Je Expensify Kaarten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
@@ -1112,6 +1113,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bevestig hieronder de gegevens voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'Nieuwe kaarten en transacties kunnen even duren voordat ze verschijnen, even geduld.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -1403,8 +1405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `stel ${translatedChangedField} in op ${newMerchant}, waarmee het bedrag is ingesteld op ${newAmountToDisplay}`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `de ${valueName} (voorheen ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `de ${valueName} in ${newValueToDisplay} (voorheen ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `de ${valueName} in ${newValueToDisplay} (voorheen ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `heeft ${translatedChangedField} gewijzigd in ${newMerchant} (voorheen ${oldMerchant}), waardoor het bedrag is bijgewerkt naar ${newAmountToDisplay} (voorheen ${oldAmountToDisplay})`,
         basedOnAI: 'op basis van eerdere activiteit',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `op basis van <a href="${rulesLink}">werkruimteregels</a>` : 'op basis van werkruimteregel'),
@@ -2717,7 +2719,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenten',
-        subtitle: 'Automatiseer taken met aangepaste agents.',
+        subtitle: 'Maak agents aan om je workflow af te handelen. Sla het handmatige werk over en krijg uren van je dag terug.',
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {title: 'Geen agents aangemaakt', subtitle: 'Stop met dingen handmatig doen. Geef in plaats daarvan een opdracht aan een agent en bespaar jezelf veel tijd.'},
     },
@@ -3382,6 +3384,7 @@ ${amount} voor ${merchant} - ${date}`,
         whenClearStatus: 'Wanneer moeten we je status wissen?',
         setVacationDelegate: `Stel een vervangende fiatteur in om rapporten namens jou goed te keuren terwijl je afwezig bent.`,
         cannotSetVacationDelegate: `Je kunt geen vakantiedelegaat instellen omdat je momenteel de delegaat bent voor de volgende leden:`,
+        addVacationDelegate: 'Vakantiedelegaat toevoegen',
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vervanger tijdens vakantie.',
         asVacationDelegate: (nameOrEmail: string) => `als vakantiewaarnemer van ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `aan ${submittedToName} als vakantieplaatsvervanger voor ${vacationDelegateName}`,
@@ -3516,8 +3519,8 @@ ${amount} voor ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Voer een geldig telefoonnummer in zonder haakjes of streepjes. Als je buiten de VS bent, voeg dan je landcode toe (bijv. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Ongeldig e-mailadres',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is al lid van ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} is al een beheerder van ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} is al lid van ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} is al een beheerder van ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Door verder te gaan met het verzoek om je Expensify Wallet te activeren, bevestig je dat je hebt gelezen, begrijpt en accepteert',
@@ -5355,7 +5358,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 monthly: 'Maandelijks',
             },
             cardDetails: 'Kaartgegevens',
-            cardPending: ({name}: {name: string}) => `De kaart is momenteel in behandeling en wordt uitgegeven zodra het account van ${name} is gevalideerd.`,
             virtual: 'Virtueel',
             physical: 'Fysiek',
             deactivate: 'Kaart deactiveren',
@@ -7362,6 +7364,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         setReceiptRequiredAmount: (newValue: string) => `stel het vereiste bonbedrag in op "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `heeft het vereiste bonbedrag gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `vereiste bedrag op verwijderde bon (voorheen “${oldValue}”)`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `stel het vereiste bedrag voor de gespecificeerde bon in op "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) =>
+            `heeft het vereiste bedrag voor gespecificeerde bonnen gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `vereist bedrag voor gespecificeerde bon verwijderd (voorheen "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `maximumbedrag voor uitgave instellen op "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `maximale onkostensom gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `maximaal bedrag voor uitgave verwijderd (voorheen "${oldValue}")`,
@@ -8314,7 +8320,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         missingCategory: 'Ontbrekende categorie',
         missingComment: 'Beschrijving vereist voor geselecteerde categorie',
         missingAttendees: 'Meerdere deelnemers vereist voor deze categorie',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Ontbreekt ${tagName ?? 'label'}`,
+        missingTag: (tagName?: string) => `Ontbreekt ${tagName ?? 'label'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -9123,6 +9129,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             emptyMembers: {title: 'Geen leden in deze groep', subtitle: 'Voeg een lid toe of probeer het filter hierboven te wijzigen.'},
             moveToGroup: 'Verplaatsen naar groep',
             chooseWhereToMove: ({count}: {count: number}) => `Kies waar je ${count} ${count === 1 ? 'lid' : 'leden'} naartoe wilt verplaatsen.`,
+            domainGroup: 'Domeingroep',
+            chooseWhereToMoveName: ({name}: {name: string}) => `Kies waar je ${name} naartoe wilt verplaatsen.`,
         },
         common: {
             settings: 'Instellingen',
@@ -9142,6 +9150,18 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 `Weet je zeker dat je ${newName} de standaardgroep wilt maken? Nieuwe leden worden uitgenodigd voor deze groep in plaats van de vorige standaardgroep (${currentName}). `,
             makeDefault: 'Standaard maken',
             neverMind: 'Laat maar',
+            permissions: 'Groepsmachtigingen',
+            strictlyEnforceWorkspaceRules: 'Werkruimteregels strikt afdwingen',
+            strictlyEnforceWorkspaceRulesDescription:
+                'Aan alle werkruimteregels moet worden voldaan voordat een rapport kan worden ingediend. Handmatige uitzonderingen zijn niet toegestaan.',
+            restrictExpenseWorkspaceCreation: 'Aanmaken/verwijderen van onkostenwerkruimte beperken',
+            restrictExpenseWorkspaceCreationDescription:
+                'Voorkom dat leden een onkostenwerkruimte kunnen aanmaken of zichzelf uit een onkostenwerkruimte kunnen verwijderen. Dit is nuttig om te voorkomen dat mensen Expensify gebruiken om rapporten in te dienen voor gebruik buiten jouw domein, wanneer dit wordt gecombineerd met strikte werkruimtehandhaving.',
+            deleteGroup: 'Groep verwijderen',
+            deleteGroupDangerConfirmationModal: 'Groep verwijderen',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `Weet je het zeker? Dit wijst alle leden opnieuw toe aan de standaardgroep (${defaultGroupName}) en kan niet ongedaan worden gemaakt.`,
+            deleteGroupError: 'Kan deze groep niet verwijderen. Probeer het opnieuw.',
         },
     },
     proactiveAppReview: {

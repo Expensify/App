@@ -149,6 +149,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
         });
@@ -176,6 +177,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
         });
@@ -212,6 +214,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: false,
         });
@@ -236,6 +239,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            reportPolicyTags: undefined,
             isSplitTransaction: false,
             isSelfDMSplit: true,
         });
@@ -258,6 +262,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             iouReportNextStep: undefined,
+            reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
         });
@@ -293,6 +298,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -323,6 +329,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -358,6 +365,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -387,6 +395,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,

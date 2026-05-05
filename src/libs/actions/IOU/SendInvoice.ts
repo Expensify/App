@@ -683,6 +683,7 @@ function getSendInvoiceInformation({
             payeeEmail: receiver.login ?? '',
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
+            currentUserAccountID,
         });
 
     // STEP 6: Build Onyx Data
