@@ -16,19 +16,8 @@ type SearchTableHeaderProps = {
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
-    shouldRemoveTotalColumnFlex?: boolean;
 };
-function MoneyRequestReportTableHeader({
-    sortBy,
-    sortOrder,
-    onSortPress,
-    dateColumnSize,
-    shouldShowSorting,
-    columns,
-    amountColumnSize,
-    taxAmountColumnSize,
-    shouldRemoveTotalColumnFlex,
-}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const columnConfig = useMemo(
@@ -88,7 +77,6 @@ function MoneyRequestReportTableHeader({
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSortPress={onSortPress}
-                shouldRemoveTotalColumnFlex={shouldRemoveTotalColumnFlex}
             />
         </View>
     );

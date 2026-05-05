@@ -19,6 +19,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DefaultGroupToggle from './DefaultGroupToggle';
+import DeleteGroupRow from './DeleteGroupRow';
+import PreferredWorkspaceToggle from './PreferredWorkspaceToggle';
+import RestrictDefaultLoginSelectionToggle from './RestrictDefaultLoginSelectionToggle';
 import RestrictExpenseWorkspaceCreationToggle from './RestrictExpenseWorkspaceCreationToggle';
 import StrictlyEnforceWorkspaceRulesToggle from './StrictlyEnforceWorkspaceRulesToggle';
 
@@ -72,7 +75,19 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         domainAccountID={domainAccountID}
                         groupID={groupID}
                     />
+                    <RestrictDefaultLoginSelectionToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
                     <RestrictExpenseWorkspaceCreationToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <PreferredWorkspaceToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <DeleteGroupRow
                         domainAccountID={domainAccountID}
                         groupID={groupID}
                     />
