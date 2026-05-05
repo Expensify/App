@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,6 +22,15 @@ function DeviceManagementPage() {
     const {translate, datetimeToRelative} = useLocalize();
 
     const [logins] = useOnyx(ONYXKEYS.LOGINS, {selector: getDeviceLogins});
+
+    const listHeader = useMemo(
+        () => (
+            <View style={[styles.pv3]}>
+                <RenderHTML html={translate('deviceManagementPage.description')} />
+            </View>
+        ),
+        [styles.pv3, translate],
+    );
 
     const renderItem = ({item}: ListRenderItemInfo<Login>) => {
         const {deviceName, deviceVersion, os, osVersion} = item.additionalData ?? {};
@@ -55,15 +64,13 @@ function DeviceManagementPage() {
                 title={translate('deviceManagementPage.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.ph5, styles.pv3]}>
-                <RenderHTML html={translate('deviceManagementPage.description')} />
-            </View>
             <FlashList
                 data={logins}
                 renderItem={renderItem}
                 keyExtractor={getLoginKey}
                 maintainVisibleContentPosition={{disabled: true}}
                 contentContainerStyle={[styles.ph5]}
+                ListHeaderComponent={listHeader}
             />
         </ScreenWrapper>
     );
