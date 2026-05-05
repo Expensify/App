@@ -173,10 +173,12 @@ function getPayMoneyRequestParams({
             currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentUserEmailParam ?? '',
             introSelected,
-            activePolicyID: activePolicy?.id,
+            activePolicy,
             companySize: introSelected?.companySize as OnboardingCompanySize,
             betas,
             isSelfTourViewed,
+            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
+            hasActiveAdminPolicies: undefined,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
