@@ -8,6 +8,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -26,9 +27,6 @@ type ReimbursementQueuedContentProps = {
     /** The chat report this action belongs to */
     report: OnyxEntry<Report>;
 
-    /** Parent report (used when this report is a chat thread) */
-    parentReport: OnyxEntry<Report>;
-
     /** The IOU/Expense report we are paying */
     iouReport: OnyxEntry<Report>;
 
@@ -36,11 +34,12 @@ type ReimbursementQueuedContentProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-function ReimbursementQueuedContent({action, report, parentReport, iouReport, personalDetails}: ReimbursementQueuedContentProps) {
+function ReimbursementQueuedContent({action, report, iouReport, personalDetails}: ReimbursementQueuedContentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});

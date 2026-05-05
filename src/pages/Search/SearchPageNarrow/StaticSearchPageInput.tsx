@@ -20,7 +20,15 @@ function StaticSearchPageInput() {
         >
             <View style={[styles.flexRow, styles.ml5, styles.mb4, styles.mr3]}>
                 <View style={[styles.flex1, styles.zIndex10]}>
-                    <View style={[styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter, styles.searchInputSkeleton]}>
+                    <View
+                        style={[
+                            styles.searchRouterTextInputContainer,
+                            styles.searchAutocompleteInputResults,
+                            styles.br2,
+                            styles.justifyContentCenter,
+                            styles.searchPageInputNarrowTouchableWrapper,
+                        ]}
+                    >
                         <Text
                             style={[{color: theme.textSupporting}]}
                             numberOfLines={1}

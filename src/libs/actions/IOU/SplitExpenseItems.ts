@@ -610,11 +610,9 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
 }
 
 export {
-    getDistanceMerchantFromDistance,
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
     initDraftSplitExpenseDataForEdit,
-    redistributeSplitExpenseAmounts,
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
     resetSplitExpensesByDateRange,
