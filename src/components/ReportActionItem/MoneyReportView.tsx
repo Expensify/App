@@ -95,11 +95,12 @@ function MoneyReportView({
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const transactions = useReportTransactions(report?.reportID);
     const latchedTransactionIDs = useLatchedTransactionIDs(transactions, report?.reportID);
-    const transactionsForTotal = latchedTransactionIDs ? transactions.filter((t) => latchedTransactionIDs.has(t.transactionID)) : transactions;
-    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactionsForTotal);
+    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
-    const shouldShowBreakdown = nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled);
+    // Hide while latch hides txs; the report total would mismatch the visible per-tx detail.
+    const isLatchedTransientMismatch = latchedTransactionIDs !== undefined && latchedTransactionIDs.size < transactions.length;
+    const shouldShowBreakdown = !isLatchedTransientMismatch && (nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled));
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
