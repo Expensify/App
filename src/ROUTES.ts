@@ -99,6 +99,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    EXPENSE_LIMIT_TYPE_SELECTOR: {
+        path: 'expense-limit-type',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER],
+    },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
         entryScreens: [SCREENS.REPORT_DETAILS.ROOT],
@@ -110,6 +114,17 @@ const DYNAMIC_ROUTES = {
     REPORT_SETTINGS_VISIBILITY: {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
+    },
+    CHANGE_POLICY_EDUCATIONAL: {
+        path: 'change-workspace-educational',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.REPORT_CHANGE_WORKSPACE.ROOT,
+        ],
     },
     NETSUITE_AUTO_SYNC: {
         path: 'netsuite-autosync',
@@ -138,6 +153,14 @@ const DYNAMIC_ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
         path: 'receivable-account/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
+        path: 'invoice-item-preference/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
+        path: 'invoice-item/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT],
     },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         path: 'preferred-exporter/select',
@@ -259,6 +282,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    SETTINGS_CATEGORY_EDIT: {
+        path: 'category-edit',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
@@ -281,6 +308,24 @@ const DYNAMIC_ROUTES = {
         path: 'imported',
         entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
     },
+    WORKSPACE_CATEGORIES_SETTINGS: {
+        path: 'categories-settings',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_CATEGORY_CREATE: {
+        path: 'category-new',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    SPEND_CATEGORY_SELECTOR: {
+        path: 'spend-category-selector/:groupID',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS],
+        getRoute: (groupID: string) => `spend-category-selector/${groupID}` as const,
+    },
+    DEFAULT_CATEGORY_SELECTOR: {
+        path: 'default-category-selector/:customUnitID',
+        entryScreens: [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS, SCREENS.WORKSPACE.PER_DIEM_SETTINGS],
+        getRoute: (customUnitID: string) => `default-category-selector/${customUnitID}` as const,
+    },
     WORKSPACE_INVITE: {
         path: 'invite',
         entryScreens: [SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MEMBERS],
@@ -296,6 +341,15 @@ const DYNAMIC_ROUTES = {
     KEYBOARD_SHORTCUTS: {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
+    },
+    SETTINGS_TAG_APPROVER: {
+        path: 'tag-approver',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS],
+    },
+    SETTINGS_TAG_LIST_VIEW: {
+        path: 'tag-list/:orderWeight',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
+        getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
     },
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
@@ -322,11 +376,15 @@ const DYNAMIC_ROUTES = {
     },
     EXIT_SURVEY_REASON: {
         path: 'exit-survey/reason',
-        entryScreens: [SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: ['*'],
     },
     EXIT_SURVEY_CONFIRM: {
         path: 'exit-survey/confirm',
-        entryScreens: [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON, SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: ['*'],
+    },
+    REPORT_CHANGE_APPROVER: {
+        path: 'change-approver',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
@@ -355,7 +413,7 @@ const ROUTES = {
     SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
-        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
+        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${encodeURIComponent(jsonQuery)}` as const,
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
@@ -455,7 +513,15 @@ const ROUTES = {
             return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
         },
     },
-    CHANGE_APPROVER_SEARCH_RHP: 'search/change-approver',
+    CHANGE_APPROVER_SEARCH_RHP: {
+        route: 'search/change-approver/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/change-approver/search' as const;
+            }
+            return `search/change-approver/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
     CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -533,14 +599,14 @@ const ROUTES = {
     },
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
         route: 'bank-account/connect-existing-business-bank-account',
-        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param until the navigation refactor lands
+
         getRoute: (policyID: string, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`bank-account/connect-existing-business-bank-account?policyID=${policyID}`, backTo),
     },
     BANK_ACCOUNT_NON_USD_SETUP: {
         route: 'bank-account/new/global/:page?/:subPage?/:action?',
-        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
+
         getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
             const base = 'bank-account/new/global';
             const pagePart = page ? `/${page}` : '';
@@ -582,7 +648,7 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
-    SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
+    SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
     SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED: {
         route: 'settings/subscription/downgrade-blocked',
 
@@ -642,6 +708,10 @@ const ROUTES = {
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
+    },
+    SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES: {
+        route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
+        getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
     },
     SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
         route: 'settings/wallet/personal-card/:cardID',
@@ -706,6 +776,15 @@ const ROUTES = {
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
+    SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT: {
+        route: 'settings/wallet/update-personal-bank-account/:subPage?',
+        getRoute: (subPage?: string) => {
+            if (!subPage) {
+                return 'settings/wallet/update-personal-bank-account' as const;
+            }
+            return `settings/wallet/update-personal-bank-account/${subPage}` as const;
+        },
+    },
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
@@ -786,6 +865,7 @@ const ROUTES = {
     },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
+    SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -810,7 +890,7 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             `${getUrlWithBackToParam(`settings/profile/address/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
@@ -842,6 +922,15 @@ const ROUTES = {
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
+        },
+    },
+    SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
+        route: 'settings/profile/contact-methods/:contactMethod/set-default/confirm',
+        getRoute: (contactMethod: string, backTo?: string) => {
+            const encodedMethod = encodeURIComponent(contactMethod);
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/set-default/confirm`, backTo);
         },
     },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
@@ -1045,12 +1134,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
     },
-    REPORT_CHANGE_APPROVER: {
-        route: 'r/:reportID/change-approver',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
-    },
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
@@ -1212,6 +1295,11 @@ const ROUTES = {
             return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
         },
     },
+    MONEY_REQUEST_CREATE_VERIFY_ACCOUNT: {
+        route: `:action/:iouType/start/:transactionID/:reportID/${VERIFY_ACCOUNT}`,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${VERIFY_ACCOUNT}` as const,
+    },
     MONEY_REQUEST_STEP_SEND_FROM: {
         route: 'create/:iouType/from/:transactionID/:reportID',
 
@@ -1274,6 +1362,16 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/taxAmount/${transactionID}/${reportID}`, backTo);
+        },
+    },
+    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
+        route: ':action/:iouType/category/new/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY_CREATE route');
+            }
+            // eslint-disable-next-line no-restricted-syntax -- backTo is needed here to track where editing was initiated from (e.g. search/view or r/:reportID)
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/new/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_CATEGORY: {
@@ -1449,18 +1547,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const, backTo),
     },
-    SETTINGS_TAG_APPROVER: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/approver',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const, backTo),
-    },
-    SETTINGS_TAG_LIST_VIEW: {
-        route: 'settings/:policyID/tag-list/:orderWeight',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tag-list/${orderWeight}` as const, backTo),
-    },
     SETTINGS_TAG_GL_CODE: {
         route: 'settings/:policyID/tag/:orderWeight/:tagName/gl-code',
         getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
@@ -1502,12 +1588,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
-    },
-    SETTINGS_CATEGORY_EDIT: {
-        route: 'settings/:policyID/category/:categoryName/edit',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
     },
     SETTINGS_CATEGORIES_IMPORT: {
         route: 'settings/:policyID/categories/import',
@@ -1686,7 +1766,7 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             `${getUrlWithBackToParam(`submit/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
@@ -1867,6 +1947,14 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-invoicing/payable-account` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/payable-account` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
@@ -2295,14 +2383,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspaces/pay-and-downgrade` as const, backTo),
     },
-    WORKSPACE_CATEGORIES_SETTINGS: {
-        route: 'workspaces/:policyID/categories/settings',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/settings` as const,
-    },
-    WORKSPACE_CATEGORY_CREATE: {
-        route: 'workspaces/:policyID/categories/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/new` as const,
-    },
     WORKSPACE_CATEGORY_EDIT: {
         route: 'workspaces/:policyID/category/:categoryName/edit',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit` as const,
@@ -2350,6 +2430,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_MORE_FEATURES route');
             }
             return `workspaces/${policyID}/more-features` as const;
+        },
+    },
+    WORKSPACE_HR: {
+        route: 'workspaces/:policyID/hr',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR route');
+            }
+            return `workspaces/${policyID}/hr` as const;
         },
     },
     WORKSPACE_TAGS: {
@@ -3130,12 +3219,6 @@ const ROUTES = {
         route: 'share/submit-details/:reportOrAccountID',
         getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
     },
-    CHANGE_POLICY_EDUCATIONAL: {
-        route: 'change-workspace-educational',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
-    },
     TRAVEL_MY_TRIPS: {
         route: 'travel',
         getRoute: (policyID?: string) => `travel?${policyID ? `policyID=${policyID}` : ''}` as const,
@@ -3694,26 +3777,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/` as const, backTo, false);
         },
     },
-    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/select` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/invoice-item-preference/invoice-item/select',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT route');
-            }
-            return `workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/invoice-item/select` as const;
-        },
-    },
     POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
         getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/export/tax-posting-account/select` as const,
@@ -3863,9 +3926,9 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
         },
     },
-    ADD_UNREPORTED_EXPENSE: {
-        route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
-        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-unreported-expense/${backToReport ?? ''}` as const,
+    ADD_EXISTING_EXPENSE: {
+        route: 'search/r/:reportID/add-existing-expense/:backToReport?',
+        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
@@ -4053,6 +4116,10 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/move',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/move` as const,
     },
+    DOMAIN_MEMBER_MOVE_TO_GROUP: {
+        route: 'domain/:domainAccountID/members/:accountID/move',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/move` as const,
+    },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
     MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST: 'multifactor-authentication/scenario/biometrics-test',
@@ -4084,6 +4151,16 @@ const ROUTES = {
     DOMAIN_LOCK_ACCOUNT: {
         route: 'domain/:domainAccountID/members/:accountID/lock-account',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/lock-account` as const,
+    },
+
+    DOMAIN_GROUP_DETAILS: {
+        route: 'domain/:domainAccountID/groups/:groupID',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}` as const,
+    },
+
+    DOMAIN_GROUP_EDIT_NAME: {
+        route: 'domain/:domainAccountID/groups/:groupID/name',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/name` as const,
     },
 } as const;
 

@@ -546,6 +546,15 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
+function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height' | 'width' | 'maxWidth' | 'maxHeight'> {
+    return {
+        width: '100%',
+        height: '100%',
+        maxWidth: width,
+        maxHeight: height,
+    };
+}
+
 function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
@@ -1400,6 +1409,7 @@ const staticStyleUtils = {
     getTextColorStyle,
     getTransparentColor,
     getWidthAndHeightStyle,
+    getPDFViewStyle,
     getWidthStyle,
     getWrappingStyle,
     getZoomSizingStyle,
@@ -1824,12 +1834,20 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
         minHeight: variables.tableRowHeight,
-        borderRadius: 0,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
         ...(isLastItem ? styles.searchTableBottomRadius : {}),
         ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
         ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
+    }),
+
+    getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
+        ...styles.borderBottom,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
     getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
@@ -2287,6 +2305,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 return {};
         }
     },
+
+    getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+        overflow: 'visible',
+        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
+        paddingBottom: safeAreaPaddingBottom,
+        backgroundColor: theme.appBG,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

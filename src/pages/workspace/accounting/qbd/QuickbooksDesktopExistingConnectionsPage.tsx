@@ -7,7 +7,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
+import useOnyx from '@hooks/useOnyx';
+import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +29,8 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const policyID: string = route.params.policyID;
-    const {connectionSyncProgressCollection, reusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policyID);
+    const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
+    const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
 
     const menuItems = useMemo(
         () =>

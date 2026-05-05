@@ -1,14 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import {filterFeedSelector} from '@selectors/Search';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getFeedOptions} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
-
-function filterFeedSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
-    return searchAdvancedFiltersForm?.feed;
-}
 
 function useFilterFeedData() {
     const {translate, localeCompare} = useLocalize();

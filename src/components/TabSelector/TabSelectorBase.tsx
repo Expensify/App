@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-// eslint-disable-next-line no-restricted-imports
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';

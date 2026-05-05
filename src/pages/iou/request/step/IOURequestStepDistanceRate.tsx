@@ -61,8 +61,6 @@ function IOURequestStepDistanceRate({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
@@ -120,7 +118,7 @@ function IOURequestStepDistanceRate({
             isSelected,
         };
     });
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
@@ -153,7 +151,7 @@ function IOURequestStepDistanceRate({
         let taxValue;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
+            const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction, undefined, customUnitRateID) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
@@ -226,9 +224,8 @@ function IOURequestStepDistanceRate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceRateWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceRateWithFullTransactionOrNotFound;

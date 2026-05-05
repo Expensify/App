@@ -161,7 +161,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: allRates ? `${allRates} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
             policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
                       translation: translate('workspace.common.invoices'),
@@ -221,6 +221,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         }
 
         duplicateWorkspaceAction(policy, {
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email,
             policyName: duplicateWorkspace.name,
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
@@ -255,6 +257,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         selectedItems,
         translate,
         duplicatedWorkspaceAvatar,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         currentUserPersonalDetails?.localCurrencyCode,
     ]);
 

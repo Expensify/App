@@ -286,8 +286,12 @@ function getMergeableDataAndConflictFields(
         }
 
         if (field === 'attendees') {
-            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
-            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
+                .filter((login): login is string => !!login)
+                .sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? [])
+                .filter((login): login is string => !!login)
+                .sort(localeCompare);
 
             if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
@@ -494,7 +498,14 @@ function selectTargetAndSourceTransactionsForMerge(
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy: Policy | undefined, translate: LocaleContextProps['translate'], reports?: Array<OnyxEntry<Report>>): string {
+function getDisplayValue(
+    field: MergeFieldKey,
+    transaction: Transaction,
+    policy: Policy | undefined,
+    translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
+    reports?: Array<OnyxEntry<Report>>,
+): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
@@ -524,7 +535,7 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
         return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue), reports));
     }
     if (field === 'attendees') {
-        return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
+        return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue, localeCompare) : '';
     }
 
     if (field === 'taxValue') {
@@ -550,6 +561,7 @@ function buildMergeFieldsData(
     targetTransactionPolicy: Policy | undefined,
     sourceTransactionPolicy: Policy | undefined,
     translate: LocaleContextProps['translate'],
+    localeCompare: LocaleContextProps['localeCompare'],
     reports: Array<OnyxEntry<Report>> = [],
 ): MergeFieldData[] {
     if (!targetTransaction || !sourceTransaction) {
@@ -564,12 +576,12 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, targetTransactionPolicy, translate, reports),
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionPolicy, translate, localeCompare, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionPolicy, translate, reports),
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionPolicy, translate, localeCompare, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];
@@ -691,7 +703,6 @@ export {
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTransactionsAndReportsFromSearch,
-    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};
