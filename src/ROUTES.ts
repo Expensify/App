@@ -2876,8 +2876,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/merchants` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANT_EDIT: {
-        route: 'workspaces/:policyID/expensify-card/rules/merchants/edit',
-        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/merchants/edit` as const,
+        route: 'workspaces/:policyID/expensify-card/rules/merchants/edit/:merchantIndex',
+        getRoute: (policyID: string, merchantIndex: string) => `workspaces/${policyID}/expensify-card/rules/merchants/edit/${merchantIndex}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_RULE_CATEGORY: {
         route: 'workspaces/:policyID/expensify-card/rules/category',

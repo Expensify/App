@@ -1290,6 +1290,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANT_EDIT]: {
         policyID: string;
+        merchantIndex: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_CATEGORY]: {
         policyID: string;

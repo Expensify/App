@@ -5,6 +5,7 @@ import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation
 import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANTS>;
@@ -23,6 +24,7 @@ export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPagePr
             action={restrictionAction}
             merchantNames={merchantNames}
             merchantMatchTypes={merchantMatchTypes}
+            getEditMerchantRoute={(merchantIndex) => ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANT_EDIT.getRoute(policyID, merchantIndex)}
         />
     );
 }
