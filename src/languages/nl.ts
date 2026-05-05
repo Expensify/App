@@ -8418,7 +8418,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'handelaar', date: 'datum', amount: 'bedrag'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' en ');
                 return `Bon scannen mislukt — ${fieldList} ontbreekt.${canEdit ? ' Voer gegevens handmatig in.' : ''}`;
             }
             return `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`;

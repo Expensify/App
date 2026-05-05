@@ -8664,7 +8664,7 @@ ${amount} para ${merchant} - ${date}`,
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'comerciante', date: 'fecha', amount: 'importe'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' y ');
                 return `No se pudo escanear el recibo — falta ${fieldList}.${canEdit ? ' Introduce los datos manualmente.' : ''}`;
             }
             return `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`;

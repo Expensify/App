@@ -8455,7 +8455,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'Händler', date: 'Datum', amount: 'Betrag'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' und ');
                 return `Beleg-Scan fehlgeschlagen — ${fieldList} fehlt.${canEdit ? ' Details manuell eingeben.' : ''}`;
             }
             return `Beleg-Scan fehlgeschlagen.${canEdit ? 'Details manuell eingeben.' : ''}`;

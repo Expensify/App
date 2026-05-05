@@ -8478,7 +8478,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'commerçant', date: 'date', amount: 'montant'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' et ');
                 return `L’analyse du reçu a échoué — ${fieldList} manquant.${canEdit ? ' Saisir les détails manuellement.' : ''}`;
             }
             return `L’analyse du reçu a échoué.${canEdit ? 'Saisir les détails manuellement.' : ''}`;

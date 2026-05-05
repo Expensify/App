@@ -8411,7 +8411,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'comerciante', date: 'data', amount: 'valor'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' e ');
                 return `A digitalização do recibo falhou — faltando ${fieldList}.${canEdit ? ' Insira os detalhes manualmente.' : ''}`;
             }
             return `A digitalização do recibo falhou.${canEdit ? 'Insira os detalhes manualmente.' : ''}`;

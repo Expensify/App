@@ -8445,7 +8445,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: 'commerciante', date: 'data', amount: 'importo'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join(translated.length > 2 ? ', ' : ' and ');
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' e ');
                 return `Scansione della ricevuta non riuscita — ${fieldList} mancante.${canEdit ? ' Inserisci i dettagli manualmente.' : ''}`;
             }
             return `Scansione della ricevuta non riuscita.${canEdit ? 'Inserisci i dettagli manualmente.' : ''}`;
