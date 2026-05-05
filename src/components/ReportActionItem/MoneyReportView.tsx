@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -93,7 +94,9 @@ function MoneyReportView({
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const transactions = useReportTransactions(report?.reportID);
-    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
+    const latchedTransactionIDs = useLatchedTransactionIDs(transactions, report?.reportID);
+    const transactionsForTotal = latchedTransactionIDs ? transactions.filter((t) => latchedTransactionIDs.has(t.transactionID)) : transactions;
+    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactionsForTotal);
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
     const shouldShowBreakdown = nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled);

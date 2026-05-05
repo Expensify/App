@@ -2,6 +2,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useLatchedTransactionIDs from './useLatchedTransactionIDs';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -25,7 +26,9 @@ function useTransactionThreadReport(reportID: string | undefined) {
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    const latchedTransactionIDs = useLatchedTransactionIDs(visibleTransactions, reportID);
+    const visibleTransactionsLatched = latchedTransactionIDs ? visibleTransactions?.filter((t) => latchedTransactionIDs.has(t.transactionID)) : visibleTransactions;
+    const reportTransactionIDs = visibleTransactionsLatched?.map((t) => t.transactionID);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);

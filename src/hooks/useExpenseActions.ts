@@ -207,11 +207,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
     );
-    const shouldDuplicateCloseModalOnSelect =
-        isDistanceExpenseUnsupportedForDuplicating ||
-        isPerDiemRequestOnNonDefaultWorkspace ||
-        hasCustomUnitOutOfPolicyViolation ||
-        activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
+    const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || isPerDiemRequestOnNonDefaultWorkspace || hasCustomUnitOutOfPolicyViolation;
 
     const handleDuplicateReset = () => {
         if (shouldDuplicateCloseModalOnSelect) {
