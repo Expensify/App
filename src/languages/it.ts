@@ -1460,6 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
+            failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -2201,6 +2202,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Il tuo account è bloccato',
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestione dei dispositivi',
+        description: `Gestisci tutti i dispositivi su cui hai effettuato l'accesso con il tuo account Expensify.`,
+        revoke: 'Revoca',
+        unknownDevice: 'Dispositivo Sconosciuto',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
@@ -5361,6 +5368,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             settlementFrequencyDescription: 'Scegli con quale frequenza pagherai il saldo della tua Carta Expensify.',
             settlementFrequencyInfo:
                 'Se desideri passare alla liquidazione mensile, dovrai collegare il tuo conto bancario tramite Plaid e avere uno storico del saldo positivo di 90 giorni.',
+            applyCashbackToBill: 'Applica il cashback alla mia fattura Expensify',
+            applyCashbackToBillDescription: 'Il cashback della Carta Expensify verrà utilizzato per il pagamento della tua fattura Expensify.',
             frequency: {
                 daily: 'Quotidiano',
                 monthly: 'Mensile',
@@ -6972,6 +6981,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     label: 'Controllo',
                     description: 'Per le organizzazioni con requisiti avanzati.',
                 },
+                submit2026: {
+                    label: 'Invia',
+                    description: 'Per i dipendenti che desiderano inviare le spese al proprio datore di lavoro.',
+                },
             },
             description: 'Scegli il piano più adatto a te. Per un elenco dettagliato di funzionalità e prezzi, consulta la nostra',
             subscriptionLink: 'pagina di aiuto su tipi di piano e prezzi',
@@ -7943,6 +7956,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     reimburseableLink: 'spese vive',
                     nonReimbursableLink: 'spese con carta aziendale',
                     pending: (label: string) => `ha iniziato a esportare questo resoconto su ${label}...`,
+                    travelCardLink: 'spese con carta di viaggio',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `esportazione di questo report su ${label} non riuscita ("${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
@@ -9191,6 +9205,13 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Sei sicuro? Questo riassegnerà tutti i membri al gruppo predefinito (${defaultGroupName}) e non potrà essere annullato.`,
             deleteGroupError: 'Impossibile eliminare questo gruppo. Riprova.',
+            preferredWorkspace: 'Spazio di lavoro preferito',
+            preferredWorkspaceDescription: (enabled: boolean) =>
+                `Tutti i nuovi report e le spese verranno creati ${enabled ? 'nello spazio di lavoro preferito selezionato' : 'in questo spazio di lavoro'}.`,
+            preferredWorkspaceSelectDescription: 'Tutte le nuove spese e i report verranno creati in questo spazio di lavoro.',
+            noWorkspacesMessage: 'Non ci sono spazi di lavoro su questo dominio. È necessario uno spazio di lavoro per abilitare questa restrizione.',
+            restrictDefaultLoginSelection: 'Limita la selezione di accesso predefinita',
+            restrictDefaultLoginSelectionDescription: 'Impedisce ai membri di modificare l’email di accesso al di fuori del dominio aziendale per eludere le restrizioni delle policy.',
         },
     },
     proactiveAppReview: {

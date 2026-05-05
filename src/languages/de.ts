@@ -1463,6 +1463,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
+            failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler schließt, wird deine hochgeladene Quittung vollständig entfernt. Bist du sicher?',
@@ -2203,6 +2204,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Dein Konto ist gesperrt',
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto zu entsperren.',
         chatWithConcierge: 'Mit Concierge chatten',
+    },
+    deviceManagementPage: {
+        title: 'Geräteverwaltung',
+        description: 'Verwalten Sie alle Geräte, auf denen Sie sich mit Ihrem Expensify-Konto angemeldet haben.',
+        revoke: 'Widerrufen',
+        unknownDevice: 'Unbekanntes Gerät',
     },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
@@ -5381,6 +5388,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie den Saldo Ihrer Expensify Karte begleichen.',
             settlementFrequencyInfo:
                 'Wenn du zur monatlichen Abrechnung wechseln möchtest, musst du dein Bankkonto über Plaid verbinden und eine positive Kontohistorie der letzten 90 Tage haben.',
+            applyCashbackToBill: 'Cashback auf meine Expensify-Rechnung anwenden',
+            applyCashbackToBillDescription: 'Das Cashback von der Expensify-Karte wird zur Begleichung deiner Expensify-Rechnung verwendet.',
             frequency: {
                 daily: 'Täglich',
                 monthly: 'Monatlich',
@@ -6987,6 +6996,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     label: 'Steuerung',
                     description: 'Für Organisationen mit erweiterten Anforderungen.',
                 },
+                submit2026: {
+                    label: 'Einreichen',
+                    description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
+                },
             },
             description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',
             subscriptionLink: 'Hilfeseite zu Plantypen und Preisen',
@@ -7953,6 +7966,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     reimburseableLink: 'Auslagen',
                     nonReimbursableLink: 'Firmenkarten-Ausgaben',
                     pending: (label: string) => `hat begonnen, diesen Bericht nach ${label} zu exportieren...`,
+                    travelCardLink: 'Reisespesen mit Firmenkarte',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `Fehler beim Exportieren dieses Berichts nach ${label} („${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}“)`,
@@ -9200,6 +9214,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Bist du sicher? Dadurch werden alle Mitglieder der Standardgruppe (${defaultGroupName}) neu zugewiesen und dies kann nicht rückgängig gemacht werden.`,
             deleteGroupError: 'Diese Gruppe konnte nicht gelöscht werden. Bitte versuche es erneut.',
+            preferredWorkspace: 'Bevorzugter Arbeitsbereich',
+            preferredWorkspaceDescription: (enabled: boolean) => `Alle neuen Berichte und Ausgaben werden im ${enabled ? 'ausgewählten bevorzugten' : 'diesem'} Arbeitsbereich erstellt.`,
+            preferredWorkspaceSelectDescription: 'Alle neuen Ausgaben und Berichte werden in diesem Arbeitsbereich erstellt.',
+            noWorkspacesMessage: 'Es gibt keine Arbeitsbereiche in dieser Domain. Ein Arbeitsbereich ist erforderlich, um diese Einschränkung zu aktivieren.',
+            restrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
+            restrictDefaultLoginSelectionDescription:
+                'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
         },
     },
     proactiveAppReview: {

@@ -64,6 +64,21 @@ type DomainSecurityGroupPendingActions = {
      * Base pending action for group-level operations (create, delete)
      */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for toggling the preferred workspace setting
+     */
+    enableRestrictedPrimaryPolicy?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for changing the preferred workspace ID
+     */
+    restrictedPrimaryPolicyID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted default login selection
+     */
+    enableRestrictedPrimaryLogin?: OnyxCommon.PendingAction;
 };
 
 /**

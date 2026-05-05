@@ -1484,6 +1484,7 @@ const translations = {
             distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
             odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
+            failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
@@ -2273,6 +2274,12 @@ const translations = {
         yourAccountIsLocked: 'Your account is locked',
         chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
         chatWithConcierge: 'Chat with Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Device management',
+        description: 'Manage all the devices that you have logged into with your Expensify Account.',
+        revoke: 'Revoke',
+        unknownDevice: 'Unknown Device',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -5389,6 +5396,8 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
             settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
+            applyCashbackToBill: 'Apply cash back to my Expensify bill',
+            applyCashbackToBillDescription: 'Cash back from the Expensify Card will be used towards payment for your Expensify bill.',
             frequency: {
                 daily: 'Daily',
                 monthly: 'Monthly',
@@ -7000,6 +7009,10 @@ const translations = {
                     label: 'Control',
                     description: 'For organizations with advanced requirements.',
                 },
+                submit2026: {
+                    label: 'Submit',
+                    description: 'For employees looking to submit expenses to their employer.',
+                },
             },
             description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
             subscriptionLink: 'plan types and pricing help page',
@@ -7939,6 +7952,7 @@ const translations = {
                     automaticActionThree: 'and successfully created a record for',
                     reimburseableLink: 'out-of-pocket expenses',
                     nonReimbursableLink: 'company card expenses',
+                    travelCardLink: 'travel card expenses',
                     pending: (label: string) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
@@ -9195,6 +9209,12 @@ const translations = {
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Are you sure? This will reassign all members to the default group (${defaultGroupName}) and can't be undone.`,
             deleteGroupError: 'Unable to delete this group. Please try again.',
+            preferredWorkspace: 'Preferred Workspace',
+            preferredWorkspaceDescription: (enabled: boolean) => `All new reports and expenses will be created on ${enabled ? 'selected preferred' : 'this'} workspace.`,
+            preferredWorkspaceSelectDescription: 'All new expenses and reports will be created on this workspace.',
+            noWorkspacesMessage: 'There are no workspaces on this domain. A workspace is required to enable this restriction.',
+            restrictDefaultLoginSelection: 'Restrict default login selection',
+            restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
         },
     },
 };
