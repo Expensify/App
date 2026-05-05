@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
@@ -41,7 +42,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
@@ -141,8 +142,6 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
                                     JSON.stringify(metadata?.accounts),
-                                    addNewCard.data.statementPeriodEnd,
-                                    addNewCard.data.statementPeriodEndDay,
                                     '',
                                 );
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -172,7 +171,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         }
 
                         setAddNewCompanyCardStepAndData({
-                            step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE,
+                            step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
                                 plaidConnectedFeed,
@@ -190,7 +189,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
                     onExit={() => {
                         onExit?.();
                         handleBackButtonPress();

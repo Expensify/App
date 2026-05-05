@@ -55,6 +55,12 @@ type AddressFormProps = {
 
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+
+    /** Whether to hide the country selector (e.g. when country cannot be changed) */
+    shouldHideCountrySelector?: boolean;
+
+    /** Whether the form submit button should be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
 function AddressForm({
@@ -69,6 +75,8 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
+    shouldHideCountrySelector = false,
+    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -87,11 +95,14 @@ function AddressForm({
      */
 
     const validator = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+        (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+            // When hidden, the country input is unregistered so fall back to the country prop.
+            const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
+
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
-            const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
+            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
 
             // Check "State" dropdown is a valid state if selected Country is USA
             if (values.country === CONST.COUNTRY.US && !values.state) {
@@ -145,7 +156,7 @@ function AddressForm({
 
             return errors;
         },
-        [translate],
+        [translate, shouldHideCountrySelector, country],
     );
 
     return (
@@ -155,7 +166,7 @@ function AddressForm({
             validate={validator}
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding
         >
             <View>
@@ -192,16 +203,20 @@ function AddressForm({
                 autoComplete="address-line2"
             />
             <View style={styles.formSpaceVertical} />
-            <View style={styles.mhn5}>
-                <InputWrapper
-                    InputComponent={CountrySelector}
-                    inputID={INPUT_IDS.COUNTRY}
-                    value={country}
-                    onValueChange={onAddressChanged}
-                    shouldSaveDraft={shouldSaveDraft}
-                />
-            </View>
-            <View style={styles.formSpaceVertical} />
+            {!shouldHideCountrySelector && (
+                <>
+                    <View style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={CountrySelector}
+                            inputID={INPUT_IDS.COUNTRY}
+                            value={country}
+                            onValueChange={onAddressChanged}
+                            shouldSaveDraft={shouldSaveDraft}
+                        />
+                    </View>
+                    <View style={styles.formSpaceVertical} />
+                </>
+            )}
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper

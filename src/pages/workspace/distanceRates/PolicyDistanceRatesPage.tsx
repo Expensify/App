@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -531,10 +532,9 @@ function PolicyDistanceRatesPage({
                         data={filteredDistanceRatesList}
                         ListItem={TableListItem}
                         onSelectRow={openRateDetails}
-                        onCheckboxPress={toggleRate}
+                        onSelectionButtonPress={toggleRate}
                         selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

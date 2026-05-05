@@ -15,6 +15,7 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
+    RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     TogglePlatformMuteParams,
@@ -43,13 +44,14 @@ import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {getLoginKey} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -89,6 +91,62 @@ type LockAccountOnyxKey =
     | `${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`
     | `${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`
     | `${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`;
+
+function revokeDevice(login: NewLogin) {
+    const loginKey = getLoginKey(login);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGINS,
+            value: {
+                [loginKey]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGINS,
+            value: {
+                [loginKey]: null,
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGINS,
+            value: {
+                [loginKey]: {
+                    errorFields: {
+                        revoke: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const parameters: RevokeDeviceParams = {partnerUserID: login.partnerUserID, partnerID: login.partnerID};
+
+    API.write(WRITE_COMMANDS.REVOKE_DEVICE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function clearRevokeError(loginKey: string) {
+    Onyx.merge(ONYXKEYS.LOGINS, {
+        [loginKey]: {
+            errorFields: {
+                revoke: null,
+            },
+        },
+    });
+}
 
 /**
  * Attempt to close the user's account
@@ -1053,20 +1111,37 @@ function generateStatementPDF(period: string) {
 
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
+ * This uses no offline support (Pattern C) — state is only updated after the server confirms success.
  * @param skipNavigation - When true, do not navigate (caller handles navigation, e.g. via useEffect when primaryContactMethod updates).
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
-    policies: OnyxCollection<Policy>,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    backTo?: string,
-    skipNavigation?: boolean,
+    backTo: string | undefined,
+    skipNavigation: boolean,
+    validateCode: string,
 ) {
-    const oldDefaultContactMethod = currentEmail;
-    const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
-    > = [
+    // Pattern C: only set a pending indicator optimistically, no actual data changes
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        defaultLogin: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    // Pattern C: apply all actual data changes only after server confirms success
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1087,9 +1162,6 @@ function setContactMethodAsDefault(
             value: {
                 [newDefaultContactMethod]: {
                     pendingFields: {
-                        defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                    errorFields: {
                         defaultLogin: null,
                     },
                 },
@@ -1106,36 +1178,8 @@ function setContactMethodAsDefault(
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [newDefaultContactMethod]: {
-                    pendingFields: {
-                        defaultLogin: null,
-                    },
-                },
-            },
-        },
-    ];
-    const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
-    > = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                primaryLogin: oldDefaultContactMethod,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                email: oldDefaultContactMethod,
-            },
-        },
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -1150,65 +1194,11 @@ function setContactMethodAsDefault(
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {...currentUserPersonalDetails},
-            },
-        },
     ];
 
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy) {
-            continue;
-        }
-
-        let optimisticPolicyDataValue;
-        let failurePolicyDataValue;
-
-        if (policy.employeeList) {
-            const currentEmployee = policy.employeeList[oldDefaultContactMethod];
-            optimisticPolicyDataValue = {
-                employeeList: {
-                    [oldDefaultContactMethod]: null,
-                    [newDefaultContactMethod]: currentEmployee,
-                },
-            };
-            failurePolicyDataValue = {
-                employeeList: {
-                    [oldDefaultContactMethod]: currentEmployee,
-                    [newDefaultContactMethod]: null,
-                },
-            };
-        }
-
-        if (policy.ownerAccountID === currentUserAccountID) {
-            optimisticPolicyDataValue = {
-                ...optimisticPolicyDataValue,
-                owner: newDefaultContactMethod,
-            };
-            failurePolicyDataValue = {
-                ...failurePolicyDataValue,
-                owner: policy.owner,
-            };
-        }
-
-        if (optimisticPolicyDataValue && failurePolicyDataValue) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: optimisticPolicyDataValue,
-            });
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: failurePolicyDataValue,
-            });
-        }
-    }
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT, parameters, {
@@ -1371,6 +1361,10 @@ function requestRefund() {
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
+}
+
+function setShouldShowBranchNameInTitle(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
 function lockAccount(accountID?: number, domainAccountID?: number, domainName?: string) {
@@ -1537,6 +1531,7 @@ function respondToProactiveAppReview(
     currentProactiveAppReview: AppReview | null | undefined,
     userEmail: string | undefined,
     userAccountID: number,
+    delegateAccountID: number | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
@@ -1558,6 +1553,7 @@ function respondToProactiveAppReview(
             reportID: conciergeChatReportID,
             currentUserEmail: userEmail,
             currentUserAccountID: userAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
@@ -1891,6 +1887,8 @@ function clearDraftSpendRule() {
 }
 
 export {
+    revokeDevice,
+    clearRevokeError,
     closeAccount,
     setServerErrorsOnForm,
     dismissReferralBanner,
@@ -1927,6 +1925,7 @@ export {
     requestValidateCodeAction,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
+    setShouldShowBranchNameInTitle,
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
