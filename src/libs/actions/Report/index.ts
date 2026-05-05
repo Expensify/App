@@ -1337,7 +1337,9 @@ function openReport(params: OpenReportActionParams) {
     const optimisticReport = reportActionsExist(reportID)
         ? {}
         : {
-              reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+              // Don't fall back to DEFAULT_REPORT_NAME — that flashes "Chat Report" on cold-cache opens (#88162).
+              // The new-report mutation below overwrites this when newReportObject is provided.
+              reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName,
           };
 
     const optimisticData: Array<
