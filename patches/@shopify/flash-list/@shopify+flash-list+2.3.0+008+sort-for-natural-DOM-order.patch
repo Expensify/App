@@ -90,10 +90,10 @@ index 9f3b776..c153718 100644
                  renderFooter),
              stickyHeaderIndices && stickyHeaderIndices.length > 0
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-index 8e3db51..9432131 100644
+index 8e3db51..bb64340 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-@@ -3,17 +3,20 @@
+@@ -3,17 +3,51 @@
   * It handles the rendering of a collection of list items, manages layout updates,
   * and coordinates with the RecyclerView context for layout changes.
   */
@@ -105,6 +105,37 @@ index 8e3db51..9432131 100644
  import { useRecyclerViewContext } from "./RecyclerViewContextProvider";
 +const SORT_DELAY_MS = 1000;
 +const RECENT_FOCUS_WINDOW_MS = 400;
++/**
++ * Single-slot setTimeout with a fire-time gate. Calling `schedule` again
++ * replaces any pending fire. When the timer expires, if `shouldDefer()`
++ * returns true the timer reschedules itself instead of invoking
++ * `callback`. Auto-cancels on unmount.
++ *
++ * @returns A tuple of `[schedule, cancel]`. `schedule` arms (or re-arms)
++ * the timer; `cancel` evicts whatever is in the slot.
++ */
++function useDeferredCallback(callback, delayMs, shouldDefer) {
++    const timeoutRef = useRef(null);
++    const cancel = useCallback(() => {
++        if (timeoutRef.current !== null) {
++            clearTimeout(timeoutRef.current);
++            timeoutRef.current = null;
++        }
++    }, []);
++    const schedule = useCallback(() => {
++        cancel();
++        timeoutRef.current = setTimeout(() => {
++            if (shouldDefer()) {
++                schedule();
++                return;
++            }
++            timeoutRef.current = null;
++            callback();
++        }, delayMs);
++    }, [callback, delayMs, shouldDefer, cancel]);
++    useEffect(() => cancel, [cancel]);
++    return [schedule, cancel];
++}
  /**
   * ViewHolderCollection component that manages the rendering of multiple ViewHolder instances
   * and handles layout updates for the entire collection
@@ -116,7 +147,7 @@ index 8e3db51..9432131 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +75,110 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +106,89 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -125,9 +156,6 @@ index 8e3db51..9432131 100644
 +    const lastFocusTimeRef = useRef(0);
 +    const renderEntriesRef = useRef(Array.from(renderStack.entries()));
 +    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
-+    // At most one deferred-sort timer is alive at a time. Any code path that
-+    // is about to sort (or schedule a new sort) must first clear this.
-+    const pendingSortTimeoutRef = useRef(null);
 +    const doSort = useCallback(() => {
 +        const entries = renderEntriesRef.current;
 +        const direction = inverted ? -1 : 1;
@@ -139,25 +167,7 @@ index 8e3db51..9432131 100644
 +        bumpSortVersion();
 +        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [inverted]);
-+    const clearPendingSort = useCallback(() => {
-+        if (pendingSortTimeoutRef.current !== null) {
-+            clearTimeout(pendingSortTimeoutRef.current);
-+            pendingSortTimeoutRef.current = null;
-+        }
-+    }, []);
-+    const schedulePendingSort = useCallback(() => {
-+        clearPendingSort();
-+        pendingSortTimeoutRef.current = setTimeout(() => {
-+            if (isScrolling()) {
-+                schedulePendingSort();
-+                return;
-+            }
-+            pendingSortTimeoutRef.current = null;
-+            doSort();
-+        }, SORT_DELAY_MS);
-+        // `schedulePendingSort` self-references for the reschedule path; closure
-+        // resolution at call-time is correct here.
-+    }, [clearPendingSort, doSort, isScrolling]);
++    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(doSort, SORT_DELAY_MS, isScrolling);
 +    // Schedules or commits a sort, deferring while a programmatic scroll is
 +    // in flight (otherwise the sort's `insertBefore` calls would let React's
 +    // selection-preservation logic write `scrollTop`, cancelling the smooth
@@ -172,7 +182,7 @@ index 8e3db51..9432131 100644
 +        // nav (where `isMomentumEnd` doesn't fire between presses).
 +        clearPendingSort();
 +        if (isScrollingProgrammatically()) {
-+            runAfterProgrammaticScroll(() => schedulePendingSort());
++            runAfterProgrammaticScroll(schedulePendingSort);
 +            return;
 +        }
 +        doSort();
