@@ -24,7 +24,6 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -53,12 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -95,6 +90,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Opcional',
         new: 'Novo',
         newFeature: 'Novo recurso',
+        beta: 'Beta',
         search: 'Buscar',
         reports: 'Relatórios',
         spend: 'Gastos',
@@ -871,7 +867,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'um agente de suporte humano',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `criou este relatório para manter todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência escolhida por você`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `criou este relatório para quaisquer despesas retidas do relatório excluído nº ${reportID}`
                 : `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
@@ -956,6 +952,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             validateAccount: {title: 'Valide sua conta para continuar usando o Expensify', subtitle: 'Conta', cta: 'Validar'},
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
+            unlockBankAccount: {
+                workspaceTitle: 'Sua conta bancária comercial foi bloqueada',
+                personalTitle: 'Sua conta bancária foi bloqueada',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Carteira',
+            },
         },
         assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
@@ -1110,6 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste upload. Membros existentes não receberão nenhuma atualização de função nem mensagens de convite.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'Novos cartões e transações podem levar algum tempo para aparecer, aguarde um momento.',
     },
     receipt: {
         upload: 'Carregar recibo',
@@ -1400,8 +1403,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `definiu ${translatedChangedField} como ${newMerchant}, o que definiu o valor como ${newAmountToDisplay}`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `o ${valueName} (antes ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `o ${valueName} para ${newValueToDisplay} (antes ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `o ${valueName} para ${newValueToDisplay} (antes ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `alterou ${translatedChangedField} para ${newMerchant} (antes ${oldMerchant}), o que atualizou o valor para ${newAmountToDisplay} (antes ${oldAmountToDisplay})`,
         basedOnAI: 'com base na atividade anterior',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `com base nas <a href="${rulesLink}">regras do workspace</a>` : 'com base na regra do workspace'),
@@ -1415,7 +1418,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'O nome da tag excede 255 caracteres. Reduza-o ou escolha uma tag diferente.',
             invalidAmount: 'Insira um valor válido antes de continuar',
             invalidDistance: 'Insira uma distância válida antes de continuar',
-            invalidReadings: 'Insira as leituras de início e fim',
+            invalidReadings: 'Insira as leituras de início e fim antes de continuar',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
             distanceAmountTooLarge: 'O valor total é muito alto. Diminua a distância ou reduza a tarifa.',
             distanceAmountTooLargeReduceDistance: 'O valor total é muito alto. Diminua a distância.',
@@ -1604,6 +1607,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `reatribuiu o aprovador para <mention-user accountID="${managerID}"/> por meio de uma atualização do fluxo de trabalho`,
             actions: {
                 addApprover: 'Adicionar aprovador',
                 addApproverSubtitle: 'Adicione um aprovador adicional ao fluxo de aprovação existente.',
@@ -2190,6 +2194,12 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Converse com o Concierge para resolver questões de segurança e desbloquear sua conta.',
         chatWithConcierge: 'Converse com o Concierge',
     },
+    deviceManagementPage: {
+        title: 'Gerenciamento de dispositivos',
+        description: 'Gerencie todos os dispositivos nos quais você fez login com sua conta do Expensify.',
+        revoke: 'Revogar',
+        unknownDevice: 'Dispositivo Desconhecido',
+    },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',
         twoFactorAuthEnabled: 'Autenticação em duas etapas ativada',
@@ -2705,6 +2715,12 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Adicione uma forma de pagamento para enviar e receber pagamentos diretamente no app.',
         defaultPaymentMethod: 'Padrão',
         bankAccountLastFour: (lastFour: string) => `Conta bancária • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agentes',
+        subtitle: 'Crie agentes para gerenciar seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia.',
+        newAgent: 'Novo agente',
+        emptyAgents: {title: 'Nenhum agente criado', subtitle: 'Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo.'},
     },
     expenseRulesPage: {
         title: 'Regras de despesas',
@@ -3366,6 +3382,7 @@ ${amount} para ${merchant} - ${date}`,
         whenClearStatus: 'Quando devemos limpar seu status?',
         setVacationDelegate: `Defina um delegado de férias para aprovar relatórios em seu nome enquanto você estiver fora do escritório.`,
         cannotSetVacationDelegate: `Você não pode definir um delegado de férias porque atualmente é o delegado dos seguintes membros:`,
+        addVacationDelegate: 'Adicionar delegado de férias',
         vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de férias.',
         asVacationDelegate: (nameOrEmail: string) => `como delegado de férias de ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `para ${submittedToName} como delegado(a) de férias de ${vacationDelegateName}`,
@@ -3468,6 +3485,11 @@ ${amount} para ${merchant} - ${date}`,
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
         toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
+        updatePersonalInfo: 'Atualizar conta bancária',
+        updatePersonalInfoFailure: 'Não foi possível atualizar as informações da conta bancária. Por favor, tente novamente mais tarde.',
+        updateSuccessTitle: 'Conta bancária atualizada!',
+        updateSuccessHeader: 'Conta bancária atualizada',
+        updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -3495,8 +3517,8 @@ ${amount} para ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Insira um número de telefone válido sem parênteses ou traços. Se você estiver fora dos EUA, inclua o código do seu país (por exemplo, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'E-mail inválido',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é membro de ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} já é administrador(a) de ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} já é membro de ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} já é administrador(a) de ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Ao continuar com o pedido para ativar sua Expensify Wallet, você confirma que leu, compreende e aceita',
@@ -5333,7 +5355,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 monthly: 'Mensal',
             },
             cardDetails: 'Detalhes do cartão',
-            cardPending: ({name}: {name: string}) => `O cartão está atualmente pendente e será emitido quando a conta de ${name} for validada.`,
             virtual: 'Virtual',
             physical: 'Físico',
             deactivate: 'Desativar cartão',
@@ -5368,6 +5389,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             oneMoreStepDescription: 'Parece que precisamos verificar sua conta bancária manualmente. Vá até o Concierge, onde as instruções estão esperando por você.',
             gotIt: 'Entendi',
             goToConcierge: 'Ir para o Concierge',
+            exportAsCSV: 'Exportar como CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo de limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Excluir categorias',
@@ -5957,6 +5982,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Se você remover ${memberName} deste workspace, nós vamos substituí-lo como contato técnico por ${workspaceOwner}, o proprietário do workspace.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tem um relatório pendente de processamento que requer ação. Peça para que concluam a ação necessária antes de removê-los do workspace.`,
+            allMembers: 'Todos os membros',
+            admins: 'Administradores',
+            approvers: 'Aprovadores',
+            auditors: 'Auditores',
+            emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -6807,8 +6837,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             customRules: {
                 title: 'Política de despesas',
                 cardSubtitle: 'Aqui é onde fica a política de despesas da sua equipe, para que todo mundo esteja alinhado sobre o que é coberto.',
-                policyDocument: 'Documento de política',
-                policyText: 'Texto da política',
             },
             spendRules: {
                 title: 'Gasto',
@@ -7334,6 +7362,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         setReceiptRequiredAmount: (newValue: string) => `definir valor exigido do recibo como "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `alterou o valor obrigatório do recibo para "${newValue}" (antes "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `removeu o valor obrigatório do recibo (antes era "${oldValue}")`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `definir o valor obrigatório do recibo detalhado como "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) => `alterou o valor obrigatório do recibo detalhado para "${newValue}" (antes "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `removeu o valor exigido de recibo detalhado (antes era "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `definir valor máximo da despesa como "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `alterou o valor máximo da despesa para "${newValue}" (antes "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `removeu o valor máximo de despesa (anteriormente "${oldValue}")`,
@@ -7475,6 +7506,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `changed card feed "${feedName}" statement period end day${newValue ? ` para "${newValue}"` : ''}${previousValue ? `(antes " ${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `adicionou o campo de relatório ${fieldType} "${fieldName}"${defaultValue ? ` com valor padrão "${defaultValue}"` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7728,6 +7760,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
+        askConcierge: (message: string) => `Perguntar ao Concierge “${message}”`,
         searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: (
@@ -8285,7 +8318,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         missingCategory: 'Categoria ausente',
         missingComment: 'Descrição obrigatória para a categoria selecionada',
         missingAttendees: 'Vários participantes são obrigatórios para esta categoria',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Faltando ${tagName ?? 'etiqueta'}`,
+        missingTag: (tagName?: string) => `Faltando ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -9091,6 +9124,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             emptyMembers: {title: 'Nenhum membro neste grupo', subtitle: 'Adicione um membro ou tente mudar o filtro acima.'},
             moveToGroup: 'Mover para grupo',
             chooseWhereToMove: ({count}: {count: number}) => `Escolha para onde mover ${count} ${count === 1 ? 'membro' : 'membros'}.`,
+            domainGroup: 'Grupo de domínio',
+            chooseWhereToMoveName: ({name}: {name: string}) => `Escolha para onde mover ${name}.`,
         },
         common: {
             settings: 'Configurações',
@@ -9110,6 +9145,17 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
             makeDefault: 'Tornar padrão',
             neverMind: 'Deixa pra lá',
+            permissions: 'Permissões do grupo',
+            strictlyEnforceWorkspaceRules: 'Aplicar rigorosamente as regras do espaço de trabalho',
+            strictlyEnforceWorkspaceRulesDescription: 'Todas as regras do espaço de trabalho devem ser atendidas antes de enviar um relatório. Não são permitidas exceções manuais.',
+            restrictExpenseWorkspaceCreation: 'Restringir a criação/remoção de espaços de trabalho de despesas',
+            restrictExpenseWorkspaceCreationDescription:
+                'Impede que os membros possam criar um espaço de trabalho de despesas ou se removerem de um espaço de trabalho de despesas. Isso é útil para impedir que as pessoas usem o Expensify para enviar relatórios destinados ao uso fora do seu domínio, quando combinado com a aplicação rigorosa de espaços de trabalho.',
+            deleteGroup: 'Excluir grupo',
+            deleteGroupDangerConfirmationModal: 'Excluir grupo',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `Tem certeza? Isso reatribuirá todos os membros ao grupo padrão (${defaultGroupName}) e não poderá ser desfeito.`,
+            deleteGroupError: 'Não foi possível excluir este grupo. Tente novamente.',
         },
     },
     proactiveAppReview: {

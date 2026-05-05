@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -13,11 +12,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyID: string | undefined;
 };
 
-function PaymentContent({action, policy}: PaymentContentProps) {
+function PaymentContent({action, policyID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);

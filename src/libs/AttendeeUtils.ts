@@ -1,8 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import {sortAlphabetically} from './OptionsListUtils';
 
 function getNormalizedString(value?: string): string | undefined {
     const normalizedValue = value?.trim();
@@ -133,4 +135,38 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     return violations;
 }
 
-export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation};
+/**
+ * Enrich each attendee with live `personalDetails` and return them sorted alphabetically by displayName.
+ */
+function enrichAndSortAttendees(attendees: Attendee[], personalDetailsList: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Attendee[];
+function enrichAndSortAttendees(
+    attendees: Attendee[] | string | undefined,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Attendee[] | string | undefined;
+function enrichAndSortAttendees(
+    attendees: Attendee[] | string | undefined,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Attendee[] | string | undefined {
+    if (!Array.isArray(attendees)) {
+        return attendees;
+    }
+    return sortAlphabetically(
+        attendees.map((a) => {
+            const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
+            const freshAvatar = typeof pd?.avatar === 'string' ? pd.avatar : undefined;
+            return {
+                ...a,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                displayName: pd?.displayName || a?.displayName,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                avatarUrl: freshAvatar || a?.avatarUrl,
+            };
+        }),
+        'displayName',
+        localeCompare,
+    );
+}
+
+export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation};

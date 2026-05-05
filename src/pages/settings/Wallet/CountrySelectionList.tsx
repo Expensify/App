@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,7 +76,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
             </View>
             <SelectionList
                 data={searchResults}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}

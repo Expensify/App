@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
@@ -81,7 +82,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     return (
         <ChartComponent
             data={data}
-            getLabel={getLabel}
+            getLabel={(item) => StringUtils.normalize(getLabel(item))}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

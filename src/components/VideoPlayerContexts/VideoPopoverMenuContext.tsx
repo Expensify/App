@@ -16,7 +16,7 @@ const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateCo
 const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
     const {translate} = useLocalize();
     const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');
@@ -80,18 +80,17 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         items.push({
             icon: icons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
+            shouldShowRadioButton: true,
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
-                icon: currentPlaybackSpeed === speed ? icons.Checkmark : undefined,
                 text: speed === 1 ? translate('videoPlayer.normal') : speed.toString(),
                 onSelected: () => {
                     updatePlaybackSpeed(speed);
                 },
-                shouldPutLeftPaddingWhenNoIcon: true,
                 isSelected: currentPlaybackSpeed === speed,
             })),
         });
         return items;
-    }, [icons.Checkmark, icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
+    }, [icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const stateValue = {menuItems};
     const actionsValue = {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource};

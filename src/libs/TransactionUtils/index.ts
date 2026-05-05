@@ -1,10 +1,12 @@
 import {format, isValid, parse} from 'date-fns';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -829,10 +831,11 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
+            updatedTransaction.taxValue = categoryTaxValue;
         }
     }
 
@@ -1203,19 +1206,26 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPer
 }
 
 /**
- * Return the list of attendees as a string of display names/logins.
+ * Returns attendees joined as a display string. Pass `localeCompare` to sort alphabetically (matches the pill sort);
+ * omit it to keep insertion order — used by non-React callers that don't want to thread the comparator.
+ * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
-function getAttendeesListDisplayString(attendees: Attendee[]): string {
-    return attendees.map((item) => item.displayName ?? item.login).join(', ');
+function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const ordered = localeCompare
+        ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
+          [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
+        : attendees;
+    return ordered.map(getName).join(', ');
 }
 
 /**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
-function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
+function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [getAttendeesListDisplayString(oldAttendees), getAttendeesListDisplayString(newAttendees)];
+    return [getAttendeesListDisplayString(oldAttendees, localeCompare), getAttendeesListDisplayString(newAttendees, localeCompare)];
 }
 
 /**
@@ -2571,7 +2581,8 @@ function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
 }
 
 function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>, duplicatedTransaction: OnyxEntry<Transaction>): Partial<Transaction> {
-    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const {duplicates, taxAmount, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const hasUpdatedTaxCode = reviewDuplicateTransaction?.taxCode !== undefined && reviewDuplicateTransaction?.taxCode !== duplicatedTransaction?.taxCode;
 
     return {
         ...duplicatedTransaction,
@@ -2579,6 +2590,8 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
         comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
+        // If the taxCode changes, apply the reviewed tax amount and clear stale taxName/taxValue so MoneyRequestView derives them fresh from the policy.
+        ...(hasUpdatedTaxCode && {taxAmount, taxName: undefined, taxValue: undefined}),
     };
 }
 
@@ -2604,10 +2617,10 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
-        return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
+        return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     }
 
     const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
@@ -2619,7 +2632,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
         categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
     }
 
-    return {categoryTaxCode, categoryTaxAmount};
+    return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
 }
 
 /**
@@ -2925,7 +2938,7 @@ export {
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,
-    getCategoryTaxCodeAndAmount,
+    getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,

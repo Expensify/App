@@ -744,6 +744,7 @@ type BaseOptimisticMoneyRequestEntities = {
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
     reportActionID?: string;
+    currentUserAccountID: number;
 };
 
 type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
@@ -2904,7 +2905,7 @@ function hasOutstandingChildRequest(
         const invoiceReceiverPolicy = getPolicy(invoiceReceiverPolicyID);
         return (
             canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, undefined, undefined, invoiceReceiverPolicy) ||
-            canApproveIOU(iouReport, policy, reportMetadata, transactions) ||
+            canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountIDParam, transactions) ||
             canSubmitAndIsAwaitingForCurrentUser(
                 iouReport,
                 chatReport,
@@ -4528,7 +4529,7 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string | undefined): Record<string, PolicyReportField> {
+function getReportFieldsByPolicyID(policyID: string | undefined): Policy['fieldList'] {
     if (!policyID) {
         return {};
     }
@@ -7569,10 +7570,11 @@ function buildOptimisticReportPreview(
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
+    // TODO: conciergeReportID will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
+    conciergeReportID?: string | undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
-    const message = getReportPreviewMessage(iouReport, undefined);
+    const message = getReportPreviewMessage(iouReport, conciergeReportID);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -8769,10 +8771,11 @@ function buildOptimisticExportIntegrationAction(integration: ConnectionName, mar
 function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
     existingTransactionThreadReportID?: string,
     optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
-    const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
+    const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean);
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
 
     if (existingTransactionThreadReportID && existingTransactionThreadReport) {
@@ -8796,6 +8799,7 @@ function buildTransactionThread(
         parentReportID: moneyRequestReport?.reportID,
         optimisticReportID: optimisticTransactionThreadReportID,
         chatReportID: moneyRequestReport?.reportID,
+        currentUserAccountID,
     });
 }
 
@@ -8833,6 +8837,7 @@ function buildOptimisticMoneyRequestEntities({
     optimisticCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
+    currentUserAccountID,
 }: OptimisticMoneyRequestEntities): [
     OptimisticCreatedReportAction,
     OptimisticCreatedReportAction,
@@ -8865,7 +8870,7 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = shouldGenerateTransactionThreadReport ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
+    const transactionThread = shouldGenerateTransactionThreadReport ? buildTransactionThread(iouAction, iouReport, currentUserAccountID, existingTransactionThreadReportID) : undefined;
     const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateTransactionThreadReport ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
@@ -8984,8 +8989,8 @@ function hasEmptyReportsForPolicy(
  */
 function getPolicyIDsWithEmptyReportsForAccount(
     reports: OnyxCollection<Report> | undefined,
-    accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
+    accountID: number | undefined,
+    reportsTransactionsParam: Record<string, Transaction[]>,
 ): Record<string, boolean> {
     if (!accountID) {
         return {};
@@ -9012,9 +9017,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
         }
 
         // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam).filter(
-            (transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
+        const transactions = (reportsTransactionsParam[report.reportID] ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (transactions.length === 0) {
             policyLookup[report.policyID] = true;
         }
@@ -10882,11 +10885,20 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
 
 /**
  * Check if Report has any held expenses
+ *
+ * @warning Use `hasHeldExpensesFromTransactions` instead.
  */
 function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
     const iouReportTransactions = getReportTransactions(iouReportID);
     const transactions = allReportTransactions ?? iouReportTransactions;
     return transactions.some((transaction) => isOnHoldTransactionUtils(transaction));
+}
+
+/**
+ * Check if Report has any held expenses
+ */
+function hasHeldExpensesFromTransactions(allReportTransactions: Transaction[]): boolean {
+    return allReportTransactions.some((transaction) => isOnHoldTransactionUtils(transaction));
 }
 
 /**
@@ -11292,9 +11304,16 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     workspaceName: string,
     currentUserAccountID: number,
     currentUserEmail: string,
+    currentUserLocalCurrency: string,
 ): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, currentUserAccountID, currentUserEmail);
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
+        introSelected,
+        workspaceName,
+        currentUserAccountID,
+        currentUserEmail,
+        currency: currentUserLocalCurrency,
+    });
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -11328,6 +11347,7 @@ type CreateDraftTransactionParams = {
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currentUserLocalCurrency: string;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11345,6 +11365,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     transaction,
     currentUserAccountID,
     currentUserEmail,
+    currentUserLocalCurrency,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11489,7 +11510,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '', currentUserAccountID, currentUserEmail);
+    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '', currentUserAccountID, currentUserEmail, currentUserLocalCurrency);
 }
 
 function getMoveExpenseReportActions(reportID: string, reportActions?: MoveExpenseReportActions): ReportAction[] {
@@ -12292,7 +12313,6 @@ function prepareOnboardingOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
-                choice: null,
                 createWorkspace: null,
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
@@ -13274,7 +13294,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
         return translate('iou.deleted');
     }
     if (stateNum === undefined || statusNum === undefined) {
-        return '';
+        return translate('common.unreported');
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -13305,7 +13325,7 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
         return theme.reportStatusBadge.deleted;
     }
     if (stateNum === undefined || statusNum === undefined) {
-        return undefined;
+        return theme.reportStatusBadge.unreported;
     }
 
     if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -13384,6 +13404,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
+    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
 ] as const;
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
@@ -13429,6 +13450,8 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getTaxName(policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return transaction.withdrawalID ? transaction.withdrawalID : '';
         default:
             return '';
     }
@@ -13825,6 +13848,7 @@ export {
     getTransactionSortValue,
     isSortableColumnName,
     getLinkedIOUTransaction,
+    hasHeldExpensesFromTransactions,
 };
 
 export type {
