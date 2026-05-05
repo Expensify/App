@@ -18,13 +18,13 @@ const {triggerTransitionEnd, addListener} = isJestEnv
 
 const useNavigation = isJestEnv
     ? realReactNavigation.useNavigation
-    : {
-          navigate: isJestEnv ? jest.fn() : () => {},
+    : () => ({
+          navigate: () => {},
           getState: () => ({
               routes: [],
           }),
           addListener,
-      };
+      });
 
 type NativeNavigationMock = typeof ReactNavigation & {
     triggerTransitionEnd: () => void;
