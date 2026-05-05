@@ -77,8 +77,23 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
+const mockFocusState: {cleanup: (() => void) | undefined} = {cleanup: undefined};
+jest.mock('@react-navigation/native', () => ({
+    useFocusEffect: (callback: () => (() => void) | void) => {
+        const cleanup = callback();
+        if (typeof cleanup === 'function') {
+            mockFocusState.cleanup = cleanup;
+        }
+    },
+}));
+
+const mockModalState: {value: {willAlertModalBecomeVisible?: boolean; isPopover?: boolean} | undefined} = {value: undefined};
+jest.mock('@hooks/useOnyx', () => () => [mockModalState.value, {status: 'loaded'}]);
+
 beforeEach(() => {
     menuItemPropsCapture.current = [];
+    mockFocusState.cleanup = undefined;
+    mockModalState.value = undefined;
     jest.clearAllMocks();
 });
 
@@ -176,6 +191,86 @@ describe('PopoverMenu V2', () => {
                 </UncontrolledHarness>,
             );
             expect(findItemByTitle('Default')).toBeDefined();
+        });
+
+        it('closes on screen blur via useFocusEffect cleanup', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <ControlledHarness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </ControlledHarness>,
+            );
+            onOpenChange.mockClear();
+            act(() => mockFocusState.cleanup?.());
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('closes when a non-popover modal is about to become visible', () => {
+            const onOpenChange = jest.fn();
+            function Harness() {
+                const [open, setOpen] = useState(true);
+                const handleOpenChange = (next: boolean) => {
+                    setOpen(next);
+                    onOpenChange(next);
+                };
+                return (
+                    <PopoverMenu.Root
+                        open={open}
+                        onOpenChange={handleOpenChange}
+                    >
+                        <AutoSetAnchor />
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="A"
+                                onSelect={() => {}}
+                            />
+                        </PopoverMenu.Content>
+                    </PopoverMenu.Root>
+                );
+            }
+            const {rerender} = render(<Harness />);
+            onOpenChange.mockClear();
+            mockModalState.value = {willAlertModalBecomeVisible: true, isPopover: false};
+            rerender(<Harness />);
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('does not close when the covering modal is itself a popover', () => {
+            const onOpenChange = jest.fn();
+            function Harness() {
+                const [open, setOpen] = useState(true);
+                const handleOpenChange = (next: boolean) => {
+                    setOpen(next);
+                    onOpenChange(next);
+                };
+                return (
+                    <PopoverMenu.Root
+                        open={open}
+                        onOpenChange={handleOpenChange}
+                    >
+                        <AutoSetAnchor />
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="A"
+                                onSelect={() => {}}
+                            />
+                        </PopoverMenu.Content>
+                    </PopoverMenu.Root>
+                );
+            }
+            const {rerender} = render(<Harness />);
+            onOpenChange.mockClear();
+            mockModalState.value = {willAlertModalBecomeVisible: true, isPopover: true};
+            rerender(<Harness />);
+            expect(onOpenChange).not.toHaveBeenCalled();
         });
 
         // Event-coord callers like VideoPopoverMenu drive Root with anchorPosition only — anchorPosition alone must be sufficient.
