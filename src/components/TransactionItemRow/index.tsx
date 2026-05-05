@@ -33,6 +33,7 @@ import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
     getAttendees,
+    getConvertedAmount,
     getCurrency,
     getDescription,
     getExchangeRate,
@@ -258,7 +259,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 
@@ -583,6 +584,27 @@ function TransactionItemRow({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
+                const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
+                const hasConvertedAmount = transactionItem.convertedAmount != null;
+                // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
+                // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
+                // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
+                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
+                // When converted, display in the report's output currency; otherwise use the transaction's own currency.
+                const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide})]}
+                    >
+                        <AmountCell
+                            total={totalAmount}
+                            currency={totalCurrency}
+                        />
+                    </View>
+                );
+            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
@@ -668,6 +690,15 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}
                     >
                         <ExportedIconCell reportActions={reportActions} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
+                    >
+                        <TextCell text={transactionItem.withdrawalID} />
                     </View>
                 );
             default:
@@ -764,7 +795,6 @@ function TransactionItemRow({
                                     disabled={isDisabled}
                                     onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                     accessibilityLabel={CONST.ROLE.RADIO}
-                                    shouldUseNewStyle
                                 />
                             </View>
                         )}
@@ -820,7 +850,6 @@ function TransactionItemRow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                shouldUseNewStyle
                             />
                         </View>
                     )}

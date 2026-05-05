@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
@@ -25,7 +24,8 @@ import {
     shouldOptimisticallyUpdateSearch,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+import {completeSplitBill, splitBill, startSplitBill} from '@libs/actions/IOU/Split';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -39,7 +39,6 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, createDraftTransactionAndNavigateToParticipantSelector, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -102,7 +101,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -130,7 +128,6 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -488,6 +485,7 @@ describe('actions/IOU', () => {
                 transaction: transactionToCategorize,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -538,6 +536,7 @@ describe('actions/IOU', () => {
                 transaction: originalTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -577,6 +576,7 @@ describe('actions/IOU', () => {
                 transaction: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -611,6 +611,7 @@ describe('actions/IOU', () => {
                 amountOwed: 0,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -1735,7 +1736,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1804,7 +1804,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -2329,7 +2328,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -4712,7 +4710,6 @@ describe('actions/IOU', () => {
         const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
 
         beforeEach(() => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
         });
 
@@ -4766,7 +4763,7 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -4902,7 +4899,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -4914,7 +4910,7 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -5376,7 +5372,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -5506,6 +5501,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5683,6 +5679,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5864,6 +5861,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6054,6 +6052,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6765,7 +6764,6 @@ describe('actions/IOU', () => {
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
         beforeEach(() => {
             jest.mock('@libs/OdometerImageUtils', () => ({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __esModule: true,
                 default: jest.fn(),
             }));

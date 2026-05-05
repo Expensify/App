@@ -252,72 +252,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     // Search signals readiness (onContentReady -> onLayout), the overlay is removed.
     const showStaticOverlay = useStaticRendering && !isSearchReady;
 
-    const renderStaticSearchList = () => (
-        <>
-            {isInteractive && (
-                <Search
-                    searchResults={searchResults}
-                    queryJSON={queryJSON}
-                    key={queryJSON.hash}
-                    contentContainerStyle={contentContainerStyle}
-                    handleSearch={handleSearchAction}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    onSearchListScroll={scrollHandler}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    onDestinationVisible={endSubmitNavigationSpans}
-                    onContentReady={onSearchContentReady}
-                    hasFilterBars={hasFilterBars}
-                />
-            )}
-            {showStaticOverlay && (
-                <View style={[StyleSheet.absoluteFill, styles.appBG]}>
-                    <SearchStaticList
-                        searchResults={searchResults}
-                        queryJSON={queryJSON}
-                        contentContainerStyle={contentContainerStyle}
-                        onLayout={onSearchLayout}
-                        onDestinationVisible={endSubmitNavigationSpans}
-                    />
-                </View>
-            )}
-        </>
-    );
-
-    const renderDynamicSearchList = () => {
-        if (shouldShowLoadingSkeleton) {
-            return (
-                <SearchLoadingSkeleton
-                    containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
-                    reasonAttributes={{
-                        context: 'SearchPage',
-                        isOffline,
-                        isDataLoaded,
-                        isSearchLoading: !!searchResults?.search?.isLoading,
-                        hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
-                        hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
-                        hasPendingResponse: searchRequestResponseStatusCode === null,
-                        shouldUseLiveData,
-                    }}
-                />
-            );
-        }
-
-        return (
-            <Search
-                searchResults={searchResults}
-                queryJSON={queryJSON}
-                key={queryJSON.hash}
-                onSearchListScroll={scrollHandler}
-                contentContainerStyle={contentContainerStyle}
-                handleSearch={handleSearchAction}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                onDestinationVisible={endSubmitNavigationSpans}
-                hasFilterBars={hasFilterBars}
-            />
-        );
-    };
-
     return (
         <View
             ref={receiptDropTargetRef}
@@ -417,8 +351,65 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     )}
                     {!searchRouterListVisible && (
                         <View style={[styles.flex1]}>
-                            {useStaticRendering && renderStaticSearchList()}
-                            {!useStaticRendering && renderDynamicSearchList()}
+                            {useStaticRendering && (
+                                <>
+                                    {isInteractive && (
+                                        <Search
+                                            searchResults={searchResults}
+                                            queryJSON={queryJSON}
+                                            key={queryJSON.hash}
+                                            contentContainerStyle={contentContainerStyle}
+                                            handleSearch={handleSearchAction}
+                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                            onSearchListScroll={scrollHandler}
+                                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                            onDestinationVisible={endSubmitNavigationSpans}
+                                            onContentReady={onSearchContentReady}
+                                            hasFilterBars={hasFilterBars}
+                                        />
+                                    )}
+                                    {showStaticOverlay && (
+                                        <View style={[StyleSheet.absoluteFill, styles.appBG]}>
+                                            <SearchStaticList
+                                                searchResults={searchResults}
+                                                queryJSON={queryJSON}
+                                                contentContainerStyle={contentContainerStyle}
+                                                onLayout={onSearchLayout}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                            />
+                                        </View>
+                                    )}
+                                </>
+                            )}
+                            {!useStaticRendering &&
+                                (shouldShowLoadingSkeleton ? (
+                                    <SearchLoadingSkeleton
+                                        containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
+                                        reasonAttributes={{
+                                            context: 'SearchPage',
+                                            isOffline,
+                                            isDataLoaded,
+                                            isSearchLoading: !!searchResults?.search?.isLoading,
+                                            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                            hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
+                                            hasPendingResponse: searchRequestResponseStatusCode === null,
+                                            shouldUseLiveData,
+                                        }}
+                                    />
+                                ) : (
+                                    <Search
+                                        searchResults={searchResults}
+                                        queryJSON={queryJSON}
+                                        key={queryJSON.hash}
+                                        onSearchListScroll={scrollHandler}
+                                        contentContainerStyle={contentContainerStyle}
+                                        handleSearch={handleSearchAction}
+                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                        onDestinationVisible={endSubmitNavigationSpans}
+                                        hasFilterBars={hasFilterBars}
+                                    />
+                                ))}
                         </View>
                     )}
                     {shouldShowFooter && !searchRouterListVisible && (

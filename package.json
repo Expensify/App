@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.64-13",
+  "version": "9.3.66-5",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -48,6 +48,7 @@
     "lint": "./scripts/lint.sh",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
+    "eslint-report": "ts-node scripts/eslint-report.ts",
     "shellcheck": "./scripts/shellCheck.sh",
     "spell": "cspell --color **/*",
     "spell-changed": "cspell --color --no-must-find-files",
@@ -178,7 +179,7 @@
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.35.0",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "3.0.63",
+    "react-native-onyx": "3.0.66",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -286,7 +287,7 @@
     "babel-jest": "29.7.0",
     "babel-loader": "^10.0.0",
     "babel-plugin-module-resolver": "^5.0.0",
-    "babel-plugin-react-compiler": "1.0.0",
+    "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260422",
     "babel-plugin-react-native-web": "^0.18.7",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "clean-webpack-plugin": "^4.0.0",
@@ -360,6 +361,7 @@
     "webpack-merge": "^5.8.0"
   },
   "overrides": {
+    "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260422",
     "braces": "3.0.3",
     "yargs": "17.7.2",
     "yargs-parser": "21.1.1",

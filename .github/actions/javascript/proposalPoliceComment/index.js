@@ -11654,7 +11654,6 @@ async function run() {
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
     const assistantID = (0, core_1.getInput)('PROPOSAL_POLICE_ASSISTANT_ID', { required: true });
     const openAI = new OpenAIUtils_1.default(apiKey);
-    /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
     /* eslint-disable rulesdir/no-default-id-values */
     const commentID = payload.comment?.id ?? -1;
@@ -11989,7 +11988,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(42186));
 const utils_1 = __nccwpck_require__(73030);
 const plugin_paginate_rest_1 = __nccwpck_require__(64193);

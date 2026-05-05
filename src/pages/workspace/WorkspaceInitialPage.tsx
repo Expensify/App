@@ -184,7 +184,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
     const fetchPolicyData = () => {
         if (policyDraft?.id || !isFocused) {
@@ -451,10 +451,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() =>
-                        // On narrow, goBack() pops the workspace split; goBack with a route can't resolve inside TAB_NAVIGATOR.
-                        shouldUseNarrowLayout && !route.params?.backTo ? Navigation.goBack() : Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)
-                    }
+                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />

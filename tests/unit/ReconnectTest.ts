@@ -13,7 +13,6 @@ jest.mock('@libs/Log');
 jest.mock('@libs/Network/SequentialQueue', () => ({flush: jest.fn()}));
 jest.mock('@libs/actions/App', () => ({openApp: jest.fn(), reconnectApp: jest.fn(), confirmReadyToOpenApp: jest.fn()}));
 jest.mock('@libs/AppStateMonitor', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- required by Jest for ES module interop
     __esModule: true,
     default: {
         addBecameActiveListener: jest.fn(() => jest.fn()),
@@ -22,7 +21,7 @@ jest.mock('@libs/AppStateMonitor', () => ({
 
 // Capture the foreground callback registered by Reconnect.ts at module load time.
 // Must be extracted before any beforeEach clears mock call history.
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- extracting callback captured during module load
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- extracting callback captured during module load
 const AppStateMonitor: typeof AppStateMonitorType = require('@libs/AppStateMonitor').default;
 
 const firstCall = jest.mocked(AppStateMonitor.addBecameActiveListener).mock.calls.at(0);
@@ -98,7 +97,6 @@ describe('Reconnect', () => {
     });
 
     test('sustained failure recovery notifies reachability listeners', () => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports -- accessing the module for the subscription API
         const {onReachabilityConfirmed} = require<typeof NetworkStateType>('@libs/NetworkState');
         const listener = jest.fn();
         const unsub = onReachabilityConfirmed(listener);
@@ -150,7 +148,6 @@ describe('Reconnect', () => {
     });
 
     test('foreground refreshes network state when app becomes active while offline', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports -- accessing NetworkState for spy
         const NetworkState = require<typeof NetworkStateType>('@libs/NetworkState');
         const refreshSpy = jest.spyOn(NetworkState, 'refresh').mockImplementation(() => {});
 

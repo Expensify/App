@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {
     buildNextStepNew,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
