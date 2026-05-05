@@ -22,6 +22,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -69,6 +70,7 @@ function SearchStaticList({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
@@ -96,6 +98,7 @@ function SearchStaticList({
             bankAccountList: undefined,
             allReportMetadata: undefined,
             conciergeReportID: undefined,
+            convertToDisplayString,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)

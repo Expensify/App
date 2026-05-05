@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,21 +33,23 @@ function AddDelegatePage() {
             {} as Record<string, boolean>,
         ) ?? {};
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, searchOptions, areOptionsInitialized, setSelectedOptions, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        onSingleSelect: (option) => {
-            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
-        },
     });
 
+    const handleSelectRow = (option: OptionData) => {
+        setSelectedOptions([option]);
+        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
+    };
+
     const headerMessage = getHeaderMessage(
-        (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-        !!availableOptions.userToInvite,
+        (searchOptions.recentReports?.length || 0) + (searchOptions.personalDetails?.length || 0) !== 0,
+        !!searchOptions.userToInvite,
         debouncedSearchTerm,
         countryCode,
     );
@@ -54,20 +57,20 @@ function AddDelegatePage() {
         {
             title: translate('common.recents'),
             sectionIndex: 0,
-            data: availableOptions.recentReports,
+            data: searchOptions.recentReports,
         },
         {
             title: translate('common.contacts'),
             sectionIndex: 1,
-            data: availableOptions.personalDetails,
+            data: searchOptions.personalDetails,
         },
     ];
 
-    if (availableOptions.userToInvite) {
+    if (searchOptions.userToInvite) {
         sectionsList.push({
             sectionIndex: 2,
             title: '',
-            data: [availableOptions.userToInvite],
+            data: [searchOptions.userToInvite],
         });
     }
 
@@ -102,7 +105,7 @@ function AddDelegatePage() {
                     <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
-                        onSelectRow={toggleSelection}
+                        onSelectRow={handleSelectRow}
                         shouldSingleExecuteRowSelect
                         textInputOptions={{
                             value: searchTerm,
