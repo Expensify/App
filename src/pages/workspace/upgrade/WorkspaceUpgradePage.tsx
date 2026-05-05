@@ -129,8 +129,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
