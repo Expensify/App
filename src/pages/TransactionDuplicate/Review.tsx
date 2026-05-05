@@ -1,5 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -65,19 +65,16 @@ function TransactionDuplicateReview() {
     const duplicateTransactionIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
 
-    const transactions = useMemo(() => {
-        const result: Transaction[] = [];
-        for (const id of transactionIDs) {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-            if (transaction) {
-                result.push(transaction);
-            }
+    const transactions: Transaction[] = [];
+    for (const id of transactionIDs) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        if (transaction) {
+            transactions.push(transaction);
         }
-        result.sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
-        return result;
-    }, [allTransactions, transactionIDs]);
+    }
+    transactions.sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
     const [selectedTransactionID, setSelectedTransactionID] = useState<string | undefined>(transactionID);
-    const selectedTransaction = useMemo(() => transactions.find((transaction) => transaction.transactionID === selectedTransactionID), [selectedTransactionID, transactions]);
+    const selectedTransaction = transactions.find((transaction) => transaction.transactionID === selectedTransactionID);
     const [selectedTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`);
     const [selectedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionReport?.policyID}`);
     const [selectedTransactionPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedTransactionReport?.policyID}`);
@@ -165,20 +162,17 @@ function TransactionDuplicateReview() {
         }, []),
     );
 
-    const onPreviewPressed = useCallback(
-        (reportID: string) => {
-            const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
-            setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
-            });
-            // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
-            // to ensure that transactionIDsList reflects its original value when this component is mounted
-            if (!originalTransactionIDsListRef.current) {
-                originalTransactionIDsListRef.current = transactionIDsList;
-            }
-        },
-        [transactionIDsList, transactions],
-    );
+    const onPreviewPressed = (reportID: string) => {
+        const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
+        setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+        });
+        // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
+        // to ensure that transactionIDsList reflects its original value when this component is mounted
+        if (!originalTransactionIDsListRef.current) {
+            originalTransactionIDsListRef.current = transactionIDsList;
+        }
+    };
 
     const keepAll = () => {
         dismissDuplicateTransactionViolation({
@@ -192,7 +186,7 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
-    const keepSelected = useCallback(() => {
+    const keepSelected = () => {
         if (!selectedTransaction || !selectedTransactionReport) {
             return;
         }
@@ -209,15 +203,7 @@ function TransactionDuplicateReview() {
                 selectedTransactionReport,
             ),
         );
-    }, [
-        route.params.threadReportID,
-        selectedTransaction,
-        selectedTransactionPolicy,
-        selectedTransactionPolicyCategories,
-        selectedTransactionPolicyTags,
-        selectedTransactionReport,
-        transactions,
-    ]);
+    };
 
     if (isLoadingPage) {
         return (

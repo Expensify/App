@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -36,7 +36,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
         return iouTransactionID === transaction?.transactionID;
     });
 
-    const handlePreviewPress = useCallback(() => {
+    const handlePreviewPress = () => {
         if (!action || !report) {
             return;
         }
@@ -52,7 +52,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
         }
 
         onPreviewPressed(transactionThreadReport.reportID);
-    }, [action, betas, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, introSelected, onPreviewPressed, report]);
+    };
 
     if (!action || !report || !transaction) {
         return null;
