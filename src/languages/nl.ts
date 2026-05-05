@@ -5995,7 +5995,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
             issueCard: 'Kaart uitgeven',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'Kies een regel',
             issueNewCard: {
                 whoNeedsCard: 'Wie heeft er een kaart nodig?',
                 inviteNewMember: 'Nieuw lid uitnodigen',
@@ -6037,17 +6037,20 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 enterValidDate: 'Voer een geldige datum in',
                 expirationDate: 'Vervaldatum',
                 limitAmount: 'Limietbedrag',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'Kaartregels instellen',
+                addSpendRule: 'Uitgavevoorwaarde toevoegen',
+                addExpirationDate: 'Vervaldatum toevoegen',
+                addExpirationDateDescription: 'Als er geen specifieke datum is ingesteld, verloopt de kaart op basis van de bestaande vervaldatum op de kaart',
                 amount: 'Bedrag',
+                copyExisting: 'Bestaande kopiëren',
+                createNew: 'Nieuw aanmaken',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',
                 deactivateCard: 'Kaart deactiveren',
                 deactivateConfirmation: 'Als je deze kaart deactiveert, worden alle toekomstige transacties geweigerd en dit kan niet ongedaan worden gemaakt.',
             },
+            searchRules: 'Bestedingsregel zoeken',
         },
         accounting: {
             settings: 'instellingen',

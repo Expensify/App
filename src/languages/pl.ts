@@ -5988,7 +5988,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
             issueCard: 'Wydaj kartę',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'Wybierz regułę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
                 inviteNewMember: 'Zaproś nowego członka',
@@ -6030,17 +6030,20 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 enterValidDate: 'Wprowadź prawidłową datę',
                 expirationDate: 'Data ważności',
                 limitAmount: 'Kwota limitu',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'Ustaw zasady karty',
+                addSpendRule: 'Dodaj regułę wydatków',
+                addExpirationDate: 'Dodaj datę ważności',
+                addExpirationDateDescription: 'Jeśli nie ustawiono konkretnej daty, karta wygaśnie zgodnie z jej obecną datą ważności',
                 amount: 'Kwota',
+                copyExisting: 'Skopiuj istniejące',
+                createNew: 'Utwórz nowe',
             },
             deactivateCardModal: {
                 deactivate: 'Dezaktywuj',
                 deactivateCard: 'Dezaktywuj kartę',
                 deactivateConfirmation: 'Dezaktywacja tej karty spowoduje odrzucenie wszystkich przyszłych transakcji i nie będzie można jej cofnąć.',
             },
+            searchRules: 'Znajdź regułę wydatków',
         },
         accounting: {
             settings: 'ustawienia',

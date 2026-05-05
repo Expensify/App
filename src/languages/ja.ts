@@ -5947,7 +5947,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
             issueCard: 'カードを発行',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'ルールを選択',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
                 inviteNewMember: '新しいメンバーを招待',
@@ -5989,17 +5989,20 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 enterValidDate: '有効な日付を入力してください',
                 expirationDate: '有効期限',
                 limitAmount: '制限額',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'カードルールを設定',
+                addSpendRule: '支出ルールを追加',
+                addExpirationDate: '有効期限を追加',
+                addExpirationDateDescription: '特定の日付が設定されていない場合、カードは現在の有効期限に基づいて失効します',
                 amount: '金額',
+                copyExisting: '既存のものをコピー',
+                createNew: '新規作成',
             },
             deactivateCardModal: {
                 deactivate: '無効化',
                 deactivateCard: 'カードを無効化',
                 deactivateConfirmation: 'このカードを無効化すると今後のすべての取引が拒否され、元に戻すことはできません。',
             },
+            searchRules: '支出ルールを検索',
         },
         accounting: {
             settings: '設定',

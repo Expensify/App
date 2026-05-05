@@ -6026,7 +6026,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
             issueCard: 'Karte ausstellen',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'Wähle eine Regel',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
                 inviteNewMember: 'Neues Mitglied einladen',
@@ -6068,17 +6068,20 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 enterValidDate: 'Gib ein gültiges Datum ein',
                 expirationDate: 'Ablaufdatum',
                 limitAmount: 'Limitbetrag',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'Kartenregeln festlegen',
+                addSpendRule: 'Ausgaberegel hinzufügen',
+                addExpirationDate: 'Ablaufdatum hinzufügen',
+                addExpirationDateDescription: 'Wenn kein konkretes Datum festgelegt ist, läuft die Karte basierend auf dem bestehenden Ablaufdatum der Karte ab',
                 amount: 'Betrag',
+                copyExisting: 'Vorhandene kopieren',
+                createNew: 'Neu erstellen',
             },
             deactivateCardModal: {
                 deactivate: 'Deaktivieren',
                 deactivateCard: 'Karte deaktivieren',
                 deactivateConfirmation: 'Wenn du diese Karte deaktivierst, werden alle zukünftigen Transaktionen abgelehnt und dies kann nicht rückgängig gemacht werden.',
             },
+            searchRules: 'Ausgabenregel finden',
         },
         accounting: {
             settings: 'Einstellungen',

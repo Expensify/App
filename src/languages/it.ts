@@ -6014,7 +6014,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
             issueCard: 'Emetti carta',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'Scegli una regola',
             issueNewCard: {
                 whoNeedsCard: 'Chi ha bisogno di una carta?',
                 inviteNewMember: 'Invita nuovo membro',
@@ -6056,17 +6056,20 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 enterValidDate: 'Inserisci una data valida',
                 expirationDate: 'Data di scadenza',
                 limitAmount: 'Importo del limite',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'Imposta regole carta',
+                addSpendRule: 'Aggiungi regola di spesa',
+                addExpirationDate: 'Aggiungi data di scadenza',
+                addExpirationDateDescription: 'Se non viene impostata una data specifica, la carta scadrà in base alla data di scadenza già presente sulla carta',
                 amount: 'Importo',
+                copyExisting: 'Copia esistente',
+                createNew: 'Crea nuovo',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
                 deactivateCard: 'Disattiva carta',
                 deactivateConfirmation: 'La disattivazione di questa carta rifiuterà tutte le transazioni future e non può essere annullata.',
             },
+            searchRules: 'Trova regola di spesa',
         },
         accounting: {
             settings: 'impostazioni',

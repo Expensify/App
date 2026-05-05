@@ -5994,7 +5994,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
             issueCard: 'Emitir cartão',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'Escolha uma regra',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
                 inviteNewMember: 'Convidar novo membro',
@@ -6036,17 +6036,20 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 enterValidDate: 'Digite uma data válida',
                 expirationDate: 'Data de validade',
                 limitAmount: 'Valor do limite',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'Definir regras do cartão',
+                addSpendRule: 'Adicionar regra de gasto',
+                addExpirationDate: 'Adicionar data de validade',
+                addExpirationDateDescription: 'Se nenhuma data específica for definida, o cartão expirará com base na data de validade atual do cartão',
                 amount: 'Valor',
+                copyExisting: 'Copiar existente',
+                createNew: 'Criar novo',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
                 deactivateCard: 'Desativar cartão',
                 deactivateConfirmation: 'Desativar este cartão recusará todas as transações futuras e não poderá ser desfeito.',
             },
+            searchRules: 'Encontrar regra de gasto',
         },
         accounting: {
             settings: 'configurações',

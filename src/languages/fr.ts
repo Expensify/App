@@ -6045,7 +6045,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
             issueCard: 'Émettre une carte',
-            chooseRule: 'Choose a rule',
+            chooseRule: 'Choisissez une règle',
             issueNewCard: {
                 whoNeedsCard: 'Qui a besoin d’une carte ?',
                 inviteNewMember: 'Inviter un nouveau membre',
@@ -6088,17 +6088,20 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 enterValidDate: 'Entrez une date valide',
                 expirationDate: 'Date d’expiration',
                 limitAmount: 'Montant de la limite',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: 'Définir les règles de carte',
+                addSpendRule: 'Ajouter une règle de dépense',
+                addExpirationDate: 'Ajouter une date d’expiration',
+                addExpirationDateDescription: 'Si aucune date spécifique n’est définie, la carte expirera en fonction de la date d’expiration déjà indiquée sur la carte',
                 amount: 'Montant',
+                copyExisting: 'Copier l’existant',
+                createNew: 'Créer un nouveau',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
                 deactivateCard: 'Désactiver la carte',
                 deactivateConfirmation: 'La désactivation de cette carte entraînera le refus de toutes les futures transactions et est irréversible.',
             },
+            searchRules: 'Trouver une règle de dépense',
         },
         accounting: {
             settings: 'paramètres',

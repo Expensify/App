@@ -5845,7 +5845,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
             issueCard: '发卡',
-            chooseRule: 'Choose a rule',
+            chooseRule: '选择规则',
             issueNewCard: {
                 whoNeedsCard: '谁需要一张卡？',
                 inviteNewMember: '邀请新成员',
@@ -5887,17 +5887,20 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 enterValidDate: '请输入有效日期',
                 expirationDate: '过期日期',
                 limitAmount: '限额金额',
-                setCardRules: '',
-                addSpendRule: 'Add spend rule',
-                addExpirationDate: 'Add expiration date',
-                addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
+                setCardRules: '设置卡片规则',
+                addSpendRule: '添加支出规则',
+                addExpirationDate: '添加到期日期',
+                addExpirationDateDescription: '如果未设置特定日期，卡片将按照现有到期日失效',
                 amount: '金额',
+                copyExisting: '复制现有内容',
+                createNew: '新建',
             },
             deactivateCardModal: {
                 deactivate: '停用',
                 deactivateCard: '停用卡片',
                 deactivateConfirmation: '停用此卡将拒绝所有未来交易，且此操作无法撤销。',
             },
+            searchRules: '查找支出规则',
         },
         accounting: {
             settings: '设置',
