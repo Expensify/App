@@ -18,6 +18,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -145,6 +147,19 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         return errors;
     };
 
+    const selectedCurrency = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
+    const spendRuleParsedMaxAmount = Number.parseFloat(spendRuleForm.maxAmount ?? '');
+    const spendRuleMerchantNamesTitle = getTruncatedSpendRuleSummary(spendRuleForm.merchantNames, (summary, count) =>
+        translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+    );
+    const spendRuleCategoriesTitle = getTruncatedSpendRuleSummary(
+        spendRuleForm.categories?.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
+        (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+    );
+    const spendRuleMaxAmountTitle = Number.isFinite(spendRuleParsedMaxAmount)
+        ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD)
+        : '';
+
     return (
         <InteractiveStepWrapper
             wrapperID="SetExpiryOptions"
@@ -205,7 +220,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     shouldShowRightIcon
                                     numberOfLinesTitle={2}
                                     titleStyle={styles.flex1}
-                                    // title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
+                                    title={spendRuleMerchantNamesTitle}
                                     description={translate('common.merchant')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
@@ -216,7 +231,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     shouldShowRightIcon
                                     numberOfLinesTitle={2}
                                     titleStyle={styles.flex1}
-                                    // title={categoriesMenuTitle}
+                                    title={spendRuleCategoriesTitle}
                                     description={translate('workspace.rules.spendRules.spendCategory')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
@@ -225,7 +240,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                 />
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
-                                    // title={maxAmountMenuTitle}
+                                    title={spendRuleMaxAmountTitle}
                                     titleStyle={styles.flex1}
                                     description={translate('workspace.rules.spendRules.maxAmount')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
