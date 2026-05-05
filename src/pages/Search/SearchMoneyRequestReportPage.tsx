@@ -179,10 +179,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return {snapshotTransaction: transaction, snapshotViolations: violations};
     }, [snapshot?.data, allReportTransactions]);
 
-    const latchedIDsForLayout = useLatchedTransactionIDs(
-        visibleTransactions.map((t) => t.transactionID),
-        reportIDFromRoute,
-    );
+    const latchedIDsForLayout = useLatchedTransactionIDs(visibleTransactions, reportIDFromRoute);
     const layoutLatchedTransactions = latchedIDsForLayout ? visibleTransactions.filter((t) => latchedIDsForLayout.has(t.transactionID)) : visibleTransactions;
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP

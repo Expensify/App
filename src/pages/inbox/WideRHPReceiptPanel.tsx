@@ -55,10 +55,7 @@ function WideRHPReceiptPanelGate() {
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const latchedIDs = useLatchedTransactionIDs(
-        visibleTransactions.map((t) => t.transactionID),
-        reportIDFromRoute,
-    );
+    const latchedIDs = useLatchedTransactionIDs(visibleTransactions, reportIDFromRoute);
     const transactionsForViewDecision = latchedIDs ? visibleTransactions.filter((t) => latchedIDs.has(t.transactionID)) : visibleTransactions;
 
     const reportTransactionIDs = transactionsForViewDecision.map((transaction) => transaction.transactionID);

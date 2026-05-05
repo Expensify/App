@@ -141,7 +141,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     }, [transactions, isOffline]);
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
 
-    const latchedTransactionIDs = useLatchedTransactionIDs(reportTransactionIDs, reportID);
+    const latchedTransactionIDs = useLatchedTransactionIDs(visibleTransactions, reportID);
     const reportTransactionIDsLatched = latchedTransactionIDs ? reportTransactionIDs.filter((id) => latchedTransactionIDs.has(id)) : reportTransactionIDs;
     const visibleTransactionsLatched = latchedTransactionIDs ? visibleTransactions.filter((t) => latchedTransactionIDs.has(t.transactionID)) : visibleTransactions;
 

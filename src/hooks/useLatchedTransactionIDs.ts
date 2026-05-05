@@ -1,18 +1,29 @@
 import {useState} from 'react';
+import CONST from '@src/CONST';
+
+type LatchInputTransaction = {
+    transactionID: string;
+    pendingAction?: string | null;
+};
 
 /**
- * Snapshots the first non-empty transaction-ID set so layout decisions driven by
- * `transactions.length` stay stable across optimistic additions (e.g. Duplicate). Pass `resetKey`
- * (typically the report ID) to re-snapshot when the component is reused for a different report
- * via setParams without remount.
+ * Snapshots stable (non-pending) transaction IDs when an optimistic-add appears, locking
+ * `transactions.length`-driven layout decisions across the Duplicate flow. Transparent during
+ * hydration so real-time pushes aren't masked. `resetKey` (typically the report ID) releases
+ * the latch when the same screen instance is reused for a different report via setParams.
  */
-function useLatchedTransactionIDs(transactionIDs: ReadonlyArray<string> | undefined, resetKey?: string): Set<string> | undefined {
+function useLatchedTransactionIDs(transactions: readonly LatchInputTransaction[] | undefined, resetKey?: string): Set<string> | undefined {
     const [latched, setLatched] = useState<{key: string | undefined; ids: Set<string>} | undefined>(undefined);
-    const isEmpty = !transactionIDs || transactionIDs.length === 0;
+    const hasOptimisticAdd = transactions?.some((t) => t.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) ?? false;
     const keyChanged = latched !== undefined && latched.key !== resetKey;
-    if (!isEmpty && (latched === undefined || keyChanged)) {
-        setLatched({key: resetKey, ids: new Set(transactionIDs)});
+
+    if (keyChanged) {
+        setLatched(undefined);
+    } else if (hasOptimisticAdd && latched === undefined && transactions) {
+        const stableIds = new Set(transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).map((t) => t.transactionID));
+        setLatched({key: resetKey, ids: stableIds});
     }
+
     return latched?.ids;
 }
 

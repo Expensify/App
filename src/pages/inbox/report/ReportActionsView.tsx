@@ -114,7 +114,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     );
     const reportTransactionIDsForThread = useMemo(() => visibleTransactionsForThreadID?.map((t) => t.transactionID), [visibleTransactionsForThreadID]);
 
-    const latchedThreadIDs = useLatchedTransactionIDs(reportTransactionIDsForThread, reportID);
+    const latchedThreadIDs = useLatchedTransactionIDs(visibleTransactionsForThreadID, reportID);
     const reportTransactionIDsForThreadLatched = useMemo(() => {
         if (!latchedThreadIDs) {
             return reportTransactionIDsForThread;

@@ -41,10 +41,7 @@ function ReportActionsList() {
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
 
-    const latchedIDs = useLatchedTransactionIDs(
-        reportTransactions.map((t) => t.transactionID),
-        reportIDFromRoute,
-    );
+    const latchedIDs = useLatchedTransactionIDs(reportTransactions, reportIDFromRoute);
     const transactionsForViewDecision = latchedIDs ? reportTransactions.filter((t) => latchedIDs.has(t.transactionID)) : reportTransactions;
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
