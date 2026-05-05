@@ -31,7 +31,15 @@ function DetailsStep() {
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
-    const feedProvider = addNewCard?.data?.feedType;
+    const rawFeedProvider = addNewCard?.data?.feedType;
+
+    // Mock commercial feed bypasses this step — redirect back if somehow reached
+    if (rawFeedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED) {
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        return null;
+    }
+
+    const feedProvider = rawFeedProvider;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;

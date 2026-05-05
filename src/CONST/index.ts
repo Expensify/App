@@ -3962,6 +3962,7 @@ const CONST = {
             CSV: 'ccupload',
             CSV_CLASSIC: 'csv',
             MOCK_BANK: 'oauth.mockbank.com',
+            MOCK_COMMERCIAL_FEED: 'vcfmock',
             UPLOAD: 'upload',
         },
         LINK_FEED_TYPE: {

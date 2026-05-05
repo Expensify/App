@@ -51,8 +51,16 @@ function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDa
         }
     };
 
+    const isMockFeed = addNewCard?.data.feedType === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED;
+
     const goBack = () => {
-        setAddNewCompanyCardStepAndData({step: isPlaid ? CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_DETAILS});
+        if (isPlaid) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION});
+        } else if (isMockFeed) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        } else {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS});
+        }
     };
 
     return (
