@@ -915,10 +915,6 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
-function isSubmitPolicy(policy: OnyxEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
-}
-
 /**
  * For Submit workspaces, certain features require upgrading the plan before enabling.
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
@@ -2331,7 +2327,6 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
-    isSubmitPolicy,
     shouldShowUpgradeSubmitPolicy,
     getHRConnectionNames,
     isGustoConnected,
