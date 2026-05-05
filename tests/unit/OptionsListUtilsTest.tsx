@@ -7855,21 +7855,12 @@ describe('OptionsListUtils', () => {
                 [iouReportID]: [iouAction],
             };
 
-            const results = getValidOptions(
-                {reports: [inputOption], personalDetails: []},
-                allPolicies,
-                {},
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                {
-                    includeRecentReports: true,
-                    includeMultipleParticipantReports: true,
-                    action: CONST.IOU.ACTION.CREATE,
-                    sortedActions,
-                },
-            );
+            const results = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                action: CONST.IOU.ACTION.CREATE,
+                sortedActions,
+            });
 
             expect(results.recentReports.length).toBe(1);
             expect(results.recentReports.at(0)?.lastIOUCreationDate).toBe(expectedDate);
@@ -7920,20 +7911,11 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const results = getValidOptions(
-                {reports: [inputOption], personalDetails: []},
-                allPolicies,
-                {},
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                {
-                    includeRecentReports: true,
-                    action: CONST.IOU.ACTION.CREATE,
-                    sortedActions: {[reportID]: [commentAction]},
-                },
-            );
+            const results = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: true,
+                action: CONST.IOU.ACTION.CREATE,
+                sortedActions: {[reportID]: [commentAction]},
+            });
 
             expect(results.recentReports.at(0)?.lastIOUCreationDate).toBeUndefined();
         });
