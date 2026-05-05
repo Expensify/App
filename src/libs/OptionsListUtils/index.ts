@@ -648,7 +648,6 @@ function getLastMessageTextForReport({
     currentUserLogin?: string;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions?: Record<string, ReportAction[]>;
 }): string {
     const reportID = report?.reportID;
