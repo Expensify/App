@@ -45,7 +45,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
@@ -237,6 +237,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                                 stateNum={transactionItem.report?.stateNum}
                                 statusNum={transactionItem.report?.statusNum}
+                                isSelected={!!transactionItem.isSelected}
                             />
                         )}
                         <TransactionItemRow
@@ -245,7 +246,7 @@ function TransactionListItem<TItem extends ListItem>({
                             policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
-                            onCheckboxPress={() => onCheckboxPress?.(item)}
+                            onCheckboxPress={() => onSelectionButtonPress?.(item)}
                             shouldUseNarrowLayout={!isLargeScreenWidth}
                             isLargeScreenWidth={isLargeScreenWidth}
                             columns={columns}
