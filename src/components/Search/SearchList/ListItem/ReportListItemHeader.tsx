@@ -251,6 +251,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 containerStyles={[styles.pr3, styles.mb2]}
                 stateNum={reportItem.stateNum}
                 statusNum={reportItem.statusNum}
+                isSelected={!!reportItem.isSelected}
             />
             <HeaderFirstRow
                 report={reportItem}

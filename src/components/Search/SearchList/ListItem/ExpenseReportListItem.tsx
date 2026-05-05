@@ -299,6 +299,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
+                            isSelected={!!reportItem.isSelected}
                         />
                     )}
                     {!isLargeScreenWidth && (

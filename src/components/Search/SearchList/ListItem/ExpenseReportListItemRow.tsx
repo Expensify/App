@@ -117,6 +117,7 @@ function ExpenseReportListItemRow({
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
                     isPending={item.shouldShowStatusAsPending}
+                    isSelected={item.isSelected}
                 />
             </View>
         ),
