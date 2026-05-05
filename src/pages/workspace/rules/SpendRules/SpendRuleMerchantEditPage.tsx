@@ -1,6 +1,7 @@
 import React from 'react';
 import SpendRuleMerchantEditBase from '@components/SpendRules/configuration/SpendRuleMerchantEditBase';
 import useOnyx from '@hooks/useOnyx';
+import {updateDraftSpendRule} from '@libs/actions/User';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,9 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
             merchantIndex={merchantIndex}
             merchantMatchTypes={merchantMatchTypes}
             merchantNames={merchantNames}
+            onMerchantDataChange={(updatedMerchantNames, updatedMerchantMatchTypes) => {
+                updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
+            }}
         />
     );
 }

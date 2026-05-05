@@ -1,6 +1,7 @@
 import React from 'react';
 import SpendRuleMerchantEditBase from '@components/SpendRules/configuration/SpendRuleMerchantEditBase';
 import useOnyx from '@hooks/useOnyx';
+import {setIssueNewCardData} from '@libs/actions/Card';
 import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,9 @@ export default function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEdit
             merchantIndex={merchantIndex}
             merchantMatchTypes={merchantMatchTypes}
             merchantNames={merchantNames}
+            onMerchantDataChange={(newMerchantNames, newMerchantMatchTypes) => {
+                setIssueNewCardData(policyID, {cardRuleValue: {merchantNames: newMerchantNames, merchantMatchTypes: newMerchantMatchTypes}});
+            }}
         />
     );
 }

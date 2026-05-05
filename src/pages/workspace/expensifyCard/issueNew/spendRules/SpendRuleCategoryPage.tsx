@@ -17,7 +17,7 @@ export default function SpendRuleCategoryEditPage({route}: SpendRuleCategoryEdit
     const categories = issueNewCardForm?.data.cardRuleValue?.categories ?? [];
 
     const handleCategoriesChange = (newCategories: SpendRuleCategory[]) => {
-        setIssueNewCardData(policyID, {cardRuleValue: {...issueNewCardForm?.data.cardRuleValue, categories: newCategories}});
+        setIssueNewCardData(policyID, {cardRuleValue: {categories: newCategories}});
     };
 
     return (

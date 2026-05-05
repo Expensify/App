@@ -27,13 +27,14 @@ type SpendRuleMerchantEditBasePageProps = {
     merchantIndex: string;
     merchantNames: string[];
     merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[];
+    onMerchantDataChange: (merchantNames: string[], merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[]) => void;
 };
 
 type MatchTypeItem = ListItem & {
     value: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 };
 
-function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes, merchantNames}: SpendRuleMerchantEditBasePageProps) {
+function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes, merchantNames, onMerchantDataChange}: SpendRuleMerchantEditBasePageProps) {
     const navigation = useNavigation();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -56,7 +57,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
             if (!isNew) {
                 const updatedMerchantNames = merchantNames.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
-                updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
+                onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
             }
             goBack();
             return;
@@ -70,7 +71,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
             ? [...merchantMatchTypes, matchType]
             : merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? matchType : type));
 
-        updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
+        onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
         goBack();
     };
 

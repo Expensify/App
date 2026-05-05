@@ -99,12 +99,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return;
         }
 
-        setIssueNewCardData(policyID, {
-            cardRuleValue: {
-                ...issueNewCard?.data?.cardRuleValue,
-                restrictionAction: action as ValueOf<typeof CONST.SPEND_RULES.ACTION>,
-            },
-        });
+        setIssueNewCardData(policyID, {cardRuleValue: {restrictionAction: action as ValueOf<typeof CONST.SPEND_RULES.ACTION>}});
     };
 
     const handleBackButtonPress = () => {
@@ -112,6 +107,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
+
         setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
     };
 
