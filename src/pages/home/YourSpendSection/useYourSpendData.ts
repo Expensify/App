@@ -43,9 +43,20 @@ type UseYourSpendDataReturn = {
     repaidLast30DaysQuery: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
-    throw new Error('getYourSpendRowState is not implemented yet.');
+    if (!isApplicable) {
+        return YOUR_SPEND_ROW_STATE.HIDDEN;
+    }
+    if (isOffline && !searchResults) {
+        return YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY;
+    }
+    if (!searchResults) {
+        return YOUR_SPEND_ROW_STATE.LOADING;
+    }
+    if (!searchResults.search.count) {
+        return YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY;
+    }
+    return YOUR_SPEND_ROW_STATE.READY;
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
