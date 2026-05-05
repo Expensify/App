@@ -16,6 +16,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -178,8 +179,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return {snapshotTransaction: transaction, snapshotViolations: violations};
     }, [snapshot?.data, allReportTransactions]);
 
+    const latchedIDsForLayout = useLatchedTransactionIDs(
+        visibleTransactions.map((t) => t.transactionID),
+        reportIDFromRoute,
+    );
+    const layoutLatchedTransactions = latchedIDsForLayout ? visibleTransactions.filter((t) => latchedIDsForLayout.has(t.transactionID)) : visibleTransactions;
+
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
-    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+    const shouldShowSuperWideRHP = layoutLatchedTransactions.length > 1;
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 

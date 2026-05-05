@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -40,9 +41,15 @@ function ReportActionsList() {
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
 
+    const latchedIDs = useLatchedTransactionIDs(
+        reportTransactions.map((t) => t.transactionID),
+        reportIDFromRoute,
+    );
+    const transactionsForViewDecision = latchedIDs ? reportTransactions.filter((t) => latchedIDs.has(t.transactionID)) : reportTransactions;
+
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isOffline);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, transactionsForViewDecision);
 
     if (!report || shouldWaitForTransactions) {
         return <ReportActionsSkeletonView />;

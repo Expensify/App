@@ -6,6 +6,7 @@ import useConciergeSidePanelReportActions from '@hooks/useConciergeSidePanelRepo
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -112,9 +113,18 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         [reportTransactionsForThreadID, isOffline],
     );
     const reportTransactionIDsForThread = useMemo(() => visibleTransactionsForThreadID?.map((t) => t.transactionID), [visibleTransactionsForThreadID]);
+
+    const latchedThreadIDs = useLatchedTransactionIDs(reportTransactionIDsForThread, reportID);
+    const reportTransactionIDsForThreadLatched = useMemo(() => {
+        if (!latchedThreadIDs) {
+            return reportTransactionIDsForThread;
+        }
+        return reportTransactionIDsForThread?.filter((id) => latchedThreadIDs.has(id));
+    }, [latchedThreadIDs, reportTransactionIDsForThread]);
+
     const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(report, chatReport, allReportActions ?? [], isOffline, reportTransactionIDsForThread),
-        [report, chatReport, allReportActions, isOffline, reportTransactionIDsForThread],
+        () => getOneTransactionThreadReportID(report, chatReport, allReportActions ?? [], isOffline, reportTransactionIDsForThreadLatched),
+        [report, chatReport, allReportActions, isOffline, reportTransactionIDsForThreadLatched],
     );
 
     const isReportArchived = useReportIsArchived(reportID);

@@ -5,6 +5,7 @@ import {Animated} from 'react-native';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
+import useLatchedTransactionIDs from '@hooks/useLatchedTransactionIDs';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -53,12 +54,19 @@ function WideRHPReceiptPanelGate() {
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
+
+    const latchedIDs = useLatchedTransactionIDs(
+        visibleTransactions.map((t) => t.transactionID),
+        reportIDFromRoute,
+    );
+    const transactionsForViewDecision = latchedIDs ? visibleTransactions.filter((t) => latchedIDs.has(t.transactionID)) : visibleTransactions;
+
+    const reportTransactionIDs = transactionsForViewDecision.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, transactionsForViewDecision);
 
     const shouldShowWideRHP =
         !shouldDisplayMoneyRequestActionsList &&
