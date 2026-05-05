@@ -74,7 +74,9 @@ function TransactionDuplicateReview() {
     }
     transactions.sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
     const [selectedTransactionID, setSelectedTransactionID] = useState<string | undefined>(transactionID);
-    const selectedTransaction = transactions.find((transaction) => transaction.transactionID === selectedTransactionID);
+    const defaultSelectedTransactionID = transactionID ?? transactions.at(0)?.transactionID;
+    const effectiveSelectedTransactionID = transactions.some((transaction) => transaction.transactionID === selectedTransactionID) ? selectedTransactionID : defaultSelectedTransactionID;
+    const selectedTransaction = transactions.find((transaction) => transaction.transactionID === effectiveSelectedTransactionID);
     const [selectedTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`);
     const [selectedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionReport?.policyID}`);
     const [selectedTransactionPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedTransactionReport?.policyID}`);
@@ -120,20 +122,6 @@ function TransactionDuplicateReview() {
         }
         getDuplicateTransactionDetails(transactionID);
     }, [transactionID]);
-
-    useEffect(() => {
-        if (transactions.length === 0) {
-            setSelectedTransactionID(undefined);
-            return;
-        }
-
-        const doesSelectedTransactionStillExist = transactions.some((transaction) => transaction.transactionID === selectedTransactionID);
-        if (doesSelectedTransactionStillExist) {
-            return;
-        }
-
-        setSelectedTransactionID(transactionID ?? transactions.at(0)?.transactionID);
-    }, [selectedTransactionID, transactionID, transactions]);
 
     useEffect(() => {
         if (!isDeleteNavigateBackToThisReview || !wasTransactionDeleted) {
@@ -254,7 +242,7 @@ function TransactionDuplicateReview() {
                 <View style={styles.flex1}>
                     <DuplicateTransactionsList
                         transactions={transactions}
-                        selectedTransactionID={selectedTransactionID}
+                        selectedTransactionID={effectiveSelectedTransactionID}
                         onSelectTransaction={setSelectedTransactionID}
                         onPreviewPressed={onPreviewPressed}
                     />

@@ -61,6 +61,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
     return (
         <OfflineWithFeedback pendingAction={transaction.pendingAction}>
             <PressableWithFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 onPress={handlePreviewPress}
                 accessibilityLabel={transaction.comment?.comment ?? ''}
                 role={getButtonRole(true)}
