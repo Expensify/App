@@ -1,11 +1,12 @@
 import {format, toZonedTime} from 'date-fns-tz';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -46,6 +47,8 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
+
+    const [spendRuleErrorMessage, setSpendRuleErrorMessage] = useState('');
     const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
 
     const isEditing = issueNewCard?.isEditing;
@@ -88,6 +91,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         if (!policyID) {
             return;
         }
+        setSpendRuleErrorMessage('');
         setIssueNewCardData(policyID, {spendRuleEnabled: isEnabled});
     };
 
@@ -95,6 +99,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         if (!policyID) {
             return;
         }
+        setSpendRuleErrorMessage('');
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION.getRoute(policyID));
     };
 
@@ -103,6 +108,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return;
         }
 
+        setSpendRuleErrorMessage('');
         setIssueNewCardData(policyID, {spendRuleOption: option as ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_RULE_OPTION>});
     };
 
@@ -111,6 +117,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return;
         }
 
+        setSpendRuleErrorMessage('');
         setIssueNewCardData(policyID, {cardRuleValue: {restrictionAction: action as ValueOf<typeof CONST.SPEND_RULES.ACTION>}});
     };
 
@@ -123,7 +130,36 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
     };
 
+    const hasAnyMerchant = !!spendRuleForm.merchantNames?.some((name) => name.trim() !== '');
+    const hasAnyCategory = !!spendRuleForm.categories?.length;
+    const hasMaxAmount = !!spendRuleForm.maxAmount?.trim();
+    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount;
+
+    const getSpendRuleErrorMessage = useCallback(() => {
+        if (!spendRuleEnabled) {
+            return '';
+        }
+
+        if (spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && !spendRuleID) {
+            return translate('workspace.card.chooseRule');
+        }
+
+        if (spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && !hasAnyRuleApplied) {
+            return translate('workspace.rules.spendRules.confirmErrorApplyAtLeastOneSpendRule');
+        }
+
+        return '';
+    }, [hasAnyRuleApplied, spendRuleEnabled, spendRuleID, spendRuleOption, translate]);
+
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+        const formSpendRuleError = getSpendRuleErrorMessage();
+
+        if (formSpendRuleError) {
+            setSpendRuleErrorMessage(formSpendRuleError);
+            return;
+        }
+
+        setSpendRuleErrorMessage('');
         setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
             data: expirationToggled ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''},
@@ -241,6 +277,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     description={translate('common.merchant')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
+                                        setSpendRuleErrorMessage('');
                                         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANTS.getRoute(policyID));
                                     }}
                                 />
@@ -252,6 +289,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     description={translate('workspace.rules.spendRules.spendCategory')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
+                                        setSpendRuleErrorMessage('');
                                         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_CATEGORY.getRoute(policyID));
                                     }}
                                 />
@@ -262,6 +300,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     description={translate('workspace.rules.spendRules.maxAmount')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
+                                        setSpendRuleErrorMessage('');
                                         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MAX_AMOUNT.getRoute(policyID));
                                     }}
                                 />
@@ -269,6 +308,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                         )}
                     </View>
                 )}
+                {!!spendRuleErrorMessage && <FormHelpMessage message={spendRuleErrorMessage} />}
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.addExpirationDate')}
                     subtitle={!expirationToggled ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
