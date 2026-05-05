@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         didScreenTransitionEnd: true,

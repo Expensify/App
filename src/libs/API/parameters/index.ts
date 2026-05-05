@@ -519,3 +519,4 @@ export type {default as ExportDomainMembersCSVParams} from './ExportDomainMember
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
+export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';

@@ -169,8 +169,8 @@ function IOURequestStepHours({
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
-                            if (policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
-                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                                 return;
                             }
                             saveTime();

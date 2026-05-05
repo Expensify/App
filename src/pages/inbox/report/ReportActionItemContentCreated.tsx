@@ -34,9 +34,6 @@ type ReportActionItemContentCreatedProps = {
     /** The actions context value containing the show context menu callbacks */
     contextMenuActionsValue: ShowContextMenuActionsContextType;
 
-    /** The parent report */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -53,7 +50,6 @@ type ReportActionItemContentCreatedProps = {
 function ReportActionItemContentCreated({
     contextMenuStateValue,
     contextMenuActionsValue,
-    parentReport,
     parentReportAction,
     transactionID,
     draftMessage,
@@ -65,6 +61,7 @@ function ReportActionItemContentCreated({
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
     const transactionCurrency = getCurrency(transaction);
     const resolvedReportCurrency = getResolvedReportCurrency({report, reportMetadata, transaction});

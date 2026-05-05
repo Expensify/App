@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: '任意',
         new: '新規',
         newFeature: '新機能',
+        beta: 'ベータ',
         search: '検索',
         reports: 'レポート',
         spend: '支出',
@@ -941,6 +942,12 @@ const translations: TranslationDeepObject<typeof en> = {
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'Expensify を引き続きご利用いただくには、アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
+            unlockBankAccount: {
+                workspaceTitle: 'ビジネス用銀行口座がロックされました',
+                personalTitle: 'あなたの銀行口座はロックされています',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'ウォレット',
+            },
         },
         assignedCards: 'お客様の Expensify カード',
         assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
@@ -1401,7 +1408,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'タグ名が255文字を超えています。短くするか、別のタグを選択してください。',
             invalidAmount: '続行する前に有効な金額を入力してください',
             invalidDistance: '続行する前に有効な距離を入力してください',
-            invalidReadings: '開始値と終了値の両方を入力してください',
+            invalidReadings: '続行する前に開始値と終了値の両方を入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
             distanceAmountTooLarge: '合計金額が大きすぎます。距離を減らすか、レートを下げてください。',
             distanceAmountTooLargeReduceDistance: '合計金額が大きすぎます。距離を減らしてください。',
@@ -1591,6 +1598,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
             actions: {
                 addApprover: '承認者を追加',
                 addApproverSubtitle: '既存のワークフローに追加の承認者を追加します。',
@@ -2688,6 +2696,12 @@ ${date} の ${merchant} への ${amount}`,
         defaultPaymentMethod: 'デフォルト',
         bankAccountLastFour: (lastFour: string) => `銀行口座・${lastFour}`,
     },
+    agentsPage: {
+        title: '担当者',
+        subtitle: 'ワークフローを処理するエージェントを作成しましょう。手作業を省いて、1日の時間を何時間も取り戻せます。',
+        newAgent: '新しいエージェント',
+        emptyAgents: {title: 'エージェントは作成されていません', subtitle: '手作業はやめて、代わりにエージェントに指示を出して、時間を大幅に節約しましょう。'},
+    },
     expenseRulesPage: {
         title: '経費ルール',
         findRule: 'ルールを検索',
@@ -3349,6 +3363,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         whenClearStatus: 'ステータスをいつクリアしますか？',
         setVacationDelegate: `休暇中に不在の間、あなたに代わってレポートを承認する代理人を設定しましょう。`,
         cannotSetVacationDelegate: `現在、次のメンバーの代理人になっているため、休暇代理人を設定できません：`,
+        addVacationDelegate: '休暇代理人を追加',
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
         asVacationDelegate: (nameOrEmail: string) => `${nameOrEmail} さんの休暇代理として`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
@@ -5305,7 +5320,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 monthly: '毎月',
             },
             cardDetails: 'カード情報',
-            cardPending: ({name}: {name: string}) => `カードは現在保留中で、${name} さんのアカウントが認証され次第、発行されます。`,
             virtual: 'バーチャル',
             physical: '物理',
             deactivate: 'カードを無効化',
@@ -5919,6 +5933,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `このワークスペースから${memberName}を削除すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} は、対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
+            allMembers: 'すべてのメンバー',
+            admins: '管理者',
+            approvers: '承認者',
+            auditors: '監査担当者',
+            emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -7286,6 +7305,9 @@ ${reportName}
         setReceiptRequiredAmount: (newValue: string) => `必要な領収書金額を「${newValue}」に設定`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `領収書必須金額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         removedReceiptRequiredAmount: (oldValue: string) => `必須領収書金額を削除しました（以前の値：「${oldValue}」）`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `明細付き領収書の必須金額を「${newValue}」に設定しました`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) => `品目別レシートの必須金額を「${newValue}」（以前は「${oldValue}」）に変更しました`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `品目別レシートの必須金額を削除しました（以前の値：「${oldValue}」）`,
         setMaxExpenseAmount: (newValue: string) => `最大経費金額を「${newValue}」に設定`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `上限経費額を「${newValue}」に変更しました（以前は「${oldValue}」）`,
         removedMaxExpenseAmount: (oldValue: string) => `最大経費金額を削除しました（以前の値: 「${oldValue}」）`,
@@ -7425,6 +7447,7 @@ ${reportName}
             `カード明細フィード「${feedName}」の利用明細期間の終了日を変更しました${newValue ? ` を「${newValue}」に` : ''}${previousValue ? ` （以前の値：「${previousValue}」）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -9023,6 +9046,8 @@ ${reportName}
             emptyMembers: {title: 'このグループにはメンバーがいません', subtitle: 'メンバーを追加するか、上のフィルターを変更してみてください。'},
             moveToGroup: 'グループへ移動',
             chooseWhereToMove: ({count}: {count: number}) => `${count} ${count === 1 ? 'メンバー' : 'メンバー'} を移動する先を選択してください。`,
+            domainGroup: 'ドメイングループ',
+            chooseWhereToMoveName: ({name}: {name: string}) => `${name} をどこに移動するか選択してください。`,
         },
         common: {
             settings: '設定',
@@ -9042,6 +9067,17 @@ ${reportName}
                 `本当に ${newName} をデフォルトグループに設定しますか？新しいメンバーは、以前のデフォルトグループ (${currentName}) ではなく、このグループに招待されます。`,
             makeDefault: 'デフォルトに設定',
             neverMind: 'やめておく',
+            permissions: 'グループの権限',
+            strictlyEnforceWorkspaceRules: 'ワークスペースのルールを厳密に適用する',
+            strictlyEnforceWorkspaceRulesDescription: 'レポートを送信する前にすべてのワークスペースのルールを満たす必要があります。手動による例外は許可されていません。',
+            restrictExpenseWorkspaceCreation: '経費ワークスペースの作成／削除を制限する',
+            restrictExpenseWorkspaceCreationDescription:
+                'メンバーが経費ワークスペースを作成したり、経費ワークスペースから自分自身を削除したりできないようにします。これは、厳格なワークスペース適用と組み合わせることで、ドメイン外での使用を目的としたレポートの提出に Expensify が利用されるのを防ぐのに役立ちます。',
+            deleteGroup: 'グループを削除',
+            deleteGroupDangerConfirmationModal: 'グループを削除',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `本当によろしいですか？これにより、すべてのメンバーがデフォルトグループ（${defaultGroupName}）に再割り当てされ、元に戻すことはできません。`,
+            deleteGroupError: 'このグループを削除できませんでした。もう一度お試しください。',
         },
     },
     proactiveAppReview: {

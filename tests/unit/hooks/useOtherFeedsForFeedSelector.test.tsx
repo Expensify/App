@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';

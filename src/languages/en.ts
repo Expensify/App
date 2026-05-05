@@ -90,6 +90,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         newFeature: 'New feature',
+        beta: 'Beta',
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
@@ -1004,6 +1005,12 @@ const translations = {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
             },
+            unlockBankAccount: {
+                workspaceTitle: 'Your business bank account has been locked',
+                personalTitle: 'Your bank account has been locked',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
+            },
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
@@ -1474,7 +1481,7 @@ const translations = {
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing',
             invalidDistance: 'Please enter a valid distance before continuing',
-            invalidReadings: 'Please enter both start and end readings',
+            invalidReadings: 'Please enter both start & end readings to continue',
             negativeDistanceNotAllowed: 'End reading must be greater than start reading',
             distanceAmountTooLarge: 'The total amount is too large. Reduce the distance or lower the rate.',
             distanceAmountTooLargeReduceDistance: 'The total amount is too large. Reduce the distance.',
@@ -1663,6 +1670,7 @@ const translations = {
             header: (workflowSettingLink: string) =>
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
@@ -2773,6 +2781,15 @@ const translations = {
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
     },
+    agentsPage: {
+        title: 'Agents',
+        subtitle: 'Create agents to handle your workflow. Skip the manual work and get hours back in your day.',
+        newAgent: 'New agent',
+        emptyAgents: {
+            title: 'No agents created',
+            subtitle: 'Stop manually doing stuff. Instruct an agent instead and save yourself lots of time.',
+        },
+    },
     expenseRulesPage: {
         title: 'Expense rules',
         subtitle: 'These rules will apply to your expenses.',
@@ -3450,6 +3467,7 @@ const translations = {
         whenClearStatus: 'When should we clear your status?',
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         cannotSetVacationDelegate: `You can't set a vacation delegate because you're currently the delegate for the following members:`,
+        addVacationDelegate: 'Add vacation delegate',
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: (nameOrEmail: string) => `as ${nameOrEmail}'s vacation delegate`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
@@ -5380,7 +5398,6 @@ const translations = {
                 monthly: 'Monthly',
             },
             cardDetails: 'Card details',
-            cardPending: ({name}: {name: string}) => `Card is currently pending and will be issued once ${name}'s account is validated.`,
             virtual: 'Virtual',
             physical: 'Physical',
             deactivate: 'Deactivate card',
@@ -5991,6 +6008,14 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            allMembers: 'All members',
+            admins: 'Admins',
+            approvers: 'Approvers',
+            auditors: 'Auditors',
+            emptyRoleFilter: {
+                title: 'No members match this filter',
+                subtitle: 'Invite a member or change the filter above.',
+            },
             importMembers: 'Import members',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
@@ -7411,6 +7436,7 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the company card purchases requirement`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -7507,6 +7533,9 @@ const translations = {
         setReceiptRequiredAmount: (newValue: string) => `set receipt required amount to "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `removed receipt required amount (previously "${oldValue}")`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `set itemized receipt required amount to "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) => `changed itemized receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `removed itemized receipt required amount (previously "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `set max expense amount to "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `removed max expense amount (previously "${oldValue}")`,
@@ -9118,7 +9147,9 @@ const translations = {
                 other: 'Close accounts',
             }),
             moveToGroup: 'Move to group',
+            domainGroup: 'Domain group',
             chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
+            chooseWhereToMoveName: ({name}: {name: string}) => `Choose where to move ${name}.`,
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
@@ -9154,6 +9185,17 @@ const translations = {
                 `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
             makeDefault: 'Make default',
             neverMind: 'Never mind',
+            permissions: 'Group permissions',
+            strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
+            strictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
+            restrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
+            restrictExpenseWorkspaceCreationDescription:
+                'Prevent members from being able to create an expense workspace or remove themselves from an expense workspace. This is useful for preventing people from using Expensify to submit reports for use outside your domain when combined with strict workspace enforcement.',
+            deleteGroup: 'Delete Group',
+            deleteGroupDangerConfirmationModal: 'Delete Group',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `Are you sure? This will reassign all members to the default group (${defaultGroupName}) and can't be undone.`,
+            deleteGroupError: 'Unable to delete this group. Please try again.',
         },
     },
 };

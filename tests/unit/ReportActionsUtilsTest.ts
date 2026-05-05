@@ -13,7 +13,6 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
-    findLastReportActions,
     getAddedCardFeedMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
@@ -33,13 +32,13 @@ import {
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRemovedCardFeedMessage,
     getRenamedCardFeedMessage,
     getReportActionActorAccountID,
+    getRequireCompanyCardsEnabledMessage,
     getSendMoneyFlowAction,
-    getSortedReportActions,
-    getSortedReportActionsForDisplay,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -49,7 +48,6 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
-    isReportActionVisibleAsLastAction,
     isResolvedActionableWhisper,
     shouldHideNewMarker,
 } from '../../src/libs/ReportActionsUtils';
@@ -3434,6 +3432,53 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    newMaxExpenseAmountNoItemizedReceipt: 2500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('set itemized receipt required amount to "$25.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: 2500,
+                    newMaxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('removed itemized receipt required amount (previously "$25.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: 2500,
+                    newMaxExpenseAmountNoItemizedReceipt: 7500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('changed itemized receipt required amount to "$75.00" (previously "$25.00")');
+        });
+    });
+
     describe('getAddedCardFeedMessage', () => {
         it('should return translated message when feedName is present', () => {
             const action = {
@@ -4293,6 +4338,38 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getRequireCompanyCardsEnabledMessage', () => {
+        it('should return enabled message when the company card requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
+            expect(result).toBe('enabled the company card purchases requirement');
+        });
+
+        it('should return disabled message when the company card requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
+            expect(result).toBe('disabled the company card purchases requirement');
+        });
+    });
+
     describe('getAutoReimbursementMessage', () => {
         it('should return set message when setting limit for the first time from zero', () => {
             const action = {
@@ -4397,135 +4474,6 @@ describe('ReportActionsUtils', () => {
 
             expect(isNewerReportAction(higher, lower)).toBeTruthy();
             expect(isNewerReportAction(lower, higher)).toBeFalsy();
-        });
-    });
-
-    describe('findLastReportActions', () => {
-        const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
-            ({
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: '1',
-                reportID: 'testReportID',
-                created: '2024-01-01 00:00:00.000',
-                person: [{type: 'TEXT', style: 'strong', text: 'Actor'}],
-                message: [{html: 'hello', text: 'hello', type: 'COMMENT'}],
-                ...overrides,
-            }) as ReportAction;
-
-        it('returns undefined for both when reportActions is undefined', () => {
-            const result = findLastReportActions(undefined);
-            expect(result.lastVisibleAction).toBeUndefined();
-            expect(result.lastActionForDisplay).toBeUndefined();
-        });
-
-        it('returns undefined for both when reportActions is empty', () => {
-            const result = findLastReportActions({});
-            expect(result.lastVisibleAction).toBeUndefined();
-            expect(result.lastActionForDisplay).toBeUndefined();
-        });
-
-        it('returns the single visible action for both when there is only one ADD_COMMENT action', () => {
-            const action = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const result = findLastReportActions({[action.reportActionID]: action});
-            expect(result.lastVisibleAction).toBe(action);
-            expect(result.lastActionForDisplay).toBe(action);
-        });
-
-        it('returns undefined for lastActionForDisplay but not lastVisibleAction when only action is CREATED', () => {
-            const created = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const result = findLastReportActions({[created.reportActionID]: created});
-            expect(result.lastVisibleAction).toBe(created);
-            expect(result.lastActionForDisplay).toBeUndefined();
-        });
-
-        it('returns the newest of multiple visible actions', () => {
-            const older = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const newer = makeAction({reportActionID: '2', created: '2024-01-02 00:00:00.000'});
-            const result = findLastReportActions({
-                [older.reportActionID]: older,
-                [newer.reportActionID]: newer,
-            });
-            expect(result.lastVisibleAction).toBe(newer);
-            expect(result.lastActionForDisplay).toBe(newer);
-        });
-
-        it('skips deleted actions (no pendingAction, empty html) for both results', () => {
-            const visible = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const deleted = makeAction({
-                reportActionID: '2',
-                created: '2024-01-02 00:00:00.000',
-                message: [{html: '', text: '', type: 'COMMENT'}],
-                pendingAction: undefined,
-            });
-            const result = findLastReportActions({
-                [visible.reportActionID]: visible,
-                [deleted.reportActionID]: deleted,
-            });
-            expect(result.lastVisibleAction).toBe(visible);
-            expect(result.lastActionForDisplay).toBe(visible);
-        });
-
-        it('excludes actions with errors from lastActionForDisplay but not from lastVisibleAction', () => {
-            const clean = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            const withErrors = makeAction({
-                reportActionID: '2',
-                created: '2024-01-02 00:00:00.000',
-                errors: {someError: 'error message'},
-            });
-            const result = findLastReportActions({
-                [clean.reportActionID]: clean,
-                [withErrors.reportActionID]: withErrors,
-            });
-            expect(result.lastVisibleAction).toBe(withErrors);
-            expect(result.lastActionForDisplay).toBe(clean);
-        });
-
-        it('agrees with getSortedReportActionsForDisplay for lastVisibleAction across multiple actions', () => {
-            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
-            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
-            const actionC = makeAction({reportActionID: 'actionC', created: '2024-01-02 00:00:00.000'});
-            const actions: ReportActions = {
-                actionA,
-                actionB,
-                actionC,
-            };
-            const {lastVisibleAction} = findLastReportActions(actions);
-            const fromSort = getSortedReportActionsForDisplay(actions).at(0);
-            expect(lastVisibleAction?.reportActionID).toBe(fromSort?.reportActionID);
-        });
-
-        it('agrees with the old getSortedReportActions+filter approach for lastActionForDisplay', () => {
-            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
-            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
-            const actionC = makeAction({
-                reportActionID: 'actionC',
-                created: '2024-01-02 00:00:00.000',
-                errors: {someError: 'error'},
-            });
-            const actions: ReportActions = {actionA, actionB, actionC};
-            const {lastActionForDisplay} = findLastReportActions(actions);
-            const fromOldApproach = getSortedReportActions(Object.values(actions)).findLast(
-                (a) => isReportActionVisibleAsLastAction(a) && a.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-            );
-            expect(lastActionForDisplay?.reportActionID).toBe(fromOldApproach?.reportActionID);
-        });
-
-        it('respects canUserPerformWriteAction when determining visibility', () => {
-            const normalAction = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
-            // An actionable mention whisper is hidden when canUserPerformWriteAction is false
-            const joinRequestAction = makeAction({
-                reportActionID: '2',
-                created: '2024-01-02 00:00:00.000',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-            });
-
-            const withWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, true);
-            const withoutWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, false);
-
-            // With write permission: join request is visible, so it should be selected as newer
-            expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
-            // Without write permission: join request hidden, so only the normal action remains
-            expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
         });
     });
 

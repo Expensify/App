@@ -317,12 +317,11 @@ function SearchList({
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
-    const newTransactionIDByItemKey = useMemo(() => {
+    const newTransactionIDByItemKey = (() => {
         if (newTransactions.length === 0) {
             return CONST.EMPTY_MAP;
         }
 
-        // Precompute the per-row highlight lookup once so renderItem can stay O(1) during list renders.
         const mappedTransactionIDs = new Map<string, string>();
         for (const item of data) {
             const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
@@ -332,7 +331,7 @@ function SearchList({
         }
 
         return mappedTransactionIDs;
-    }, [data, groupBy, newTransactions]);
+    })();
 
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
