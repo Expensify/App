@@ -33,6 +33,7 @@ import {
     hasAccountingFeatureConnection,
     isControlPolicy,
     isTimeTrackingEnabled,
+    shouldShowUpgradeSubmitPolicy,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -63,7 +64,6 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoreFeaturesSection from './MoreFeaturesSection';
 import MoreFeatureToggle from './MoreFeatureToggle';
-import {maybeNavigateSubmitPolicyFeatureUpgradeOnEnable} from './submitPolicyFeatureUpgradeNavigation';
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -254,7 +254,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (maybeNavigateSubmitPolicyFeatureUpgradeOnEnable(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
                                     return;
                                 }
                                 enablePolicyConnections(policyID, isEnabled);
@@ -479,7 +479,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (maybeNavigateSubmitPolicyFeatureUpgradeOnEnable(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
                                     return;
                                 }
                                 enablePolicyTravel(policyID, isEnabled);
@@ -503,7 +503,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (maybeNavigateSubmitPolicyFeatureUpgradeOnEnable(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias)) {
                                     return;
                                 }
                                 enableExpensifyCard(policyID, isEnabled);
@@ -527,7 +527,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (maybeNavigateSubmitPolicyFeatureUpgradeOnEnable(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -596,7 +596,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (maybeNavigateSubmitPolicyFeatureUpgradeOnEnable(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);

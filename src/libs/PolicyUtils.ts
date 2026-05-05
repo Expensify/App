@@ -892,6 +892,19 @@ function isSubmitPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * For Submit workspaces, certain features require upgrading the plan before enabling.
+ * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
+ * @returns true if upgrade navigation was shown; false otherwise
+ */
+function shouldShowUpgradeSubmitPolicy(policy: OnyxEntry<Policy>, policyID: string | undefined, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
+    if (!policyID || !isEnabling || !isSubmitPolicy(policy)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+    return true;
+}
+
+/**
  * For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
  * on Control policies when the property is undefined.
  */
@@ -2304,6 +2317,7 @@ export {
     sortPoliciesByName,
     isPolicyApprover,
     isSubmitPolicy,
+    shouldShowUpgradeSubmitPolicy,
     getHRConnectionNames,
     isGustoConnected,
 };
