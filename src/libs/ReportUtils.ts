@@ -6943,7 +6943,7 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, conciergeReportID: string | undefined) {
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, _conciergeReportID?: string | undefined) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
@@ -6964,7 +6964,7 @@ function getUnreportedTransactionMessage(
     translate: LocalizedTranslate,
     action: ReportAction,
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
-    conciergeReportID?: string,
+    _conciergeReportID?: string,
 ) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
@@ -12808,7 +12808,7 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, _conciergeReportID: string | undefined): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;

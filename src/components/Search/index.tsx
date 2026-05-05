@@ -583,6 +583,7 @@ function Search({
         conciergeReportID,
         onyxPersonalDetailsList,
         policyForMovingExpenses,
+        reportAttributesDerivedValue,
         convertToDisplayString,
     ]);
 

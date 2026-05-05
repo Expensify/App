@@ -2,7 +2,7 @@ import {randomInt} from 'crypto';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type PolicyData from '@hooks/usePolicyData/types';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -148,12 +148,11 @@ describe('ReportUtils', () => {
         await measureFunction(() => getReportPreviewMessage(report, undefined, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
     });
 
-    test('[ReportUtils] computeReportName on 1k participants', async () => {
+    test('[ReportUtils] getReportName on 1k participants', async () => {
         const report = {...createRandomReport(1, undefined), participantAccountIDs};
-        const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => computeReportName({report, policies: {[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]: policy}, currentUserLogin: ''}));
+        await measureFunction(() => getReportName(report));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
