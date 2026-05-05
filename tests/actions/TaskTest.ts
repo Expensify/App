@@ -1006,11 +1006,20 @@ describe('actions/Task', () => {
             expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123')).toBeUndefined();
         });
 
-        it('should return undefined when report has visible actions (should not delete)', () => {
-            const taskReport = getFakeReport();
+        it('should return parent report route when report has visible actions and a parent report exists', () => {
+            const parentReportID = 'parent_123';
+            const taskReport = {...getFakeReport(), parentReportID};
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123')).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123')).toBe(`r/${parentReportID}`);
+        });
+
+        it('should prefer backTo when report has visible actions', () => {
+            const taskReport = getFakeReport();
+            const backTo = '/search' as Route;
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', backTo)).toBe(backTo);
         });
 
         it('should return parent report route when report has parentReportID and no visible actions', () => {
@@ -1428,7 +1437,7 @@ describe('actions/Task', () => {
             expect(Navigation.goBack).toHaveBeenCalledWith(`r/${conciergeReportID}`);
         });
 
-        it('should not return navigation URL when task report has visible actions', async () => {
+        it('should navigate away when task report has visible actions', async () => {
             const taskReportID = 'task_report_delete_4';
             const parentReportID = 'parent_report_delete_4';
 
@@ -1453,13 +1462,13 @@ describe('actions/Task', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Has visible actions, so should not navigate away
+            // Even when the task has visible actions, deleting it should still leave the task view.
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
             const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
 
-            expect(result).toBeUndefined();
-            expect(Navigation.goBack).not.toHaveBeenCalled();
+            expect(result).toBe(`r/${parentReportID}`);
+            expect(Navigation.goBack).toHaveBeenCalledWith(`r/${parentReportID}`);
         });
 
         it('should return undefined when no parentReportID, no recent report, and conciergeReportID is undefined', async () => {
