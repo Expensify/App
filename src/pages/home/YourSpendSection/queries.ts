@@ -1,16 +1,42 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+
+function get30DaysAgoDateString(): string {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - 30);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function buildAwaitingApprovalQuery(accountID: number): string {
-    throw new Error('buildAwaitingApprovalQuery is not implemented yet.');
+    return buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        from: [String(accountID)],
+        reimbursable: CONST.SEARCH.BOOLEAN.YES,
+    });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildRepaidLast30DaysQuery(accountID: number): string {
-    throw new Error('buildRepaidLast30DaysQuery is not implemented yet.');
+    return buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.PAID,
+        from: [String(accountID)],
+        reimbursable: CONST.SEARCH.BOOLEAN.YES,
+        [FILTER_KEYS.DATE_AFTER]: get30DaysAgoDateString(),
+    });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildRecentCardTransactionsQuery(accountID: number, cardID: number): string {
-    throw new Error('buildRecentCardTransactionsQuery is not implemented yet.');
+    return buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        from: [String(accountID)],
+        cardID: [String(cardID)],
+        [FILTER_KEYS.DATE_AFTER]: get30DaysAgoDateString(),
+    });
 }
 
 export {buildAwaitingApprovalQuery, buildRepaidLast30DaysQuery, buildRecentCardTransactionsQuery};

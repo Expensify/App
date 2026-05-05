@@ -16,15 +16,15 @@ const CARD_ID = 67890;
 // Helpers
 
 /**
- * Returns the flat filter values for a given key from the SearchQueryJSON,
- * using the rawFilterList for direct key/value inspection.
+ * Returns the parsed filter entries for a given key from a query string.
+ * Uses `flatFilters` (the standard parsed-filter representation across the app)
+ * so the helper does not depend on `rawFilterList`, which is internal to
+ * SearchQueryUtils and only kept when both `query` and `rawQuery` are supplied.
  */
 function getRawFiltersForKey(inputQuery: string, key: string): Array<{operator: string; value: string | string[]}> {
     const queryJSON = buildSearchQueryJSON(inputQuery);
-    if (!queryJSON?.rawFilterList) {
-        return [];
-    }
-    return queryJSON.rawFilterList.filter((f) => f.key === key).map(({operator, value}) => ({operator, value}));
+    const group = queryJSON?.flatFilters.find((f) => f.key === key);
+    return group?.filters.map(({operator, value}) => ({operator, value: String(value)})) ?? [];
 }
 
 // buildAwaitingApprovalQuery
