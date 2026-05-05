@@ -32,7 +32,6 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
-    getPolicyExpenseChat,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getTransactionDetails,
