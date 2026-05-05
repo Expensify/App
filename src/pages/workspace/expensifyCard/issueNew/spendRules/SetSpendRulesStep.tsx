@@ -1,5 +1,5 @@
 import {format, toZonedTime} from 'date-fns-tz';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
@@ -61,7 +61,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const spendRuleAction = spendRuleForm.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
 
-    const spendRuleToCopy = expensifyCardSettings?.cardRules?.[spendRuleID ?? ''];
+    const spendRuleToCopy = spendRuleID ? expensifyCardSettings?.cardRules?.[spendRuleID] : undefined;
     const spendRoleToCopyFormValue = getSpendRuleFormValuesFromCardRule(spendRuleToCopy);
     const spendRuleToCopySummary = spendRoleToCopyFormValue ? getSpendRuleSummaryText(spendRoleToCopyFormValue, currencyCode, translate, convertToDisplayString) : [];
 
@@ -78,12 +78,12 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const spendRuleTabs = [
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING,
-            title: 'Copy existing',
+            title: translate('workspace.card.issueNewCard.copyExisting'),
             icon: icons.Copy,
         },
         {
             key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW,
-            title: 'Create new',
+            title: translate('workspace.card.issueNewCard.createNew'),
             icon: icons.Pencil,
         },
     ];
@@ -243,10 +243,9 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
                         {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
-                                title={existingSpendRuleTitle}
                                 shouldShowRightIcon
-                                // JACK_TODO
-                                description="Choose a rule"
+                                title={existingSpendRuleTitle}
+                                description={translate('workspace.card.chooseRule')}
                                 onPress={handleChooseSpendRule}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
                             />

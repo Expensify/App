@@ -52,7 +52,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
         return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
-    }, [isEditing, issueNewCard?.data?.cardType]);
+    }, [isEditing]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();

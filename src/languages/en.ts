@@ -6086,6 +6086,8 @@ const translations = {
                 addExpirationDate: 'Add expiration date',
                 addExpirationDateDescription: 'If no specific date is set, card will expire based on the existing expiration date on the card',
                 amount: 'Amount',
+                copyExisting: 'Copy existing',
+                createNew: 'Create new',
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
