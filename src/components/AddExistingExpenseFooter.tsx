@@ -60,6 +60,9 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
+    const iouReportPolicyID = moneyRequestReport?.policyID ?? chatReport?.policyID;
+    const [moneyRequestPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -83,6 +86,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                     quickAction,
                     personalDetails,
                     betas,
+                    moneyRequestPolicyTags,
                 });
             } else {
                 changeTransactionsReport({
