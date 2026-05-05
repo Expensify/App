@@ -7,14 +7,14 @@ import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANT_EDIT>;
+type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_MERCHANT_EDIT>;
 
 export default function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const {policyID, merchantIndex} = route.params;
     const [issueNewCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const merchantNames = issueNewCardForm?.data.cardRuleValue?.merchantNames ?? [];
-    const merchantMatchTypes = issueNewCardForm?.data.cardRuleValue?.merchantMatchTypes ?? [];
+    const merchantNames = issueNewCardForm?.data.spendRuleValue?.merchantNames ?? [];
+    const merchantMatchTypes = issueNewCardForm?.data.spendRuleValue?.merchantMatchTypes ?? [];
 
     return (
         <SpendRuleMerchantEditBase
@@ -23,7 +23,7 @@ export default function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEdit
             merchantMatchTypes={merchantMatchTypes}
             merchantNames={merchantNames}
             onMerchantDataChange={(newMerchantNames, newMerchantMatchTypes) => {
-                setIssueNewCardData(policyID, {cardRuleValue: {merchantNames: newMerchantNames, merchantMatchTypes: newMerchantMatchTypes}});
+                setIssueNewCardData(policyID, {spendRuleValue: {merchantNames: newMerchantNames, merchantMatchTypes: newMerchantMatchTypes}});
             }}
         />
     );

@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,12 +14,10 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateDraftSpendRule} from '@libs/actions/User';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SpendRuleForm';
 
 type SpendRuleMerchantEditBasePageProps = {
@@ -48,7 +46,24 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
     const [merchantName, setMerchantName] = useState(existingMerchantName ?? '');
     const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchantMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
-    const goBack = useCallback(() => navigation.goBack(), [navigation]);
+    const matchTypeItems: MatchTypeItem[] = [
+        {
+            value: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            text: translate('workspace.rules.merchantRules.matchTypeContains'),
+            isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        },
+        {
+            value: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            text: translate('workspace.rules.merchantRules.matchTypeExact'),
+            isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+        },
+    ];
+
+    const goBack = () => {
+        navigation.goBack();
+    };
 
     const submit = () => {
         const trimmedMerchantName = merchantName.trim();
@@ -74,21 +89,6 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
         onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
         goBack();
     };
-
-    const matchTypeItems: MatchTypeItem[] = [
-        {
-            value: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            text: translate('workspace.rules.merchantRules.matchTypeContains'),
-            isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-        },
-        {
-            value: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            text: translate('workspace.rules.merchantRules.matchTypeExact'),
-            isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-        },
-    ];
 
     const onSelectMatchType = (item: MatchTypeItem) => {
         setMatchType(item.value);

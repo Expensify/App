@@ -1376,7 +1376,7 @@ function issueExpensifyCard(
         return;
     }
 
-    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, cardRuleValue, cardRuleID, spendRuleEnabled, spendRuleOption} = data;
+    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID, spendRuleEnabled, spendRuleOption} = data;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -1421,16 +1421,16 @@ function issueExpensifyCard(
         domainAccountID,
     };
 
-    const isCopyingSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && cardRuleID;
-    const isCreatingNewSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && cardRuleValue;
+    const isCopyingSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && spendRuleID;
+    const isCreatingNewSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && spendRuleValue;
 
     if (isCopyingSpendRule) {
-        parameters.cardRuleID = cardRuleID;
+        parameters.cardRuleID = spendRuleID;
     }
 
     if (isCreatingNewSpendRule) {
         parameters.cardRuleID = rand64();
-        parameters.cardRuleValue = JSON.stringify(buildSpendRuleAST(cardRuleValue));
+        parameters.cardRuleValue = JSON.stringify(buildSpendRuleAST(spendRuleValue));
     }
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {

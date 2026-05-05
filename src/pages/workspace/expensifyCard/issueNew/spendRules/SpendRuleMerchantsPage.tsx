@@ -8,15 +8,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MERCHANTS>;
+type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_MERCHANTS>;
 
 export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const policyID = route.params.policyID;
     const [issueNewCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const merchantNames = issueNewCardForm?.data.cardRuleValue?.merchantNames ?? [];
-    const merchantMatchTypes = issueNewCardForm?.data.cardRuleValue?.merchantMatchTypes ?? [];
-    const restrictionAction = issueNewCardForm?.data.cardRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
+    const merchantNames = issueNewCardForm?.data.spendRuleValue?.merchantNames ?? [];
+    const merchantMatchTypes = issueNewCardForm?.data.spendRuleValue?.merchantMatchTypes ?? [];
+    const restrictionAction = issueNewCardForm?.data.spendRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
 
     return (
         <SpendRuleMerchantsBase
@@ -24,7 +24,7 @@ export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPagePr
             action={restrictionAction}
             merchantNames={merchantNames}
             merchantMatchTypes={merchantMatchTypes}
-            getEditMerchantRoute={(merchantIndex) => ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANT_EDIT.getRoute(policyID, merchantIndex)}
+            getEditMerchantRoute={(merchantIndex) => ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANT_EDIT.getRoute(policyID, merchantIndex)}
         />
     );
 }

@@ -7,12 +7,7 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type SpendRuleMaxAmountForm = Form<
-    InputID,
-    {
-        maxAmount: string;
-    }
->;
+type SpendRuleMaxAmountForm = Form<InputID, {maxAmount: string}>;
 
 export type {SpendRuleMaxAmountForm};
 export default INPUT_IDS;

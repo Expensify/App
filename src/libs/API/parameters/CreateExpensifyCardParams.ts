@@ -1,5 +1,3 @@
-import {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
-
 type CreateExpensifyCardParams = {
     assigneeEmail: string;
     limit: number;

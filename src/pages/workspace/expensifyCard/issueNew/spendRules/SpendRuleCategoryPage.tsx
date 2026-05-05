@@ -8,16 +8,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 
-type SpendRuleCategoryEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_CATEGORY>;
+type SpendRuleCategoryEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_CATEGORY>;
 
 export default function SpendRuleCategoryEditPage({route}: SpendRuleCategoryEditPageProps) {
     const policyID = route.params.policyID;
     const [issueNewCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const categories = issueNewCardForm?.data.cardRuleValue?.categories ?? [];
+    const categories = issueNewCardForm?.data.spendRuleValue?.categories ?? [];
 
     const handleCategoriesChange = (newCategories: SpendRuleCategory[]) => {
-        setIssueNewCardData(policyID, {cardRuleValue: {categories: newCategories}});
+        setIssueNewCardData(policyID, {spendRuleValue: {categories: newCategories}});
     };
 
     return (

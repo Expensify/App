@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
-import CardRuleListItem from '@components/SelectionList/ListItem/CardRuleListItem';
-import {CardRuleListItemType} from '@components/SelectionList/ListItem/types';
+import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListItem';
+import {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_SELECTION>;
+type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_SELECTION>;
 
 function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const {policyID} = route.params;
@@ -37,9 +37,9 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.cardRuleID ?? '');
+    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID ?? '');
 
-    const cardRuleListItems: CardRuleListItemType[] = cardRules.map((cardRule) => ({
+    const cardRuleListItems: SpendRuleListItemType[] = cardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
         action: cardRule.action,
         summary: cardRule.cardSummary,
@@ -49,7 +49,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         accessibilityLabel: cardRule.accessibilityLabel,
     }));
 
-    const filterCardRules = (cardRuleListItem: CardRuleListItemType, searchInput: string) => {
+    const filterCardRules = (cardRuleListItem: SpendRuleListItemType, searchInput: string) => {
         const results = tokenizedSearch([cardRuleListItem], searchInput, (option) => option.searchTokens);
         return results.length > 0;
     };
@@ -60,7 +60,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
     };
 
-    const onSelectCardRule = (item: CardRuleListItemType) => {
+    const onSelectCardRule = (item: SpendRuleListItemType) => {
         setCardRuleID(item.keyForList);
         setShouldShowError(false);
     };
@@ -72,7 +72,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         }
 
         setShouldShowError(false);
-        setIssueNewCardData(policyID, {cardRuleID}).then(() => {
+        setIssueNewCardData(policyID, {spendRuleID: cardRuleID}).then(() => {
             goBack();
         });
     };
@@ -117,7 +117,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
 
                 {!isLoadingCardRules && (
                     <SelectionList
-                        ListItem={CardRuleListItem}
+                        ListItem={SpendRuleListItem}
                         data={filteredCardRules}
                         canSelectMultiple={false}
                         customListHeader={headerContent}

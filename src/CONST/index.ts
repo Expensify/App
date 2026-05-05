@@ -4044,7 +4044,7 @@ const CONST = {
             STOLEN: 'stolen',
             DAMAGED: 'damaged',
         },
-        CARD_RULE_OPTION: {
+        SPEND_RULE_OPTION: {
             COPY_EXISTING: 'copy',
             CREATE_NEW: 'create',
         },

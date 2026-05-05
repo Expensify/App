@@ -54,11 +54,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const isEditing = issueNewCard?.isEditing;
     const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
 
-    const spendRuleID = issueNewCard?.data?.cardRuleID;
-    const spendRuleForm = issueNewCard?.data.cardRuleValue ?? {};
+    const spendRuleID = issueNewCard?.data?.spendRuleID;
+    const spendRuleForm = issueNewCard?.data.spendRuleValue ?? {};
     const spendRuleEnabled = issueNewCard?.data.spendRuleEnabled ?? false;
     const spendRuleAction = spendRuleForm.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
-    const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING;
+    const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
 
     const spendRuleToCopy = expensifyCardSettings?.cardRules?.[spendRuleID ?? ''];
     const spendRoleToCopyFormValue = getSpendRuleFormValuesFromCardRule(spendRuleToCopy);
@@ -76,12 +76,12 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
     const spendRuleTabs = [
         {
-            key: CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING,
+            key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING,
             title: 'Copy existing',
             icon: icons.Copy,
         },
         {
-            key: CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW,
+            key: CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW,
             title: 'Create new',
             icon: icons.Pencil,
         },
@@ -100,7 +100,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return;
         }
         setSpendRuleErrorMessage('');
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_SELECTION.getRoute(policyID));
     };
 
     const handleSpendRuleOptionSelection = (option: string) => {
@@ -109,7 +109,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         }
 
         setSpendRuleErrorMessage('');
-        setIssueNewCardData(policyID, {spendRuleOption: option as ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_RULE_OPTION>});
+        setIssueNewCardData(policyID, {spendRuleOption: option as ValueOf<typeof CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION>});
     };
 
     const handleSelectRestrictionAction = (action: string) => {
@@ -118,7 +118,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         }
 
         setSpendRuleErrorMessage('');
-        setIssueNewCardData(policyID, {cardRuleValue: {restrictionAction: action as ValueOf<typeof CONST.SPEND_RULES.ACTION>}});
+        setIssueNewCardData(policyID, {spendRuleValue: {restrictionAction: action as ValueOf<typeof CONST.SPEND_RULES.ACTION>}});
     };
 
     const handleBackButtonPress = () => {
@@ -140,11 +140,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return '';
         }
 
-        if (spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && !spendRuleID) {
+        if (spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && !spendRuleID) {
             return translate('workspace.card.chooseRule');
         }
 
-        if (spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && !hasAnyRuleApplied) {
+        if (spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && !hasAnyRuleApplied) {
             return translate('workspace.rules.spendRules.confirmErrorApplyAtLeastOneSpendRule');
         }
 
@@ -251,7 +251,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             onTabPress={handleSpendRuleOptionSelection}
                         />
 
-                        {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
+                        {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
                                 titleComponent={existingSpendRuleTitleComponent}
                                 shouldShowRightIcon
@@ -261,7 +261,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             />
                         )}
 
-                        {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && (
+                        {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (
                             <View>
                                 <View style={[styles.ph5, styles.pv3]}>
                                     <SpendRuleRestrictionTypeToggle
@@ -278,7 +278,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
                                         setSpendRuleErrorMessage('');
-                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANTS.getRoute(policyID));
+                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANTS.getRoute(policyID));
                                     }}
                                 />
                                 <MenuItemWithTopDescription
@@ -290,7 +290,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
                                         setSpendRuleErrorMessage('');
-                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_CATEGORY.getRoute(policyID));
+                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_CATEGORY.getRoute(policyID));
                                     }}
                                 />
                                 <MenuItemWithTopDescription
@@ -301,7 +301,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
                                         setSpendRuleErrorMessage('');
-                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MAX_AMOUNT.getRoute(policyID));
+                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MAX_AMOUNT.getRoute(policyID));
                                     }}
                                 />
                             </View>

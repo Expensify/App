@@ -7,13 +7,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import {CardRuleListItemProps, CardRuleListItemType, ListItem} from './types';
+import {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
 
-function CardRuleListItem<TItem extends ListItem>({item, onSelectRow}: CardRuleListItemProps<TItem>) {
+function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRuleListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {getMinimumWidth} = useStyleUtils();
 
-    const cardRule = item as unknown as CardRuleListItemType;
+    const cardRule = item as unknown as SpendRuleListItemType;
     const isBlockingRule = cardRule.action === CONST.SPEND_RULES.ACTION.BLOCK;
 
     const rightHandSideComponent = () => (
@@ -69,4 +69,4 @@ function CardRuleListItem<TItem extends ListItem>({item, onSelectRow}: CardRuleL
     );
 }
 
-export default CardRuleListItem;
+export default SpendRuleListItem;

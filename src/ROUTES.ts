@@ -2867,23 +2867,23 @@ const ROUTES = {
         route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
         getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_RULE_SELECTION: {
+    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_SELECTION: {
         route: 'workspaces/:policyID/expensify-card/rules/selection',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/selection` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANTS: {
+    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANTS: {
         route: 'workspaces/:policyID/expensify-card/rules/merchants',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/merchants` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANT_EDIT: {
+    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANT_EDIT: {
         route: 'workspaces/:policyID/expensify-card/rules/merchants/edit/:merchantIndex',
         getRoute: (policyID: string, merchantIndex: string) => `workspaces/${policyID}/expensify-card/rules/merchants/edit/${merchantIndex}` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_RULE_CATEGORY: {
+    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_CATEGORY: {
         route: 'workspaces/:policyID/expensify-card/rules/category',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/category` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_RULE_MAX_AMOUNT: {
+    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MAX_AMOUNT: {
         route: 'workspaces/:policyID/expensify-card/rules/max-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/max-amount` as const,
     },

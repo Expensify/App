@@ -33,8 +33,8 @@ export default function useExpensifyCardRules(policyID: string) {
                 return undefined;
             }
 
-            const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
             const activeCardIDs = formValues.cardIDs.filter((cardID) => !!cardsList?.[cardID]);
+            const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
 
             if (activeCardIDs.length === 0) {
                 return undefined;

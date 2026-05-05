@@ -74,7 +74,9 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
         });
     };
 
-    const goBack = () => Navigation.goBack();
+    const goBack = () => {
+        Navigation.goBack();
+    };
 
     const handleSave = () => {
         onCategoriesChange(selectedCategories);

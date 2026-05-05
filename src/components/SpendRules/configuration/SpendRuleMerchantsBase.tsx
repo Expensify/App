@@ -26,10 +26,10 @@ type SpendRuleMerchantsBaseProps = {
 };
 
 function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantNames, getEditMerchantRoute}: SpendRuleMerchantsBaseProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
+    const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
 
     const emptyStateTitle =
         action === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.noBlockedMerchants') : translate('workspace.rules.spendRules.noAllowedMerchants');

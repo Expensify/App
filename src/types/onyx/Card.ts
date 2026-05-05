@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import {SpendRuleCategory} from '../form/SpendRuleForm';
 import type {CardFeedWithNumber} from './CardFeeds';
-import {ExpensifyCardRule} from './ExpensifyCardSettings';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -343,13 +342,13 @@ type IssueNewCardData = {
     spendRuleEnabled?: boolean;
 
     /** Whether or not we will use an existing spend rule, or create a new one */
-    spendRuleOption?: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_RULE_OPTION>;
+    spendRuleOption?: ValueOf<typeof CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION>;
 
     /** Optional card rule ID for card rule creation/duplicating */
-    cardRuleID?: string;
+    spendRuleID?: string;
 
     /** Optional card rule value for creating a new card rule */
-    cardRuleValue?: {
+    spendRuleValue?: {
         /** The type of restriction on the card */
         restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
 

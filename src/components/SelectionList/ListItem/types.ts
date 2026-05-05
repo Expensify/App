@@ -11,7 +11,6 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import {SpendRuleForm} from '@src/types/form';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -348,17 +347,17 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         accessible?: boolean;
     };
 
-type CardRuleListItemType = ListItem & {
+type SpendRuleListItemType = ListItem & {
     /** The action for this rule */
     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
 
     /** The cards that the spend rule applies to */
     summary: string;
 
-    /** The summary parts for the card rule */
+    /** The summary parts for the spend rule */
     summaryParts: SpendRuleSummaryPart[];
 
-    /** A list of relevant tokens for searching for specific card rules */
+    /** A list of relevant tokens for searching for specific spend rules */
     searchTokens: string[];
 };
 
@@ -401,7 +400,7 @@ type SplitListItemType = ListItem &
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type CardRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -437,8 +436,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 export type {
-    CardRuleListItemType,
-    CardRuleListItemProps,
+    SpendRuleListItemType,
+    SpendRuleListItemProps,
     BaseListItemProps,
     ExtendedTargetedEvent,
     ListItem,

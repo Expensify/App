@@ -8,17 +8,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-type SpendRuleMaxAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_RULE_MAX_AMOUNT>;
+type SpendRuleMaxAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_MAX_AMOUNT>;
 
 export default function SpendRuleMaxAmountPage({route}: SpendRuleMaxAmountPageProps) {
     const {policyID} = route.params;
     const [issueNewCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const defaultValue = issueNewCardForm?.data.cardRuleValue?.maxAmount ?? '';
+    const defaultValue = issueNewCardForm?.data.spendRuleValue?.maxAmount ?? '';
     const selectedCurrency = issueNewCardForm?.data.currency ?? CONST.CURRENCY.USD;
 
     const handleMaxAmountChange = (maxAmount: string) => {
-        setIssueNewCardData(policyID, {cardRuleValue: {maxAmount}});
+        setIssueNewCardData(policyID, {spendRuleValue: {maxAmount}});
     };
 
     return (
