@@ -16,7 +16,7 @@ import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings,canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy, isSubmitPolicy as isSubmitPolicyUtils} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy, isSubmitPolicy as isSubmitPolicyUtils} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
