@@ -353,8 +353,6 @@
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/immutability"	2
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionMerge/MergeFieldReview.tsx"	"no-restricted-syntax"	1
 "../../src/pages/TransactionMerge/TransactionMergeReceipts.tsx"	"no-restricted-syntax"	1

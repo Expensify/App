@@ -24,7 +24,6 @@ import type {
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
@@ -53,12 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -874,7 +869,7 @@ const translations: TranslationDeepObject<typeof en> = {
         humanSupportAgent: 'un agente di supporto umano',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `ha creato questo report per raccogliere tutte le spese da <a href="${reportUrl}">${reportName}</a> che non potevano essere inviate con la frequenza scelta`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `ha creato questo rendiconto per tutte le spese in sospeso dal rendiconto eliminato n. ${reportID}`
                 : `ha creato questo report per tutte le spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
@@ -1119,6 +1114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Conferma i dettagli riportati di seguito per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri già esistenti non riceveranno aggiornamenti di ruolo o messaggi di invito.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'Le nuove carte e transazioni potrebbero impiegare un po’ di tempo per apparire, attendi per favore.',
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1411,8 +1407,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `imposta ${translatedChangedField} su ${newMerchant}, che ha impostato l’importo su ${newAmountToDisplay}`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `il/la ${valueName} (precedentemente ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} a ${newValueToDisplay} (in precedenza ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `${valueName} a ${newValueToDisplay} (in precedenza ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `ha modificato ${translatedChangedField} in ${newMerchant} (precedentemente ${oldMerchant}), aggiornando l'importo a ${newAmountToDisplay} (precedentemente ${oldAmountToDisplay})`,
         basedOnAI: 'in base all’attività precedente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `in base alle <a href="${rulesLink}">regole dello spazio di lavoro</a>` : 'in base alle regole della workspace'),
@@ -2725,9 +2721,9 @@ ${amount} per ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenti',
-        subtitle: 'Automatizza le attività con agenti personalizzati.',
+        subtitle: 'Crea agenti per gestire il tuo flusso di lavoro. Elimina il lavoro manuale e recupera ore della tua giornata.',
         newAgent: 'Nuovo agente',
-        emptyAgents: {title: 'Nessun agente creato', subtitle: 'Smetti di fare le cose manualmente. Dai invece istruzioni a un agente e risparmia un sacco di tempo.'},
+        emptyAgents: {title: 'Nessun agente creato', subtitle: 'Smetti di fare le cose manualmente. Dai istruzioni a un agente e risparmia un sacco di tempo.'},
     },
     expenseRulesPage: {
         title: 'Regole spese',
@@ -3526,8 +3522,8 @@ ${amount} per ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Inserisci un numero di telefono valido senza parentesi né trattini. Se ti trovi fuori dagli Stati Uniti, includi il prefisso internazionale del tuo paese (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email non valida',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già membro di ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un amministratore di ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} è già membro di ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} è già un amministratore di ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivazione del tuo Expensify Wallet, confermi di aver letto, compreso e accettato',
@@ -5370,7 +5366,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 monthly: 'Mensile',
             },
             cardDetails: 'Dettagli carta',
-            cardPending: ({name}: {name: string}) => `La carta è al momento in sospeso e verrà emessa non appena l'account di ${name} sarà convalidato.`,
             virtual: 'Virtuale',
             physical: 'Fisico',
             deactivate: 'Disattiva carta',
@@ -7395,6 +7390,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         setReceiptRequiredAmount: (newValue: string) => `imposta l’importo richiesto per la ricevuta su "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `ha modificato l’importo richiesto per la ricevuta in "${newValue}" (in precedenza "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `ha rimosso l’importo richiesto per la ricevuta (in precedenza «${oldValue}»)`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `imposta l’importo richiesto per la ricevuta con voci singole su "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) =>
+            `ha modificato l’importo richiesto per la ricevuta con voci a "${newValue}" (in precedenza "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `ha rimosso l’importo richiesto per la ricevuta dettagliata (precedentemente "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `imposta l’importo massimo della spesa su "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `ha modificato l'importo massimo della spesa a "${newValue}" (precedentemente "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `importo massimo spesa rimosso (precedentemente "${oldValue}")`,
@@ -8350,7 +8349,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione obbligatoria per la categoria selezionata',
         missingAttendees: 'Per questa categoria sono richiesti più partecipanti',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
+        missingTag: (tagName?: string) => `Manca ${tagName ?? 'etichetta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -9160,6 +9159,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             emptyMembers: {title: 'Nessun membro in questo gruppo', subtitle: 'Aggiungi un membro o prova a cambiare il filtro qui sopra.'},
             moveToGroup: 'Sposta nel gruppo',
             chooseWhereToMove: ({count}: {count: number}) => `Scegli dove spostare ${count} ${count === 1 ? 'membro' : 'membri'}.`,
+            domainGroup: 'Gruppo di domini',
+            chooseWhereToMoveName: ({name}: {name: string}) => `Scegli dove spostare ${name}.`,
         },
         common: {
             settings: 'Impostazioni',
@@ -9180,8 +9181,16 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             makeDefault: 'Imposta come predefinito',
             neverMind: 'Lascia perdere',
             permissions: 'Autorizzazioni del gruppo',
-            StrictlyEnforceWorkspaceRules: 'Applica rigorosamente le regole dello spazio di lavoro',
-            StrictlyEnforceWorkspaceRulesDescription: 'Tutte le regole dello spazio di lavoro devono essere soddisfatte prima di inviare un rapporto. Non sono consentite eccezioni manuali.',
+            strictlyEnforceWorkspaceRules: 'Applica rigorosamente le regole dello spazio di lavoro',
+            strictlyEnforceWorkspaceRulesDescription: 'Tutte le regole dello spazio di lavoro devono essere soddisfatte prima di inviare un rapporto. Non sono consentite eccezioni manuali.',
+            restrictExpenseWorkspaceCreation: 'Limita la creazione/rimozione dell’area di lavoro spese',
+            restrictExpenseWorkspaceCreationDescription:
+                'Impedisci ai membri di poter creare un’area di lavoro spese o di rimuoversi da un’area di lavoro spese. Questo è utile per impedire alle persone di utilizzare Expensify per inviare report destinati a un uso al di fuori del tuo dominio, se combinato con un’applicazione rigorosa dell’area di lavoro.',
+            deleteGroup: 'Elimina gruppo',
+            deleteGroupDangerConfirmationModal: 'Elimina gruppo',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `Sei sicuro? Questo riassegnerà tutti i membri al gruppo predefinito (${defaultGroupName}) e non potrà essere annullato.`,
+            deleteGroupError: 'Impossibile eliminare questo gruppo. Riprova.',
         },
     },
     proactiveAppReview: {

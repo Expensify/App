@@ -159,7 +159,9 @@ import {
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
+    isInvoiceReport,
     isIOUReportUsingReport,
+    isMoneyRequestReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportManuallyReimbursed,
@@ -2000,7 +2002,7 @@ function createTransactionThreadReport(
     }
 
     const optimisticTransactionThreadReportID = generateReportID();
-    const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
+    const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, currentUserAccountID, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const participantAccountIDsForDetails = [currentUserAccountID];
     if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
@@ -5535,7 +5537,20 @@ function resolveActionableMentionWhisper(
 
     // When the action belongs to a child report (e.g. a one-transaction thread), also update
     // the parent report's participants so the members list the user is viewing updates immediately.
-    const parentInviteData = isInviteResolution && parentReport?.reportID && parentReport.reportID !== reportID ? buildParticipantsInviteData(parentReport, inviteeAccountIDs) : undefined;
+    // When parentReport is the same as the current report (e.g. viewing a transaction thread directly),
+    // fall back to the report's parentReportID to find the actual ancestor (IOU/expense/invoice report).
+    const isParentReportDifferent = !!parentReport?.reportID && parentReport.reportID !== reportID;
+    let parentInviteData = isInviteResolution && isParentReportDifferent ? buildParticipantsInviteData(parentReport, inviteeAccountIDs) : undefined;
+    if (!parentInviteData && isInviteResolution && report?.parentReportID && report.parentReportID !== reportID) {
+        const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        if (ancestorReport && (isMoneyRequestReport(ancestorReport) || isInvoiceReport(ancestorReport))) {
+            parentInviteData = buildParticipantsInviteData(ancestorReport, inviteeAccountIDs);
+        }
+    }
+    let parentReportIDForUpdate: string | undefined;
+    if (parentInviteData) {
+        parentReportIDForUpdate = isParentReportDifferent ? parentReport.reportID : report?.parentReportID;
+    }
     const parentParticipantsOptimisticData = parentInviteData?.optimistic;
     const parentParticipantsFailureData = parentInviteData?.failure;
 
@@ -5562,10 +5577,10 @@ function resolveActionableMentionWhisper(
         },
     ];
 
-    if (parentParticipantsOptimisticData && parentReport?.reportID) {
+    if (parentParticipantsOptimisticData && parentReportIDForUpdate) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportIDForUpdate}`,
             value: parentParticipantsOptimisticData,
         });
     }
@@ -5593,10 +5608,10 @@ function resolveActionableMentionWhisper(
         },
     ];
 
-    if (parentParticipantsFailureData && parentReport?.reportID) {
+    if (parentParticipantsFailureData && parentReportIDForUpdate) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportIDForUpdate}`,
             value: parentParticipantsFailureData,
         });
     }
@@ -7581,14 +7596,6 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-function setConciergeThinkingKickoff() {
-    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, true);
-}
-
-function clearConciergeThinkingKickoff() {
-    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
-}
-
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo};
 
 export {
@@ -7707,6 +7714,4 @@ export {
     prepareOnyxDataForCleanUpOptimisticParticipants,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
-    setConciergeThinkingKickoff,
-    clearConciergeThinkingKickoff,
 };
