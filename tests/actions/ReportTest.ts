@@ -7844,5 +7844,33 @@ describe('actions/Report', () => {
             const reportValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
             expect(reportValue?.reportName).not.toBe(CONST.REPORT.DEFAULT_REPORT_NAME);
         });
+
+        // Adversarial (state-leak / regression): tapping two distinct multi-tx reports
+        // back-to-back from a cold cache must not leave both reports stamped with the
+        // shared DEFAULT_REPORT_NAME placeholder. Today both calls hit the fallback at
+        // src/libs/actions/Report/index.ts:1340, so the assertion that neither destination
+        // equals "Chat Report" fails. After the fix, each report's name should come from
+        // the upstream (Search snapshot seed or API), not the placeholder.
+        it('does not stamp "Chat Report" on either of two back-to-back cold-cache opens (#88162)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const REPORT_A = '88162-multi-tx-A';
+            const REPORT_B = '88162-multi-tx-B';
+
+            // Given: cold cache for two distinct multi-tx reports (no entries in
+            // COLLECTION.REPORT, no report actions for either).
+
+            // When: a user taps report A, then immediately taps report B from Search —
+            // both pages mount and call openReport before any API responds.
+            Report.openReport({reportID: REPORT_A, introSelected: undefined, betas: undefined});
+            Report.openReport({reportID: REPORT_B, introSelected: undefined, betas: undefined});
+            await waitForBatchedUpdates();
+
+            // Then: neither destination should display the placeholder. If both keys
+            // hold DEFAULT_REPORT_NAME, the user sees "Chat Report" flash on both pages.
+            const reportA = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A}`);
+            const reportB = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_B}`);
+            expect(reportA?.reportName).not.toBe(CONST.REPORT.DEFAULT_REPORT_NAME);
+            expect(reportB?.reportName).not.toBe(CONST.REPORT.DEFAULT_REPORT_NAME);
+        });
     });
 });
