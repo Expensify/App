@@ -2,11 +2,11 @@ import React from 'react';
 import SpendRuleMaxAmountBase from '@components/SpendRules/configuration/SpendRuleMaxAmountBase';
 import useOnyx from '@hooks/useOnyx';
 import {setIssueNewCardData} from '@libs/actions/Card';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type SpendRuleMaxAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_MAX_AMOUNT>;
 

@@ -1,12 +1,12 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import SpendRuleMerchantsBase from '@components/SpendRules/configuration/SpendRuleMerchantsBase';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import useOnyx from '@hooks/useOnyx';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_MERCHANTS>;
 

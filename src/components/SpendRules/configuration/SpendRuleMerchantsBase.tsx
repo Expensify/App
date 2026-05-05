@@ -1,7 +1,5 @@
-import type {NavigationProp} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,13 +13,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 
 type SpendRuleMerchantsBaseProps = {
     policyID: string;
     action: string;
     merchantNames: string[];
-    merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[];
+    merchantMatchTypes: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
     getEditMerchantRoute: (merchantIndex: string) => Route;
 };
 

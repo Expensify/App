@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import {SpendRuleCategory} from '../form/SpendRuleForm';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';

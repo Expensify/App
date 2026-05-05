@@ -2,10 +2,10 @@ import React from 'react';
 import SpendRuleMerchantEditBase from '@components/SpendRules/configuration/SpendRuleMerchantEditBase';
 import useOnyx from '@hooks/useOnyx';
 import {setIssueNewCardData} from '@libs/actions/Card';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_MERCHANT_EDIT>;
 

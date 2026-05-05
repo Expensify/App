@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import {FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -32,8 +32,8 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
         Navigation.goBack();
     };
 
-    const onSubmit = ({maxAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM>) => {
-        onMaxAmountChange(maxAmount.trim());
+    const onSubmit = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM>) => {
+        onMaxAmountChange(form.maxAmount.trim());
         goBack();
     };
 

@@ -7,7 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
+import type {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
 
 function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRuleListItemProps<TItem>) {
     const styles = useThemeStyles();

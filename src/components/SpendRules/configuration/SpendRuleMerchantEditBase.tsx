@@ -24,8 +24,8 @@ type SpendRuleMerchantEditBasePageProps = {
     policyID: string;
     merchantIndex: string;
     merchantNames: string[];
-    merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[];
-    onMerchantDataChange: (merchantNames: string[], merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[]) => void;
+    merchantMatchTypes: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+    onMerchantDataChange: (merchantNames: string[], merchantMatchTypes: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>) => void;
 };
 
 type MatchTypeItem = ListItem & {

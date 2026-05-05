@@ -2,11 +2,11 @@ import React from 'react';
 import SpendRuleCategoryBase from '@components/SpendRules/configuration/SpendRuleCategoryBase';
 import useOnyx from '@hooks/useOnyx';
 import {setIssueNewCardData} from '@libs/actions/Card';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type SCREENS from '@src/SCREENS';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 
 type SpendRuleCategoryEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SPEND_RULE_CATEGORY>;
 

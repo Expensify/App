@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListItem';
-import {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
+import type {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +37,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID ?? '');
+    const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
 
     const cardRuleListItems: SpendRuleListItemType[] = cardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
@@ -65,7 +65,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         setShouldShowError(false);
     };
 
-    const onSubmit = async () => {
+    const onSubmit = () => {
         if (!cardRuleID) {
             setShouldShowError(true);
             return;

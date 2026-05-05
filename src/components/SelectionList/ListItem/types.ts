@@ -7,7 +7,7 @@ import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
+import type {SpendRuleSummaryPart} from '@libs/SpendRulesUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -413,8 +413,6 @@ type SplitListItemType = ListItem &
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 

@@ -3,7 +3,7 @@ import SpendRuleCategoryBase from '@components/SpendRules/configuration/SpendRul
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 
 function SpendRuleCategoryPage() {
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
