@@ -17,6 +17,7 @@ export type {default as BeginAppleSignInParams} from './BeginAppleSignInParams';
 export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams';
 export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
+export type {default as RevokeDeviceParams} from './RevokeDeviceParams';
 export type {default as CloseSidePanelParams} from './CloseSidePanelParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
@@ -519,3 +520,4 @@ export type {default as ExportDomainMembersCSVParams} from './ExportDomainMember
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
+export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';

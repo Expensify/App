@@ -14,7 +14,6 @@ jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmoji
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
 
 jest.mock('@libs/Clipboard', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         canSetHtml: jest.fn(),
@@ -24,7 +23,6 @@ jest.mock('@libs/Clipboard', () => ({
 }));
 
 jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));

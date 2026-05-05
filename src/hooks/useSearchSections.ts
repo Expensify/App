@@ -7,6 +7,7 @@ import type {Report} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -39,6 +40,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
@@ -76,6 +78,7 @@ function useSearchSections(): UseSearchSectionsResult {
             cardFeeds,
             allReportMetadata,
             conciergeReportID,
+            convertToDisplayString,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }

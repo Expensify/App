@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {
     areTransactionsEligibleForMerge,
     buildMergedTransactionData,
@@ -825,7 +826,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
-            const result = getDisplayValue('merchant', transaction, undefined, translateLocal);
+            const result = getDisplayValue('merchant', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return empty string
             expect(result).toBe('');
@@ -840,8 +841,8 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
-            const reimbursableResult = getDisplayValue('reimbursable', transaction, undefined, translateLocal);
-            const billableResult = getDisplayValue('billable', transaction, undefined, translateLocal);
+            const reimbursableResult = getDisplayValue('reimbursable', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const billableResult = getDisplayValue('billable', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return translated Yes/No values
             expect(reimbursableResult).toBe('common.yes');
@@ -857,7 +858,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
-            const result = getDisplayValue('amount', transaction, undefined, translateLocal);
+            const result = getDisplayValue('amount', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return formatted currency string
             expect(result).toBe('$10.00');
@@ -873,7 +874,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
-            const result = getDisplayValue('description', transaction, undefined, translateLocal);
+            const result = getDisplayValue('description', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
             expect(result).toBe('This is a test description with line breaks and more text');
@@ -887,13 +888,13 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
-            const result = getDisplayValue('tag', transaction, undefined, translateLocal);
+            const result = getDisplayValue('tag', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return sanitized tag names separated by commas
             expect(result).toBe('Department, Engineering, Frontend');
         });
 
-        it('should return correct value for attendees field', () => {
+        it('should return attendees in alphabetical order regardless of insertion order', () => {
             const transaction = {
                 ...createRandomTransaction(0),
                 comment: {
@@ -904,9 +905,9 @@ describe('MergeTransactionUtils', () => {
                     ],
                 },
             };
-            const result = getDisplayValue('attendees', transaction, undefined, translateLocal);
+            const result = getDisplayValue('attendees', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
-            expect(result).toBe('Test User 2, Test User 1');
+            expect(result).toBe('Test User 1, Test User 2');
         });
 
         it('should return string values directly', () => {
@@ -919,8 +920,8 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
-            const merchantResult = getDisplayValue('merchant', transaction, undefined, translateLocal);
-            const categoryResult = getDisplayValue('category', transaction, undefined, translateLocal);
+            const merchantResult = getDisplayValue('merchant', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const categoryResult = getDisplayValue('category', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
@@ -935,7 +936,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return translated "None"
             expect(result).toBe('common.none');
@@ -950,7 +951,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return the reportName
             expect(result).toBe('Test Report Name');
@@ -976,7 +977,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
 
             // Then it should return the report's name from Onyx
             expect(result).toBe(report.reportName);
