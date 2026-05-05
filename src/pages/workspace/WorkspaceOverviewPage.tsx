@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -100,7 +100,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -202,6 +202,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
+    const prevIsPendingDeleteRef = useRef(isPendingDelete);
+    const isErrorModalShowingRef = useRef(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
     const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
@@ -268,6 +270,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             accountIDToLogin: accountIDToLogin ?? {},
         });
         if (isOffline) {
+            closeModal();
+
             if (hasDeleteWorkspaceExpensifyCardsError) {
                 return;
             }
@@ -286,8 +290,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            isConfirmLoading: isPendingDeletePolicy(policy),
             danger: true,
+            isConfirmLoading: isPendingDelete,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -322,30 +326,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
-    const [prevDeleteState, setPrevDeleteState] = useState({isFocused, isPendingDelete});
-    if (prevDeleteState.isPendingDelete !== isPendingDelete || prevDeleteState.isFocused !== isFocused) {
-        setPrevDeleteState({isFocused, isPendingDelete});
-        if (isFocused && prevDeleteState.isPendingDelete && !isPendingDelete) {
-            if (!policyLastErrorMessage) {
-                if (isOffline && hasExpensifyCard) {
-                    return;
-                }
-
-                goBackFromInvalidPolicy();
-            } else {
-                showConfirmModal({
-                    title: translate('workspace.common.delete'),
-                    prompt: policyLastErrorMessage,
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                    success: false,
-                }).then(() => {
-                    hideDeleteWorkspaceErrorModal();
-                });
-            }
-        }
+    useEffect(() => {
+        const prevIsPendingDeleteValue = prevIsPendingDeleteRef.current;
+        prevIsPendingDeleteRef.current = isPendingDelete;
 
         if (isOffline && policyLastErrorMessage && hasExpensifyCard) {
+            if (isErrorModalShowingRef.current) {
+                return;
+            }
+            isErrorModalShowingRef.current = true;
             showConfirmModal({
                 title: translate('workspace.common.delete'),
                 prompt: policyLastErrorMessage,
@@ -353,10 +342,40 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 shouldShowCancelButton: false,
                 success: false,
             }).then(() => {
+                isErrorModalShowingRef.current = false;
                 hideDeleteWorkspaceErrorModal();
             });
+            return;
         }
-    }
+
+        if (!prevIsPendingDeleteValue || isPendingDelete || !policyID) {
+            return;
+        }
+
+        closeModal();
+
+        if (!policyLastErrorMessage) {
+            if (!(isOffline && hasExpensifyCard)) {
+                goBackFromInvalidPolicy();
+            }
+            return;
+        }
+
+        if (!isFocused || isErrorModalShowingRef.current) {
+            return;
+        }
+        isErrorModalShowingRef.current = true;
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: policyLastErrorMessage,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            success: false,
+        }).then(() => {
+            isErrorModalShowingRef.current = false;
+            hideDeleteWorkspaceErrorModal();
+        });
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyLastErrorMessage, isPendingDelete, isFocused, policyID, closeModal, hasExpensifyCard]);
 
     const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
