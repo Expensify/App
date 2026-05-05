@@ -45,7 +45,6 @@ function DuplicateTransactionsList({transactions, selectedTransactionID, onSelec
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 maintainVisibleContentPosition={maintainVisibleContentPosition}
-                scrollEnabled={false}
             />
         </View>
     );
