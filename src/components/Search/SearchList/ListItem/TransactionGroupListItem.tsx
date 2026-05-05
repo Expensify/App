@@ -14,6 +14,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -94,6 +95,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
@@ -141,6 +143,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             conciergeReportID,
+            convertToDisplayString,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -214,7 +217,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...(isLastItem ? styles.searchTableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
-        !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
     ];
     const pressableRef = useRef<View>(null);
 
@@ -541,7 +543,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden], isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]],
+                        : [
+                              !isFirstItem && styles.borderTop,
+                              isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
+                              isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                          ],
                 ]}
             >
                 {({hovered}) => (
@@ -552,7 +558,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             onPress={onExpandIconPress}
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
-                            borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
+                            borderBottomStyle={isLargeScreenWidth && styles.borderNone}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem
