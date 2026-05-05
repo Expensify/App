@@ -1,13 +1,12 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import CategorySelector from '@components/CategorySelector';
+import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import type {UnitItemType} from '@components/UnitPicker';
@@ -21,7 +20,6 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyCustomUnitDefaultCategory} from '@userActions/Policy/Category';
 import {clearPolicyDistanceRatesErrorFields, setPolicyDistanceRatesUnit} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -39,7 +37,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const styles = useThemeStyles();
-    const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
     const customUnit = getDistanceRateCustomUnit(policy);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
@@ -57,14 +54,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         }
         const attributes = {...customUnit?.attributes, unit: unit.value};
         setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
-    };
-
-    const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
-            return;
-        }
-
-        setPolicyCustomUnitDefaultCategory(policyID, customUnit.customUnitID, customUnit.defaultCategory, category.searchText);
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
@@ -117,22 +106,18 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && (
+                            {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
                                     pendingAction={customUnit?.pendingFields?.defaultCategory}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('defaultCategory')}
                                 >
-                                    <CategorySelector
-                                        policyID={policyID}
+                                    <CustomUnitDefaultCategorySelector
                                         label={translate('workspace.common.defaultCategory')}
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
-                                        setNewCategory={setNewCategory}
-                                        isPickerVisible={isCategoryPickerVisible}
-                                        showPickerModal={() => setIsCategoryPickerVisible(true)}
-                                        hidePickerModal={() => setIsCategoryPickerVisible(false)}
+                                        customUnitID={customUnit.customUnitID}
                                     />
                                 </OfflineWithFeedback>
                             )}

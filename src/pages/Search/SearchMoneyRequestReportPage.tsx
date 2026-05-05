@@ -209,8 +209,6 @@ function SearchMoneyRequestReportPageContent({route, reportIDFromRoute}: SearchM
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
-    // Tracks initial mount to ensure openReport is called once for multi-transaction reports
-
     useEffect(() => {
         // Guard prevents calling openReport for multi-transaction reports
         if (visibleTransactions.length > 2 && !isInitialMountRef.current) {

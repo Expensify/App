@@ -41,13 +41,13 @@ import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initSplitExpense from '@libs/actions/SplitExpenses';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
-import {hasEnabledOptions, sortAlphabetically} from '@libs/OptionsListUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
@@ -82,6 +82,7 @@ import {
 } from '@libs/ReportUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {
+    getAttendeesListDisplayString,
     getBillable,
     getCurrency,
     getDescription,
@@ -283,7 +284,8 @@ function MoneyRequestView({
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
-    const actualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
+    const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
+    const actualAttendees = enrichAndSortAttendees(rawActualAttendees, personalDetailsList, localeCompare);
 
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
@@ -802,7 +804,8 @@ function MoneyRequestView({
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
 
-    const getAttendeesTitle = Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
+    // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while stripping the SMS domain.
+    const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees) : '';
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
@@ -1171,21 +1174,7 @@ function MoneyRequestView({
                             titleComponent={
                                 Array.isArray(actualAttendees) ? (
                                     <UserPills
-                                        users={sortAlphabetically(
-                                            actualAttendees.map((a) => {
-                                                const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
-                                                const freshAvatar = typeof pd?.avatar === 'string' ? pd.avatar : undefined;
-                                                return {
-                                                    ...a,
-                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                                    displayName: pd?.displayName || a?.displayName,
-                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                                    avatarUrl: freshAvatar || a?.avatarUrl,
-                                                };
-                                            }),
-                                            'displayName',
-                                            localeCompare,
-                                        ).map((a) => ({
+                                        users={actualAttendees.map((a) => ({
                                             avatar: a?.avatarUrl,
                                             displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                                             accountID: a?.accountID,
