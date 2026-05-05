@@ -1,7 +1,6 @@
 import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -47,6 +46,20 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
+    const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
+
+    const isEditing = issueNewCard?.isEditing;
+    const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
+
+    const spendRuleID = issueNewCard?.data?.cardRuleID;
+    const spendRuleForm = issueNewCard?.data.cardRuleValue ?? {};
+    const spendRuleEnabled = issueNewCard?.data.spendRuleEnabled ?? false;
+    const spendRuleAction = spendRuleForm.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
+    const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING;
+
+    const spendRuleToCopy = expensifyCardSettings?.cardRules?.[spendRuleID ?? ''];
+    const spendRoleToCopyFormValue = getSpendRuleFormValuesFromCardRule(spendRuleToCopy);
+    const spendRuleToCopySummary = spendRoleToCopyFormValue ? getSpendRuleSummaryText(spendRoleToCopyFormValue, currencyCode, translate, convertToDisplayString) : [];
 
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -57,21 +70,6 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         }
         return toZonedTime(new Date(), assigneeTimeZone);
     }, [assigneeTimeZone]);
-
-    const isEditing = issueNewCard?.isEditing;
-    const cardRuleID = issueNewCard?.data?.cardRuleID;
-    const spendRuleForm = issueNewCard?.data.cardRuleValue ?? {};
-    const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
-    const selectedRule = expensifyCardSettings?.cardRules?.[cardRuleID ?? ''];
-    const hasCardRuleData = !!issueNewCard?.data?.cardRuleID || !!issueNewCard?.data?.cardRuleValue;
-    const restrictionAction = issueNewCard?.data?.cardRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
-    const spendRuleOption = issueNewCard?.data?.spendRuleOption ?? CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING;
-
-    const spendRuleFormValue = getSpendRuleFormValuesFromCardRule(selectedRule);
-    const spendRuleSummary = spendRuleFormValue ? getSpendRuleSummaryText(spendRuleFormValue, currencyCode, translate, convertToDisplayString) : [];
-
-    const [spendRuleEnabled, setSpendRulesEnabled] = useState(hasCardRuleData);
-    const [expirationToggled, setExpirationToggled] = useState(!!issueNewCard?.data?.validFrom);
 
     const spendRuleTabs = [
         {
@@ -85,6 +83,13 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             icon: icons.Pencil,
         },
     ];
+
+    const handleToggleSpendRules = (isEnabled: boolean) => {
+        if (!policyID) {
+            return;
+        }
+        setIssueNewCardData(policyID, {spendRuleEnabled: isEnabled});
+    };
 
     const handleChooseSpendRule = () => {
         if (!policyID) {
@@ -150,7 +155,6 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         return errors;
     };
 
-    const selectedCurrency = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
     const spendRuleParsedMaxAmount = Number.parseFloat(spendRuleForm.maxAmount ?? '');
     const spendRuleMerchantNamesTitle = getTruncatedSpendRuleSummary(spendRuleForm.merchantNames, (summary, count) =>
         translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
@@ -159,13 +163,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         spendRuleForm.categories?.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
         (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
     );
-    const spendRuleMaxAmountTitle = Number.isFinite(spendRuleParsedMaxAmount)
-        ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD)
-        : '';
+    const spendRuleMaxAmountTitle = Number.isFinite(spendRuleParsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(spendRuleParsedMaxAmount), currencyCode) : '';
 
-    const titleComponent = (
+    const existingSpendRuleTitleComponent = (
         <View>
-            {spendRuleSummary.map((summary) => (
+            {spendRuleToCopySummary.map((summary) => (
                 <Text
                     key={summary}
                     numberOfLines={2}
@@ -200,7 +202,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                 <ToggleSettingOptionRow
                     title={translate('workspace.card.issueNewCard.addSpendRule')}
                     isActive={spendRuleEnabled}
-                    onToggle={setSpendRulesEnabled}
+                    onToggle={handleToggleSpendRules}
                     switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
                     wrapperStyle={[styles.mv3]}
                 />
@@ -215,7 +217,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
 
                         {spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && (
                             <MenuItemWithTopDescription
-                                titleComponent={titleComponent}
+                                titleComponent={existingSpendRuleTitleComponent}
                                 shouldShowRightIcon
                                 description="Choose a rule"
                                 onPress={handleChooseSpendRule}
@@ -227,7 +229,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                             <View>
                                 <View style={[styles.ph5, styles.pv3]}>
                                     <SpendRuleRestrictionTypeToggle
-                                        restrictionAction={restrictionAction}
+                                        restrictionAction={spendRuleAction}
                                         onSelect={handleSelectRestrictionAction}
                                     />
                                 </View>
