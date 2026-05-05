@@ -5,6 +5,8 @@ const oldRoutes: Record<string, string> = {
     '/settings/workspaces': '/workspaces',
     '/r/*/settings/name': '/r/$1/details/settings/name',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
+    '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
+    '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
     '/workspaces/*/connections/netsuite/export/invoice-item-preference/invoice-item/select': '/workspaces/$1/connections/netsuite/export/invoice-item-preference/select/invoice-item/select',
     '/workspaces/*/connections/quickbooks-online/advanced/autosync/accounting-method':

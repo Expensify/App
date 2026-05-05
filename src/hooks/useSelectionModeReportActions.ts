@@ -172,7 +172,7 @@ function useSelectionModeReportActions({
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
 
-    const shouldShowApproveButton = canApproveIOU(report, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions;
+    const shouldShowApproveButton = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, transactions) && !hasOnlyPendingTransactions;
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(report);
 

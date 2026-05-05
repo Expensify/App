@@ -24,7 +24,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 const TEST_ACCOUNT_ID = 1;
 
 jest.mock('@libs/Pusher', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         init: jest.fn(() => Promise.resolve()),
@@ -32,7 +31,6 @@ jest.mock('@libs/Pusher', () => ({
 }));
 
 jest.mock('@libs/PusherConnectionManager', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         init: jest.fn(),
@@ -40,7 +38,6 @@ jest.mock('@libs/PusherConnectionManager', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         isActiveRoute: jest.fn(() => false),
@@ -51,7 +48,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Navigation/currentUrl', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ''),
 }));
