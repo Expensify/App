@@ -1,3 +1,4 @@
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -72,7 +73,9 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
+        selector: shouldStartLocationPermissionFlowSelector,
+    });
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
@@ -92,24 +95,32 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {
+        let ignore = false;
         const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
         if (!gpsRequired) {
             return;
         }
 
         getLocationPermission().then((status) => {
-            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+            if (ignore || (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED)) {
                 return;
             }
 
             clearUserLocation();
             getCurrentPosition(
                 (successData) => {
+                    if (ignore) {
+                        return;
+                    }
                     setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
                 },
                 () => {},
             );
         });
+
+        return () => {
+            ignore = true;
+        };
     }, [transaction?.amount, iouType]);
 
     const cancelShutterSpans = () => {
@@ -142,7 +153,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 billable: false,
                 category: '',
                 tag: '',
-                currency: transaction?.currency ?? 'USD',
+                currency: transaction?.currency ?? CONST.CURRENCY.USD,
                 taxCode: transactionTaxCode,
                 taxAmount: transactionTaxAmount,
                 taxValue: transactionTaxValue,
