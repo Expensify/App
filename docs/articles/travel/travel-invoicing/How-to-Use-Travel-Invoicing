@@ -1,68 +1,86 @@
 ---
-title: How to Use Travel Invoicing as a Traveler
-description: Learn how to find your CVV when booking travel and what to expect at hotel check-in when using Travel Invoicing.
-keywords: [New Expensify, travel CVV, travel invoice, hotel check in, virtual card, credit card authorization, Spotnana, Expensify Travel]
+title: Book travel using Travel Invoicing
+description: Learn how to book travel using your company’s Travel Invoicing setup and pay without using a personal card.
+keywords: [book travel expensify, travel invoicing booking, expensify travel payment, use travel cvv]
+internalScope: Audience is Workspace Members. Covers booking travel using Travel Invoicing. Does not cover admin setup or settlement configuration.
 ---
 
-<div id="new-expensify" markdown="1">
+# Book travel using Travel Invoicing
 
-If your company uses Travel Invoicing in Expensify, you don’t need a corporate card to book travel. We’ll explain how to find your Travel CVV and what to expect at hotels or rental car counters.
+If your company uses Travel Invoicing, you can book travel without paying out of pocket.
 
-# Finding Your Travel CVV
+Instead of using a personal or company card, your booking is charged to your Workspace’s central billing account.
 
-When booking a flight, hotel, or rental car in Expensify Travel (via Spotnana), you’ll be asked to enter a **CVV** — even though the card was never given to you directly. Here’s how to find it:
+This means:
+- You don’t need to front money
+- You don’t need to submit an expense
+- Your company pays for the trip directly
 
-1. In the left-hand menu, select **Account > Wallet**.
-2. Under **Assigned cards**, find the one labeled **Travel CVV**.
-3. Tap it and select **Reveal CVV**.
-4. Use the number displayed during the checkout process.
+---
 
-> You won’t see the full card number — just the CVV. That’s expected!
+## Who can book travel using Travel Invoicing
 
-The card is **virtual-only** and can only be used within Expensify Travel, so it's safe and secure.
+- Members in a Workspace with Travel enabled
+- Members in a Workspace with Travel Invoicing enabled
 
-# What to Expect at Hotel Check-In
+If you’re unsure, ask your Workspace Admin.
 
-Some hotels or rental car companies may ask for proof that you’re authorized to use the virtual card. This is where the **Credit Card Authorization (CCA)** form comes in.
+---
 
-## What is a CCA?
+## How to book travel using Travel Invoicing
 
-A **Credit Card Authorization (CCA)** form tells the hotel or rental agency that:
-- Your company is paying for the booking
-- You’re allowed to use the virtual card
-- The charge will be settled later via Expensify
+### Step 1: Start a travel booking
 
-## Do I need to do anything?
+1. Click the navigation tabs (on the left on web, on the bottom on mobile).
+2. Select **Travel**.
+3. Click **Book travel**.
 
-Nope! We handle it for you.
+<!-- SCREENSHOT:
+Suggestion: Travel page with Book travel button
+Location: After step 3
+Purpose: Help users start booking
+-->
 
-If your booking requires a CCA:
-- Our team will reach out to the hotel or rental agency
-- We’ll send the completed form on your behalf
-- You may receive a confirmation message once it’s approved
+---
 
-In rare cases, the front desk might not see the authorization right away. If that happens:
-- Politely let them know your company is covering the cost through a virtual card
-- Ask if they’ve received a credit card authorization form from Expensify
-- Contact your company admin or Concierge if there’s an issue
+### Step 2: Enter your trip details
+
+1. Search for flights, hotels, or rental cars.
+2. Select your preferred option.
+3. Continue to checkout.
+
+---
+
+### Step 3: Select the Expensify Travel Card at checkout and retrieve CVV 
+
+1. On the checkout page, select the Expensify Travel Card as the Payment method 
+2. If a CVV is requested, click the **Go to wallet** button in the blue banner at the top of the page
+5. Select **Travel CVV**.
+6. Click **Reveal details**.
+7. Copy the CVV.
+8. Return to checkout and enter the CVV to complete the booking.
+
+---
+
+## What happens after you book travel
+
+- Your booking is confirmed through Expensify Travel
+- The payment is charged to your company’s Travel Invoicing account
+- For flights and rail tickets, the expense and receipt will be added to your Expensify account. For hotel and car bookings, you will need to upload the receipt after checking-out/returning the car
+- The charge appears in your company’s Travel Invoice statement
+
+---
 
 # FAQ
 
-## I don’t see a CVV in my Wallet — what do I do?
+## Why do I sometimes need a CVV to book travel?
 
-Make sure:
-- You’re logged into Expensify with your work email
-- Your workspace has Travel Invoicing enabled
-- You’ve been added to a travel-enabled workspace
+Travel Invoicing uses a virtual card behind the scenes. The CVV is required to complete the payment securely.
 
-If you're still not seeing it, reach out to your company admin.
+## Do I need to use my personal card?
 
-## Can I use the Travel CVV outside of Expensify Travel?
+No. Your company pays for the booking through Travel Invoicing.
 
-No. The Travel card only works within Expensify Travel’s booking system (Spotnana). It won’t work on other travel sites or at physical locations.
+## What if I don’t see Travel CVV?
 
-## Will I see this travel expense in my Expensify account?
-
-Nope! With Travel Invoicing, expenses are tracked by your company — so you don’t need to code or submit anything. Just book, travel, and go.
-
-</div>
+You may not be on a Workspace with Travel Invoicing enabled, or you may not be travel-enabled.
