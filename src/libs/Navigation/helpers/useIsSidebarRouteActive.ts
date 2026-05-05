@@ -3,9 +3,21 @@ import {findFocusedRoute} from '@react-navigation/native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {SplitNavigatorName} from '@libs/Navigation/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 
 function useIsSidebarRouteActive(splitNavigatorName: SplitNavigatorName, isNarrowLayout: boolean) {
-    const currentSplitNavigatorRoute = useRootNavigationState((rootState) => rootState?.routes.at(-1));
+    const currentSplitNavigatorRoute = useRootNavigationState((rootState) => {
+        const lastRoute = rootState?.routes.at(-1);
+        // Split navigators (Settings/Reports/Search/Workspace) live one level inside TAB_NAVIGATOR
+        // on the root stack. Drill into the active tab so we can match against splitNavigatorName.
+        // When a modal (RHP, etc.) is layered on top, lastRoute is the modal — fall through to
+        // preserve the "not focused" behavior from #63231.
+        if (lastRoute?.name === NAVIGATORS.TAB_NAVIGATOR && lastRoute.state) {
+            const tabState = lastRoute.state as NavigationState;
+            return tabState.routes.at(tabState.index);
+        }
+        return lastRoute;
+    });
 
     if (currentSplitNavigatorRoute?.name !== splitNavigatorName) {
         return false;
