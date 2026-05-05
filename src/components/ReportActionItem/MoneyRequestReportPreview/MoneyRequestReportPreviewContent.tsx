@@ -29,6 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
@@ -107,6 +108,7 @@ function MoneyRequestReportPreviewContent({
     originalReportID,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
+    const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`);
 
     const [isTransitionPending, setIsTransitionPending] = useState(() => {
         const pending = getPendingSubmitFollowUpAction();
@@ -125,7 +127,9 @@ function MoneyRequestReportPreviewContent({
             return () => handle.cancel();
         }, [isTransitionPending]),
     );
-    const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+
+    const shouldShowLoading =
+        chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
@@ -140,7 +144,7 @@ function MoneyRequestReportPreviewContent({
     const shouldShowPreviewLoading = isTransitionPending || shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportPreviewContent',
-        hasOnceLoadedReportActions: chatReportMetadata?.hasOnceLoadedReportActions,
+        hasOnceLoadedReportActions: chatReportLoadingState?.hasOnceLoadedReportActions,
         isTransactionsEmpty: transactions.length === 0,
         isOptimisticReport: chatReportMetadata?.isOptimisticReport,
     };

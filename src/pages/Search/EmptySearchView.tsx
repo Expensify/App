@@ -2,7 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -334,7 +333,13 @@ function EmptySearchViewContent({
                                                   if (
                                                       !workspaceIDForReportCreation ||
                                                       (defaultChatEnabledPolicy &&
-                                                          shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                                                          shouldRestrictUserBillableActions(
+                                                              defaultChatEnabledPolicy,
+                                                              ownerBillingGracePeriodEnd,
+                                                              userBillingGracePeriodEnds,
+                                                              amountOwed,
+                                                              accountID,
+                                                          ) &&
                                                           groupPoliciesWithChatEnabled.length > 1)
                                                   ) {
                                                       // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -344,7 +349,13 @@ function EmptySearchViewContent({
 
                                                   if (
                                                       !defaultChatEnabledPolicy ||
-                                                      !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                                                      !shouldRestrictUserBillableActions(
+                                                          defaultChatEnabledPolicy,
+                                                          ownerBillingGracePeriodEnd,
+                                                          userBillingGracePeriodEnds,
+                                                          amountOwed,
+                                                          accountID,
+                                                      )
                                                   ) {
                                                       handleCreateReportClick();
                                                   } else {

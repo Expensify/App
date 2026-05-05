@@ -13,7 +13,7 @@ import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
@@ -127,7 +127,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
           })
         : '';
 
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
     const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
 

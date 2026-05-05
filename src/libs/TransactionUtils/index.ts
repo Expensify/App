@@ -1,10 +1,12 @@
 import {format, isValid, parse} from 'date-fns';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -16,7 +18,6 @@ import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@l
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -830,10 +831,11 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
+            updatedTransaction.taxValue = categoryTaxValue;
         }
     }
 
@@ -1042,14 +1044,16 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
  * Transactions that match the destination currency can keep their convertedAmount since no conversion is needed.
  */
 function shouldClearConvertedAmount(transaction: OnyxInputOrEntry<Transaction>, sourceCurrency: string | undefined, destinationCurrency: string | undefined): boolean {
-    if (!sourceCurrency || !destinationCurrency || sourceCurrency === destinationCurrency) {
+    if (!destinationCurrency) {
         return false;
     }
 
     const transactionCurrency = getCurrency(transaction);
-    const transactionMatchesDestination = transactionCurrency === destinationCurrency;
+    // sourceCurrency is undefined for unreported expenses (e.g. Self DM) since there's no source report.
+    // Fall back to the transaction's own currency so cross-currency detection still works.
+    const effectiveSourceCurrency = sourceCurrency ?? transactionCurrency;
 
-    return !transactionMatchesDestination;
+    return effectiveSourceCurrency !== destinationCurrency && transactionCurrency !== destinationCurrency;
 }
 
 /**
@@ -1202,19 +1206,26 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPer
 }
 
 /**
- * Return the list of attendees as a string of display names/logins.
+ * Returns attendees joined as a display string. Pass `localeCompare` to sort alphabetically (matches the pill sort);
+ * omit it to keep insertion order — used by non-React callers that don't want to thread the comparator.
+ * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
  */
-function getAttendeesListDisplayString(attendees: Attendee[]): string {
-    return attendees.map((item) => item.displayName ?? item.login).join(', ');
+function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
+    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.login ?? '');
+    const ordered = localeCompare
+        ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
+          [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
+        : attendees;
+    return ordered.map(getName).join(', ');
 }
 
 /**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
-function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
+function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [getAttendeesListDisplayString(oldAttendees), getAttendeesListDisplayString(newAttendees)];
+    return [getAttendeesListDisplayString(oldAttendees, localeCompare), getAttendeesListDisplayString(newAttendees, localeCompare)];
 }
 
 /**
@@ -1291,17 +1302,35 @@ function getTagArrayFromName(tagName: string): string[] {
  */
 function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
     const fromCurrency = getCurrency(transaction);
-    const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
-    if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
-        return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
-    }
-
-    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
+    // On the report view, "unconverted" means the transaction currency matches the report currency.
+    // groupCurrency reflects the user's default workspace and is unrelated to the report being viewed,
+    // so we must gate on reportCurrency here to match Expensify Classic behavior.
+    if (reportCurrency && fromCurrency === reportCurrency) {
         return '';
     }
 
-    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
+    // groupExchangeRate: search-page rate (fromCurrency → groupCurrency).
+    if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
+        const groupRate = Number(transaction.groupExchangeRate);
+        if (groupRate !== 1) {
+            return `${transaction.groupExchangeRate} ${fromCurrency}/${transaction.groupCurrency}`;
+        }
+    }
+
+    // currencyConversionRate: report-layout rate (fromCurrency → reportCurrency).
+    // When no reportCurrency is provided (e.g. search sort), fall back to groupCurrency so we can still
+    // surface a meaningful rate. We intentionally do not use transaction.currency here, since it reflects
+    // the pre-modification currency and is almost never the correct conversion target.
+    const conversionToCurrency = reportCurrency ?? transaction.groupCurrency;
+    if (conversionToCurrency && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
+        const conversionRate = Number(transaction.currencyConversionRate);
+        if (conversionRate !== 1) {
+            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+        }
+    }
+
+    return '';
 }
 
 /**
@@ -2142,9 +2171,13 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
 
-    // transaction?.taxCode may be an empty string
+    // Only fall back to the default tax code when tax tracking is enabled on the policy.
+    // When taxes are disabled and the user deletes a tax, taxCode becomes undefined (the API returns null, which Onyx strips).
+    // Without this check, getTaxName would fall back to defaultTaxCode and display the default tax rate instead of showing empty.
+    // We use || instead of ?? because taxCode may be an empty string, which should also trigger the fallback.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
+    const effectiveTaxCode = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
+    const taxRate = effectiveTaxCode ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === effectiveTaxCode) : undefined;
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
@@ -2426,7 +2459,6 @@ function compareDuplicateTransactionFields(
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
                         if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             return getMerchant(item);
                         }
                         return keys.map((key) => item?.[key]);
@@ -2549,7 +2581,8 @@ function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
 }
 
 function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>, duplicatedTransaction: OnyxEntry<Transaction>): Partial<Transaction> {
-    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const {duplicates, taxAmount, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const hasUpdatedTaxCode = reviewDuplicateTransaction?.taxCode !== undefined && reviewDuplicateTransaction?.taxCode !== duplicatedTransaction?.taxCode;
 
     return {
         ...duplicatedTransaction,
@@ -2557,6 +2590,8 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
         comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
+        // If the taxCode changes, apply the reviewed tax amount and clear stale taxName/taxValue so MoneyRequestView derives them fresh from the policy.
+        ...(hasUpdatedTaxCode && {taxAmount, taxName: undefined, taxValue: undefined}),
     };
 }
 
@@ -2582,10 +2617,10 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
-        return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
+        return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     }
 
     const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
@@ -2597,7 +2632,7 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
         categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))));
     }
 
-    return {categoryTaxCode, categoryTaxAmount};
+    return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
 }
 
 /**
@@ -2631,7 +2666,6 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
 
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if ((splits && splits.length > 0) || !originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return false;
     }
@@ -2904,7 +2938,7 @@ export {
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,
-    getCategoryTaxCodeAndAmount,
+    getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,

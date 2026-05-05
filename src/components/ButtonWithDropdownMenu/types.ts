@@ -54,6 +54,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShowLoadingSpinnerIcon?: boolean;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+
+    /** Whether to ignore compact popover menu styling for this item */
+    shouldIgnoreCompactStyle?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {

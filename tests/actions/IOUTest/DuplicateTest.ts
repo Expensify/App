@@ -55,7 +55,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -90,7 +89,7 @@ describe('actions/Duplicate', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
@@ -199,6 +198,7 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
                 receiptID: 123,
                 reportID,
             };
@@ -533,6 +533,7 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
                 receiptID: 123,
                 reportID,
             };
@@ -840,7 +841,7 @@ describe('actions/Duplicate', () => {
                     transactionID: mainTransactionID,
                     transactionIDList: duplicateTransactionIDs,
                     reportActionIDList: expect.arrayContaining([]),
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
                     dismissedViolationReportActionID: expect.anything(),
                 }),
                 expect.objectContaining({
@@ -1150,7 +1151,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1164,6 +1164,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1215,7 +1216,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1229,6 +1229,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1273,7 +1274,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1287,6 +1287,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1328,7 +1329,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 targetPolicy: mockPolicy,
@@ -1341,6 +1341,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1391,7 +1392,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 targetPolicy: mockPolicy,
@@ -1404,6 +1404,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1439,7 +1440,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1453,6 +1453,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1481,7 +1482,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1495,6 +1495,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1525,7 +1526,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1539,6 +1539,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1578,7 +1579,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1592,6 +1592,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1644,7 +1645,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1658,6 +1658,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1695,7 +1696,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1709,6 +1709,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1757,7 +1758,6 @@ describe('actions/Duplicate', () => {
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -1771,6 +1771,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1941,6 +1942,7 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
+            conciergeReportID: undefined,
             ...overrides,
         });
 
@@ -2478,7 +2480,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
@@ -2486,6 +2487,9 @@ describe('actions/Duplicate', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
+                conciergeReportID: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -2588,6 +2592,7 @@ describe('actions/Duplicate', () => {
             activePolicyExpenseChat,
             ownerPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
             currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},
@@ -2598,6 +2603,7 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
+            conciergeReportID: undefined,
             ...overrides,
         });
 

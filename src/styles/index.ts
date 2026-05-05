@@ -111,11 +111,7 @@ type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFe
 type StyleFunction = (...args: any[]) => StyleObject;
 
 type StaticStyles = Record<string, StyleObject>;
-type DynamicStyles = Record<
-    string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    StyleFunction
->;
+type DynamicStyles = Record<string, StyleFunction>;
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -265,6 +261,7 @@ const webViewStyles = (theme: ThemeColors) =>
 const compactPopoverMenuItemBaseStyle = {
     ...spacing.ph5,
     ...spacing.pv1,
+    minHeight: variables.componentSizeLarge,
     alignItems: 'center' as const,
 };
 
@@ -3653,6 +3650,16 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
         },
 
+        bottomDockedModalDismissButton: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: variables.iconSizeXSmall,
+            backgroundColor: theme.transparent,
+            zIndex: 1,
+        },
+
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
@@ -4445,6 +4452,10 @@ const staticStyles = (theme: ThemeColors) =>
             minWidth: 22,
         },
 
+        filterDropDownCloseIcon: {
+            minWidth: 24,
+        },
+
         dropDownSmallButtonArrowContain: {
             marginLeft: 3,
             marginRight: 6,
@@ -4985,7 +4996,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 34,
             width: 202,
         },
-        searchPageInputNarrowTouchableWrapper: {height: variables.componentSizeLarge},
+        searchPageInputNarrowTouchableWrapper: {height: 44},
 
         walletStaticIllustration: {
             width: 262,
@@ -5386,6 +5397,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        agentsPageEmptyStateIllustration: {
+            width: 96,
+            height: 142,
+        },
+
         expensifyCardEmptyIllustration: {
             width: 280,
             height: 172,
@@ -5481,6 +5497,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyStateContent: {
             width: '100%',
+        },
+
+        agentsPageEmptyStateSubtitle: {
+            maxWidth: 335,
+            alignSelf: 'center',
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -6013,10 +6034,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
         chartContent: {
-            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            height: CHART_CONTENT_MIN_HEIGHT,
         },
         chartActivityIndicator: {
-            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            height: CHART_CONTENT_MIN_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
         },

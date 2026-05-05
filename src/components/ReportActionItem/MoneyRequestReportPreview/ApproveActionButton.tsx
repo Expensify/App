@@ -6,7 +6,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import {hasHeldExpenses as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +40,8 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, shouldShowPay
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(iouReport?.reportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
 
     const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {

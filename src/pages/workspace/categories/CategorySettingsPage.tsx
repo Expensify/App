@@ -142,16 +142,15 @@ function CategorySettingsPage({
         if (!policy) {
             return '';
         }
-        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
+        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt, convertToDisplayString);
+    }, [policy, policyCategory?.maxAmountNoReceipt, translate, convertToDisplayString]);
 
     const requireItemizedReceiptsOverText = useMemo(() => {
         if (!policy) {
             return '';
         }
-        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt);
-    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate]);
+        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt, convertToDisplayString);
+    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate, convertToDisplayString]);
 
     const requiredFieldsTitle = useMemo(() => {
         if (!policyCategory) {

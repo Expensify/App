@@ -14,6 +14,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -94,6 +95,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
@@ -141,6 +143,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             conciergeReportID,
+            convertToDisplayString,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -155,7 +158,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isEmpty = transactions.length === 0;
 
     const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 

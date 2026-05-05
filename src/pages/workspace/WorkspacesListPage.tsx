@@ -1,6 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -708,7 +709,6 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
-    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
             case 'workspace': {

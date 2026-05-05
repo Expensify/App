@@ -1,5 +1,6 @@
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -90,7 +91,6 @@ function IOURequestStepDestination({
         focus: destinationSelectionListRef.current?.focusTextInput,
     }));
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
@@ -109,7 +109,7 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
@@ -245,8 +245,7 @@ function IOURequestStepDestination({
     );
 }
 
-/* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);
-/* eslint-disable rulesdir/no-negated-variables */
+
 const IOURequestStepDestinationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDestinationWithFullTransactionOrNotFound);
 export default IOURequestStepDestinationWithWritableReportOrNotFound;

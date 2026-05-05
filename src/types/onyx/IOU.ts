@@ -182,51 +182,6 @@ type SplitExpense = {
     isManuallyEdited?: boolean;
 };
 
-/** Model of IOU request */
-type IOU = {
-    /** ID of the IOU request */
-    id: string;
-
-    /** Amount requested in IOU */
-    amount?: number;
-
-    /** Selected Currency Code of the current IOU */
-    currency?: string;
-
-    /** Comment of the IOU request creator */
-    comment?: string;
-
-    /** Category assigned to the IOU request */
-    category?: string;
-
-    /** Merchant where the amount was spent */
-    merchant?: string;
-
-    /** Date timestamp when the IOU request was created */
-    created?: string;
-
-    /** Local file path of the expense receipt */
-    receiptPath?: string;
-
-    /** File name of the expense receipt */
-    receiptFilename?: string;
-
-    /** Transaction ID assigned to the IOU request */
-    transactionID?: string;
-
-    /** Users involved in the IOU request */
-    participants?: Participant[];
-
-    /** Tag assigned to the IOU request */
-    tag?: string;
-
-    /** Whether the IOU request is billable */
-    billable?: boolean;
-
-    /** Whether the IOU request is to be split with multiple users */
-    isSplitRequest?: boolean;
-};
-
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
@@ -276,5 +231,4 @@ type DistanceExpenseType =
     | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
     | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 
-export default IOU;
 export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};
