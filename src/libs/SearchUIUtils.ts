@@ -5330,9 +5330,11 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            // If the transaction has any tax info (code, value, or amount),
-            // show both TAX_RATE and TAX_AMOUNT columns. Zero is valid tax data.
-            const hasTaxInfo = !!transaction.taxCode || transaction.taxAmount != null || (transaction.taxValue !== undefined && transaction.taxValue !== '');
+            // Show both TAX_RATE and TAX_AMOUNT when the transaction has a meaningful tax signal.
+            // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
+            // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
+            // which would otherwise flash tax columns on for offline-pending transactions.
+            const hasTaxInfo = !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
             if (hasTaxInfo) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
