@@ -194,6 +194,25 @@ describe('PopoverMenu V2', () => {
         });
     });
 
+    describe('usePopoverTrigger', () => {
+        it('returns a ref and an onPress callback', () => {
+            const captured: PopoverMenu.UsePopoverTriggerResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.usePopoverTrigger());
+                return null;
+            }
+            render(
+                <PopoverMenu.Root>
+                    <ProbeHook />
+                </PopoverMenu.Root>,
+            );
+            const result = captured.at(-1);
+            expect(result).toBeDefined();
+            expect(typeof result?.onPress).toBe('function');
+            expect(result?.ref).toMatchObject({current: null});
+        });
+    });
+
     describe('Item', () => {
         it('fires onSelect when pressed', () => {
             const onSelect = jest.fn();
@@ -1033,14 +1052,12 @@ describe('PopoverMenu V2', () => {
             consoleErrorSpy.mockRestore();
         });
 
-        it('throws when Trigger is rendered outside Root', () => {
-            expect(() =>
-                render(
-                    <PopoverMenu.Trigger accessibilityLabel="Open menu">
-                        <View />
-                    </PopoverMenu.Trigger>,
-                ),
-            ).toThrow(/<PopoverMenu\.Trigger> must be rendered inside <PopoverMenu\.Root>/);
+        it('throws when usePopoverTrigger is called outside Root', () => {
+            function CallTriggerHook() {
+                PopoverMenu.usePopoverTrigger();
+                return null;
+            }
+            expect(() => render(<CallTriggerHook />)).toThrow(/usePopoverTrigger\(\) must be called inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Content is rendered outside Root', () => {

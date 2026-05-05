@@ -1,9 +1,9 @@
 import type {Meta} from '@storybook/react-webpack5';
 import React from 'react';
-import {View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import variables from '@styles/variables';
@@ -29,16 +29,24 @@ const triggerStyle = {
     alignSelf: 'flex-start',
 } as const;
 
-function TriggerLabel({iconSrc, label}: {iconSrc: React.ComponentProps<typeof Icon>['src']; label: string}) {
+function StoryTrigger({iconSrc, label, accessibilityLabel}: {iconSrc: React.ComponentProps<typeof Icon>['src']; label: string; accessibilityLabel: string}) {
+    const {ref, onPress} = PopoverMenu.usePopoverTrigger();
     return (
-        <View style={triggerStyle}>
+        <PressableWithFeedback
+            ref={ref}
+            onPress={onPress}
+            style={triggerStyle}
+            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={accessibilityLabel}
+            sentryLabel="PopoverMenuV2.Story.Trigger"
+        >
             <Icon
                 src={iconSrc}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />
             <Text>{label}</Text>
-        </View>
+        </PressableWithFeedback>
     );
 }
 
@@ -47,15 +55,11 @@ function Default() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="Add payment method"
                     accessibilityLabel="Open menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Plus}
-                        label="Add payment method"
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.Content>
                     <PopoverMenu.Item
                         text="Bank account"
@@ -78,15 +82,11 @@ function WithHeader() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="Pick a payment method"
                     accessibilityLabel="Open menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Plus}
-                        label="Pick a payment method"
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.Content>
                     <PopoverMenu.Header>Payment methods</PopoverMenu.Header>
                     <PopoverMenu.Item
@@ -110,15 +110,11 @@ function WithSubmenu() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="More"
                     accessibilityLabel="Open menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Plus}
-                        label="More"
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.Content>
                     <PopoverMenu.Item
                         text="Bank account"
@@ -161,15 +157,11 @@ function WithCheckmarkItems() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Meter}
+                    label={`Playback speed: ${selected}`}
                     accessibilityLabel="Open speed menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Meter}
-                        label={`Playback speed: ${selected}`}
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.Content>
                     <PopoverMenu.Header>Playback speed</PopoverMenu.Header>
                     {speeds.map((speed) => (
@@ -194,15 +186,11 @@ function ScrollableVariant() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="Open 100-item menu"
                     accessibilityLabel="Open long menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Plus}
-                        label="Open 100-item menu"
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.ScrollableContent>
                     <PopoverMenu.Header>Pick an option</PopoverMenu.Header>
                     {items.map((item) => (
@@ -223,15 +211,11 @@ function GroupedWithSeparator() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="Account actions"
                     accessibilityLabel="Open menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Plus}
-                        label="Account actions"
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.Content>
                     <PopoverMenu.Group>
                         <PopoverMenu.Item
@@ -267,15 +251,11 @@ function DisabledRow() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.Trigger
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="Add payment method"
                     accessibilityLabel="Open menu"
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <TriggerLabel
-                        iconSrc={icons.Plus}
-                        label="Add payment method"
-                    />
-                </PopoverMenu.Trigger>
+                />
                 <PopoverMenu.Content>
                     <PopoverMenu.Item
                         text="Bank account"

@@ -1,5 +1,5 @@
 export {default as Root} from './Root';
 export type {RootProps} from './Root';
-export {default as Trigger} from './Trigger';
-export type {TriggerProps} from './Trigger';
+export {default as usePopoverTrigger} from './usePopoverTrigger';
+export type {UsePopoverTriggerResult} from './usePopoverTrigger';
 export type {AnchorRef} from './RootContext';

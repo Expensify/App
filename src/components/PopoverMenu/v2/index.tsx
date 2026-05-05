@@ -3,8 +3,8 @@
 export {Content, ScrollableContent, VirtualizedContent} from './content';
 export type {ContentProps, ScrollableContentProps, VirtualizedContentProps} from './content';
 
-export {Root, Trigger} from './root';
-export type {AnchorRef, RootProps, TriggerProps} from './root';
+export {Root, usePopoverTrigger} from './root';
+export type {AnchorRef, RootProps, UsePopoverTriggerResult} from './root';
 
 export {CheckmarkItem, Group, Header, Item, Label, Separator} from './rows';
 export type {CheckmarkItemProps, GroupProps, HeaderProps, ItemProps, ItemSelectEvent, LabelProps} from './rows';
