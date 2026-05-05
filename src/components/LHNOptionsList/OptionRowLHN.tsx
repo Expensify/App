@@ -23,15 +23,7 @@ import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji
 import FS from '@libs/Fullstory';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {
-    isAdminRoom,
-    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
-    isConciergeChatReport,
-    isGroupChat,
-    isOneOnOneChat,
-    isSystemChat,
-    shouldShowMarkAsDone,
-} from '@libs/ReportUtils';
+import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -56,6 +48,7 @@ function OptionRowLHN({
     hasDraftComment,
     testID,
     conciergeReportID,
+    isMarkAsDone,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
     const theme = useTheme();
@@ -112,16 +105,10 @@ function OptionRowLHN({
     }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const isTrackIntentUser = onboardingPurpose === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || onboardingPurpose === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
-    const shouldUseMarkAsDone =
-        shouldShowMarkAsDone({
-            report,
-            isTrackIntentUser,
-            policy,
-        }) && optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+
     let actionBadgeText = '';
     if (!isProduction && optionItem.actionBadge) {
-        actionBadgeText = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
+        actionBadgeText = isMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
     }
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {

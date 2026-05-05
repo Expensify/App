@@ -114,12 +114,11 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
         <AnimatedSubmitButton
             success
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}
-            policyID={moneyRequestReport?.policyID}
-            report={moneyRequestReport}
         />
     );
 }

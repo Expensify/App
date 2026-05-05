@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
@@ -171,6 +171,13 @@ function OptionRowLHNData({
         return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
     }, [optionItem, isIOUReport, reportPreviewSenderID]);
 
+    const shouldUseMarkAsDone =
+        shouldShowMarkAsDone({
+            report: fullReport,
+            isTrackIntentUser,
+            policy,
+        }) && finalOptionItem?.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -180,6 +187,7 @@ function OptionRowLHNData({
             report={fullReport}
             hasDraftComment={hasDraftComment}
             conciergeReportID={conciergeReportID}
+            isMarkAsDone={shouldUseMarkAsDone}
         />
     );
 }

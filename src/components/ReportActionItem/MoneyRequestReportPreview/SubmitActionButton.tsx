@@ -69,19 +69,17 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
         currentUserAccountID,
         reportActions,
     );
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
 
     return (
         <AnimatedSubmitButton
             success={isWaitingForSubmissionFromCurrentUser}
-            text={
-                shouldShowMarkAsDone({
-                    isTrackIntentUser,
-                    report: iouReport,
-                    policy,
-                })
-                    ? translate('common.markAsDone')
-                    : translate('common.submit')
-            }
+            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
@@ -103,8 +101,6 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
-            policyID={iouReport?.policyID}
-            report={iouReport}
         />
     );
 }
