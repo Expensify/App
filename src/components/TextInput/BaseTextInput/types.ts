@@ -165,6 +165,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Style for the icon container */
         iconContainerStyle?: StyleProp<ViewStyle>;
 
+        /** Style for the clear button */
+        clearButtonStyle?: StyleProp<ViewStyle>;
+
         /** The width of inner content */
         contentWidth?: number;
 

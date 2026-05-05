@@ -3,7 +3,7 @@
 
 "../../.github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"	"rulesdir/no-default-id-values"	1
 "../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"no-restricted-imports"	1
-"../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated"	1
+"../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated/CameraRoll.save"	1
 "../../__mocks__/expo-video.tsx"	"react-hooks/refs"	2
 "../../__mocks__/react-native-safe-area-context.tsx"	"react-hooks/refs"	4
 "../../modules/ExpensifyNitroUtils/src/index.ts"	"no-restricted-syntax"	1
@@ -66,7 +66,7 @@
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/immutability"	2
 "../../src/components/Form/FormProvider.tsx"	"react-hooks/refs"	2
 "../../src/components/Form/InputWrapper.tsx"	"react-hooks/refs"	1
-"../../src/components/FullscreenLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
+"../../src/components/FullscreenLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/GrowlNotification/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/HTMLEngineProvider/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/Hoverable/ActiveHoverable.tsx"	"react-hooks/refs"	3
@@ -76,8 +76,7 @@
 "../../src/components/ImportSpreadsheet.tsx"	"react-hooks/refs"	1
 "../../src/components/InteractiveStepSubPageHeader.tsx"	"no-restricted-syntax"	1
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
-"../../src/components/LHNOptionsList/OptionRowLHN.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
+"../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MagicCodeInput.tsx"	"react-hooks/refs"	1
@@ -91,7 +90,6 @@
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/Modal/ReanimatedModal/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MoneyRequestAmountInput.tsx"	"react-hooks/immutability"	2
-"../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/refs"	6
 "../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/set-state-in-effect"	3
@@ -118,15 +116,12 @@
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
 "../../src/components/Reactions/MiniQuickEmojiReactions.tsx"	"react-hooks/refs"	1
-"../../src/components/Reactions/ReportActionItemEmojiReactions.tsx"	"react-hooks/refs"	2
-"../../src/components/ReimbursementAccountLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/refs"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ReportActionItem/MoneyRequestView.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
-"../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
+"../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/ScreenWrapper/ScreenWrapperContainer.tsx"	"react-hooks/refs"	2
 "../../src/components/Search/FilterComponents/DateFilterBase.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Search/FilterDropdowns/CardSelectPopup.tsx"	"react-hooks/set-state-in-effect"	1
@@ -149,7 +144,7 @@
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"react-hooks/static-components"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.tsx"	"react-hooks/refs"	2
 "../../src/components/TextInput/BaseTextInput/implementation/index.tsx"	"react-hooks/static-components"	1
-"../../src/components/TextInput/BaseTextInput/isTextInputFocused.ts"	"@typescript-eslint/no-deprecated"	1
+"../../src/components/TextInput/BaseTextInput/isTextInputFocused.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/components/TextInput/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/TextLinkBlock.tsx"	"no-restricted-syntax"	1
 "../../src/components/TextPicker/TextSelectorModal.tsx"	"react-hooks/set-state-in-effect"	1
@@ -164,7 +159,6 @@
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/refs"	13
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/VideoPlayerContexts/VideoPopoverMenuContext.tsx"	"react-hooks/exhaustive-deps"	1
-"../../src/components/WalletStatementModal/index.native.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/WideRHPContextProvider/useShouldRenderOverlay.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ZeroWidthView/index.tsx"	"no-restricted-syntax"	2
 "../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
@@ -175,7 +169,7 @@
 "../../src/hooks/useCancellationType.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useDebouncedState.ts"	"react-hooks/refs"	2
 "../../src/hooks/useDomainGroupFilter.ts"	"react-hooks/set-state-in-effect"	1
-"../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated"	1
+"../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useInitial.ts"	"react-hooks/refs"	4
 "../../src/hooks/useIsBlockedToAddFeed.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useIsOwnWorkspaceChatRef.ts"	"react-hooks/refs"	2
@@ -191,7 +185,6 @@
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/refs"	1
-"../../src/hooks/useSearchPageSetup.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchResults.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/purity"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/refs"	5
@@ -199,7 +192,7 @@
 "../../src/hooks/useSingleExecution/index.native.ts"	"react-hooks/refs"	1
 "../../src/hooks/useStepFormSubmit.ts"	"no-restricted-syntax"	1
 "../../src/hooks/useSubStep/index.ts"	"react-hooks/refs"	2
-"../../src/libs/Accessibility/moveAccessibilityFocus/types.ts"	"@typescript-eslint/no-deprecated"	1
+"../../src/libs/Accessibility/moveAccessibilityFocus/types.ts"	"@typescript-eslint/no-deprecated/ElementRef"	1
 "../../src/libs/Clipboard/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/ComposerUtils/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/CurrencyUtils.ts"	"rulesdir/no-onyx-connect"	1
@@ -223,7 +216,7 @@
 "../../src/libs/Navigation/AppNavigator/Navigators/SearchFullscreenNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/UserStatusHandler.tsx"	"no-restricted-syntax"	1
-"../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-deprecated"	1
+"../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-deprecated/escape"	1
 "../../src/libs/Network/enhanceParameters.ts"	"no-restricted-syntax"	1
 "../../src/libs/Network/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"no-restricted-syntax"	2
@@ -276,7 +269,6 @@
 "../../src/libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/OnyxUpdateManager/utils/applyUpdates.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/PaymentMethods.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/PersonalCards.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/PersonalDetails.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/Plaid.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Category.ts"	"no-restricted-syntax"	5
@@ -286,7 +278,7 @@
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
-"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	4
+"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-syntax"	4
@@ -338,22 +330,21 @@
 "../../src/pages/AddressPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/EnablePayments/AddBankAccount/AddBankAccount.tsx"	"@typescript-eslint/no-deprecated"	1
-"../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"@typescript-eslint/no-deprecated"	1
+"../../src/pages/EnablePayments/AddBankAccount/AddBankAccount.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"no-restricted-syntax"	2
 "../../src/pages/EnablePayments/FeesAndTerms/FeesAndTerms.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/EnablePayments/FeesAndTerms/substeps/TermsStep.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/EnablePayments/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated"	1
+"../../src/pages/EnablePayments/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
-"../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated"	1
+"../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
 "../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportDetailsPage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
@@ -362,10 +353,7 @@
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/immutability"	2
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
-"../../src/pages/TransactionDuplicate/Review.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/TransactionMerge/MergeFieldReview.tsx"	"no-restricted-syntax"	1
 "../../src/pages/TransactionMerge/TransactionMergeReceipts.tsx"	"no-restricted-syntax"	1
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1
@@ -398,11 +386,9 @@
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/iou/SplitExpenseEditPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/request/step/IOURequestStepAccountant.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepDistance.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepDistanceManual.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -411,9 +397,7 @@
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/media/AttachmentModalScreen/routes/report/ReportAttachmentModalContent.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
-"../../src/pages/settings/InitialSettingsPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/settings/PaymentCard/ChangeCurrency/index.tsx"	"no-restricted-syntax"	1
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/ContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
@@ -480,7 +464,6 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitTypePage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/members/ImportedMembersConfirmationPage.tsx"	"react-hooks/refs"	7
@@ -544,4 +527,4 @@
 "../../src/types/onyx/WalletOnfido.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletTerms.ts"	"no-restricted-syntax"	1
 "../../src/types/onyx/WalletTransfer.ts"	"no-restricted-syntax"	1
-"../../tests/unit/useSubStepTest.tsx"	"@typescript-eslint/no-deprecated"	13
+"../../tests/unit/useSubStepTest.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	13
