@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@navigation/Navigation';
 import {addPersonalBankAccount} from '@userActions/BankAccounts';
@@ -21,12 +22,18 @@ const bodyContentInfoSet: Array<React.ComponentType<SubStepProps>> = [LegalName,
 const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBankAccount, ...bodyContentInfoSet];
 const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, ...bodyContentInfoSet];
 
+const DEFAULT_OBJECT = {};
+const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
+
 function PersonalInfoPage() {
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [fullPersonalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+    const error = getLatestErrorMessage(fullPersonalBankAccount ?? DEFAULT_OBJECT);
+    const confirmedOwnershipDetails = useRef(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
@@ -49,6 +56,9 @@ function PersonalInfoPage() {
             ...bankAccountWithToken,
             phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
+        if (confirmedOwnershipDetails.current) {
+            accountData.confirmedOwnershipDetails = true;
+        }
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
@@ -62,6 +72,7 @@ function PersonalInfoPage() {
         moveTo,
         screenIndex,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep({
         bodyContent: isManual ? bodyContentWithManualSetup : bodyContentWithPlaid,
         skipSteps,
@@ -79,6 +90,18 @@ function PersonalInfoPage() {
         }
         prevScreen();
     };
+
+    useEffect(() => {
+        if (!error) {
+            return;
+        }
+        if (error.includes(ACCOUNT_OWNERSHIP_ERROR_SUBSTRING)) {
+            confirmedOwnershipDetails.current = true;
+        }
+        return () => {
+            confirmedOwnershipDetails.current = false;
+        };
+    }, [error]);
 
     return (
         <InteractiveStepWrapper

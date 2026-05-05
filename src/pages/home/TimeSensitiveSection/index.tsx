@@ -20,6 +20,7 @@ import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy'
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
+import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
@@ -28,6 +29,7 @@ import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import ReviewCardFraud from './items/ReviewCardFraud';
+import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
 
 type BrokenAccountingConnection = {
@@ -80,6 +82,7 @@ function TimeSensitiveSection() {
     });
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -153,6 +156,7 @@ function TimeSensitiveSection() {
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
+        lockedBankAccounts.length > 0 ||
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
@@ -174,9 +178,10 @@ function TimeSensitiveSection() {
     // 4. Add payment card (trial ended, no payment card)
     // 5. Broken bank connections (company cards)
     // 6. Broken bank connections (personal cards)
-    // 7. Broken accounting connections
-    // 8. Expensify card shipping
-    // 9. Expensify card activation
+    // 7. Locked bank accounts (workspace VBAs and personal)
+    // 8. Broken accounting connections
+    // 9. Expensify card shipping
+    // 10. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -231,7 +236,16 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 7: Broken accounting connections */}
+                {/* Priority 7: Locked bank accounts */}
+                {lockedBankAccounts.map((lockedBankAccount) => (
+                    <UnlockBankAccount
+                        key={lockedBankAccount.key}
+                        bankAccountID={lockedBankAccount.bankAccountID}
+                        policyName={lockedBankAccount.policyName}
+                    />
+                ))}
+
+                {/* Priority 8: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -241,7 +255,7 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 8: Expensify card shipping */}
+                {/* Priority 9: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -250,7 +264,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 9: Expensify card activation */}
+                {/* Priority 10: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard

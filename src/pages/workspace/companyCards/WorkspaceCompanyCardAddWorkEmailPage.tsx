@@ -1,13 +1,13 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -46,7 +46,6 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [loading, setLoading] = useState(false);
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
     const feedInfo = getFeedInfo(feed, cardFeedsByPolicy);
@@ -57,7 +56,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
     const isWorkEmailValidated = emailLoginKey ? !!loginList?.[emailLoginKey]?.validatedDate : false;
 
-    const emailInputRef = useRef<AnimatedTextInputRef>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
@@ -70,7 +69,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
                 return;
             }
-            setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
+            setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
             if (!feedInfo) {
                 setEmail(submittedEmail);
                 return;
@@ -150,13 +149,12 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
                     <InputWrapper
-                        autoFocus
                         InputComponent={TextInput}
                         label={`${translate('common.workEmail')}`}
                         aria-label={`${translate('common.workEmail')}`}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
-                        ref={emailInputRef}
+                        ref={inputCallbackRef}
                         inputID={INPUT_IDS.EMAIL}
                         autoCapitalize="none"
                         spellCheck={false}

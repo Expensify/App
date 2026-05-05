@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useLocalize from '@hooks/useLocalize';

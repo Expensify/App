@@ -1,9 +1,9 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
-import {convertToDisplayString} from './CurrencyUtils';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -129,14 +129,14 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>, isOffline = false) {
+function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportLoadingState: OnyxEntry<ReportLoadingState>, isOffline = false) {
     if (isOffline) {
         return false;
     }
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
+    const isStillLoadingData = transactions?.length === 0 && ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
@@ -151,13 +151,15 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
  * @param report - Onyx report object
  * @param policy - Onyx policy object
  * @param reportPreviewAction - The action that will take place when button is clicked which determines how amounts are calculated and displayed.
+ * @param transactions
  * @returns - The total amount to be formatted as a string. Returns an empty string if no amount is applicable.
  */
 const getTotalAmountForIOUReportPreviewButton = (
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>,
-    transactions?: Transaction[],
+    transactions: Transaction[],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
@@ -197,7 +199,6 @@ export {
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,
-    isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,

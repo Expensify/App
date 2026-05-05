@@ -2,8 +2,15 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
+const customUnitRateIDWithTaxClaimablePercentage = 'FG515011039A4';
+const rateWithTaxClaimablePercentage = 100;
+const totalDistance = 1000;
+const taxClaimablePercentage = 0.5;
+const distanceUnit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+const customUnitRateIDWithOutTaxClaimablePercentage = 'EB515052039A4';
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
     name: 'Test',
@@ -15,8 +22,8 @@ const FAKE_POLICY: Policy = {
     customUnits: {
         C9031B6F4725D: {
             attributes: {
-                taxEnabled: false,
-                unit: 'mi',
+                taxEnabled: true,
+                unit: distanceUnit,
             },
             customUnitID: 'C9031B6F4725D',
             defaultCategory: '',
@@ -50,6 +57,31 @@ const FAKE_POLICY: Policy = {
                     enabled: true,
                     attributes: {},
                     subRates: [],
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithOutTaxClaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithOutTaxClaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 72.5,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                    },
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithTaxClaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithTaxClaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: rateWithTaxClaimablePercentage,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                        taxClaimablePercentage,
+                    },
                     pendingFields: {},
                 },
             },
@@ -140,6 +172,20 @@ describe('DistanceRequestUtils', () => {
 
             expect(result).toBe('B593F3FBBB0BD');
         });
+
+        it('returns policy default rateID custom unit for isTrackDistanceExpense', () => {
+            const reportID = '1234';
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat: false,
+                policy: FAKE_POLICY,
+                lastSelectedDistanceRates: undefined,
+                isTrackDistanceExpense: true,
+            });
+
+            expect(result).toBe('222AAF6B93BCB');
+        });
     });
 
     describe('getDistanceForDisplay', () => {
@@ -151,6 +197,20 @@ describe('DistanceRequestUtils', () => {
         it('formats zero distance when isManualDistanceRequest is true', () => {
             const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
             expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getRate', () => {
+        it('returns the rate from policyForMovingExpenses if an unreported transaction rate belongs to it', () => {
+            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'EE75E6DBC6FF8'}}};
+            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined});
+            expect(result.customUnitRateID).toBe('EE75E6DBC6FF8');
+        });
+
+        it('does not return the default rate of the policy if the customUnitRateID of the tracked transaction does not exist', () => {
+            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
+            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
+            expect(result.customUnitRateID).toBeUndefined();
         });
     });
 
@@ -176,6 +236,19 @@ describe('DistanceRequestUtils', () => {
                 true,
             );
             expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getTaxableAmount', () => {
+        it('should return 0 if tax reclaimable percentage is undefined', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
+            expect(result).toBe(0);
+        });
+
+        it('should return taxable amount that is greater than 0 if tax reclaimable percentage is greater than 0', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithTaxClaimablePercentage, totalDistance);
+            const expectedTaxableAmount = taxClaimablePercentage * DistanceRequestUtils.getDistanceRequestAmount(totalDistance, distanceUnit, rateWithTaxClaimablePercentage);
+            expect(result).toEqual(expectedTaxableAmount);
         });
     });
 

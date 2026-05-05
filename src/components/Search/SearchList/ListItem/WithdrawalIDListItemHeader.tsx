@@ -77,7 +77,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
     const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
+    const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
@@ -116,7 +116,9 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN, {
+                    isWithdrawnColumnWide: !!withdrawalIDItem.shouldShowYearWithdrawn,
+                })}
             >
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
@@ -154,7 +156,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
                     total={withdrawalIDItem.total}
@@ -166,7 +168,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -175,6 +177,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -185,7 +188,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 height={iconSize}
                                 additionalStyles={iconStyles}
                             />
-                            <View style={[styles.gapHalf, styles.flexShrink1]}>
+                            <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip
                                     text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -216,7 +219,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     )}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                    <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
                             total={withdrawalIDItem.total}
                             currency={withdrawalIDItem.currency}

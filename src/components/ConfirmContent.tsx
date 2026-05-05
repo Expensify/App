@@ -97,6 +97,9 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to fit the image to the container */
+    shouldFitImageToContainer?: boolean;
+
     /** Whether the modal is visible */
     isVisible: boolean;
 
@@ -129,6 +132,7 @@ function ConfirmContent({
     shouldShowDismissIcon = false,
     image,
     imageStyles,
+    shouldFitImageToContainer = false,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
     isVisible,
@@ -147,10 +151,11 @@ function ConfirmContent({
             {!!image && (
                 <View style={imageStyles}>
                     <ImageSVG
-                        contentFit="contain"
+                        contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
                         height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />
                 </View>

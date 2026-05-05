@@ -32,5 +32,5 @@ inputs:
         description: "Link for the web build"
         required: false
 runs:
-    using: "node20"
+    using: "node24"
     main: "./index.js"

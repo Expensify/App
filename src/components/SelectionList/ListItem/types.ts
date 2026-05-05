@@ -137,9 +137,6 @@ type ListItem<K extends string | number = string> = {
     /** Boolean whether to display the right icon */
     shouldShowRightCaret?: boolean;
 
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
-
     /** Used to initiate payment from search page */
     hash?: number;
 
@@ -216,9 +213,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
-
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 
@@ -294,6 +288,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether the network is offline */
     isOffline?: boolean;
+
+    /** Whether this is the last item in the list (for border radius on desktop) */
+    isLastItem?: boolean;
+
+    /** Whether this is the first item in the list (for border styling on desktop) */
+    isFirstItem?: boolean;
 };
 
 type ValidListItem =
@@ -397,12 +397,7 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & Forwarde
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
-    index?: number;
-    sectionIndex?: number;
-};
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 type WorkspaceListItemType = {
     text: string;

@@ -2,6 +2,7 @@ import {useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {startMoneyRequest} from '@libs/actions/IOU';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
@@ -27,7 +28,8 @@ function useScanActions() {
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     // useState lazy initializer generates the ID once on mount and keeps it stable across renders
     const [reportID] = useState(() => generateReportID());
@@ -38,7 +40,9 @@ function useScanActions() {
     const startScan = () => {
         interceptAnonymousUser(() => {
             if (shouldRedirectToExpensifyClassic) {
-                showRedirectToExpensifyClassicModal();
+                if (canRedirectToExpensifyClassic) {
+                    showRedirectToExpensifyClassicModal();
+                }
                 return;
             }
             startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, true);
@@ -47,10 +51,11 @@ function useScanActions() {
 
     const policyChatPolicyID = policyChatForActivePolicy?.policyID;
     const policyChatReportID = policyChatForActivePolicy?.reportID;
+    const [policyChatPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID)}`);
 
     const startQuickScan = () => {
         interceptAnonymousUser(() => {
-            if (policyChatPolicyID && shouldRestrictUserBillableActions(policyChatPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+            if (policyChatPolicyID && shouldRestrictUserBillableActions(policyChatPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatPolicyID));
                 return;
             }
@@ -61,7 +66,7 @@ function useScanActions() {
         });
     };
 
-    return {startScan, startQuickScan};
+    return {startScan, startQuickScan, canUseAction};
 }
 
 export default useScanActions;

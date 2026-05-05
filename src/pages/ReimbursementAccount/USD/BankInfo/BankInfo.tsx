@@ -7,7 +7,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
+import {connectBankAccountManually, connectBankAccountWithPlaid, deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +39,7 @@ const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
 
     const redirectedFromPlaidToManualRef = useRef(false);
@@ -70,8 +70,14 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 policyID,
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+            const previousPlaidAccountID = reimbursementAccount?.achData?.plaidAccountID;
+            const newPlaidAccountID = data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID];
+            const plaidAccountIDChanged = !!bankAccountID && !!previousPlaidAccountID && previousPlaidAccountID !== newPlaidAccountID;
+            if (plaidAccountIDChanged) {
+                deletePaymentBankAccount(bankAccountID, undefined);
+            }
             connectBankAccountWithPlaid(
-                bankAccountID,
+                plaidAccountIDChanged ? CONST.DEFAULT_NUMBER_ID : bankAccountID,
                 {
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
