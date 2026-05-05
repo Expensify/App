@@ -102,6 +102,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const nextStepFixOrPayExpense: ReportNextStep = {
         messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
@@ -210,7 +211,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                nextStep = nextStepFixOrPayExpense;
+                nextStep = reimbursableSpend === 0 ? nextStepNoActionRequired : nextStepFixOrPayExpense;
                 break;
             }
 
@@ -244,7 +245,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -363,6 +364,12 @@ function getReportNextStep(
     currentUserEmail: string,
     currentUserAccountID: number,
 ) {
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
+    const shouldShowNoFurtherAction =
+        reimbursableSpend === 0 &&
+        (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ||
+            (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
+
     if (
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
@@ -379,6 +386,19 @@ function getReportNextStep(
     // to avoid any flicker during transitions between online/offline states
     if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+    }
+
+    if (shouldShowNoFurtherAction) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- The report header still consumes the deprecated nextStep shape, so we intentionally reuse the legacy builder here to override stale server nextStep data for $0 reports.
+        return buildNextStepNew({
+            report: moneyRequestReport,
+            policy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        });
     }
 
     return currentNextStep;

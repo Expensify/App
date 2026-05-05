@@ -47,9 +47,9 @@ type TrackingState = {
 };
 
 // Module-level mutable state. Safe because JS is single-threaded: each
-// mutation runs to completion before any queued rAF/InteractionManager callback
-// can execute. startTracking() calls cancelTracking() first, ensuring a clean
-// slate even if the previous flow's async callbacks haven't fired yet.
+// mutation runs to completion before any queued rAF callback can execute.
+// startTracking() calls cancelTracking() first, ensuring a clean slate
+// even if the previous flow's async callbacks haven't fired yet.
 let trackingState: TrackingState | null = null;
 let pendingSubmitFollowUpAction: PendingSubmitFollowUpAction = null;
 
@@ -117,15 +117,16 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
     // may have already been ended by SearchStaticList before createTransaction's
     // rAF fires. Setting pending without a span leaves stale state that would
     // cancel the next flow's span in the conflict check above.
-    const spanAfter = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-    if (!spanAfter) {
+    // Re-read the span after the cancel above since cancelSpan may have cleared it.
+    const activeSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+    if (!activeSpan) {
         return;
     }
 
     pendingSubmitFollowUpAction = {followUpAction, reportID};
-    spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+    activeSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
     if (reportID !== undefined) {
-        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+        activeSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
     }
 }
 

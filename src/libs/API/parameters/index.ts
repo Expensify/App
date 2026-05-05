@@ -165,8 +165,6 @@ export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
-export type {default as UpdatePolicyRulesDocumentParams} from './UpdatePolicyRulesDocumentParams';
-export type {default as DeletePolicyRulesDocumentParams} from './DeletePolicyRulesDocumentParams';
 export type {default as AddMembersToWorkspaceParams} from './AddMembersToWorkspaceParams';
 export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersFromWorkspaceParams';
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
@@ -521,3 +519,4 @@ export type {default as ExportDomainMembersCSVParams} from './ExportDomainMember
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
+export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';

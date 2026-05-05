@@ -76,7 +76,6 @@
 "../../src/components/ImportSpreadsheet.tsx"	"react-hooks/refs"	1
 "../../src/components/InteractiveStepSubPageHeader.tsx"	"no-restricted-syntax"	1
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
-"../../src/components/LHNOptionsList/OptionRowLHN.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/components/LoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -117,7 +116,6 @@
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
 "../../src/components/Reactions/MiniQuickEmojiReactions.tsx"	"react-hooks/refs"	1
-"../../src/components/ReimbursementAccountLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent.tsx"	"react-hooks/refs"	1
@@ -280,7 +278,7 @@
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-syntax"	10
-"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	4
+"../../src/libs/actions/Policy/Policy.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-syntax"	4
@@ -347,7 +345,6 @@
 "../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReportDetailsPage.tsx"	"react-hooks/exhaustive-deps"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
@@ -356,8 +353,6 @@
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/immutability"	2
-"../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/TransactionMerge/MergeFieldReview.tsx"	"no-restricted-syntax"	1
 "../../src/pages/TransactionMerge/TransactionMergeReceipts.tsx"	"no-restricted-syntax"	1

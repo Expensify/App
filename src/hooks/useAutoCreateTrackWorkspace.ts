@@ -11,11 +11,12 @@ import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Re
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
+import useActivePolicy from './useActivePolicy';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
 import useOnyx from './useOnyx';
@@ -40,23 +41,17 @@ function useAutoCreateTrackWorkspace() {
         () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email)),
         [session?.email],
     );
-    const lastWorkspaceNumberWithEmailSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return lastWorkspaceNumberSelector(policies, session?.email ?? '');
-        },
-        [session?.email],
-    );
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
-    const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {isBetaEnabled} = usePermissions();
     const {translate, formatPhoneNumber} = useLocalize();
+    const activePolicy = useActivePolicy();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {onboardingMessages} = useOnboardingMessages();
 
     // We use isSmallScreenWidth instead of shouldUseNarrowLayout because navigateAfterOnboarding
@@ -84,7 +79,7 @@ function useAutoCreateTrackWorkspace() {
                       file: undefined,
                       shouldAddOnboardingTasks: false,
                       introSelected,
-                      activePolicyID,
+                      activePolicy,
                       currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                       currentUserEmailParam: session?.email ?? '',
                       shouldAddGuideWelcomeMessage: false,
@@ -145,7 +140,7 @@ function useAutoCreateTrackWorkspace() {
             onboardingAdminsChatReportID,
             currentUserPersonalDetails.localCurrencyCode,
             introSelected,
-            activePolicyID,
+            activePolicy,
             isSelfTourViewed,
             onboardingMessages,
             betas,
