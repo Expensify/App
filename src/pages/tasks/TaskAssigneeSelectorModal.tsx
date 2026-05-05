@@ -1,7 +1,7 @@
-/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';

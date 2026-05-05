@@ -1,5 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -10,7 +11,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +29,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -56,6 +57,7 @@ function IOURequestStepCategory({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
@@ -89,13 +91,29 @@ function IOURequestStepCategory({
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
+    const canCreateCategoryInSitu = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy) && !!policy?.areCategoriesEnabled;
+
+    const createCategoryMenuItems = canCreateCategoryInSitu
+        ? [
+              {
+                  icon: expensifyIcons.Plus,
+                  text: translate('workspace.categories.addCategory'),
+                  onSelected: () => {
+                      if (!policyID || !report?.reportID) {
+                          return;
+                      }
+                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, report.reportID, reportActionID, backTo));
+                  },
+              },
+          ]
+        : undefined;
+
     const shouldShowCategory =
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const fetchData = () => {
@@ -179,6 +197,8 @@ function IOURequestStepCategory({
             shouldShowOfflineIndicator={policyCategories !== undefined}
             testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
+            threeDotsMenuItems={createCategoryMenuItems}
+            shouldMinimizeMenuButton
         >
             {isLoading && (
                 <ActivityIndicator
@@ -240,8 +260,7 @@ function IOURequestStepCategory({
     );
 }
 
-/* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
-/* eslint-disable rulesdir/no-negated-variables */
+
 const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategoryWithFullTransactionOrNotFound);
 export default IOURequestStepCategoryWithWritableReportOrNotFound;

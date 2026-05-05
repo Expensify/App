@@ -1,27 +1,31 @@
 import {PortalHost} from '@gorhom/portal';
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 import type {ViewStyle} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import AccountManagerBanner from './AccountManagerBanner';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
+import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
+import useDeferNonEssentials from './hooks/useDeferNonEssentials';
+import useFlushDeferredWriteOnFocus from './hooks/useFlushDeferredWriteOnFocus';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionComposePlaceholder from './report/ReportActionCompose/ReportActionComposePlaceholder';
@@ -52,41 +56,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
-    // During dismiss_modal_and_open_report, defer heavy non-content components
-    // (composer, invisible handlers) so the first render is lighter.
-    // Real content (header + messages) still renders immediately.
-    //
-    // ReportFetchHandler is intentionally included in the deferred set: it fetches
-    // new actions from the server, but at this point the report's local Onyx data
-    // is already sufficient for the initial render. The fetch handler mounts once
-    // the transition commits and backfills server-side updates.
-    const [shouldDeferNonEssentials, setShouldDeferNonEssentials] = useState(() => {
-        const pending = getPendingSubmitFollowUpAction();
-        return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && pending?.reportID === reportIDFromRoute;
-    });
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!shouldDeferNonEssentials) {
-                return;
-            }
-            let animationFrameId: number;
-            const handle = TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    animationFrameId = requestAnimationFrame(() => setShouldDeferNonEssentials(false));
-                },
-                waitForUpcomingTransition: true,
-            });
-            // *3: shorter than the orchestrator's *5 because this only defers rendering
-            // of non-essential components - the user already sees the report content.
-            const safetyTimeout = setTimeout(() => setShouldDeferNonEssentials(false), CONST.MAX_TRANSITION_DURATION_MS * 3);
-            return () => {
-                handle.cancel();
-                cancelAnimationFrame(animationFrameId);
-                clearTimeout(safetyTimeout);
-            };
-        }, [shouldDeferNonEssentials]),
-    );
+    const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
 
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
@@ -94,27 +64,23 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
     );
 
-    // Flush the dismiss-modal deferred write channel when ReportScreen gains focus.
-    // Empty deps: the callback identity is stable but useFocusEffect runs it on every
-    // focus gain (not just mount). On narrow layout, the modal dismiss/restore cycle
-    // always triggers a new focus event. On wide layout, the fast-path handlers use
-    // InteractionManager.runAfterInteractions as a fallback since the ReportScreen may
-    // already be focused. The 5s safety timeout in deferredLayoutWrite also covers
-    // edge cases where neither focus nor InteractionManager fires.
-    useFocusEffect(
-        useCallback(() => {
-            if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
-                return;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const handle = InteractionManager.runAfterInteractions(() => {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            });
-            return () => handle.cancel();
-        }, []),
-    );
+    useFlushDeferredWriteOnFocus(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
 
     const actionListValue = useActionListContextValue();
+
+    const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
+        selector: (r) => ({
+            reportPendingAction: r?.pendingFields?.addWorkspaceRoom ?? r?.pendingFields?.createChat ?? r?.pendingFields?.createReport ?? r?.pendingFields?.reportName,
+            reportErrors: r?.errorFields?.addWorkspaceRoom ?? r?.errorFields?.createChat ?? r?.errorFields?.createReport,
+        }),
+    });
+    const {reportPendingAction, reportErrors} = reportPendingActionAndErrors ?? {};
+
+    const dismissReportCreationError = () => {
+        Navigation.goBack(undefined, {
+            afterTransition: () => removeFailedReport(reportIDFromRoute),
+        });
+    };
 
     return (
         <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
@@ -140,18 +106,30 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
                                     <ReportHeader />
                                     {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
-                                    <View style={[styles.flex1, styles.flexRow]}>
-                                        {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
-                                        <AgentZeroStatusProvider reportID={reportIDFromRoute}>
-                                            <View
-                                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                                testID="report-actions-view-wrapper"
-                                            >
-                                                <ReportActionsList />
-                                                {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter />}
-                                            </View>
-                                        </AgentZeroStatusProvider>
-                                    </View>
+                                    <OfflineWithFeedback
+                                        pendingAction={reportPendingAction}
+                                        errors={reportErrors}
+                                        onClose={dismissReportCreationError}
+                                        needsOffscreenAlphaCompositing
+                                        style={styles.flex1}
+                                        contentContainerStyle={styles.flex1}
+                                        errorRowStyles={[styles.ph5, styles.mv2]}
+                                    >
+                                        <View style={[styles.flex1, styles.flexRow]}>
+                                            {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
+                                            <AgentZeroStatusProvider reportID={reportIDFromRoute}>
+                                                <ConciergeDraftProvider reportID={reportIDFromRoute}>
+                                                    <View
+                                                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                        testID="report-actions-view-wrapper"
+                                                    >
+                                                        <ReportActionsList />
+                                                        {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter />}
+                                                    </View>
+                                                </ConciergeDraftProvider>
+                                            </AgentZeroStatusProvider>
+                                        </View>
+                                    </OfflineWithFeedback>
                                     <PortalHost name="suggestions" />
                                 </ReportDragAndDropProvider>
                             </LinkedActionNotFoundGuard>

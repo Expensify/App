@@ -1,6 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,6 +13,7 @@ import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useSh
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
@@ -38,7 +40,7 @@ import {
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import Navigation from '@navigation/Navigation';
@@ -48,7 +50,7 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {reportByIDsSelector} from '@src/selectors/Attributes';
+import reportByIDsSelector from '@src/selectors/Attributes';
 import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type SearchMoneyRequestPageProps =
@@ -71,8 +73,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchStateContext();
 
-    const firstRenderRef = useRef(true);
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
@@ -85,28 +85,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     );
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
-    const prevReport = usePrevious(report);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
 
-    // Dismiss modal when the money request report is removed (e.g. deleted or merged).
-    useEffect(() => {
-        // Skip first run so we don't dismiss on mount when report may still be loading.
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
-            return;
-        }
-
-        // Report is gone now but we had a money request report before → it was removed.
-        const isRemovalExpectedForReportType = !report && isMoneyRequestReport(prevReport);
-
-        if (isRemovalExpectedForReportType) {
-            if (!isFocused) {
-                return;
-            }
-            Navigation.dismissModal();
-        }
-    }, [report, isFocused, prevReport]);
+    useDismissOnMoneyRequestReportRemoval(reportIDFromRoute);
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused

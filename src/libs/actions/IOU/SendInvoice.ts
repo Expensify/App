@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -682,6 +683,7 @@ function getSendInvoiceInformation({
             payeeEmail: receiver.login ?? '',
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
+            currentUserAccountID,
         });
 
     // STEP 6: Build Onyx Data

@@ -44,6 +44,26 @@ type DomainSecurityGroupPendingActions = {
      * Pending action for the security group name
      */
     name?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the strictly enforce workspace rules setting
+     */
+    enableStrictPolicyRules?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the default security group ID
+     */
+    defaultSecurityGroupID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted expense workspace creation
+     */
+    enableRestrictedPolicyCreation?: OnyxCommon.PendingAction;
+
+    /**
+     * Base pending action for group-level operations (create, delete)
+     */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /**

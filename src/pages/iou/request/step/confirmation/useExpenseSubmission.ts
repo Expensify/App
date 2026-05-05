@@ -2,6 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -180,6 +181,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const policyRecentlyUsedCurrencies = policyRecentlyUsedCurrenciesOnyx ?? [];
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const activePolicy = useActivePolicy();
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -201,12 +203,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -438,6 +439,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                conciergeReportID,
                 shouldHandleNavigation: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
@@ -515,7 +517,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: email,
                 introSelected,
-                activePolicyID,
+                activePolicy,
                 quickAction,
                 recentWaypoints,
                 betas,

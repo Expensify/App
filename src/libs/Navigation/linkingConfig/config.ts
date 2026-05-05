@@ -32,7 +32,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
-        [SCREENS.WORKSPACE_DOCUMENT]: ROUTES.WORKSPACE_DOCUMENT.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
@@ -275,6 +274,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_BANK_CONNECTION.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING,
                             exact: true,
@@ -358,6 +361,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
                             exact: true,
+                        },
+                        [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.route,
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT,
@@ -443,6 +449,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
                             exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
+                            path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.route,
@@ -991,11 +1000,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
                             path: ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.route,
                         },
-                        [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.SPEND_CATEGORY_SELECTOR.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_DEFAULT_CATEGORY_SELECTOR]: DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.path,
                         [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
                         },
@@ -1017,9 +1026,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
                         },
-                        [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path,
                         [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
                         },
@@ -1035,6 +1042,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path,
                         [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
                             path: ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.route,
                         },
@@ -1378,6 +1386,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: {
                             path: ROUTES.DOMAIN_MEMBERS_MOVE_TO_GROUP.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_MOVE_TO_GROUP]: {
+                            path: ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.route,
+                        },
                         [SCREENS.DOMAIN.GROUP_DETAILS]: {
                             path: ROUTES.DOMAIN_GROUP_DETAILS.route,
                         },
@@ -1713,6 +1724,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
+                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
@@ -1949,7 +1961,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,
                             exact: true,
                         },
-                        [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: ROUTES.CHANGE_APPROVER_SEARCH_RHP,
+                        [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: {
+                            path: ROUTES.CHANGE_APPROVER_SEARCH_RHP.route,
+                            exact: true,
+                        },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
                     },
                 },
@@ -2016,9 +2031,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
+                [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: {
                     screens: {
-                        [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: ROUTES.ADD_UNREPORTED_EXPENSE.route,
+                        [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: ROUTES.ADD_EXISTING_EXPENSE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {
@@ -2234,6 +2249,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.ROOT]: {
                             path: ROUTES.SETTINGS_WALLET,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.AGENTS.ROOT]: {
+                            path: ROUTES.SETTINGS_AGENTS,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.RULES.ROOT]: {

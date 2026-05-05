@@ -380,6 +380,19 @@ class Git {
     }
 
     /**
+     * Abbreviated hash for HEAD in the current working directory.
+     *
+     * @returns Short commit hash, or `unknown` when not a git repo or git fails.
+     */
+    static getHeadShort(): string {
+        try {
+            return execSync('git rev-parse --short HEAD').trim();
+        } catch {
+            return 'unknown';
+        }
+    }
+
+    /**
      * Ensure a git reference is available locally, fetching it if necessary.
      *
      * @param ref - The git reference to ensure is available (commit hash, branch, tag, etc.)

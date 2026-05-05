@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
-import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
 import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -22,6 +21,12 @@ import type {ActionPayloadParams, LinkToOptions} from './types';
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
 };
+
+/**
+ * Leaf screen names that represent the root/landing view of each tab.
+ * Used to distinguish plain tab switches from cross-tab deep navigations.
+ */
+const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -153,6 +158,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
+    const isDynamicRoute = !!findMatchingDynamicSuffix(normalizedPath);
+    const typedPayload = (action as {payload: {name?: string; params?: ActionPayloadParams}}).payload;
+
+    // If a RIGHT_MODAL_NAVIGATOR already sits below the focused TAB_NAVIGATOR, NAVIGATE pops back to it
+    // (dropping the tab above) instead of stacking - anchoring the new RHP on the wrong tab.
+    // PUSH so the new RHP lands above the current tab. See https://github.com/Expensify/App/issues/88965.
+    const targetIsRightModal = typedPayload?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    const focusIsOnTabNavigator = currentState.routes[currentState.index]?.name === NAVIGATORS.TAB_NAVIGATOR;
+    const isRhpNavigationFromStackedTab =
+        targetIsRightModal && focusIsOnTabNavigator && currentState.routes.some((route, index) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && index < currentState.index);
+
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
@@ -166,7 +182,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
         !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath) &&
         !isSwitchingTabsWithinTabNavigator(currentState, stateFromPath) &&
-        !findMatchingDynamicSuffix(normalizedPath)
+        (!isDynamicRoute || isRhpNavigationFromStackedTab)
     ) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -175,7 +191,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // When something other than TAB_NAVIGATOR is on top of the stack and we're navigating
     // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
     const currentTopRoute = currentState.routes[currentState.index];
-    const typedPayload = (action as {payload: {name?: string; params?: ActionPayloadParams}}).payload;
     if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
         (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
@@ -193,7 +208,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
-    if (shouldCheckFullScreenRouteMatching(action)) {
+    // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
+    // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
+    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the

@@ -64,7 +64,6 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                     accountID={Number(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: icon.name,
                     }}
                     shouldRender

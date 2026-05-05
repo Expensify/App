@@ -2,6 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -16,6 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
@@ -49,7 +51,7 @@ import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
     isInvoiceReport as isInvoiceReportUtil,
@@ -108,7 +110,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const {isOffline} = useNetwork();
     const activePolicy = usePolicy(activePolicyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -130,7 +135,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -181,8 +186,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
+                chatReportPolicy,
                 betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
@@ -211,10 +218,11 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-    const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, allTransactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
+    const shouldShowApproveButton =
+        (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, allTransactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
     const isApproveDisabled = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,
