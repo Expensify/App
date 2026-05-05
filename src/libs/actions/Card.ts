@@ -6,6 +6,7 @@ import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
     CardDeactivateParams,
+    CreateExpensifyCardParams,
     DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
@@ -31,6 +32,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
@@ -1374,9 +1376,9 @@ function issueExpensifyCard(
         return;
     }
 
-    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
+    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, cardRuleValue, cardRuleID, spendRuleEnabled, spendRuleOption} = data;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
@@ -1388,7 +1390,7 @@ function issueExpensifyCard(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
@@ -1399,7 +1401,7 @@ function issueExpensifyCard(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
@@ -1410,7 +1412,7 @@ function issueExpensifyCard(
         },
     ];
 
-    const parameters = {
+    const parameters: CreateExpensifyCardParams = {
         assigneeEmail,
         limit,
         limitType,
@@ -1418,6 +1420,18 @@ function issueExpensifyCard(
         validateCode,
         domainAccountID,
     };
+
+    const isCopyingSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.COPY_EXISTING && cardRuleID;
+    const isCreatingNewSpendRule = spendRuleEnabled && spendRuleOption === CONST.EXPENSIFY_CARD.CARD_RULE_OPTION.CREATE_NEW && cardRuleValue;
+
+    if (isCopyingSpendRule) {
+        parameters.cardRuleID = cardRuleID;
+    }
+
+    if (isCreatingNewSpendRule) {
+        parameters.cardRuleID = rand64();
+        parameters.cardRuleValue = JSON.stringify(buildSpendRuleAST(cardRuleValue));
+    }
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
@@ -1595,6 +1609,7 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
     const ruleID = cardRuleID;
     const ruleAST = buildSpendRuleAST(spendRuleValues, existingRule?.created);
+
     if (!ruleAST) {
         return;
     }
