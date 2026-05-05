@@ -2,7 +2,7 @@ import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -27,8 +27,8 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type Policy from '@src/types/onyx/Policy';
 
 type SetSpendRulesStepProps = {
-    // The policy that the card will be issued under
-    policy: OnyxEntry<Policy>;
+    /* The policy that the card will be issued under */
+    policyID: string;
 
     /** Start from step index */
     startStepIndex: number;
@@ -37,10 +37,9 @@ type SetSpendRulesStepProps = {
     stepNames: readonly string[];
 };
 
-function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesStepProps) {
+function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id;
     const personalDetails = usePersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
@@ -204,42 +203,36 @@ function SetSpendRulesStep({policy, stepNames, startStepIndex}: SetSpendRulesSte
                                     />
                                 </View>
                                 <MenuItemWithTopDescription
-                                    description={translate('common.merchant')}
-                                    // onPress={() => {
-                                    //     navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
-                                    // }}
                                     shouldShowRightIcon
+                                    numberOfLinesTitle={2}
+                                    titleStyle={styles.flex1}
                                     // title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
-                                    numberOfLinesTitle={2}
-                                    titleStyle={styles.flex1}
+                                    description={translate('common.merchant')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MERCHANTS.getRoute(policyID));
+                                    }}
                                 />
                                 <MenuItemWithTopDescription
-                                    description={translate('workspace.rules.spendRules.spendCategory')}
-                                    // onPress={() => {
-                                    //     clearError();
-                                    //     navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
-                                    // }}
                                     shouldShowRightIcon
-                                    // title={categoriesMenuTitle}
                                     numberOfLinesTitle={2}
                                     titleStyle={styles.flex1}
+                                    // title={categoriesMenuTitle}
+                                    description={translate('workspace.rules.spendRules.spendCategory')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_CATEGORY.getRoute(policyID));
+                                    }}
                                 />
                                 <MenuItemWithTopDescription
-                                    description={translate('workspace.rules.spendRules.maxAmount')}
-                                    // onPress={() => {
-                                    //     clearError();
-                                    //     if (!selectedCurrency) {
-                                    //         openCurrencyMismatchModal();
-                                    //         return;
-                                    //     }
-                                    //     navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
-                                    // }}
                                     shouldShowRightIcon
                                     // title={maxAmountMenuTitle}
                                     titleStyle={styles.flex1}
+                                    description={translate('workspace.rules.spendRules.maxAmount')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_RULE_MAX_AMOUNT.getRoute(policyID));
+                                    }}
                                 />
                             </View>
                         )}
