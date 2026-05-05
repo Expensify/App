@@ -46,7 +46,7 @@ function MovedTransactionAction({action, emptyHTML, originalReport}: MovedTransa
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action, conciergeReportID);
+    const message = getMovedTransactionMessage(translate, action);
 
     if (hasReasoning(action)) {
         return (

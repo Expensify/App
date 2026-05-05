@@ -1826,6 +1826,7 @@ describe('ReportUtils', () => {
                 const fromReport = {
                     ...LHNTestUtils.getFakeReport(),
                     reportID: '789',
+                    reportName: 'Ragnar',
                 };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
@@ -14005,7 +14006,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getUnreportedTransactionMessage(translateLocal, action, undefined);
+            const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -14022,7 +14023,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getUnreportedTransactionMessage(translateLocal, action, undefined);
+            const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -14039,9 +14040,8 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            // Should not throw with or without conciergeReportID
-            const result1 = getUnreportedTransactionMessage(translateLocal, action, undefined);
-            const result2 = getUnreportedTransactionMessage(translateLocal, action, '99999');
+            const result1 = getUnreportedTransactionMessage(translateLocal, action);
+            const result2 = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result1).toBe('string');
             expect(typeof result2).toBe('string');
         });
@@ -17061,7 +17061,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -17079,25 +17079,9 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
-        });
-
-        it('should handle conciergeReportID parameter', async () => {
-            const toReport = LHNTestUtils.getFakeReport();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
-
-            const action = {
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    toReportID: toReport.reportID,
-                },
-            } as unknown as ReportAction;
-
-            const result = getMovedTransactionMessage(translateLocal, action, '12345');
-            expect(typeof result).toBe('string');
         });
     });
 
