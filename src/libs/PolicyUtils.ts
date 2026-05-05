@@ -985,10 +985,8 @@ function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
-// TODO(Phase 2.1): implement `hasApprovalFlow`. Stub returns false so failing tests stay red.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function hasApprovalFlow(policy: OnyxEntry<Policy>): boolean {
-    return false;
+function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) && !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
