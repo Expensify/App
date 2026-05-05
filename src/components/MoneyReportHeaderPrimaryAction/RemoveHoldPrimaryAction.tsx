@@ -21,6 +21,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
@@ -40,7 +41,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 if (IOUActions.length) {
                     for (const action of IOUActions) {
-                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline, currentUserLogin ?? '', currentUserAccountID);
+                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID);
                     }
                     return;
                 }
@@ -49,7 +50,14 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 if (!moneyRequestAction) {
                     return;
                 }
-                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline, currentUserLogin ?? '', currentUserAccountID);
+                changeMoneyRequestHoldStatus(
+                    moneyRequestAction,
+                    getLinkedIOUTransaction(moneyRequestAction, transactions),
+                    isOffline,
+                    bankAccountList,
+                    currentUserLogin ?? '',
+                    currentUserAccountID,
+                );
             }}
         />
     );

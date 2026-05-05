@@ -89,6 +89,7 @@ function useSelectedTransactionsActions({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -329,7 +330,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, bankAccountList, login ?? '', currentUserAccountID);
                     }
                     clearSelectedTransactions(true);
                 },

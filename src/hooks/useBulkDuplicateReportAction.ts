@@ -36,6 +36,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -65,6 +66,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             transactionViolations: allTransactionViolations,
             translate,
             recentWaypoints,
+            bankAccountList,
             conciergeReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,

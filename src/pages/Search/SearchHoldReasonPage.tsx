@@ -35,6 +35,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
@@ -44,13 +45,13 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID, ancestors);
                 }
                 clearSelectedTransactions();
             }
@@ -62,11 +63,12 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             route.name,
             showDelegateNoAccessModal,
             selectedTransactionIDs,
-            reportID,
-            isOffline,
-            ancestors,
-            clearSelectedTransactions,
             selectedTransactions,
+            clearSelectedTransactions,
+            reportID,
+            ancestors,
+            isOffline,
+            bankAccountList,
             currentUserLogin,
             currentUserAccountID,
         ],

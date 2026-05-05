@@ -322,6 +322,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
+                bankAccountList: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -413,6 +414,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                bankAccountList: undefined,
                 conciergeReportID: 'concierge_chat_001',
             });
 
@@ -548,6 +550,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                bankAccountList: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -637,6 +640,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
+                bankAccountList: undefined,
                 conciergeReportID: 'concierge_chat_002',
             });
 
@@ -713,6 +717,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                bankAccountList: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -789,6 +794,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
+                bankAccountList: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -854,6 +860,7 @@ describe('PerDiem', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: personalDetailsList,
+                bankAccountList: undefined,
                 conciergeReportID: undefined,
             });
 

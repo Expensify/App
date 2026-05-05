@@ -62,6 +62,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const reportOwnerAccountID = report?.ownerAccountID;
     const submitterEmailSelector = useCallback(
@@ -118,22 +119,24 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     employeeList,
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
+                    bankAccountList,
                     reportNextStep,
                     reportActionsList: filteredReportActions,
                 });
             } else {
-                changeReportPolicy(
+                changeReportPolicy({
                     report,
                     parentReport,
                     policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
                     isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
                     isReportLastVisibleArchived,
-                );
+                    bankAccountList,
+                });
             }
         },
         [
@@ -155,6 +158,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             isASAPSubmitBetaEnabled,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
+            bankAccountList,
         ],
     );
 

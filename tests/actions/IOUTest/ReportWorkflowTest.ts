@@ -197,6 +197,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -299,7 +300,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -346,6 +347,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -426,6 +428,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
+                                bankAccountList: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -474,6 +477,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
+                                bankAccountList: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -701,6 +705,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
+                                bankAccountList: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -749,6 +754,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 draftTransactionIDs: [],
                                 betas: [],
                                 personalDetails: {},
+                                bankAccountList: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -880,7 +886,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -945,6 +951,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1110,7 +1117,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 activePolicy: undefined,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -1150,6 +1157,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1352,6 +1360,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: DELEGATE_EMAIL,
+                bankAccountList: undefined,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -1389,6 +1398,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -1967,6 +1977,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2019,6 +2030,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2067,6 +2079,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2191,6 +2204,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2222,6 +2236,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2251,6 +2266,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2310,6 +2326,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2426,6 +2443,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 

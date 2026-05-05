@@ -236,6 +236,7 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     shouldHandleNavigation?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -257,6 +258,7 @@ type PerDiemExpenseInformationParams = {
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticChatReportID?: string;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -308,6 +310,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        bankAccountList,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -547,6 +550,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     });
 
     return {
@@ -904,6 +908,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         shouldHandleNavigation = true,
+        bankAccountList,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -955,6 +960,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        bankAccountList,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;

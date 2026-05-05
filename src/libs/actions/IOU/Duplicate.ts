@@ -724,6 +724,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUserLogin: string;
     currentUserAccountID: number;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 function duplicateExpenseTransaction({
@@ -752,6 +753,7 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUserAccountID,
     currentUserLogin,
+    bankAccountList,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -791,6 +793,7 @@ function duplicateExpenseTransaction({
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        bankAccountList,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -876,6 +879,7 @@ type DuplicateReportParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 function duplicateReport({
@@ -901,13 +905,24 @@ function duplicateReport({
     currentUserAccountID,
     currentUserLogin,
     shouldPlaySound = true,
+    bankAccountList,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+        ownerPersonalDetails,
+        false,
+        isASAPSubmitBetaEnabled,
+        targetPolicy,
+        betas,
+        bankAccountList,
+        false,
+        undefined,
+        newReportName,
+    );
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -984,6 +999,7 @@ function duplicateReport({
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
+            bankAccountList,
         };
 
         const result = createExpenseByType({
@@ -1029,6 +1045,7 @@ type BulkDuplicateExpensesParams = {
     draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     conciergeReportID: string | undefined;
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1052,6 +1069,7 @@ function bulkDuplicateExpenses({
     draftTransactionIDs,
     betas,
     recentWaypoints,
+    bankAccountList,
     conciergeReportID,
     currentUserAccountID,
     currentUserLogin,
@@ -1152,6 +1170,7 @@ function bulkDuplicateExpenses({
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUserAccountID,
             currentUserLogin,
+            bankAccountList,
         });
 
         if (result?.iouReport) {
@@ -1186,6 +1205,7 @@ type BulkDuplicateReportsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     conciergeReportID: string | undefined;
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1211,6 +1231,7 @@ function bulkDuplicateReports({
     transactionViolations,
     translate,
     recentWaypoints,
+    bankAccountList,
     conciergeReportID,
     currentUserLogin,
     currentUserAccountID,
@@ -1289,6 +1310,7 @@ function bulkDuplicateReports({
             shouldPlaySound: false,
             currentUserAccountID,
             currentUserLogin,
+            bankAccountList,
             conciergeReportID,
         });
     }

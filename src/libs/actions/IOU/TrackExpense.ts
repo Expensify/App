@@ -1583,6 +1583,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        bankAccountList,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1687,6 +1688,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        bankAccountList,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1897,6 +1899,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction,
     personalDetails,
     betas,
+    bankAccountList,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1909,6 +1912,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2026,6 +2030,7 @@ function convertBulkTrackedExpensesToIOU({
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList,
             policyParams: {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 policyTagList: getMoneyRequestPolicyTags({

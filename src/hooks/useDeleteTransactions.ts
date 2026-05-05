@@ -48,6 +48,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -182,6 +183,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
+                    bankAccountList,
                     isOffline,
                 });
             }
@@ -240,6 +242,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            bankAccountList,
             isOffline,
         ],
     );

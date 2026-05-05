@@ -335,6 +335,7 @@ function useSelectionModeReportActions({
                 delegateEmail,
                 full: true,
                 expenseReportPolicy: policy,
+                bankAccountList,
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -454,6 +455,7 @@ function useSelectionModeReportActions({
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 expenseReportPolicy: policy,
+                bankAccountList,
             });
         });
     };

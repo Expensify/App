@@ -184,6 +184,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -437,6 +438,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1125,6 +1127,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
             }
 
@@ -1206,6 +1209,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1376,6 +1380,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     draftTransactionIDs: [],
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
             }
 

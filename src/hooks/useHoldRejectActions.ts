@@ -53,6 +53,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const isChatReportDM = isDM(chatReport);
@@ -76,7 +77,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID);
                 } else if (isReportSubmitter) {
                     onHoldEducationalOpen();
                 } else {
@@ -99,7 +100,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, bankAccountList, currentUserLogin ?? '', currentUserAccountID);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {

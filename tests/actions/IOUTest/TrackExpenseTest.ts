@@ -2277,6 +2277,7 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     betas: [CONST.BETAS.ALL],
+                    bankAccountList: undefined,
                 });
             }).not.toThrow();
         });
@@ -2347,6 +2348,7 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     betas: [CONST.BETAS.ALL],
+                    bankAccountList: undefined,
                 });
             }).not.toThrow();
         });
@@ -2387,6 +2389,7 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     betas: [CONST.BETAS.ALL],
+                    bankAccountList: undefined,
                 });
             }).not.toThrow();
         });
@@ -2427,6 +2430,7 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     betas: [CONST.BETAS.ALL],
+                    bankAccountList: undefined,
                 });
             }).not.toThrow();
         });

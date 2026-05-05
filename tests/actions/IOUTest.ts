@@ -668,6 +668,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -933,6 +934,7 @@ describe('actions/IOU', () => {
                         quickAction: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: {},
+                        bankAccountList: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1166,6 +1168,7 @@ describe('actions/IOU', () => {
                             quickAction: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: {},
+                            bankAccountList: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1335,6 +1338,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             return (
                 waitForBatchedUpdates()
@@ -1857,6 +1861,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1889,6 +1894,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -1921,6 +1927,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1972,6 +1979,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2016,6 +2024,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2086,6 +2095,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
             waitForBatchedUpdates();
 
@@ -2154,6 +2164,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                bankAccountList: undefined,
             });
 
             expect(iouReport).toBeDefined();
@@ -2227,6 +2238,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
                 betas: [CONST.BETAS.ALL],
+                bankAccountList: undefined,
             });
 
             expect(iouReport).toBeDefined();
@@ -2271,6 +2283,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
+                bankAccountList: undefined,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -2429,6 +2442,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2504,6 +2518,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        bankAccountList: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2591,6 +2606,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        bankAccountList: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2669,6 +2685,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        bankAccountList: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2742,6 +2759,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        bankAccountList: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2816,6 +2834,7 @@ describe('actions/IOU', () => {
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
+                        bankAccountList: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3219,6 +3238,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedTags: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: splitMockPersonalDetails,
+                            bankAccountList: undefined,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -3558,6 +3578,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3607,6 +3628,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3630,6 +3652,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3660,6 +3683,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3695,6 +3719,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3716,6 +3741,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3778,6 +3804,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3828,6 +3855,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3889,6 +3917,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                bankAccountList: undefined,
             });
 
             waitForBatchedUpdates();
@@ -3961,7 +3990,19 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], splitMockPersonalDetails, RORY_EMAIL);
+            completeSplitBill({
+                chatReportID: reportID,
+                reportAction: iouAction,
+                updatedTransaction: updatedSplitTransaction,
+                sessionAccountID: RORY_ACCOUNT_ID,
+                isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
+                transactionViolations: {},
+                betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
+                sessionEmail: RORY_EMAIL,
+                bankAccountList: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -4102,6 +4143,7 @@ describe('actions/IOU', () => {
                 transactionReport: reports.transactionReport,
                 expenseReport: reports.expenseReport,
                 isOffline: false,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -4285,6 +4327,7 @@ describe('actions/IOU', () => {
                 transactionReport: reports.transactionReport,
                 expenseReport: reports.expenseReport,
                 isOffline: false,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -4405,6 +4448,7 @@ describe('actions/IOU', () => {
                 transactionReport: reports.transactionReport,
                 expenseReport: reports.expenseReport,
                 isOffline: false,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -4537,6 +4581,7 @@ describe('actions/IOU', () => {
                 transactionReport: reports.transactionReport,
                 expenseReport: reports.expenseReport,
                 isOffline: false,
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -4757,6 +4802,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -4830,6 +4876,7 @@ describe('actions/IOU', () => {
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: {},
+                bankAccountList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -5340,7 +5387,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL]);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], undefined, false);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -5438,6 +5485,7 @@ describe('actions/IOU', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                bankAccountList: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -5506,7 +5554,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -5542,6 +5590,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -5652,6 +5701,7 @@ describe('actions/IOU', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -5684,7 +5734,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -5720,6 +5770,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -5830,6 +5881,7 @@ describe('actions/IOU', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -5865,7 +5917,7 @@ describe('actions/IOU', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -5903,6 +5955,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -6022,6 +6075,7 @@ describe('actions/IOU', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -6057,7 +6111,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {bankAccountList: undefined});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -6096,6 +6150,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     betas: [CONST.BETAS.ALL],
                     personalDetails: {},
+                    bankAccountList: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -6124,7 +6179,7 @@ describe('actions/IOU', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
                 }
                 await waitForBatchedUpdates();
 
@@ -6237,6 +6292,7 @@ describe('actions/IOU', () => {
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
                     isOffline: false,
+                    bankAccountList: undefined,
                 });
 
                 await waitForBatchedUpdates();

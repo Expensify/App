@@ -51,6 +51,7 @@ function useSearchOverlay({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const [isSearchReady, setIsSearchReady] = useState(() => !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -116,6 +117,7 @@ function useSearchOverlay({
                 canSelectMultiple={canSelectMultiple}
                 columns={overlayColumns}
                 contentContainerStyle={shouldUseNarrowLayout ? contentContainerStyle : undefined}
+                bankAccountList={bankAccountList}
             />
         ) : null;
 

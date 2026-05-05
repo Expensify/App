@@ -257,6 +257,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 conciergeReportID,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                bankAccountList,
             });
         }
     };
@@ -405,6 +406,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         conciergeReportID,
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        bankAccountList,
                     });
                 });
             },

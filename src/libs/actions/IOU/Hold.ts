@@ -45,6 +45,7 @@ function putOnHold(
     comment: string,
     initialReportID: string | undefined,
     isOffline: boolean,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
     ancestors: Ancestor[] = [],
@@ -266,6 +267,7 @@ function putOnHold(
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -341,20 +343,29 @@ function putTransactionsOnHold(
     comment: string,
     reportID: string,
     isOffline: boolean,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, bankAccountList, currentUserLogin, currentUserAccountID, ancestors);
     }
 }
 
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isOffline: boolean, currentUserLogin: string, currentUserAccountID: number) {
+function unholdRequest(
+    transactionID: string,
+    reportID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isOffline: boolean,
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -484,6 +495,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,

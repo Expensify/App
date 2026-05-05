@@ -202,6 +202,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     shouldDeferAutoSubmit?: boolean;
 };
 
@@ -234,6 +235,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -280,6 +282,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -1195,6 +1198,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1820,6 +1824,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                bankAccountList,
             }),
         });
         onyxData.optimisticData?.push({
@@ -1926,6 +1931,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        bankAccountList,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2238,6 +2244,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -2295,6 +2302,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     });
 
     return {

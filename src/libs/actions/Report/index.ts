@@ -3300,6 +3300,7 @@ function updateReportField({
     hasViolationsParam,
     recentlyUsedReportFields,
     shouldFixViolations = false,
+    bankAccountList,
 }: {
     report: Report;
     reportField: PolicyReportField;
@@ -3311,6 +3312,7 @@ function updateReportField({
     hasViolationsParam: boolean;
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -3330,6 +3332,7 @@ function updateReportField({
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report,
@@ -3657,6 +3660,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
+    bankAccountList: OnyxEntry<BankAccountList>,
     reportName?: string,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
@@ -3737,6 +3741,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
@@ -3897,6 +3902,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
+    bankAccountList: OnyxEntry<BankAccountList>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
@@ -3914,6 +3920,7 @@ function createNewReport(
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         betas,
+        bankAccountList,
         reportName,
     );
 
@@ -6854,18 +6861,31 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
     });
 }
 
-function buildOptimisticChangePolicyData(
-    report: Report,
-    parentReport: OnyxEntry<Report>,
-    policy: Policy,
-    currentUserAccountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    isReportLastVisibleArchived: boolean | undefined,
-    reportNextStep?: ReportNextStepDeprecated,
-    optimisticPolicyExpenseChatReport?: Report,
-) {
+function buildOptimisticChangePolicyData({
+    report,
+    parentReport,
+    policy,
+    currentUserAccountID,
+    email,
+    hasViolationsParam,
+    isASAPSubmitBetaEnabled,
+    isReportLastVisibleArchived,
+    reportNextStep,
+    optimisticPolicyExpenseChatReport,
+    bankAccountList,
+}: {
+    report: Report;
+    parentReport: OnyxEntry<Report>;
+    policy: Policy;
+    currentUserAccountID: number;
+    email: string;
+    hasViolationsParam: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    isReportLastVisibleArchived: boolean | undefined;
+    reportNextStep?: ReportNextStepDeprecated;
+    optimisticPolicyExpenseChatReport?: Report;
+    bankAccountList: OnyxEntry<BankAccountList>;
+}) {
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -6976,6 +6996,7 @@ function buildOptimisticChangePolicyData(
             currentUserEmailParam: email,
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
+            bankAccountList,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
         });
         const optimisticNextStep = buildOptimisticNextStep({
@@ -7340,33 +7361,48 @@ function buildOptimisticChangePolicyData(
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(
-    report: Report,
-    parentReport: OnyxEntry<Report>,
-    policy: Policy,
-    accountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    isChangePolicyTrainingModalDismissed: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    reportNextStep?: ReportNextStepDeprecated,
+function changeReportPolicy({
+    report,
+    parentReport,
+    policy,
+    accountID,
+    email,
+    hasViolationsParam,
+    isChangePolicyTrainingModalDismissed,
+    isASAPSubmitBetaEnabled,
+    reportNextStep,
     isReportLastVisibleArchived = false,
-) {
+    bankAccountList,
+}: {
+    report: Report;
+    parentReport: OnyxEntry<Report>;
+    policy: Policy;
+    accountID: number;
+    email: string;
+    hasViolationsParam: boolean;
+    isChangePolicyTrainingModalDismissed: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    reportNextStep?: ReportNextStepDeprecated;
+    isReportLastVisibleArchived?: boolean;
+    bankAccountList: OnyxEntry<BankAccountList>;
+}) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
 
-    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
+    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData({
         report,
         parentReport,
         policy,
-        accountID,
+        currentUserAccountID: accountID,
         email,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
-    );
+        optimisticPolicyExpenseChatReport: undefined,
+        bankAccountList,
+    });
 
     const params = {
         reportID: report.reportID,
@@ -7396,6 +7432,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList,
     formatPhoneNumber,
     isReportLastVisibleArchived,
+    bankAccountList,
     reportNextStep,
     reportActionsList,
 }: {
@@ -7410,6 +7447,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
     reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>;
@@ -7453,7 +7491,7 @@ function changeReportPolicyAndInviteSubmitter({
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(
+    } = buildOptimisticChangePolicyData({
         report,
         parentReport,
         policy,
@@ -7463,8 +7501,9 @@ function changeReportPolicyAndInviteSubmitter({
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
-        membersChats.reportCreationData[submitterEmail],
-    );
+        optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterEmail],
+        bankAccountList,
+    });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
     const successData = [...successAddMembersData, ...successChangePolicyData];

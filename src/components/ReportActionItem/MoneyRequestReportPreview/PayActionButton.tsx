@@ -132,6 +132,7 @@ function PayActionButton({
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                bankAccountList,
             });
         }
     };

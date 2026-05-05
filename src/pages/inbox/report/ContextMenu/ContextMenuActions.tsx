@@ -599,7 +599,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canUnholdRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (closePopover, {moneyRequestAction, iouTransaction, bankAccountList, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
@@ -607,13 +607,20 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        bankAccountList,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                    ),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, bankAccountList, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
@@ -629,7 +636,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (closePopover, {moneyRequestAction, iouTransaction, bankAccountList, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
@@ -637,13 +644,20 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
+                    changeMoneyRequestHoldStatus(
+                        moneyRequestAction,
+                        iouTransaction,
+                        isOffline,
+                        bankAccountList,
+                        currentUserPersonalDetails?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                    ),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, bankAccountList, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

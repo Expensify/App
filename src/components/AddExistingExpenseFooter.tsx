@@ -58,6 +58,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
@@ -83,6 +84,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                     quickAction,
                     personalDetails,
                     betas,
+                    bankAccountList,
                 });
             } else {
                 changeTransactionsReport({
@@ -95,6 +97,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                     reportNextStep,
                     policyCategories,
                     allTransactions: selectedTransactions,
+                    bankAccountList,
                     policyTagList,
                 });
             }

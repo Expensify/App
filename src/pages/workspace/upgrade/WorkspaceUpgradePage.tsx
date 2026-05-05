@@ -72,6 +72,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
@@ -200,7 +201,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePolicyHR(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, {bankAccountList});
                 break;
             default:
         }
@@ -217,6 +218,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
+        bankAccountList,
         categoryId,
     ]);
 

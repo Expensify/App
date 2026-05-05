@@ -90,6 +90,7 @@ function useReceiptScan({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const participants = useMemo(
         () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived),
@@ -150,6 +151,7 @@ function useReceiptScan({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            bankAccountList,
         });
     }
 

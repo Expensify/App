@@ -5144,6 +5144,7 @@ const changeMoneyRequestHoldStatus = (
     reportAction: OnyxEntry<ReportAction>,
     iouTransaction: OnyxEntry<Transaction>,
     isOffline: boolean,
+    bankAccountList: OnyxEntry<BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
 ): void => {
@@ -5169,7 +5170,7 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, bankAccountList, currentUserLogin, currentUserAccountID);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }

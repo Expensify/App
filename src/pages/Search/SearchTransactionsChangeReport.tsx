@@ -55,6 +55,7 @@ function SearchTransactionsChangeReport() {
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -103,6 +104,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
             betas,
+            bankAccountList,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -119,6 +121,7 @@ function SearchTransactionsChangeReport() {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
+                bankAccountList,
                 policyTagList,
             });
             clearSelectedTransactions();
@@ -195,6 +198,7 @@ function SearchTransactionsChangeReport() {
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
+            bankAccountList,
             policyTagList,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -217,6 +221,7 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
+            bankAccountList,
             policyTagList,
         });
         clearSelectedTransactions();

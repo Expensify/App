@@ -207,7 +207,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -352,6 +354,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                bankAccountList,
             });
             existingIOUReport = iouReport;
         }
@@ -441,6 +444,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
                 conciergeReportID,
                 shouldHandleNavigation: shouldHandleNav,
+                bankAccountList,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
@@ -580,6 +584,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             shouldHandleNavigation: shouldHandleNav,
+            bankAccountList,
         });
     }
 
@@ -693,6 +698,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    bankAccountList,
                 });
             }
             markSubmitExpenseEnd();
@@ -728,6 +734,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    bankAccountList,
                 });
             }
             markSubmitExpenseEnd();

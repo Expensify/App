@@ -4,10 +4,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {doesPolicyHavePartiallySetupBankAccount} from './BankAccountUtils';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -42,6 +43,7 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
@@ -468,6 +470,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isReopen,
         isRejectedReport,
         bypassNextApproverID,
+        bankAccountList,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -499,6 +502,9 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
+    const hasValidAccount =
+        (!!policy?.achAccount?.accountNumber && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) ||
+        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.id && !doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id));
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
@@ -522,6 +528,32 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 text: ' to ',
             },
             ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
+        ],
+    };
+
+    let bankAccountSetupActorMessage: Message;
+    if (policy?.ownerAccountID === currentUserAccountIDParam) {
+        bankAccountSetupActorMessage = {text: 'you', type: 'strong', clickToCopyText: currentUserEmailParam ?? ''};
+    } else if (reimburserAccountID === -1 || !policy?.ownerAccountID) {
+        bankAccountSetupActorMessage = {text: 'an admin'};
+    } else {
+        bankAccountSetupActorMessage = {text: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
+    }
+
+    const nextStepFinishBankAccountSetup = {
+        type,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for ',
+            },
+            bankAccountSetupActorMessage,
+            {
+                text: ' to ',
+            },
+            {
+                text: 'finish setting up a business bank account.',
+            },
         ],
     };
 
@@ -715,7 +747,11 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
+                if (reimbursableSpend === 0) {
+                    optimisticNextStep = noActionRequired;
+                } else {
+                    optimisticNextStep = hasValidAccount ? nextStepPayExpense : nextStepFinishBankAccountSetup;
+                }
                 break;
             }
             // Another owner
@@ -746,28 +782,30 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     },
                 ];
             } else {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)
-                        ? {
-                              text: `you`,
-                              type: 'strong',
-                          }
-                        : {
-                              text: `an admin`,
+                optimisticNextStep.message = hasValidAccount
+                    ? [
+                          {
+                              text: 'Waiting for ',
                           },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
+                          isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)
+                              ? {
+                                    text: `you`,
+                                    type: 'strong',
+                                }
+                              : {
+                                    text: `an admin`,
+                                },
+                          {
+                              text: ' to ',
+                          },
+                          {
+                              text: 'pay',
+                          },
+                          {
+                              text: ' %expenses.',
+                          },
+                      ]
+                    : nextStepFinishBankAccountSetup.message;
             }
 
             break;
@@ -787,14 +825,14 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList) || reimbursableSpend === 0) {
                 optimisticNextStep = noActionRequired;
 
                 break;
             }
             // Self review
             let payerMessage: Message;
-            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)) {
+            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)) {
                 payerMessage = {text: 'you', type: 'strong'};
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
@@ -805,21 +843,23 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    payerMessage,
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
+                message: hasValidAccount
+                    ? [
+                          {
+                              text: 'Waiting for ',
+                          },
+                          payerMessage,
+                          {
+                              text: ' to ',
+                          },
+                          {
+                              text: 'pay',
+                          },
+                          {
+                              text: ' %expenses.',
+                          },
+                      ]
+                    : nextStepFinishBankAccountSetup.message,
             };
             break;
         }

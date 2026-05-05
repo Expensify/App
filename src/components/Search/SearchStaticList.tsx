@@ -16,6 +16,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -34,7 +35,7 @@ import {createAndOpenSearchTransactionThread, getSections, getSortedSections, ge
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SearchResults} from '@src/types/onyx';
+import type {BankAccountList, SearchResults} from '@src/types/onyx';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
 import SearchTableHeader from './SearchTableHeader';
@@ -54,6 +55,7 @@ type SearchStaticListProps = {
     shouldUseNarrowLayout?: boolean;
     canSelectMultiple?: boolean;
     columns?: SearchColumnType[];
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function SearchStaticList({
@@ -65,6 +67,7 @@ function SearchStaticList({
     shouldUseNarrowLayout = true,
     canSelectMultiple = false,
     columns = DEFAULT_COLUMNS,
+    bankAccountList,
 }: SearchStaticListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -95,7 +98,7 @@ function SearchStaticList({
             currentUserEmail: email ?? '',
             translate,
             formatPhoneNumber,
-            bankAccountList: undefined,
+            bankAccountList,
             allReportMetadata: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
