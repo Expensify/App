@@ -17,8 +17,8 @@ function RemainingLimitCircle({spentFraction}: RemainingLimitCircleProps) {
     const theme = useTheme();
 
     const clamped = Math.min(Math.max(spentFraction, 0), 1);
-    const remainingFraction = 1 - clamped;
-    const strokeDashoffset = CIRCUMFERENCE * (1 - remainingFraction);
+    const strokeDashoffset = CIRCUMFERENCE * (1 - clamped);
+    const strokeColor = spentFraction >= 1 ? theme.danger : theme.success;
 
     return (
         <View>
@@ -39,7 +39,7 @@ function RemainingLimitCircle({spentFraction}: RemainingLimitCircleProps) {
                     cx={SIZE / 2}
                     cy={SIZE / 2}
                     r={RADIUS}
-                    stroke={theme.success}
+                    stroke={strokeColor}
                     strokeWidth={STROKE_WIDTH}
                     fill="none"
                     strokeDasharray={`${CIRCUMFERENCE}`}
