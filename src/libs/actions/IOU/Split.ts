@@ -140,6 +140,7 @@ type CreateDistanceRequestInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
+    previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1817,6 +1818,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         betas,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
+        previousOdometerDraft,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -1861,7 +1863,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         : receipt;
 
     let parameters: CreateDistanceRequestParams;
-    let onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.GPS_DRAFT_DETAILS>;
+    let onyxData: OnyxData<
+        | BuildOnyxDataForMoneyRequestKeys
+        | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
+        | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS
+        | typeof ONYXKEYS.GPS_DRAFT_DETAILS
+        | typeof ONYXKEYS.ODOMETER_DRAFT
+    >;
     let distanceIouReport: OnyxInputValue<OnyxTypes.Report> = null;
     const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeWaypointsForAPI(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -2043,6 +2051,19 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             gpsCoordinates,
             shouldDeferAutoSubmit,
         };
+    }
+
+    if (previousOdometerDraft !== undefined && (odometerStart !== undefined || odometerEnd !== undefined)) {
+        onyxData?.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ODOMETER_DRAFT,
+            value: null,
+        });
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ODOMETER_DRAFT,
+            value: previousOdometerDraft,
+        });
     }
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);

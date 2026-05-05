@@ -17,6 +17,7 @@ export type {default as BeginAppleSignInParams} from './BeginAppleSignInParams';
 export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams';
 export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
+export type {default as RevokeDeviceParams} from './RevokeDeviceParams';
 export type {default as CloseSidePanelParams} from './CloseSidePanelParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
@@ -374,6 +375,7 @@ export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTax
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as ToggleCardCashbackToBillParams} from './ToggleCardCashbackToBillParams';
 export type {default as SetCardReconciliationBankAccountParams} from './SetCardReconciliationBankAccountParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
