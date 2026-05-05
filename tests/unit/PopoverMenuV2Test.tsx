@@ -213,6 +213,25 @@ describe('PopoverMenu V2', () => {
         });
     });
 
+    describe('useSecondaryInteractionTrigger', () => {
+        it('returns a ref and an onSecondaryInteraction callback', () => {
+            const captured: PopoverMenu.UseSecondaryInteractionTriggerResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSecondaryInteractionTrigger());
+                return null;
+            }
+            render(
+                <PopoverMenu.Root>
+                    <ProbeHook />
+                </PopoverMenu.Root>,
+            );
+            const result = captured.at(-1);
+            expect(result).toBeDefined();
+            expect(typeof result?.onSecondaryInteraction).toBe('function');
+            expect(result?.ref).toMatchObject({current: null});
+        });
+    });
+
     describe('Item', () => {
         it('fires onSelect when pressed', () => {
             const onSelect = jest.fn();
@@ -1058,6 +1077,14 @@ describe('PopoverMenu V2', () => {
                 return null;
             }
             expect(() => render(<CallTriggerHook />)).toThrow(/usePopoverTrigger\(\) must be called inside <PopoverMenu\.Root>/);
+        });
+
+        it('throws when useSecondaryInteractionTrigger is called outside Root', () => {
+            function CallSecondaryHook() {
+                PopoverMenu.useSecondaryInteractionTrigger();
+                return null;
+            }
+            expect(() => render(<CallSecondaryHook />)).toThrow(/useSecondaryInteractionTrigger\(\) must be called inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Content is rendered outside Root', () => {
