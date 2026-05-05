@@ -37,7 +37,7 @@ const generateAccountIDToReportIDMap = (reports: OnyxCollection<Report>, current
 
     const accountIDToReportIDMap: Record<number, string> = {};
     for (const report of Object.values(reports)) {
-        if (!report || !report.participants) {
+        if (!report?.participants) {
             continue;
         }
         // This means it's a self-DM

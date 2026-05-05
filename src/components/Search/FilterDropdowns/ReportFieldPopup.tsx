@@ -7,11 +7,11 @@ import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/types';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDateRangeDisplayValueFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -22,11 +22,13 @@ import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import BasePopup from './BasePopup';
 import DateSelectPopup from './DateSelectPopup';
+import type {PopoverComponentProps} from './DropdownButton';
 import SingleSelectPopup from './SingleSelectPopup';
 import TextInputPopup from './TextInputPopup';
 
 type ReportFieldPopupProps = {
     closeOverlay: () => void;
+    setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -40,6 +42,7 @@ type ReportFieldSubPopupProps = {
 type ReportFieldDatePopupProps = {
     field: PolicyReportField;
     value: SearchDateValues;
+    setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     onBackButtonPress: () => void;
     onChange: (newValue: SearchDateValues) => void;
 };
@@ -49,10 +52,6 @@ function getFieldNameAsKey(fieldName: string) {
 }
 
 function ReportFieldListPopup({value, field, onBackButtonPress, onChange}: ReportFieldSubPopupProps) {
-    const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-
     const items = field.values.map((fieldValue) => ({
         value: fieldValue,
         text: fieldValue,
@@ -60,32 +59,25 @@ function ReportFieldListPopup({value, field, onBackButtonPress, onChange}: Repor
     const selectedValue = {text: value, value};
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            <HeaderWithBackButton
-                shouldDisplayHelpButton={false}
-                style={[styles.h10]}
-                subtitle={field.name}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <SingleSelectPopup
-                style={styles.pv0}
-                items={items}
-                value={selectedValue}
-                closeOverlay={onBackButtonPress}
-                onChange={(item) => onChange(item?.value ?? '')}
-            />
-        </View>
+        <SingleSelectPopup
+            items={items}
+            value={selectedValue}
+            label={field.name}
+            onBackButtonPress={onBackButtonPress}
+            closeOverlay={onBackButtonPress}
+            onChange={(item) => onChange(item?.value ?? '')}
+        />
     );
 }
 
-function ReportFieldDatePopup({value, field, onBackButtonPress, onChange}: ReportFieldDatePopupProps) {
+function ReportFieldDatePopup({value, field, setPopoverWidth, onBackButtonPress, onChange}: ReportFieldDatePopupProps) {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const filterKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${getFieldNameAsKey(field.name)}` as const;
+    const maxPopupHeight = Math.round(windowHeight * 0.875);
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
+        <View style={[styles.pv4, styles.gap2, styles.flexShrink1, {maxHeight: maxPopupHeight}]}>
             <HeaderWithBackButton
                 shouldDisplayHelpButton={false}
                 style={[styles.h10]}
@@ -93,10 +85,11 @@ function ReportFieldDatePopup({value, field, onBackButtonPress, onChange}: Repor
                 onBackButtonPress={onBackButtonPress}
             />
             <DateSelectPopup
-                style={styles.pv0}
+                style={[styles.pv0, styles.flexShrink1]}
                 value={value}
                 onChange={onChange}
                 closeOverlay={onBackButtonPress}
+                setPopoverWidth={setPopoverWidth}
                 presets={getDatePresets(filterKey, true)}
             />
         </View>
@@ -104,33 +97,23 @@ function ReportFieldDatePopup({value, field, onBackButtonPress, onChange}: Repor
 }
 
 function ReportFieldTextPopup({field, value, onBackButtonPress, onChange}: ReportFieldSubPopupProps) {
-    const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            <HeaderWithBackButton
-                shouldDisplayHelpButton={false}
-                style={[styles.h10]}
-                subtitle={field.name}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <TextInputPopup
-                style={styles.pv0}
-                placeholder={field.name}
-                label={field.name}
-                defaultValue={value}
-                closeOverlay={onBackButtonPress}
-                onChange={onChange}
-            />
-        </View>
+        <TextInputPopup
+            placeholder={field.name}
+            label={field.name}
+            defaultValue={value}
+            onBackButtonPress={onBackButtonPress}
+            closeOverlay={onBackButtonPress}
+            onChange={onChange}
+        />
     );
 }
 
-function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProps) {
+function ReportFieldPopup({closeOverlay, setPopoverWidth, updateFilterForm}: ReportFieldPopupProps) {
     const {translate, localeCompare} = useLocalize();
-    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const styles = useThemeStyles();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: policyReportFieldsSelector,
@@ -160,6 +143,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
     if (selectedField) {
         const goBack = () => {
             setSelectedField(null);
+            setPopoverWidth?.(undefined);
         };
 
         // We only support list, date, & text for report fields, no other types
@@ -177,6 +161,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
                     field={selectedField}
                     value={filterValue as SearchDateValues}
                     onBackButtonPress={goBack}
+                    setPopoverWidth={setPopoverWidth}
                     onChange={(newValue) =>
                         setValues((prevValues) => ({
                             ...prevValues,
@@ -275,8 +260,9 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT_FIELD}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
+            style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
         >
-            <ScrollView style={[StyleUtils.getMaximumHeight(CONST.POPOVER_DROPDOWN_MAX_HEIGHT)]}>
+            <ScrollView>
                 {listItems.map((item) => (
                     <MenuItem
                         key={item.key}

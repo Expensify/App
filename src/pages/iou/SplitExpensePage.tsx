@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -20,6 +21,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -34,8 +36,8 @@ import {
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-    updateSplitTransactionsFromSplitExpensesFlow,
-} from '@libs/actions/IOU/Split';
+} from '@libs/actions/IOU/SplitExpenseItems';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -74,6 +76,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
+    const {isOffline} = useNetwork();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const {currentSearchResults, currentSearchHash, currentSearchQueryJSON} = useSearchStateContext();
@@ -266,6 +269,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isPerDiem,
             isCard,
             translate,
+            convertToDisplayString,
         });
         if (saveError) {
             setErrorMessage(saveError);
@@ -306,6 +310,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,
+            isOffline,
         });
     };
 
@@ -334,7 +339,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
-        const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
+        const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
         const date = DateUtils.formatWithUTCTimeZone(
@@ -399,6 +404,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetailsAmount,
         currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
         translate,
+        convertToDisplayString,
     });
 
     const footerContent = (

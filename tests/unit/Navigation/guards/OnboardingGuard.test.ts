@@ -362,6 +362,28 @@ describe('OnboardingGuard', () => {
             expect(result.type).toBe('REDIRECT');
             expect(result.route).toContain('onboarding');
         });
+
+        it('should redirect invited or group members when they have not completed onboarding', async () => {
+            // Given an invited user from OD signup who has not completed the NewDot guided setup
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.INTRO_CHOICES.SUBMIT,
+            });
+            await Onyx.merge(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates on a non-onboarding screen
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            // Then redirect to onboarding
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
     });
 
     describe('infinite loop prevention (APP-7FR)', () => {
