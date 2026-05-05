@@ -13,6 +13,7 @@ import useAncestors from '@hooks/useAncestors';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7871,6 +7872,46 @@ describe('actions/Report', () => {
             const reportB = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_B}`);
             expect(reportA?.reportName).not.toBe(CONST.REPORT.DEFAULT_REPORT_NAME);
             expect(reportB?.reportName).not.toBe(CONST.REPORT.DEFAULT_REPORT_NAME);
+        });
+
+        // Mutation-test gap: when reportActionsExist returns true (warm cache), the optimistic
+        // payload sent to OpenReport must NOT contain a MERGE for COLLECTION.REPORT/<reportID>.
+        // The current fix at src/libs/actions/Report/index.ts:1337 enforces this by branching
+        // to {} for warm cache and skipping the merge via the `length > 0` guard. Two mutations
+        // would slip past the cold-cache assertions above:
+        //   (a) swapping the cache branches (warm cache writes, cold cache skips) — passes
+        //       cold-cache tests vacuously because nothing is merged.
+        //   (b) loosening the guard to `length >= 0` — adds a no-op MERGE on warm cache.
+        // Both alter the optimisticData payload, so we inspect it directly via API.paginate.
+        it('does not include an optimistic REPORT merge in the OpenReport payload for warm-cache opens (#88162)', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const REPORT_ID = '88162-warm-cache';
+
+            // Given: a warm cache — report actions already exist, so reportActionsExist()
+            // returns true and openReport's optimistic-name fallback should be skipped.
+            const action = {...createRandomReportAction(0), reportActionID: 'existing-action'};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[action.reportActionID]: action});
+            await waitForBatchedUpdates();
+
+            // Spy on API.paginate to capture the OnyxData payload.
+            const apiPaginateSpy = jest.spyOn(API, 'paginate').mockImplementation(() => undefined);
+
+            try {
+                Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+                await waitForBatchedUpdates();
+
+                // The OpenReport call should have been made.
+                const openReportCall = apiPaginateSpy.mock.calls.find((call) => call.at(1) === WRITE_COMMANDS.OPEN_REPORT);
+                expect(openReportCall).toBeDefined();
+
+                // No entry in optimisticData should target COLLECTION.REPORT/<reportID> on warm cache.
+                const onyxData = openReportCall?.at(3) as {optimisticData?: Array<OnyxUpdate<string>>} | undefined;
+                const optimisticData = onyxData?.optimisticData ?? [];
+                const reportMerges = optimisticData.filter((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+                expect(reportMerges).toHaveLength(0);
+            } finally {
+                apiPaginateSpy.mockRestore();
+            }
         });
     });
 });
