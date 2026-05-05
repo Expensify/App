@@ -21,7 +21,22 @@ function useLatchedTransactionIDs(transactions: readonly LatchInputTransaction[]
         setLatched(undefined);
     } else if (hasOptimisticAdd && latched === undefined && transactions) {
         const stableIds = new Set(transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).map((t) => t.transactionID));
-        setLatched({key: resetKey, ids: stableIds});
+        if (stableIds.size > 0) {
+            setLatched({key: resetKey, ids: stableIds});
+        }
+    } else if (latched !== undefined) {
+        // Release if any latched ID disappears; the consumer's filter would otherwise empty and flip layout.
+        const liveIDs = new Set(transactions?.map((t) => t.transactionID) ?? []);
+        let anyMissing = false;
+        for (const id of latched.ids) {
+            if (!liveIDs.has(id)) {
+                anyMissing = true;
+                break;
+            }
+        }
+        if (anyMissing) {
+            setLatched(undefined);
+        }
     }
 
     return latched?.ids;

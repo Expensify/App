@@ -21,7 +21,7 @@ describe('useLatchedTransactionIDs', () => {
     });
 
     it('does not engage the latch during normal hydration (no optimistic add)', () => {
-        const {result, rerender} = renderHook(({txs}: {txs: ReturnType<typeof stable>[]}) => useLatchedTransactionIDs(txs), {
+        const {result, rerender} = renderHook(({txs}: {txs: Array<ReturnType<typeof stable>>}) => useLatchedTransactionIDs(txs), {
             initialProps: {txs: [stable('t1')]},
         });
         expect(result.current).toBeUndefined();
@@ -49,8 +49,20 @@ describe('useLatchedTransactionIDs', () => {
         expect(result.current).toEqual(new Set(['t1']));
     });
 
+    it('releases the latch when a latched tx is removed from the live set (post-duplicate delete)', () => {
+        type Tx = ReturnType<typeof stable> | ReturnType<typeof optimistic>;
+        const {result, rerender} = renderHook(({txs}: {txs: Tx[]}) => useLatchedTransactionIDs(txs), {
+            initialProps: {txs: [stable('t1'), optimistic('t2')] as Tx[]},
+        });
+        expect(result.current).toEqual(new Set(['t1']));
+        rerender({txs: [stable('t1'), stable('t2')]});
+        expect(result.current).toEqual(new Set(['t1']));
+        rerender({txs: [stable('t2')]});
+        expect(result.current).toBeUndefined();
+    });
+
     it('does not engage the latch on Pusher-pushed (non-optimistic) additions', () => {
-        const {result, rerender} = renderHook(({txs}: {txs: ReturnType<typeof stable>[]}) => useLatchedTransactionIDs(txs), {
+        const {result, rerender} = renderHook(({txs}: {txs: Array<ReturnType<typeof stable>>}) => useLatchedTransactionIDs(txs), {
             initialProps: {txs: [stable('t1')]},
         });
         expect(result.current).toBeUndefined();
@@ -59,9 +71,7 @@ describe('useLatchedTransactionIDs', () => {
     });
 
     it('ignores pendingAction === DELETE for engagement', () => {
-        const {result, rerender} = renderHook(({txs}: {txs: Array<ReturnType<typeof stable> | ReturnType<typeof pendingDelete>>}) => useLatchedTransactionIDs(txs), {
-            initialProps: {txs: [stable('t1'), pendingDelete('t2')] as Array<ReturnType<typeof stable> | ReturnType<typeof pendingDelete>>},
-        });
+        const {result} = renderHook(() => useLatchedTransactionIDs([stable('t1'), pendingDelete('t2')]));
         expect(result.current).toBeUndefined();
     });
 
