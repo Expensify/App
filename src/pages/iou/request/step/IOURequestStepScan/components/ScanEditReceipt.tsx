@@ -8,6 +8,7 @@ import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/use
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -33,7 +34,7 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
         // Fix for issue where navigation state is lost after returning from device settings
         // https://github.com/Expensify/App/issues/65992
         const navigationState = navigationRef.current?.getState();
-        const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
+        const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         const hasLostNavigationState = reportsSplitNavigator && !reportsSplitNavigator.state;
 
         if (hasLostNavigationState) {
