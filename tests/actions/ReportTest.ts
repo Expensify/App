@@ -7814,4 +7814,35 @@ describe('actions/Report', () => {
             expect(result.reportAction.delegateAccountID).toBeUndefined();
         });
     });
+
+    // Repro for https://github.com/Expensify/App/issues/88162 — clicking a multi-transaction
+    // expense report in Search briefly flashes the placeholder "Chat Report" title before the
+    // real (formula-resolved) name resolves. Mechanism: openReport's optimistic merge at
+    // src/libs/actions/Report/index.ts:1340 falls back to CONST.REPORT.DEFAULT_REPORT_NAME
+    // ('Chat Report') when allReports has no entry for reportID (cold cache). Recommended fix
+    // is in src/components/Search/index.tsx multi-tx click handler — seed COLLECTION.REPORT
+    // with the snapshot's report data before navigation so allReports[reportID]?.reportName
+    // is populated by the time openReport's optimistic merge runs.
+    describe('openReport — does not flash "Chat Report" on multi-tx Search click (#88162)', () => {
+        it('should not write reportName="Chat Report" when opening a multi-transaction expense report from cold cache', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const REPORT_ID = '88162-multi-tx';
+
+            // Given: a cold cache — no entry in COLLECTION.REPORT, no report actions.
+            // This represents a multi-transaction expense report the user has not opened
+            // before, reachable from Search via a snapshot that already knows its title.
+
+            // When: openReport is called (this happens when SearchMoneyRequestReportPage
+            // mounts after the user clicks the multi-tx item in Search).
+            Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+            await waitForBatchedUpdates();
+
+            // Then: the optimistic merge should not stamp the placeholder "Chat Report" onto
+            // COLLECTION.REPORT[reportID].reportName. The header should preserve a snapshot's
+            // name (seeded by the Search click handler) or remain unset until the API responds,
+            // but never display the DEFAULT_REPORT_NAME placeholder mid-navigation.
+            const reportValue = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+            expect(reportValue?.reportName).not.toBe(CONST.REPORT.DEFAULT_REPORT_NAME);
+        });
+    });
 });
