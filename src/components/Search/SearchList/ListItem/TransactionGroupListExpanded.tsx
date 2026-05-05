@@ -265,24 +265,25 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         pendingAction={transaction.pendingAction}
                         key={transaction.transactionID}
                     >
-                        {!isLargeScreenWidth ? (
-                            <PressableWithFeedback
-                                onPress={() => handleOnPress(transaction)}
-                                onLongPress={() => onLongPress?.(transaction)}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={transaction.text ?? ''}
-                                isNested
-                                onMouseDown={(e) => e.preventDefault()}
-                                hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                                id={transaction.transactionID}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
-                            >
-                                {transactionRow}
-                            </PressableWithFeedback>
-                        ) : (
-                            transactionRow
-                        )}
+                        <PressableWithFeedback
+                            onPress={(e) => {
+                                if (isLargeScreenWidth) {
+                                    e?.stopPropagation();
+                                }
+                                handleOnPress(transaction);
+                            }}
+                            onLongPress={() => onLongPress?.(transaction)}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={transaction.text ?? ''}
+                            isNested
+                            onMouseDown={(e) => e.preventDefault()}
+                            hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                            id={transaction.transactionID}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
+                        >
+                            {transactionRow}
+                        </PressableWithFeedback>
                     </OfflineWithFeedback>
                 );
             })}
