@@ -101,7 +101,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.SPEND_RULES:
                 return (
                     <SetSpendRulesStep
-                        policy={policy}
+                        policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
                     />

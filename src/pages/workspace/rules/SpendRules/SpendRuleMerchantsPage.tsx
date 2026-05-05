@@ -5,6 +5,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS>;
@@ -13,18 +14,17 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const {policyID, ruleID} = route.params;
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
-    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
+    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
 
     return (
         <SpendRuleMerchantsBase
-            ruleID={ruleID}
             policyID={policyID}
             action={restrictionAction}
             merchantNames={merchantNames}
             merchantMatchTypes={merchantMatchTypes}
-            editMerchantRoute={SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT}
+            getEditMerchantRoute={(merchantIndex) => ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ruleID, merchantIndex)}
         />
     );
 }

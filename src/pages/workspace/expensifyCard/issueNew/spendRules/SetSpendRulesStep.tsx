@@ -24,7 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
-import type Policy from '@src/types/onyx/Policy';
 
 type SetSpendRulesStepProps = {
     /* The policy that the card will be issued under */

@@ -12,23 +12,20 @@ import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import ROUTES, {Route} from '@src/ROUTES';
 
 type SpendRuleMerchantsBaseProps = {
     policyID: string;
-    ruleID: string;
     action: string;
     merchantNames: string[];
     merchantMatchTypes: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>[];
-    editMerchantRoute: typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT;
+    getEditMerchantRoute: (merchantIndex: string) => Route;
 };
 
-function SpendRuleMerchantsBase({policyID, ruleID, action, merchantMatchTypes, merchantNames, editMerchantRoute}: SpendRuleMerchantsBaseProps) {
-    const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
+function SpendRuleMerchantsBase({policyID, action, merchantMatchTypes, merchantNames, getEditMerchantRoute}: SpendRuleMerchantsBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
@@ -40,10 +37,10 @@ function SpendRuleMerchantsBase({policyID, ruleID, action, merchantMatchTypes, m
     const emptyStateSubtitle =
         action === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.addMerchantToBlockSpend') : translate('workspace.rules.spendRules.addMerchantToAllowSpend');
 
-    const goBack = () => navigation.goBack();
+    const goBack = () => Navigation.goBack();
 
     const navigateToMerchantEdit = (merchantIndex: string) => {
-        navigation.navigate(editMerchantRoute, {policyID, ruleID, merchantIndex});
+        Navigation.navigate(getEditMerchantRoute(merchantIndex));
     };
 
     const addMerchant = () => {
