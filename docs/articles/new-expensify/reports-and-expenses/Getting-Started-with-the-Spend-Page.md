@@ -100,6 +100,10 @@ To view other available filters, click into the **search box** on the **Spend** 
    - The list updates in real time  
    - The **Select all** option applies *only* to the filtered results—not everything
 
+## How to clear an individual filter
+
+To remove a single filter without clearing all filters, click the close button (X) on the filter chip. This removes only that filter and updates the results immediately.
+
 You can also combine filters with keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
 
 **Note:** If you haven't applied any filters yet, you'll see your **most recent unreported expenses** by default.
