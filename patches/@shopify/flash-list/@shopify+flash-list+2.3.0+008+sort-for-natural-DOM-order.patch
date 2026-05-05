@@ -90,7 +90,7 @@ index 9f3b776..c153718 100644
                  renderFooter),
              stickyHeaderIndices && stickyHeaderIndices.length > 0
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-index 8e3db51..10d648a 100644
+index 8e3db51..9432131 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 @@ -3,17 +3,20 @@
@@ -116,7 +116,7 @@ index 8e3db51..10d648a 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +75,115 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +75,110 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -175,14 +175,9 @@ index 8e3db51..10d648a 100644
 +            runAfterProgrammaticScroll(() => schedulePendingSort());
 +            return;
 +        }
-+        if (isScrolling()) {
-+            schedulePendingSort();
-+            return;
-+        }
 +        doSort();
 +    }, [
 +        isScrollingProgrammatically,
-+        isScrolling,
 +        runAfterProgrammaticScroll,
 +        schedulePendingSort,
 +        clearPendingSort,
