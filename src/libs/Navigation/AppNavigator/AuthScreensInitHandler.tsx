@@ -1,9 +1,10 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useCallback, useEffect, useRef} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -11,7 +12,6 @@ import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -27,8 +27,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
-import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
@@ -52,6 +51,7 @@ function initializePusher(currentUserAccountID?: number, getReportAttributes?: (
 function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
+    const ownerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail');
     const {translate} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
@@ -61,37 +61,15 @@ function AuthScreensInitHandler() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const lastWorkspaceNumberWithEmailSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            const policyOwnerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail') ?? session?.email ?? '';
-            return lastWorkspaceNumberSelector(policies, policyOwnerEmail);
-        },
-        [currentUrl, session?.email],
-    );
-    const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
+    const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
+    const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
-    const isLoadingAppRef = useRef(isLoadingApp);
-    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    isLoadingAppRef.current = isLoadingApp;
 
     const reportAttributes = useReportAttributes();
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
-
-    const handleNetworkReconnect = () => {
-        if (isLoadingAppRef.current) {
-            App.openApp();
-        } else {
-            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
-        }
-    };
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -112,9 +90,6 @@ function AuthScreensInitHandler() {
                 Session.cleanupSession();
             };
         }
-
-        NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect());
 
         // Pusher initialization span
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
@@ -156,7 +131,7 @@ function AuthScreensInitHandler() {
             session,
             introSelected,
             currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-            activePolicyID,
+            activePolicy,
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,

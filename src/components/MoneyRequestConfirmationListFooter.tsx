@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
@@ -278,6 +279,7 @@ function MoneyRequestConfirmationListFooter({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
@@ -627,7 +629,7 @@ function MoneyRequestConfirmationListFooter({
     ];
 
     // Compact mode / receipt logic
-    const isCompactMode = !showMoreFields && isScan;
+    const isCompactMode = !showMoreFields && isScan && !isInLandscapeMode;
     const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
     const hasEndedReceiptLoadSpan = useRef(false);
@@ -714,7 +716,6 @@ function MoneyRequestConfirmationListFooter({
                             style={styles.h100}
                         >
                             <PDFThumbnail
-                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 previewSourceURL={resolvedReceiptImage as string}
                                 style={styles.h100}
                                 onLoadError={onPDFLoadError}
@@ -743,7 +744,6 @@ function MoneyRequestConfirmationListFooter({
                         >
                             <ReceiptImage
                                 isThumbnail={isThumbnail}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 source={effectiveReceiptSource}
                                 isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
                                 fileExtension={fileExtension}

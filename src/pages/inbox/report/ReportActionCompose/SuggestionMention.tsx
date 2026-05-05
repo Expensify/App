@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -102,34 +102,6 @@ function SuggestionMention({
 
     const {currentReportID} = useCurrentReportIDState();
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`);
-
-    // Smaller weight means higher order in suggestion list
-    const getPersonalDetailsWeight = useCallback(
-        (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {
-            if (isReportParticipant(detail.accountID, currentReport)) {
-                return 0;
-            }
-            if (policyEmployeeAccountIDs.includes(detail.accountID)) {
-                return 1;
-            }
-            return 2;
-        },
-        [currentReport],
-    );
-    const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
-        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
-        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID)) {
-            return personalDetails;
-        }
-        return lodashMapValues(personalDetails, (detail) =>
-            detail
-                ? {
-                      ...detail,
-                      weight: getPersonalDetailsWeight(detail, policyEmployeeAccountIDs),
-                  }
-                : null,
-        );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID, conciergeReportID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -297,7 +269,28 @@ function SuggestionMention({
     );
 
     const getUserMentionOptions = useCallback(
-        (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined, searchValue = ''): Mention[] => {
+        (searchValue = ''): Mention[] => {
+            const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, currentUserPersonalDetails.accountID);
+            const shouldWeightDetails = isGroupChat(currentReport) || doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID, conciergeReportID);
+
+            let personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined;
+
+            if (!shouldWeightDetails) {
+                personalDetailsParam = personalDetails;
+            } else {
+                // Smaller weight means higher order in suggestion list
+                const getPersonalDetailsWeight = (detail: PersonalDetails): number => {
+                    if (isReportParticipant(detail.accountID, currentReport)) {
+                        return 0;
+                    }
+                    if (policyEmployeeAccountIDs.includes(detail.accountID)) {
+                        return 1;
+                    }
+                    return 2;
+                };
+                personalDetailsParam = lodashMapValues(personalDetails, (detail) => (detail ? {...detail, weight: getPersonalDetailsWeight(detail)} : null));
+            }
+
             const suggestions: Mention[] = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
@@ -368,7 +361,20 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [localeCompare, translate, expensifyIcons.Megaphone, expensifyIcons.FallbackAvatar, formatPhoneNumber, formatLoginPrivateDomain],
+        [
+            localeCompare,
+            translate,
+            expensifyIcons.Megaphone,
+            expensifyIcons.FallbackAvatar,
+            formatPhoneNumber,
+            formatLoginPrivateDomain,
+            personalDetails,
+            policy,
+            currentReport,
+            policyID,
+            conciergeReportID,
+            currentUserPersonalDetails.accountID,
+        ],
     );
 
     const getRoomMentionOptions = useCallback(
@@ -439,7 +445,7 @@ function SuggestionMention({
             };
 
             if (isMentionCode(suggestionWord) && prefixType === '@') {
-                const suggestions = getUserMentionOptions(weightedPersonalDetails, normalizedPrefix);
+                const suggestions = getUserMentionOptions(normalizedPrefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
@@ -465,7 +471,7 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions],
+        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, getRoomMentionOptions],
     );
 
     const debouncedCalculateMentionSuggestion = useDebounce(

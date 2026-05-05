@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import React, {useEffect, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';

@@ -35,6 +35,9 @@ function initCurrencyList() {
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    navigationRef: {
+        getCurrentRoute: jest.fn(() => undefined),
+    },
 }));
 
 describe('IOUUtils', () => {
@@ -748,7 +751,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(true);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -783,7 +786,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
     it('should return false for non-expense report', async () => {
@@ -802,7 +805,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
     });
 });
 
@@ -867,6 +870,77 @@ describe('getExistingTransactionID', () => {
 
             expect(result1.chatReportID).toBeDefined();
             expect(result2.chatReportID).toBeDefined();
+        });
+    });
+
+    describe('resolveReportForMoneyRequest', () => {
+        const policyForResolve: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Resolve Test Policy'), id: 'resolve-policy'};
+
+        const makeOutstandingReport = (reportID: string): Report => ({
+            ...createRandomReport(Number(reportID), undefined),
+            reportID,
+            policyID: policyForResolve.id,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        const makeRouteReport = (reportID: string): Report => ({
+            ...createRandomReport(Number(reportID), undefined),
+            reportID,
+            policyID: policyForResolve.id,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+
+        const makeTransaction = (reportID: string): Transaction => ({...createRandomTransaction(Number(reportID)), reportID});
+
+        it('returns undefined when the transaction is unreported', () => {
+            const transaction = makeTransaction(CONST.REPORT.UNREPORTED_REPORT_ID);
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})).toBeUndefined();
+        });
+
+        it('returns the picked report when it is outstanding (user-selected report wins)', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
+            const transaction = makeTransaction('500');
+            const nonOutstandingPick: Report = {
+                ...makeOutstandingReport('500'),
+                policyID: 'someOtherPolicy',
+            };
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: nonOutstandingPick, routeReport, policy: policyForResolve})).toBeUndefined();
+        });
+
+        it('returns the route report when no different transaction report has been picked', () => {
+            const transaction = makeTransaction('100');
+            const transactionReport = makeRouteReport('100');
+            const routeReport = makeRouteReport('100');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy: policyForResolve})?.reportID).toBe('100');
+        });
+
+        it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
+            const transaction = makeTransaction('500');
+            const transactionReport = makeOutstandingReport('500');
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport: undefined, policy: policyForResolve})?.reportID).toBe('500');
+        });
+
+        it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
+            const transaction = makeTransaction('500');
+            const processingPick: Report = {
+                ...makeOutstandingReport('500'),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const routeReport = makeRouteReport('100');
+            const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
     });
 });

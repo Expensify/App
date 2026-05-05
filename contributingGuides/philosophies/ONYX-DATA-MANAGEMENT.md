@@ -35,17 +35,7 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 
 **To flag a key as safe for removal:**
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
-- Implement `canEvict` in the Onyx config for each component subscribing to a key
-- The key will only be deleted when all subscribers return `true` for `canEvict`
-
-Example:
-```js
-Onyx.init({
-    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-});
-
-const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: !isActiveReport});
-```
+- A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
 ## Onyx Derived Values
 

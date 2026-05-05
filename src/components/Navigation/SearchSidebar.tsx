@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import SCREENS from '@src/SCREENS';
-import NavigationTabBar from './NavigationTabBar';
-import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -51,13 +49,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
             <View style={styles.flex1}>
                 <TopBar
                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                    breadcrumbLabel={translate('common.reports')}
+                    breadcrumbLabel={translate('common.spend')}
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
                 <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
             </View>
-            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
     );
 }

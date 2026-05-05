@@ -143,4 +143,4 @@ function isTripCaptured(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
 }
 
-export {getGPSRoutes, getGPSWaypoints, stopGpsTrip, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance, isTripCaptured};
+export {getGPSRoutes, getGPSWaypoints, stopGpsTrip, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, isTripCaptured};
