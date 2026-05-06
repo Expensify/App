@@ -35,7 +35,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         action,
         chatReportID,
         reportID,
-        contextMenuAnchorRef,
+        contextMenuAnchorRef = null,
         checkIfContextMenuActive = () => {},
         shouldDisplayContextMenu,
         iouReportID,
@@ -80,7 +80,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchorRef?.current, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, false, originalReportID);
+        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, false, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {

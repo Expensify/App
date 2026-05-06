@@ -16,6 +16,7 @@ import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -161,22 +162,10 @@ type ActionContentRouterProps = {
     composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
 
     /** Memoized state value for ShowContextMenuStateContext */
-    contextMenuStateValue: {
-        anchor: ContextMenuAnchor | null;
-        report: OnyxEntry<OnyxTypes.Report>;
-        isReportArchived: boolean;
-        action: OnyxTypes.ReportAction;
-        transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
-        isDisabled: boolean;
-        shouldDisplayContextMenu: boolean;
-        originalReportID: string | undefined;
-    };
+    contextMenuStateValue: ShowContextMenuStateContextType;
 
     /** Memoized actions value for ShowContextMenuActionsContext */
-    contextMenuActionsValue: {
-        checkIfContextMenuActive: () => void;
-        onShowContextMenu: (callback: () => void) => void;
-    };
+    contextMenuActionsValue: ShowContextMenuActionsContextType;
 
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;

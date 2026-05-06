@@ -40,7 +40,7 @@ type TripRoomPreviewProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
-    contextMenuAnchorRef?: React.RefObject<ContextMenuAnchor>;
+    contextMenuAnchorRef?: React.RefObject<ContextMenuAnchor> | null;
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
@@ -129,7 +129,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 function TripRoomPreview({
     action,
     containerStyles,
-    contextMenuAnchorRef,
+    contextMenuAnchorRef = null,
     isHovered = false,
     checkIfContextMenuActive = () => {},
     shouldDisplayContextMenu = true,
@@ -191,7 +191,7 @@ function TripRoomPreview({
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, contextMenuAnchorRef?.current, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                        showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                     }}
                     shouldUseHapticsOnLongPress
                     sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}

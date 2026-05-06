@@ -151,7 +151,7 @@ function TaskPreview({
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(event, contextMenuAnchorRef.current, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                        return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                     })
                 }
                 shouldUseHapticsOnLongPress

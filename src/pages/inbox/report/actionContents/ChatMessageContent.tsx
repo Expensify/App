@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,6 @@ import {
     isPendingRemove,
 } from '@libs/ReportActionsUtils';
 import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -44,20 +44,8 @@ type ChatMessageContentProps = {
     composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
     isOnSearch: boolean;
     currentSearchHash: number | undefined;
-    contextMenuStateValue: {
-        anchor: ContextMenuAnchor | null;
-        report: OnyxEntry<OnyxTypes.Report>;
-        isReportArchived: boolean;
-        action: OnyxTypes.ReportAction;
-        transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
-        isDisabled: boolean;
-        shouldDisplayContextMenu: boolean;
-        originalReportID: string | undefined;
-    };
-    contextMenuActionsValue: {
-        checkIfContextMenuActive: () => void;
-        onShowContextMenu: (callback: () => void) => void;
-    };
+    contextMenuStateValue: ShowContextMenuStateContextType;
+    contextMenuActionsValue: ShowContextMenuActionsContextType;
 };
 
 function ChatMessageContent({
