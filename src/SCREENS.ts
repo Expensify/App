@@ -172,6 +172,7 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
+            ADD: 'Settings_Agents_Add',
         },
 
         RULES: {
@@ -521,7 +522,7 @@ const SCREENS = {
         ROOT: 'ReportChangeWorkspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector'},
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
@@ -669,6 +670,7 @@ const SCREENS = {
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
         HR: 'Workspace_HR',
+        HR_GUSTO_APPROVAL_MODE: 'Workspace_HR_Gusto_Approval_Mode',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',

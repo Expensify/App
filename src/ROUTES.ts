@@ -870,6 +870,7 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
+    SETTINGS_AGENTS_ADD: 'settings/agents/new',
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -2435,6 +2436,15 @@ const ROUTES = {
             return `workspaces/${policyID}/hr` as const;
         },
     },
+    WORKSPACE_HR_GUSTO_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/gusto/approval-mode',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_GUSTO_APPROVAL_MODE route');
+            }
+            return `workspaces/${policyID}/hr/gusto/approval-mode` as const;
+        },
+    },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
         getRoute: (policyID: string | undefined) => {
@@ -3398,6 +3408,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
     WORKSPACE_CONFIRMATION_OWNER_SELECTOR: 'workspace/confirmation/owner-selector',
+    WORKSPACE_CONFIRMATION_SUCCESS: 'workspace/confirmation/success',
     MIGRATED_USER_WELCOME_MODAL: {
         route: 'onboarding/migrated-user-welcome',
 

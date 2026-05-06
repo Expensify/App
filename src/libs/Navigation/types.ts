@@ -256,6 +256,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.AGENTS.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: undefined;
@@ -1455,6 +1456,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
     };
@@ -2234,6 +2238,7 @@ type WorkspaceConfirmationNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: undefined;
+    [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: undefined;
     [SCREENS.CURRENCY.SELECTION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;

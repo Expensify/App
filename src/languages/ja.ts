@@ -905,10 +905,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'チャット一覧',
         saveTheWorld: '世界を救う',
         tooltip: 'ここから始めましょう！',
-        redirectToExpensifyClassicModal: {
-            title: '近日公開予定',
-            description: 'お客様の環境に合わせて New Expensify の細かな部分をいくつか調整しているところです。その間は、Expensify Classic をご利用ください。',
-        },
     },
     homePage: {
         forYou: 'あなた向け',
@@ -1023,6 +1019,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
+            inviteAccountant: '会計士を招待',
         },
     },
     allSettingsScreen: {
@@ -2698,6 +2695,19 @@ ${date} の ${merchant} への ${amount}`,
         subtitle: 'ワークフローを処理するエージェントを作成しましょう。手作業を省いて、1日の時間を何時間も取り戻せます。',
         newAgent: '新しいエージェント',
         emptyAgents: {title: 'エージェントは作成されていません', subtitle: '手作業はやめて、代わりにエージェントに指示を出して、時間を大幅に節約しましょう。'},
+        error: {
+            genericAdd: 'このエージェントの追加中に問題が発生しました',
+        },
+    },
+    addAgentPage: {
+        title: '新しいエージェント',
+        agentName: 'エージェント名',
+        instructions: 'カスタム指示を作成',
+        createAgent: 'エージェントを作成',
+        switchAvatar: 'アバターを切り替え',
+        defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
+        defaultPrompt:
+            'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
     },
     expenseRulesPage: {
         title: '経費ルール',
@@ -4266,6 +4276,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
+        },
+        createdForClient: {
+            title: 'クライアントのワークスペースを作成しました！',
+            description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
         },
         receiptPartners: {
             uber: {
@@ -6371,7 +6385,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateToUSD: 'USD に更新',
             updateWorkspaceCurrency: 'ワークスペースの通貨を更新',
             workspaceCurrencyNotSupported: 'ワークスペースの通貨はサポートされていません',
-            yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
+            yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
         },
         changeOwner: {
@@ -6932,6 +6946,17 @@ ${reportName}
                 title: 'Gusto',
                 approvalMode: '承認モード',
                 finalApprover: '最終承認者',
+                notSet: '未設定',
+                approvalModeDescription: 'メンバーとマネージャーは Gusto と同期するように設定されています。',
+                approvalModeWarningTitle: '承認モードを変更しますか？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `このワークスペースの承認モードを変更してもよろしいですか？Gusto 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
+                approvalModeWarningConfirm: '承認モードを変更',
+                approvalModes: {
+                    basic: {label: '基本承認', description: 'すべてのユーザーは、処理と承認のために 1 人の担当者に提出します。'},
+                    manager: {label: 'マネージャー承認', description: '従業員は、Gusto で設定された直属のマネージャーにレポートを提出します。'},
+                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
+                },
                 connect: '接続',
                 connectionDescription: 'Gusto を接続して、従業員の承認をワークスペースと同期させましょう。',
                 syncNow: '今すぐ同期',
@@ -7671,8 +7696,9 @@ ${reportName}
             },
             feed: 'フィード',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '一括請求',
             },
             is: 'は',
             action: {
@@ -8184,7 +8210,7 @@ ${reportName}
             prompt: 'GPSで距離の追跡を開始するには、端末の設定で位置情報へのアクセスを許可してください。',
         },
         gpsFloatingPillText: 'GPS 追跡を実行中です…',
-        liveActivity: {subtitle: '距離の記録', button: '進捗を表示'},
+        liveActivity: {subtitle: '距離の記録', button: '進捗を表示', lockScreenBadgeText: '距離', lockScreenTrackingText: '追跡中…'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績表の紛失または破損',

@@ -888,10 +888,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: '聊天列表',
         saveTheWorld: '拯救世界',
         tooltip: '从这里开始！',
-        redirectToExpensifyClassicModal: {
-            title: '即将推出',
-            description: '我们正在对新版 Expensify 做最后的一些细节调整，以适配你的特定设置。与此同时，请先前往 Expensify 经典版。',
-        },
     },
     homePage: {
         forYou: '为你',
@@ -1006,6 +1002,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
             setupRules: '设置消费规则',
+            inviteAccountant: '邀请你的会计',
         },
     },
     allSettingsScreen: {
@@ -2648,6 +2645,19 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: '通过自定义智能体自动化处理任务。',
         newAgent: '新代理人',
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
+        error: {
+            genericAdd: '添加此智能体时出现了问题',
+        },
+    },
+    addAgentPage: {
+        title: '新代理',
+        agentName: '代理名称',
+        instructions: '编写自定义说明',
+        createAgent: '创建代理',
+        switchAvatar: '切换头像',
+        defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
+        defaultPrompt:
+            '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
     expenseRulesPage: {
         title: '报销规则',
@@ -4197,6 +4207,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+        },
+        createdForClient: {
+            title: '您已为客户创建了工作区！',
+            description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
         },
         receiptPartners: {
             uber: {
@@ -6265,7 +6279,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             updateToUSD: '更新为 USD',
             updateWorkspaceCurrency: '更新工作区货币',
             workspaceCurrencyNotSupported: '不支持工作区货币',
-            yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">支持的货币列表</a>。`,
+            yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
         },
         changeOwner: {
@@ -6814,6 +6828,17 @@ ${reportName}
                 title: 'Gusto',
                 approvalMode: '审批模式',
                 finalApprover: '最终审批人',
+                notSet: '未设置',
+                approvalModeDescription: '成员和管理员已设置为与 Gusto 同步。',
+                approvalModeWarningTitle: '更改审批模式？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 Gusto 启用的工作流模式的信息。`,
+                approvalModeWarningConfirm: '更改审批模式',
+                approvalModes: {
+                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                    manager: {label: '经理审批', description: '员工会将报销单提交给在 Gusto 中配置的直属经理。'},
+                    custom: {label: '自定义审批', description: '我将在 Expensify 中手动设置审批工作流程。'},
+                },
                 connect: '连接',
                 connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。',
                 syncNow: '立即同步',
@@ -7543,6 +7568,7 @@ ${reportName}
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '集中开票',
             },
             is: '是',
             action: {
@@ -8044,7 +8070,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         gpsFloatingPillText: '正在进行 GPS 跟踪…',
-        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度', lockScreenBadgeText: '距离', lockScreenTrackingText: '正在跟踪…'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',

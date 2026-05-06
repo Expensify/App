@@ -285,6 +285,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
 const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<WorkspaceConfirmationNavigatorParamList>({
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationOwnerSelectorPage').default,
+    [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationSuccessPage').default,
     [SCREENS.CURRENCY.SELECTION]: () => require<ReactComponentModule>('../../../../pages/CurrencySelectionPage').default,
 });
 
@@ -466,6 +467,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
+    [SCREENS.SETTINGS.AGENTS.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default,
     [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
@@ -912,6 +914,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/LockAccountPage').default,
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/UnlockAccountPage').default,
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/FailedToLockAccountPage').default,
+    [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoApprovalModePage').default,
     [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportsDefaultTitle').default,
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesAutoApproveReportsUnderPage').default,
     [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesRandomReportAuditPage').default,
