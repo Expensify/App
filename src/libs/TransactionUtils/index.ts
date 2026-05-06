@@ -2581,7 +2581,8 @@ function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
 }
 
 function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>, duplicatedTransaction: OnyxEntry<Transaction>): Partial<Transaction> {
-    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const {duplicates, taxAmount, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+    const hasUpdatedTaxCode = reviewDuplicateTransaction?.taxCode !== undefined && reviewDuplicateTransaction?.taxCode !== duplicatedTransaction?.taxCode;
 
     return {
         ...duplicatedTransaction,
@@ -2589,6 +2590,8 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
         comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
+        // If the taxCode changes, apply the reviewed tax amount and clear stale taxName/taxValue so MoneyRequestView derives them fresh from the policy.
+        ...(hasUpdatedTaxCode && {taxAmount, taxName: undefined, taxValue: undefined}),
     };
 }
 

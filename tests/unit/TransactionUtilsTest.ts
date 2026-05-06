@@ -2903,6 +2903,39 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
+            const duplicatedTransaction = generateTransaction({
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: -500,
+                taxValue: '5%',
+            });
+
+            const reviewDuplicates = {
+                duplicates: [],
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                merchant: 'Updated Merchant',
+                category: 'Travel',
+                tag: 'Project',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 900,
+                description: 'Updated comment',
+                comment: duplicatedTransaction.comment ?? {},
+                reimbursable: false,
+                billable: true,
+            };
+
+            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-500);
+            expect(updatedTransaction.taxValue).toBe('5%');
+        });
+    });
+
     describe('getTagArrayFromName', () => {
         it('splits simple tag by colon', () => {
             expect(TransactionUtils.getTagArrayFromName('tag1:tag2:tag3')).toEqual(['tag1', 'tag2', 'tag3']);

@@ -206,8 +206,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -439,6 +440,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                conciergeReportID,
                 shouldHandleNavigation: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
@@ -523,6 +525,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 draftTransactionIDs,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                previousOdometerDraft: odometerDraft,
             });
         }
     }
@@ -579,6 +582,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             shouldHandleNavigation: shouldHandleNav,
+            previousOdometerDraft: odometerDraft,
         });
     }
 

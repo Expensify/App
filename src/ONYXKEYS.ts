@@ -87,6 +87,9 @@ const ONYXKEYS = {
     /** GPS points stored for the GPS distance expense before they're accepted by the user */
     GPS_DRAFT_DETAILS: 'gpsDraftDetails',
 
+    /** Odometer draft stored for the Save for later flow */
+    ODOMETER_DRAFT: 'odometerDraft',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -599,9 +602,6 @@ const ONYXKEYS = {
 
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
-
-    /** Whether to kick off the "Concierge is thinking" indicator when AgentZeroStatusGate mounts */
-    CONCIERGE_THINKING_KICKOFF: 'conciergeThinkingKickoff',
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
@@ -1357,6 +1357,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
+    [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -1527,7 +1528,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
-    [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
