@@ -2182,12 +2182,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティに関する懸念を解決し、アカウントのロックを解除するには、Concierge とチャットしてください。',
         chatWithConcierge: 'Conciergeとチャット',
     },
-    deviceManagementPage: {
-        title: 'デバイス管理',
-        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
-        revoke: '取り消す',
-        unknownDevice: '不明なデバイス',
-    },
     twoFactorAuth: {
         headerTitle: '2要素認証',
         twoFactorAuthEnabled: '2要素認証が有効になりました',
@@ -6926,16 +6920,12 @@ ${reportName}
             settingsTitle: 'Gusto 設定',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Gusto データのインポート';
-                    case 'gustoSyncLoadCompany':
-                        return 'Gusto 会社データを読み込み中';
-                    case 'gustoSyncImportEmployees':
-                        return '従業員のインポート';
-                    case 'gustoSyncBuildApprovalChains':
-                        return '承認フローの構築';
-                    case 'gustoSyncFinalize':
-                        return '同期を完了しています';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'インポートしたデータの読み込みを待機しています';
                     default: {
@@ -6949,6 +6939,12 @@ ${reportName}
                 finalApprover: '最終承認者',
                 connect: '接続',
                 connectionDescription: 'Gusto を接続して、従業員の承認をワークスペースと同期させましょう。',
+                syncNow: '今すぐ同期',
+                disconnect: '切断',
+                lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
+                syncError: 'Gusto に接続できません',
+                disconnectTitle: 'Gusto の接続を解除',
+                disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
             },
         },
     },

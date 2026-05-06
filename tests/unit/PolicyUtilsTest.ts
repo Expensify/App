@@ -352,6 +352,84 @@ describe('PolicyUtils', () => {
                 getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
             ).toBeUndefined();
         });
+
+        it('clones the source default rate (lowest enabled index) under the API-known customUnitRateID', () => {
+            const distanceUnitWithMultipleRates = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                rates: {
+                    rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
+                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                },
+            };
+            const policyWithMultipleRates: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[distanceUnitWithMultipleRates.customUnitID]: distanceUnitWithMultipleRates},
+            };
+            const result = getCustomUnitsForDuplication(policyWithMultipleRates, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+            expect(result).toEqual({
+                newDist: {
+                    ...distanceUnitWithMultipleRates,
+                    customUnitID: 'newDist',
+                    rates: {
+                        newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                    },
+                },
+            });
+        });
+
+        it('drops all rates when no enabled rate exists', () => {
+            const distanceUnitAllDisabled = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
+                },
+            };
+            const policyAllDisabled: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[distanceUnitAllDisabled.customUnitID]: distanceUnitAllDisabled},
+            };
+            const result = getCustomUnitsForDuplication(policyAllDisabled, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+            expect(result?.newDist.rates).toEqual({});
+        });
+
+        it('treats missing index as 0 when picking the default rate', () => {
+            const distanceUnitWithMissingIndex = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                    rateA: {customUnitRateID: 'rateA', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
+                },
+            };
+            const policyWithMissingIndex: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[distanceUnitWithMissingIndex.customUnitID]: distanceUnitWithMissingIndex},
+            };
+            const result = getCustomUnitsForDuplication(policyWithMissingIndex, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+            expect(result?.newDist.rates).toEqual({
+                newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
+            });
+        });
     });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {

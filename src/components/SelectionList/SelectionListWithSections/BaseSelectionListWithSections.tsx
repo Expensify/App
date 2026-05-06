@@ -364,7 +364,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
                 const isItemFocused = index === focusedIndex;
                 const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
-                const isDisabled = !!item.isDisabled;
+                const isDisabled = !!item.isDisabled && !item.isSelected;
 
                 return (
                     <ListItemRenderer

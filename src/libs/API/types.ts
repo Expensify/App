@@ -83,7 +83,6 @@ const WRITE_COMMANDS = {
     REFER_TEACHERS_UNITE_VOLUNTEER: 'ReferTeachersUniteVolunteer',
     ADD_SCHOOL_PRINCIPAL: 'AddSchoolPrincipal',
     CLOSE_ACCOUNT: 'CloseAccount',
-    REVOKE_DEVICE: 'RevokeDevice',
     REQUEST_CONTACT_METHOD_VALIDATE_CODE: 'RequestContactMethodValidateCode',
     UPDATE_NEWSLETTER_SUBSCRIPTION: 'UpdateNewsletterSubscription',
     DELETE_CONTACT_METHOD: 'DeleteContactMethod',
@@ -645,7 +644,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER]: Parameters.ReferTeachersUniteVolunteerParams;
     [WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL]: Parameters.AddSchoolPrincipalParams;
     [WRITE_COMMANDS.CLOSE_ACCOUNT]: Parameters.CloseAccountParams;
-    [WRITE_COMMANDS.REVOKE_DEVICE]: Parameters.RevokeDeviceParams;
     [WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE]: Parameters.RequestContactMethodValidateCodeParams;
     [WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION]: Parameters.UpdateNewsletterSubscriptionParams;
     [WRITE_COMMANDS.DELETE_CONTACT_METHOD]: Parameters.DeleteContactMethodParams;
@@ -1203,7 +1201,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
     SYNC_POLICY_TO_SAGE_INTACCT: 'SyncPolicyToSageIntacct',
     SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
-    SYNC_GUSTO: 'SyncGusto',
+    SYNC_POLICY_TO_GUSTO: 'SyncPolicyToGusto',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
@@ -1299,7 +1297,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_NETSUITE]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
-    [READ_COMMANDS.SYNC_GUSTO]: Parameters.SyncGustoParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_GUSTO]: Parameters.SyncPolicyToGustoParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;

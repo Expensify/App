@@ -631,7 +631,9 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         if (transitionFromOldDot) {
             Navigation.navigate(routeToNavigate);
         } else if (Navigation.isTopmostRouteModalScreen()) {
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(routeToNavigate),
+            });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }

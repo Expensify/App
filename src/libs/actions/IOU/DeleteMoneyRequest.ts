@@ -203,7 +203,6 @@ function prepareToCleanUpMoneyRequest(
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const messageText = Localize.translateLocal(
         hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
         convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
@@ -458,7 +457,6 @@ function cleanUpMoneyRequest(
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
         Navigation.goBack(urlToNavigateBack);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldDeleteIOUReport) {
                 clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);

@@ -2145,12 +2145,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: '与 Concierge 聊天以解决安全问题并解锁您的账户。',
         chatWithConcierge: '与 Concierge 聊天',
     },
-    deviceManagementPage: {
-        title: '设备管理',
-        description: '管理您使用 Expensify 账户登录过的所有设备。',
-        revoke: '撤销',
-        unknownDevice: '未知设备',
-    },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
         twoFactorAuthEnabled: '已启用双重身份验证',
@@ -6808,16 +6802,12 @@ ${reportName}
             settingsTitle: 'Gusto 设置',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return '正在导入 Gusto 数据';
-                    case 'gustoSyncLoadCompany':
-                        return '正在加载 Gusto 公司数据';
-                    case 'gustoSyncImportEmployees':
-                        return '正在导入员工';
-                    case 'gustoSyncBuildApprovalChains':
-                        return '构建审批链';
-                    case 'gustoSyncFinalize':
-                        return '正在完成同步';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6825,7 +6815,19 @@ ${reportName}
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人', connect: '连接', connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                connect: '连接',
+                connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 Gusto',
+                disconnectTitle: '断开 Gusto',
+                disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+            },
         },
     },
     getAssistancePage: {

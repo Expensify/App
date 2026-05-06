@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -31,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
@@ -73,6 +75,31 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
+    const neededReportIDs = useMemo(() => {
+        const ids = new Set<string>();
+        for (const transaction of visibleTransactions) {
+            if (transaction.reportID) {
+                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+            }
+            if (transaction.reportAction?.childReportID) {
+                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+            }
+        }
+        return ids;
+    }, [visibleTransactions]);
+
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            const result: OnyxCollection<OnyxTypes.Report> = {};
+            for (const key of Object.keys(reports ?? {})) {
+                if (neededReportIDs.has(key)) {
+                    result[key] = reports?.[key];
+                }
+            }
+            return result;
+        },
+    });
+
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
     };
@@ -106,8 +133,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport(transactionItem?.reportID);
-        const transactionThreadReport = getReportOrDraftReport(transactionItem?.reportAction?.childReportID);
+        const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
+        const transactionThreadReport = getReportOrDraftReport(
+            transactionItem?.reportAction?.childReportID,
+            undefined,
+            undefined,
+            undefined,
+            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
+        );
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
 
         return {

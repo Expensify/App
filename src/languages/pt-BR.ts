@@ -2195,12 +2195,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Converse com o Concierge para resolver questões de segurança e desbloquear sua conta.',
         chatWithConcierge: 'Converse com o Concierge',
     },
-    deviceManagementPage: {
-        title: 'Gerenciamento de dispositivos',
-        description: 'Gerencie todos os dispositivos nos quais você fez login com sua conta do Expensify.',
-        revoke: 'Revogar',
-        unknownDevice: 'Dispositivo Desconhecido',
-    },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',
         twoFactorAuthEnabled: 'Autenticação em duas etapas ativada',
@@ -6981,16 +6975,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             settingsTitle: 'Configurações do Gusto',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importando dados do Gusto';
-                    case 'gustoSyncLoadCompany':
-                        return 'Carregando dados da empresa Gusto';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importando funcionários';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Criando cadeias de aprovação';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizando a sincronização';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Aguardando o carregamento dos dados importados';
                     default: {
@@ -7004,6 +6994,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 finalApprover: 'Aprovador final',
                 connect: 'Conectar',
                 connectionDescription: 'Conecte o Gusto para manter as aprovações de funcionários sincronizadas com seu workspace.',
+                syncNow: 'Sincronizar agora',
+                disconnect: 'Desconectar',
+                lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
+                syncError: 'Não é possível conectar ao Gusto',
+                disconnectTitle: 'Desconectar Gusto',
+                disconnectPrompt: 'Tem certeza de que deseja desconectar o Gusto?',
             },
         },
     },

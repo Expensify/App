@@ -2210,12 +2210,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Discutez avec Concierge pour résoudre vos problèmes de sécurité et déverrouiller votre compte.',
         chatWithConcierge: 'Discuter avec Concierge',
     },
-    deviceManagementPage: {
-        title: 'Gestion des appareils',
-        description: 'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify.',
-        revoke: 'Révoquer',
-        unknownDevice: 'Appareil Inconnu',
-    },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',
         twoFactorAuthEnabled: 'Authentification à deux facteurs activée',
@@ -7040,16 +7034,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             settingsTitle: 'Paramètres Gusto',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importation des données Gusto';
-                    case 'gustoSyncLoadCompany':
-                        return "Chargement des données de l'entreprise Gusto";
-                    case 'gustoSyncImportEmployees':
-                        return 'Importation des employés';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Création de chaînes d’approbation';
-                    case 'gustoSyncFinalize':
-                        return 'Finalisation de la synchronisation';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'En attente du chargement des données importées';
                     default: {
@@ -7063,6 +7053,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 finalApprover: 'Approbateur final',
                 connect: 'Connect',
                 connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
+                syncNow: 'Synchroniser maintenant',
+                disconnect: 'Déconnecter',
+                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+                syncError: 'Impossible de se connecter à Gusto',
+                disconnectTitle: 'Déconnecter Gusto',
+                disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
             },
         },
     },

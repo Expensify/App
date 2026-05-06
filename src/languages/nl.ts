@@ -2199,12 +2199,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chat met Concierge om beveiligingsproblemen op te lossen en je account te ontgrendelen.',
         chatWithConcierge: 'Chatten met Concierge',
     },
-    deviceManagementPage: {
-        title: 'Apparaatbeheer',
-        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account.',
-        revoke: 'Intrekken',
-        unknownDevice: 'Onbekend Apparaat',
-    },
     twoFactorAuth: {
         headerTitle: 'Tweeledige verificatie',
         twoFactorAuthEnabled: 'Authenticatie in twee stappen ingeschakeld',
@@ -6982,16 +6976,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             settingsTitle: 'Gusto-instellingen',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Gusto-gegevens importeren';
-                    case 'gustoSyncLoadCompany':
-                        return 'Gusto-bedrijfsgegevens laden';
-                    case 'gustoSyncImportEmployees':
-                        return 'Werknemers importeren';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Goedkeuringstrajecten opbouwen';
-                    case 'gustoSyncFinalize':
-                        return 'Synchronisatie voltooien';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Wachten tot geïmporteerde gegevens zijn geladen';
                     default: {
@@ -7005,6 +6995,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 finalApprover: 'Laatste fiatteur',
                 connect: 'Verbinden',
                 connectionDescription: 'Verbind Gusto om goedkeuringen van werknemers gesynchroniseerd te houden met je workspace.',
+                syncNow: 'Nu synchroniseren',
+                disconnect: 'Verbreken',
+                lastSync: (relativeDate: string) => `Laatste synchronisatie ${relativeDate}`,
+                syncError: 'Kan geen verbinding maken met Gusto',
+                disconnectTitle: 'Verbinding met Gusto verbreken',
+                disconnectPrompt: 'Weet je zeker dat je de verbinding met Gusto wilt verbreken?',
             },
         },
     },
