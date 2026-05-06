@@ -1541,6 +1541,39 @@ describe('ReportActionsUtils', () => {
             expect(fragments.at(nonReimbursableIndex)?.url).toBe(nonReimbursableUrl);
             expect(fragments.at(travelIndex)?.url).toBe(travelUrl);
         });
+
+        it('joins all three links with comma separators and a final "and" for a QBD export with three URLs', () => {
+            const reimbursableUrl = 'https://example.qbd.com/reimbursable/1';
+            const nonReimbursableUrl = 'https://example.qbd.com/non-reimbursable/1';
+            const travelUrl = 'https://example.qbd.com/travel/1';
+            const action = makeQBDExportAction({
+                reimbursableUrls: [reimbursableUrl],
+                nonReimbursableUrls: [nonReimbursableUrl],
+                travelInvoicingUrls: [travelUrl],
+            });
+
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+            const reimbursableLinkText = translateLocal('report.actions.type.exportedToIntegration.reimburseableLink');
+            const nonReimbursableLinkText = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
+            const travelLinkText = translateLocal('report.actions.type.exportedToIntegration.travelCardLink');
+            const andText = translateLocal('common.and');
+            const linkTexts = fragments.map((fragment) => fragment.text);
+
+            const reimbursableIndex = linkTexts.indexOf(`${reimbursableLinkText},`);
+            const nonReimbursableIndex = linkTexts.indexOf(`${nonReimbursableLinkText},`);
+            const andIndex = linkTexts.indexOf(andText);
+            const travelIndex = linkTexts.indexOf(travelLinkText);
+
+            // Order: reimbursable, comma-suffixed nonReimbursable, "and", travel — i.e. Oxford comma after the second item.
+            expect(reimbursableIndex).toBeGreaterThanOrEqual(0);
+            expect(nonReimbursableIndex).toBe(reimbursableIndex + 1);
+            expect(andIndex).toBe(nonReimbursableIndex + 1);
+            expect(travelIndex).toBe(andIndex + 1);
+
+            expect(fragments.at(reimbursableIndex)?.url).toBe(reimbursableUrl);
+            expect(fragments.at(nonReimbursableIndex)?.url).toBe(nonReimbursableUrl);
+            expect(fragments.at(travelIndex)?.url).toBe(travelUrl);
+        });
     });
 
     describe('getReportActionText', () => {
