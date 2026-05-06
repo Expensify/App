@@ -4109,11 +4109,13 @@ describe('updateSplitTransactions', () => {
         let allReports: OnyxCollection<Report>;
         let allReportActions: OnyxCollection<ReportActions>;
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allPolicyTagsList: OnyxCollection<PolicyTagLists>;
         await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, waitForCollectionCallback: true, callback: (value) => (allTransactions = value)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (value) => (allReports = value)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (value) => (allReportNameValuePairs = value)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, waitForCollectionCallback: true, callback: (value) => (allReportActions = value)});
-        return {allTransactions, allReports, allReportNameValuePairs, allReportActions};
+        await getOnyxData({key: ONYXKEYS.COLLECTION.POLICY_TAGS, waitForCollectionCallback: true, callback: (value) => (allPolicyTagsList = value)});
+        return {allTransactions, allReports, allReportNameValuePairs, allReportActions, allPolicyTagsList};
     };
 
     const createBaseExpense = async () => {
@@ -4478,9 +4480,10 @@ describe('updateSplitTransactions', () => {
         const writeSpy = jest.spyOn(APIlib, 'write').mockImplementation((...args) => originalWrite(...args));
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
-        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const {allTransactions, allReports, allReportNameValuePairs, allPolicyTagsList} = await getCollections();
         const policyTags = await getPolicyTags(expenseReport.reportID);
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
@@ -4489,7 +4492,7 @@ describe('updateSplitTransactions', () => {
             transactionData: {
                 reportID: expenseReport.reportID,
                 originalTransactionID,
-                splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpenses,
                 splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
@@ -4509,7 +4512,13 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
-            policyTagListByReportID: {},
+            policyTagListByReportID: buildPolicyTagListByReportID({
+                splitExpenses,
+                allReportsList: allReports,
+                expenseReport: reports.expenseReport,
+                currentUserPersonalDetails,
+                allPolicyTagsList,
+            }),
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -4588,9 +4597,10 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
-        const {allTransactions, allReports: allReports2, allReportNameValuePairs} = await getCollections();
+        const {allTransactions, allReports: allReports2, allReportNameValuePairs, allPolicyTagsList: allPolicyTagsList2} = await getCollections();
         const policyTags = await getPolicyTags(expenseReport.reportID);
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
@@ -4599,7 +4609,7 @@ describe('updateSplitTransactions', () => {
             transactionData: {
                 reportID: expenseReport.reportID,
                 originalTransactionID,
-                splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpenses,
                 splitExpensesTotal: undefined,
             },
             searchContext: {currentSearchHash: -2},
@@ -4619,6 +4629,13 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: buildPolicyTagListByReportID({
+                splitExpenses,
+                allReportsList: allReports2,
+                expenseReport: reports.expenseReport,
+                currentUserPersonalDetails,
+                allPolicyTagsList: allPolicyTagsList2,
+            }),
             isOffline: false,
         });
         await waitForBatchedUpdates();
