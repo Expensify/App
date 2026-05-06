@@ -4,7 +4,6 @@ import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -12,10 +11,10 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
+import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
@@ -68,7 +67,6 @@ function BaseVideoPlayer({
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
@@ -168,8 +166,6 @@ function BaseVideoPlayer({
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
-
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
@@ -263,20 +259,6 @@ function BaseVideoPlayer({
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.set(1);
     }, [controlStatusState, controlsOpacity, hideControl]);
-
-    const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        if (!videoPlayerRef.current) {
-            return;
-        }
-        setIsPopoverVisible(true);
-
-        updatePopoverMenuSource(url);
-        if (!event || !('nativeEvent' in event)) {
-            return;
-        }
-        setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
-    };
 
     useEventListener(videoPlayerRef.current, 'mutedChange', (payload: MutedChangeEventPayload) => {
         if (payload.muted || !payload.oldMuted) {
@@ -511,7 +493,9 @@ function BaseVideoPlayer({
     }, [hasError, sharedElement]);
 
     return (
-        <>
+        <PopoverMenu.Root>
+            {/* Mirror the popover's visibility into local state for the auto-hide effects + Hoverable freeze; setter passed via context. */}
+            <PopoverVisibilityObserver onChange={setIsPopoverVisible} />
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
             <PressableWithoutFeedback
@@ -614,7 +598,6 @@ function BaseVideoPlayer({
                                         style={[videoControlsStyle, controlsAnimatedStyle]}
                                         togglePlayCurrentVideo={togglePlayCurrentVideo}
                                         controlsStatus={controlStatusState}
-                                        showPopoverMenu={showPopoverMenu}
                                         reportID={reportID}
                                         onSeekStart={() => {
                                             allowSharedAutoPlayRef.current = false;
@@ -637,13 +620,18 @@ function BaseVideoPlayer({
                     )}
                 </Hoverable>
             </PressableWithoutFeedback>
-            <VideoPopoverMenu
-                isPopoverVisible={isPopoverVisible}
-                hidePopover={() => setIsPopoverVisible(false)}
-                anchorPosition={popoverAnchorPosition}
-            />
-        </>
+            <VideoPopoverMenu />
+        </PopoverMenu.Root>
     );
+}
+
+/** Mirrors the enclosing `<Root>`'s `isVisible` into a parent state setter. Sibling component so the hook can run without splitting BaseVideoPlayer. */
+function PopoverVisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
+    const isVisible = PopoverMenu.useIsPopoverVisible();
+    useEffect(() => {
+        onChange(isVisible);
+    }, [isVisible, onChange]);
+    return null;
 }
 
 export default BaseVideoPlayer;
