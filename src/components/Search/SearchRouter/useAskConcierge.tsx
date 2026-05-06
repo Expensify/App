@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import useSidePanelReportID from '@hooks/useSidePanelReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {addComment, setConciergeThinkingKickoff} from '@userActions/Report';
+import {addComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,15 +23,15 @@ function useAskConcierge() {
 
     return (searchQuery: string) => {
         openConciergeAnywhere();
-        if (!targetReport || !targetReportID) {
+        const trimmedQuery = searchQuery.trim();
+        if (!trimmedQuery || !targetReport || !targetReportID) {
             return;
         }
-        setConciergeThinkingKickoff();
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
             ancestors: [],
-            text: searchQuery,
+            text: trimmedQuery,
             timezoneParam: timezone ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             shouldPlaySound: true,

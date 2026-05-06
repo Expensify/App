@@ -13,7 +13,6 @@ jest.mock('@libs/Log');
 jest.mock('@libs/Network/SequentialQueue', () => ({flush: jest.fn()}));
 jest.mock('@libs/actions/App', () => ({openApp: jest.fn(), reconnectApp: jest.fn(), confirmReadyToOpenApp: jest.fn()}));
 jest.mock('@libs/AppStateMonitor', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- required by Jest for ES module interop
     __esModule: true,
     default: {
         addBecameActiveListener: jest.fn(() => jest.fn()),

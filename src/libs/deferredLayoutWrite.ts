@@ -169,7 +169,11 @@ function hasDeferredWrite(key: string): boolean {
  * or the channel was registered without a watch key.
  */
 function getOptimisticWatchKey(key: string): OnyxKey | undefined {
-    return channels.get(key)?.optimisticWatchKey ?? flushedWatchKeys.get(key);
+    const channelKey = channels.get(key)?.optimisticWatchKey;
+    if (channelKey) {
+        return channelKey;
+    }
+    return flushedWatchKeys.get(key);
 }
 
 // Flush every pending deferred write when the app moves to background so
@@ -215,10 +219,8 @@ function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearc
         return;
     }
 
-    // handleSearchDismiss reserves the SEARCH channel before calling
-    // createTransaction(..., false, false). shouldDeferForSearch is false
-    // (gated by shouldHandleNavigation) but the channel is waiting for a
-    // write - honor it so the reserved channel doesn't linger unused.
+    // Fallback: a reserved SEARCH channel (created by handleSearchDismiss before
+    // createTransaction) that wasn't matched by the explicit shouldDeferForSearch flag.
     if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
         onDeferred?.();
         registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});

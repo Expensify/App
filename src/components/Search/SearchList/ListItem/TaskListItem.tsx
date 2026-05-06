@@ -12,6 +12,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import TaskListItemRow from './TaskListItemRow';
 import type {TaskListItemProps, TaskListItemType} from './types';
 
+/**
+ * A task row in search results showing date, title, description, creator, assignee,
+ * and a complete/completed badge action.
+ */
 function TaskListItem<TItem extends ListItem>({
     item,
     isFocused,

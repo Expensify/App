@@ -3,7 +3,6 @@ import useDistanceRequestState from '@components/MoneyRequestConfirmationList/ho
 import type * as OnyxTypes from '@src/types/onyx';
 
 jest.mock('@libs/DistanceRequestUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         getDefaultMileageRate: () => undefined,

@@ -156,7 +156,6 @@ import {
     getManagerAccountID,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
-    getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
@@ -743,6 +742,7 @@ type BaseOptimisticMoneyRequestEntities = {
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
     reportActionID?: string;
+    currentUserAccountID: number;
 };
 
 type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
@@ -2903,7 +2903,7 @@ function hasOutstandingChildRequest(
         const invoiceReceiverPolicy = getPolicy(invoiceReceiverPolicyID);
         return (
             canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, undefined, undefined, invoiceReceiverPolicy) ||
-            canApproveIOU(iouReport, policy, reportMetadata, transactions) ||
+            canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountIDParam, transactions) ||
             canSubmitAndIsAwaitingForCurrentUser(
                 iouReport,
                 chatReport,
@@ -4527,7 +4527,7 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string | undefined): Record<string, PolicyReportField> {
+function getReportFieldsByPolicyID(policyID: string | undefined): Policy['fieldList'] {
     if (!policyID) {
         return {};
     }
@@ -6999,14 +6999,16 @@ function getMovedActionMessage(translate: LocalizedTranslate, action: ReportActi
         return '';
     }
     const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
-    const toPolicyName = getPolicyNameByID(toPolicyID);
+    const toPolicyName = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${toPolicyID}`]?.name ?? '';
     return translate('iou.movedAction', !isDM(report), getReportURLForCurrentContext(movedReportID), getReportURLForCurrentContext(newParentReportID), toPolicyName);
 }
 
 function getPolicyChangeMessage(translate: LocalizedTranslate, action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
-    const message = translate('report.actions.type.changeReportPolicy', getPolicyNameByID(toPolicyID), fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined);
+    const toPolicyName = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${toPolicyID}`]?.name ?? '';
+    const fromPolicyName = fromPolicyID ? (allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${fromPolicyID}`]?.name ?? '') : undefined;
+    const message = translate('report.actions.type.changeReportPolicy', toPolicyName, fromPolicyName);
     return message;
 }
 
@@ -7560,10 +7562,11 @@ function buildOptimisticReportPreview(
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
+    // TODO: conciergeReportID will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
+    conciergeReportID?: string | undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
-    const message = getReportPreviewMessage(iouReport, undefined);
+    const message = getReportPreviewMessage(iouReport, conciergeReportID);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -7952,16 +7955,34 @@ function buildOptimisticGroupChatReport(
     });
 }
 
+type BuildOptimisticCreatedReportActionParams = {
+    emailCreatingAction: string;
+    created?: string;
+    optimisticReportActionID?: string;
+    // TODO: currentUserAccountID, currentUserDisplayName, currentUserEmail, currentUserAvatar will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66412
+    currentUserAccountID?: number;
+    currentUserDisplayName?: string;
+    currentUserEmail?: string;
+    currentUserAvatar?: AvatarSource;
+};
+
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
- * @param [created] - Action created time
  */
-function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime(), optimisticReportActionID?: string): OptimisticCreatedReportAction {
+function buildOptimisticCreatedReportAction({
+    emailCreatingAction,
+    created = DateUtils.getDBTime(),
+    optimisticReportActionID,
+    currentUserAccountID,
+    currentUserDisplayName,
+    currentUserEmail,
+    currentUserAvatar,
+}: BuildOptimisticCreatedReportActionParams): OptimisticCreatedReportAction {
     return {
         reportActionID: optimisticReportActionID ?? rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID ?? deprecatedCurrentUserAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -7978,11 +7999,11 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
+                text: currentUserDisplayName ?? currentUserEmail ?? getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: currentUserAvatar ?? getCurrentUserAvatar(),
         created,
         shouldShow: true,
     };
@@ -8515,7 +8536,7 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[], cur
         currentUserAccountID,
     });
 
-    const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
+    const announceCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.POLICY.OWNER_EMAIL_FAKE});
     announceRoomOnyxData.onyxOptimisticData.push(
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -8628,7 +8649,7 @@ function buildOptimisticWorkspaceChats(
         }),
     };
     const adminsChatReportID = adminsChatData.reportID;
-    const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
+    const adminsCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.POLICY.OWNER_EMAIL_FAKE});
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
@@ -8646,7 +8667,7 @@ function buildOptimisticWorkspaceChats(
     });
 
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '');
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmail ?? ''});
     const expenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
@@ -8760,10 +8781,11 @@ function buildOptimisticExportIntegrationAction(integration: ConnectionName, mar
 function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
     existingTransactionThreadReportID?: string,
     optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
-    const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
+    const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean);
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
 
     if (existingTransactionThreadReportID && existingTransactionThreadReport) {
@@ -8787,6 +8809,7 @@ function buildTransactionThread(
         parentReportID: moneyRequestReport?.reportID,
         optimisticReportID: optimisticTransactionThreadReportID,
         chatReportID: moneyRequestReport?.reportID,
+        currentUserAccountID,
     });
 }
 
@@ -8824,6 +8847,7 @@ function buildOptimisticMoneyRequestEntities({
     optimisticCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
+    currentUserAccountID,
 }: OptimisticMoneyRequestEntities): [
     OptimisticCreatedReportAction,
     OptimisticCreatedReportAction,
@@ -8831,11 +8855,14 @@ function buildOptimisticMoneyRequestEntities({
     OptimisticChatReport | undefined,
     OptimisticCreatedReportAction | null,
 ] {
-    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, undefined, optimisticCreatedReportActionID);
+    const createdActionForChat = buildOptimisticCreatedReportAction({emailCreatingAction: payeeEmail, optimisticReportActionID: optimisticCreatedReportActionID});
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
     const iouActionCreationTime = DateUtils.getDBTime();
-    const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
+    const createdActionForIOUReport = buildOptimisticCreatedReportAction({
+        emailCreatingAction: payeeEmail,
+        created: DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1),
+    });
 
     const iouAction = buildOptimisticIOUReportAction({
         type,
@@ -8856,8 +8883,9 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = shouldGenerateTransactionThreadReport ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
-    const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateTransactionThreadReport ? null : buildOptimisticCreatedReportAction(payeeEmail);
+    const transactionThread = shouldGenerateTransactionThreadReport ? buildTransactionThread(iouAction, iouReport, currentUserAccountID, existingTransactionThreadReportID) : undefined;
+    const createdActionForTransactionThread =
+        !!existingTransactionThreadReportID || !shouldGenerateTransactionThreadReport ? null : buildOptimisticCreatedReportAction({emailCreatingAction: payeeEmail});
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
     iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
@@ -8975,8 +9003,8 @@ function hasEmptyReportsForPolicy(
  */
 function getPolicyIDsWithEmptyReportsForAccount(
     reports: OnyxCollection<Report> | undefined,
-    accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
+    accountID: number | undefined,
+    reportsTransactionsParam: Record<string, Transaction[]>,
 ): Record<string, boolean> {
     if (!accountID) {
         return {};
@@ -9003,9 +9031,7 @@ function getPolicyIDsWithEmptyReportsForAccount(
         }
 
         // Ignore transactions that are already pending deletion so we treat the report as empty once the removal is queued.
-        const transactions = getReportTransactions(report.reportID, reportsTransactionsParam).filter(
-            (transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
+        const transactions = (reportsTransactionsParam[report.reportID] ?? []).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (transactions.length === 0) {
             policyLookup[report.policyID] = true;
         }
@@ -10480,7 +10506,7 @@ function getTaskAssigneeChatOnyxData(
     // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
     // Only add the assignee chat report to onyx if we haven't already set it optimistically
     if ((isOptimisticAssigneeChatReport ?? assigneeChatReportMetadata?.isOptimisticReport) && assigneeChatReport?.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction(assigneeChatReportID);
+        optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: assigneeChatReportID});
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11871,7 +11897,7 @@ function prepareOnboardingOnyxData({
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
-            const taskCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
+            const taskCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
             const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
             currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
@@ -12311,7 +12337,7 @@ function prepareOnboardingOnyxData({
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
             selfDMReport = buildOptimisticSelfDMReport(currentTime);
-            createdAction = buildOptimisticCreatedReportAction(deprecatedCurrentUserEmail ?? '', currentTime);
+            createdAction = buildOptimisticCreatedReportAction({emailCreatingAction: deprecatedCurrentUserEmail ?? '', created: currentTime});
             selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
             optimisticData.push(
                 {
@@ -13251,6 +13277,12 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
     return undefined;
 }
 
+function getStatusBadgeBackgroundColor(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean, isSelected?: boolean): ColorValue | undefined {
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
+    const isUnreported = (stateNum === undefined || statusNum === undefined) && !isDeleted;
+    return isSelected && isUnreported ? theme.buttonHoveredBG : reportStatusColorStyle?.backgroundColor;
+}
+
 /**
  * Checks if a workspace member is leaving a workspace room
  * This is used to determine if we need to show special handling when a workspace member leaves a room
@@ -13304,6 +13336,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
+    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
 ] as const;
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
@@ -13349,6 +13382,8 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getTaxName(policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return transaction.withdrawalID ? transaction.withdrawalID : '';
         default:
             return '';
     }
@@ -13724,6 +13759,7 @@ export {
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
     getReportStatusColorStyle,
+    getStatusBadgeBackgroundColor,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReceiptUploadErrorReason,

@@ -8,7 +8,8 @@ import SingleSelectListItem from './SingleSelectListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
- * SingleSelectWithAvatarListItem extends SingleSelectListItem by adding avatar support.
+ * A SingleSelectListItem that prepends an avatar when icons are provided. Used in pickers
+ * where options have a visual identity (e.g. domain admin selection).
  */
 function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperStyle, ...props}: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
