@@ -1486,7 +1486,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getExportIntegrationActionFragments', () => {
-        function makeQBDExportAction(originalMessageOverrides: Record<string, unknown>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+        function makeQBDExportAction(originalMessageOverrides: Record<string, unknown>): ReportAction {
             return {
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
                 reportActionID: 'qbd-export-action-1',
@@ -1494,6 +1494,7 @@ describe('ReportActionsUtils', () => {
                 reportID: '1234567',
                 originalMessage: {
                     label: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
+                    lastModified: '2026-05-05 12:00:00.000',
                     automaticAction: false,
                     markedManually: false,
                     reimbursableUrls: [],
@@ -1501,7 +1502,7 @@ describe('ReportActionsUtils', () => {
                     travelInvoicingUrls: [],
                     ...originalMessageOverrides,
                 },
-            };
+            } as unknown as ReportAction;
         }
 
         it('renders the travel card link as the only link for a QBD export with one travel invoicing URL', () => {
