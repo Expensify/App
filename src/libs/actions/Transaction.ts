@@ -1228,12 +1228,9 @@ function changeTransactionsReport({
 
         if (oldReport) {
             const oldReportTransactionCount = updatedReportTransactionCounts[oldReportID] ?? oldReport.transactionCount ?? 0;
-            updatedReportTransactionCounts[oldReportID] = Math.max(0, oldReportTransactionCount - 1);
-
-            const remainingTransactions = getReportTransactions(oldReportID).filter(
-                (reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !transactionIDs.includes(reportTransaction.transactionID),
-            );
-            const willBeEmpty = remainingTransactions.length === 0;
+            const updatedOldReportTransactionCount = Math.max(0, oldReportTransactionCount - 1);
+            updatedReportTransactionCounts[oldReportID] = updatedOldReportTransactionCount;
+            const willBeEmpty = updatedOldReportTransactionCount === 0;
 
             if (willBeEmpty) {
                 clearStaleReportState(oldReportID);
