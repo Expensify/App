@@ -17,14 +17,11 @@ type MovedTransactionActionProps = {
     /** The moved transaction action data */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>;
 
-    /** The element to render when there is no report that the transaction was moved to or from */
-    emptyHTML: React.JSX.Element;
-
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
 };
 
-function MovedTransactionAction({action, emptyHTML, originalReport}: MovedTransactionActionProps) {
+function MovedTransactionAction({action, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
     const toReportID = movedTransactionOriginalMessage?.toReportID;
@@ -43,7 +40,7 @@ function MovedTransactionAction({action, emptyHTML, originalReport}: MovedTransa
     // making it impossible to retrieve the report name for display
     // Ref: https://github.com/Expensify/App/issues/70338
     if (!toReport && !hasFromReport) {
-        return emptyHTML;
+        return null;
     }
 
     const message = getMovedTransactionMessage(translate, action, conciergeReportID);

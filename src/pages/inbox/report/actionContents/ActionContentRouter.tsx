@@ -65,7 +65,6 @@ import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
-import {emptyHTML, isEmptyHTML} from './emptyHTML';
 import FraudAlertContent from './FraudAlertContent';
 import JoinRequestContent from './JoinRequestContent';
 import MentionWhisperContent from './MentionWhisperContent';
@@ -258,7 +257,7 @@ function ActionContentRouter({
 
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
-    let children: React.JSX.Element;
+    let children: React.JSX.Element | null = null;
     const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
     const moneyRequestActionType = moneyRequestOriginalMessage?.type;
 
@@ -302,7 +301,7 @@ function ActionContentRouter({
                     />
                 );
             } else {
-                children = emptyHTML;
+                children = null;
             }
         }
     } else if (isTripPreview(action)) {
@@ -433,7 +432,6 @@ function ActionContentRouter({
         children = (
             <MovedTransactionAction
                 action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
-                emptyHTML={emptyHTML}
                 originalReport={originalReport}
             />
         );
@@ -588,8 +586,8 @@ function ActionContentRouter({
         );
     }
 
-    if (isEmptyHTML(children) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
-        return emptyHTML;
+    if (children == null || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
+        return <RenderHTML html="" />;
     }
 
     const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
