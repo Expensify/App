@@ -25,7 +25,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
-import {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
+import {buildPolicyTagListByReportID, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
@@ -1285,6 +1285,7 @@ describe('split expense', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -1791,6 +1792,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -1911,6 +1913,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -2043,6 +2046,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -2209,6 +2213,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -2270,6 +2275,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -2435,6 +2441,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -2543,6 +2550,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -2721,6 +2729,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports1.transactionReport,
             expenseReport: reports1.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -2856,6 +2865,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports2.transactionReport,
             expenseReport: reports2.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -3041,6 +3051,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -3219,6 +3230,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -3411,6 +3423,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -3626,6 +3639,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -3810,6 +3824,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -3942,6 +3957,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: true,
         });
         await waitForBatchedUpdates();
@@ -4073,6 +4089,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -4251,6 +4268,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
 
@@ -4487,6 +4505,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -4567,6 +4586,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -4631,6 +4651,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
+            policyTagListByReportID: {},
             isOffline: false,
         });
         await waitForBatchedUpdates();
@@ -6874,5 +6895,194 @@ describe('createDistanceRequest', () => {
         expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
         const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
         expect(createdTransaction).toBeTruthy();
+    });
+});
+
+describe('buildPolicyTagListByReportID', () => {
+    const POLICY_ID = 'policy_tag_test_123';
+    const SPLIT_REPORT_ID_A = 'split_report_aaa';
+    const SPLIT_REPORT_ID_B = 'split_report_bbb';
+    const EXPENSE_REPORT_ID = 'expense_report_ccc';
+    const CHAT_REPORT_ID = 'chat_report_ddd';
+    const PARENT_CHAT_REPORT_ID = 'parent_chat_eee';
+    const POLICY_ID_B = 'policy_tag_test_456';
+
+    const sampleTags: PolicyTagLists = {
+        Department: {
+            name: 'Department',
+            required: false,
+            tags: {Engineering: {name: 'Engineering', enabled: true}},
+            orderWeight: 0,
+        },
+    };
+
+    const tagsForPolicyB: PolicyTagLists = {
+        Project: {
+            name: 'Project',
+            required: false,
+            tags: {Alpha: {name: 'Alpha', enabled: true}},
+            orderWeight: 0,
+        },
+    };
+
+    function makeSplitExpense(reportID?: string): SplitExpense {
+        return {transactionID: rand64(), amount: 100, created: '2024-01-01', reportID};
+    }
+
+    it('uses policyID directly from the split expense report', () => {
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A, policyID: POLICY_ID} as Report,
+        };
+        const allPolicyTagsList = {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`]: sampleTags};
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(SPLIT_REPORT_ID_A)],
+            allReportsList,
+            expenseReport: {reportID: EXPENSE_REPORT_ID} as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList,
+        });
+
+        expect(result[SPLIT_REPORT_ID_A]).toEqual(sampleTags);
+    });
+
+    it('returns empty object when no matching tags exist for the policyID', () => {
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A, policyID: 'unknown_policy'} as Report,
+        };
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(SPLIT_REPORT_ID_A)],
+            allReportsList,
+            expenseReport: {reportID: EXPENSE_REPORT_ID} as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList: {},
+        });
+
+        expect(result[SPLIT_REPORT_ID_A]).toEqual({});
+    });
+
+    it('omits split expenses that have no reportID', () => {
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A, policyID: POLICY_ID} as Report,
+        };
+        const allPolicyTagsList = {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`]: sampleTags};
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(undefined), makeSplitExpense(SPLIT_REPORT_ID_A)],
+            allReportsList,
+            expenseReport: {reportID: EXPENSE_REPORT_ID} as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList,
+        });
+
+        expect(Object.keys(result)).toHaveLength(1);
+        expect(result[SPLIT_REPORT_ID_A]).toEqual(sampleTags);
+    });
+
+    it('maps multiple split expenses to their respective policy tags', () => {
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A, policyID: POLICY_ID} as Report,
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_B}`]: {reportID: SPLIT_REPORT_ID_B, policyID: POLICY_ID_B} as Report,
+        };
+        const allPolicyTagsList = {
+            [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`]: sampleTags,
+            [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID_B}`]: tagsForPolicyB,
+        };
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(SPLIT_REPORT_ID_A), makeSplitExpense(SPLIT_REPORT_ID_B)],
+            allReportsList,
+            expenseReport: {reportID: EXPENSE_REPORT_ID} as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList,
+        });
+
+        expect(result[SPLIT_REPORT_ID_A]).toEqual(sampleTags);
+        expect(result[SPLIT_REPORT_ID_B]).toEqual(tagsForPolicyB);
+    });
+
+    it('falls back to chatReport policyID when split expense report has none and chatReport is a policy expense chat', async () => {
+        const chatReport: Report = {
+            reportID: CHAT_REPORT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: POLICY_ID,
+            parentReportID: 'nonexistent_parent',
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        // getMoneyRequestParticipantsFromReport reads chatReport from Onyx internals
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+        await waitForBatchedUpdates();
+
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`]: chatReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A} as Report,
+        };
+        const allPolicyTagsList = {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`]: sampleTags};
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(SPLIT_REPORT_ID_A)],
+            allReportsList,
+            expenseReport: {reportID: EXPENSE_REPORT_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE} as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList,
+        });
+
+        expect(result[SPLIT_REPORT_ID_A]).toEqual(sampleTags);
+    });
+
+    it('falls back to parent-of-chatReport policyID when split expense report has none', async () => {
+        const parentReport: Report = {reportID: PARENT_CHAT_REPORT_ID, policyID: POLICY_ID, type: CONST.REPORT.TYPE.CHAT};
+        const chatReport: Report = {
+            reportID: CHAT_REPORT_ID,
+            parentReportID: PARENT_CHAT_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'}},
+        };
+        // getReportOrDraftReport and getMoneyRequestParticipantsFromReport both read from Onyx
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_CHAT_REPORT_ID}`, parentReport);
+        await waitForBatchedUpdates();
+
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`]: chatReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${PARENT_CHAT_REPORT_ID}`]: parentReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A} as Report,
+        };
+        const allPolicyTagsList = {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`]: sampleTags};
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(SPLIT_REPORT_ID_A)],
+            allReportsList,
+            expenseReport: {reportID: EXPENSE_REPORT_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE} as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList,
+        });
+
+        expect(result[SPLIT_REPORT_ID_A]).toEqual(sampleTags);
+    });
+
+    it('constructs a fallback report from expenseReport policyID when chatReport is absent from both allReportsList and Onyx', () => {
+        // chatReportID not present in allReportsList or Onyx → fallbackPolicyParticipant is created
+        // → fallbackPolicyParentChatReport is constructed carrying expenseReport.policyID
+        const allReportsList = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${SPLIT_REPORT_ID_A}`]: {reportID: SPLIT_REPORT_ID_A} as Report,
+        };
+        const allPolicyTagsList = {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`]: sampleTags};
+
+        const result = buildPolicyTagListByReportID({
+            splitExpenses: [makeSplitExpense(SPLIT_REPORT_ID_A)],
+            allReportsList,
+            expenseReport: {
+                reportID: EXPENSE_REPORT_ID,
+                chatReportID: CHAT_REPORT_ID,
+                policyID: POLICY_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as Report,
+            currentUserPersonalDetails,
+            allPolicyTagsList,
+        });
+
+        expect(result[SPLIT_REPORT_ID_A]).toEqual(sampleTags);
     });
 });
