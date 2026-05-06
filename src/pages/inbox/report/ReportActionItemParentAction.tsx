@@ -63,9 +63,6 @@ type ReportActionItemParentActionProps = {
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-
     /** Whether the report is archived */
     isReportArchived: boolean;
 };
@@ -81,7 +78,6 @@ function ReportActionItemParentAction({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     personalDetails,
-    isTryNewDotNVPDismissed = false,
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
@@ -225,7 +221,6 @@ function ReportActionItemParentAction({
                                 personalDetails={personalDetails}
                                 draftMessage={matchingDraftMessageString}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
-                                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                             />
                         </OfflineWithFeedback>
                     );
