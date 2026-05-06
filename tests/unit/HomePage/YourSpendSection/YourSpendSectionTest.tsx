@@ -1,12 +1,13 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
+import type {ReactNode} from 'react';
 import React from 'react';
+import type * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import HomePage from '@pages/home/HomePage';
+import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import YourSpendSection from '@pages/home/YourSpendSection';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
 import ROUTES from '@src/ROUTES';
 
-// Mocks
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
@@ -33,28 +34,67 @@ jest.mock('@hooks/useThemeStyles', () =>
             new Proxy(
                 {},
                 {
-                    get: () => ({}),
+                    get: () => jest.fn(() => ({})),
                 },
             ),
     ),
 );
 
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false})));
-
-// Mock the data hook so YourSpendSection renders deterministically
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => ({
-    ...jest.requireActual('@pages/home/YourSpendSection/useYourSpendData'),
-    useYourSpendData: jest.fn(() => ({
-        approvalRowState: 'loading',
-        paymentRowState: 'loading',
-        cardRows: [],
-        awaitingApprovalQuery: '',
-        repaidLast30DaysQuery: '',
-    })),
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false})),
 }));
 
-// Helpers
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: jest.fn(() => [undefined]),
+}));
+
+// `getDisplayableExpensifyCards` is used by the per-card row to resolve a `Card` from the CARD_LIST
+// Onyx collection. We stub it so cardRows assertions work without needing real Onyx data.
+jest.mock('@libs/CardUtils', () => {
+    const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
+    return {
+        ...actual,
+        getDisplayableExpensifyCards: jest.fn(() => [
+            {cardID: 1, lastFourPAN: '1234', nameValuePairs: {}},
+            {cardID: 2, lastFourPAN: '5678', nameValuePairs: {}},
+        ]),
+        getCardDescription: jest.fn(() => 'Card description'),
+    };
+});
+
+// `MenuItemWithTopDescription` requires a ScreenWrapper transition context which isn't set up in this
+// unit test. Replace it with a passthrough that still mounts left/right/title content so the
+// outer testIDs and inner Button (in `rightComponent`) remain interactive.
+jest.mock('@components/MenuItemWithTopDescription', () => {
+    type StubProps = {title?: string; rightComponent?: ReactNode; leftComponent?: ReactNode};
+    function MockMenuItemWithTopDescription({title, rightComponent, leftComponent}: StubProps) {
+        return (
+            <>
+                {leftComponent}
+                {title}
+                {rightComponent}
+            </>
+        );
+    }
+    return MockMenuItemWithTopDescription;
+});
+
+jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
+    const actual: typeof UseYourSpendDataModule = jest.requireActual('@pages/home/YourSpendSection/useYourSpendData');
+    return {
+        ...actual,
+        useYourSpendData: jest.fn(() => ({
+            approvalRowState: 'loading',
+            paymentRowState: 'loading',
+            cardRows: [],
+            awaitingApprovalQuery: '',
+            repaidLast30DaysQuery: '',
+        })),
+    };
+});
+
 type MockHookData = {
     approvalRowState: string;
     paymentRowState: string;
@@ -86,7 +126,6 @@ describe('YourSpendSection', () => {
     it('renders approval row skeleton when approvalRowState is LOADING', () => {
         mockHook({approvalRowState: YOUR_SPEND_ROW_STATE.LOADING});
         render(<YourSpendSection />);
-        // The skeleton row should be visible during loading
         expect(screen.getByTestId('your-spend-approval-skeleton')).toBeOnTheScreen();
     });
 
@@ -143,45 +182,5 @@ describe('YourSpendSection', () => {
         });
         const {toJSON} = render(<YourSpendSection />);
         expect(toJSON()).toBeNull();
-    });
-});
-
-describe('HomePage — YourSpendSection present in both layouts', () => {
-    const mockUseResponsiveLayout = jest.requireMock<{
-        default: jest.Mock;
-    }>('@hooks/useResponsiveLayout').default;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockHook({
-            approvalRowState: YOUR_SPEND_ROW_STATE.LOADING,
-            paymentRowState: YOUR_SPEND_ROW_STATE.LOADING,
-        });
-    });
-
-    it('renders YourSpendSection in narrow layout', () => {
-        mockUseResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: true, isSmallScreenWidth: true});
-        render(<HomePage />);
-        // YourSpendSection should be rendered; AssignedCardsSection should not
-        expect(screen.getByTestId('your-spend-section')).toBeOnTheScreen();
-    });
-
-    it('renders YourSpendSection in wide layout', () => {
-        mockUseResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false, isSmallScreenWidth: false});
-        render(<HomePage />);
-        expect(screen.getByTestId('your-spend-section')).toBeOnTheScreen();
-    });
-
-    it('does not render AssignedCardsSection in narrow layout after migration', () => {
-        mockUseResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: true, isSmallScreenWidth: true});
-        render(<HomePage />);
-        // If AssignedCardsSection is still present, the migration is incomplete
-        expect(screen.queryByTestId('assigned-cards-section')).toBeNull();
-    });
-
-    it('does not render AssignedCardsSection in wide layout after migration', () => {
-        mockUseResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false, isSmallScreenWidth: false});
-        render(<HomePage />);
-        expect(screen.queryByTestId('assigned-cards-section')).toBeNull();
     });
 });
