@@ -500,7 +500,6 @@ function SearchAutocompleteList({
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
-        autocompleteQueryValue,
         hasEffectiveInputQuery,
         autocompleteSuggestions,
         expensifyIcons,
