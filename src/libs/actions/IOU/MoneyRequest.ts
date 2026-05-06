@@ -26,6 +26,7 @@ import type {
     BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
+    OdometerDraft,
     PersonalDetailsList,
     Policy,
     PolicyTagLists,
@@ -66,7 +67,6 @@ type CreateTransactionParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
@@ -113,7 +113,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     files: ReceiptFile[];
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
@@ -158,7 +157,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     privateIsArchived?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
@@ -167,6 +165,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
+    previousOdometerDraft?: OnyxEntry<OdometerDraft>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
@@ -191,7 +190,6 @@ function createTransaction({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     files,
     participant,
     gpsPoint,
@@ -241,7 +239,6 @@ function createTransaction({
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 introSelected,
-                activePolicyID,
                 quickAction,
                 draftTransactionIDs,
                 recentWaypoints,
@@ -333,7 +330,6 @@ function handleMoneyRequestStepScanParticipants({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -447,7 +443,6 @@ function handleMoneyRequestStepScanParticipants({
                             quickAction,
                             policyRecentlyUsedCurrencies,
                             introSelected,
-                            activePolicyID,
                             files,
                             participant,
                             gpsPoint,
@@ -477,7 +472,6 @@ function handleMoneyRequestStepScanParticipants({
                             quickAction,
                             policyRecentlyUsedCurrencies,
                             introSelected,
-                            activePolicyID,
                             files,
                             participant,
                             policyParams: {policy},
@@ -505,7 +499,6 @@ function handleMoneyRequestStepScanParticipants({
                 quickAction,
                 policyRecentlyUsedCurrencies,
                 introSelected,
-                activePolicyID,
                 files,
                 participant,
                 policyParams: {policy},
@@ -589,7 +582,6 @@ function handleMoneyRequestStepDistanceNavigation({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     privateIsArchived,
     draftTransactionIDs = [],
     selfDMReport,
@@ -599,6 +591,7 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerStart,
     odometerEnd,
     odometerDistance,
+    previousOdometerDraft,
     betas,
     recentWaypoints,
     unit,
@@ -715,12 +708,12 @@ function handleMoneyRequestStepDistanceNavigation({
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserLogin ?? '',
                     introSelected,
-                    activePolicyID,
                     quickAction,
                     draftTransactionIDs,
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
+                    previousOdometerDraft,
                 });
                 return;
             }
@@ -759,6 +752,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 personalDetails,
                 recentWaypoints,
                 betas,
+                previousOdometerDraft,
             });
             return;
         }

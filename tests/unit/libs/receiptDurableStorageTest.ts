@@ -6,13 +6,11 @@ jest.mock('react-native-fs', () => ({
 
 const DURABLE_UPLOAD_DIR = '/var/mobile/Documents/Receipts-Upload';
 jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => DURABLE_UPLOAD_DIR,
 }));
 
 jest.mock('@libs/Log', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {warn: jest.fn(), alert: jest.fn()},
 }));

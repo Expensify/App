@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention -- Mock module paths use non-standard naming conventions required by jest.mock */
 import {PortalProvider} from '@gorhom/portal';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
