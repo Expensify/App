@@ -1923,15 +1923,19 @@ function canCreateOptimisticPersonalDetailOption({
     searchValue: string;
 }) {
     const normalizedSearchValue = addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase();
-    const hasExactLoginMatch =
-        recentReportOptions.some((o) => o.login?.toLowerCase() === normalizedSearchValue) || personalDetailsOptions.some((o) => o.login?.toLowerCase() === normalizedSearchValue);
+    const rawSearchValue = (searchValue ?? '').toLowerCase();
+    const matchesLogin = (login: string | undefined) => {
+        const normalizedLogin = login?.toLowerCase();
+        return normalizedLogin === normalizedSearchValue || normalizedLogin === rawSearchValue;
+    };
+    const hasExactLoginMatch = recentReportOptions.some((o) => matchesLogin(o.login)) || personalDetailsOptions.some((o) => matchesLogin(o.login));
     if (hasExactLoginMatch) {
         return false;
     }
     if (!currentUserOption) {
         return true;
     }
-    return currentUserOption.login !== normalizedSearchValue && currentUserOption.login !== searchValue?.toLowerCase();
+    return currentUserOption.login !== normalizedSearchValue && currentUserOption.login !== rawSearchValue;
 }
 
 /**

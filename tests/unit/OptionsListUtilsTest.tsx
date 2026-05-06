@@ -3483,6 +3483,30 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
 
+        it('should not allow to create option when phone-number contact is stored as raw E.164 without SMS domain', () => {
+            // Regression test for the Codex P1 review on PR #89405: searching a phone number must also match
+            // existing contacts whose login is stored as raw E.164 (no @expensify.sms suffix).
+            const canCreate = canCreateOptimisticPersonalDetailOption({
+                searchValue: '+15005550006',
+                currentUserOption: {login: 'currentuser@expensify.com'} as OptionData,
+                personalDetailsOptions: [{login: '+15005550006'} as OptionData],
+                recentReportOptions: [],
+            });
+
+            expect(canCreate).toBe(false);
+        });
+
+        it('should not allow to create option when phone-number contact is stored with SMS domain', () => {
+            const canCreate = canCreateOptimisticPersonalDetailOption({
+                searchValue: '+15005550006',
+                currentUserOption: {login: 'currentuser@expensify.com'} as OptionData,
+                personalDetailsOptions: [{login: '+15005550006@expensify.sms'} as OptionData],
+                recentReportOptions: [],
+            });
+
+            expect(canCreate).toBe(false);
+        });
+
         it('should not allow to create option if email is an email of current user', () => {
             // Given a set of arguments with currentUserOption object
             // When we call canCreateOptimisticPersonalDetailOption
