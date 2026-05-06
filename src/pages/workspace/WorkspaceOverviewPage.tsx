@@ -245,6 +245,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
+
     const confirmDelete = () => {
         if (!policyID || !policyName) {
             return;
@@ -279,10 +283,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
         }
     };
-
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
-    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const continueDeleteWorkspace = () => {
         showConfirmModal({
@@ -424,35 +424,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         );
     };
 
-    const handleLeave = () => {
-        const isReimburser = policy?.achAccount?.reimburser === session?.email;
-
-        if (isReimburser) {
-            showConfirmModal({
-                title: translate('common.leaveWorkspace'),
-                prompt: confirmModalPrompt(),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                success: true,
-            });
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('common.leaveWorkspace'),
-            prompt: confirmModalPrompt(),
-            confirmText: translate('common.leave'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            handleLeaveWorkspace();
-        });
-    };
-
     const confirmModalPrompt = () => {
         const exporters = getConnectionExporters(policy);
         const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
@@ -486,6 +457,35 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         return translate('common.leaveWorkspaceConfirmation');
+    };
+
+    const handleLeave = () => {
+        const isReimburser = policy?.achAccount?.reimburser === session?.email;
+
+        if (isReimburser) {
+            showConfirmModal({
+                title: translate('common.leaveWorkspace'),
+                prompt: confirmModalPrompt(),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                success: true,
+            });
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('common.leaveWorkspace'),
+            prompt: confirmModalPrompt(),
+            confirmText: translate('common.leave'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            handleLeaveWorkspace();
+        });
     };
 
     const handleInvitePress = () => {
@@ -582,7 +582,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         </View>
     );
 
-    const modals = <>{outstandingBalanceModal}</>;
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -597,7 +596,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
             headerContent={!shouldUseNarrowLayout && headerButtons}
-            modals={modals}
+            modals={outstandingBalanceModal}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
