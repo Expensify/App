@@ -142,7 +142,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                         return;
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
-                    // doesn't flash an un-thumbnailed receipt.
+                    // doesn't flash an un-thumbnail receipt.
                     pregenerateThumbnail(source).then(() => processReceipts([file]));
                 }}
                 onPicked={validateFiles}
