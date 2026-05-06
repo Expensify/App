@@ -1416,7 +1416,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `a modifié la catégorie en "${newCategory}" (auparavant "${oldCategory}"), ce qui a mis à jour le taux d’imposition à ${newTaxRate} (auparavant ${oldTaxRate}) selon les règles de l’espace de travail`,
         updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
             `a modifié la catégorie en "${newCategory}" (auparavant "${oldCategory}"), ce qui a mis à jour le taux d’imposition à ${newTaxRate} (auparavant ${oldTaxRate}) et le montant de la taxe à ${newTaxAmount} (auparavant ${oldTaxAmount}) selon les règles de l’espace de travail`,
-        basedOnAI: ‘d’après l’activité précédente’,
+        basedOnAI: 'd’après l’activité précédente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) =>
             rulesLink ? `en fonction des <a href="${rulesLink}">règles de l’espace de travail</a>` : 'en fonction de la règle de l’espace de travail',
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `pour ${comment}` : 'dépense'}`,

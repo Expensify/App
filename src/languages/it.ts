@@ -1413,7 +1413,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ha modificato la categoria in "${newCategory}" (precedentemente "${oldCategory}"), aggiornando l’aliquota fiscale a ${newTaxRate} (precedentemente ${oldTaxRate}) secondo le regole dello spazio di lavoro`,
         updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
             `ha modificato la categoria in "${newCategory}" (precedentemente "${oldCategory}"), aggiornando l’aliquota fiscale a ${newTaxRate} (precedentemente ${oldTaxRate}) e l’importo della tassa a ${newTaxAmount} (precedentemente ${oldTaxAmount}) secondo le regole dello spazio di lavoro`,
-        basedOnAI: ‘in base all’attività precedente’,
+        basedOnAI: 'in base all’attività precedente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `in base alle <a href="${rulesLink}">regole dello spazio di lavoro</a>` : 'in base alle regole della workspace'),
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Report fattura n. ${linkedReportID}`,
