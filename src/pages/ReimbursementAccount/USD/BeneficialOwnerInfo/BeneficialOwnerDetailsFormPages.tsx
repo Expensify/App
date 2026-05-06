@@ -2,10 +2,12 @@ import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
 import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
@@ -58,6 +60,8 @@ function BeneficialOwnerDetailsFormPages({
     backTo,
 }: BeneficialOwnerDetailsFormPagesProps) {
     const {translate} = useLocalize();
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const hasExistingBeneficialOwners = (reimbursementAccountDraft?.beneficialOwnerKeys ?? []).length > 0;
 
     const buildRoute = useCallback(
         (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage: pageName, action, backTo}),
@@ -80,13 +84,15 @@ function BeneficialOwnerDetailsFormPages({
         if (pageIndex === 0) {
             if (isEditingCreatedBeneficialOwner) {
                 Navigation.goBack(buildRoute(SUB_PAGE_NAMES.UBOS_LIST));
+            } else if (hasExistingBeneficialOwners) {
+                Navigation.goBack(buildRoute(SUB_PAGE_NAMES.ARE_THERE_MORE_UBOS));
             } else {
-                Navigation.goBack(buildRoute(SUB_PAGE_NAMES.IS_USER_UBO));
+                Navigation.goBack(buildRoute(SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO));
             }
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, isEditingCreatedBeneficialOwner, pageIndex, prevPage]);
+    }, [buildRoute, isEditing, isEditingCreatedBeneficialOwner, pageIndex, prevPage, hasExistingBeneficialOwners]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator reasonAttributes={{context: 'BeneficialOwnerDetailsFormPages', isRedirecting}} />;

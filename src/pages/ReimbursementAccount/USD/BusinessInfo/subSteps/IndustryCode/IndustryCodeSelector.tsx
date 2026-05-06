@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +43,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                     value: `${item.id}`,
                     text: `${item.id} - ${item.value}`,
                     keyForList: `${item.id}`,
+                    isSelected: `${item.id}` === value,
                 };
             });
         }
@@ -53,6 +54,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                     value: `${item.id}`,
                     text: `${item.id} - ${item.value}`,
                     keyForList: `${item.id}`,
+                    isSelected: `${item.id}` === value,
                 };
             });
         }
@@ -62,9 +64,10 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                 value: `${item.id}`,
                 text: `${item.id} - ${item.value}`,
                 keyForList: `${item.id}`,
+                isSelected: `${item.id}` === value,
             };
         });
-    }, [searchValue, shouldDisplayChildItems]);
+    }, [searchValue, shouldDisplayChildItems, value]);
 
     useEffect(() => {
         setSearchValue(value);
@@ -90,7 +93,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
             <SelectionList
                 ref={selectionListRef}
                 data={isReady ? codeOptions : []}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={(item) => {
                     setSearchValue(item.value);
                     setShouldDisplayChildItems(true);

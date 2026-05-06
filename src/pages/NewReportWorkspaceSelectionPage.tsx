@@ -73,6 +73,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -81,15 +82,24 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
-    const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
-            if (!accountID) {
-                return {};
-            }
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-            return getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
+    const [todos] = useOnyx(ONYXKEYS.DERIVED.TODOS);
+    const transactionsByReportID = todos?.transactionsByReportID;
+
+    const [policiesWithEmptyReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                if (!accountID) {
+                    return {};
+                }
+
+                return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID ?? {});
+            },
         },
-    });
+        [accountID, transactionsByReportID],
+    );
 
     const navigateToNewReport = (optimisticReportID: string) => {
         if (isRHPOnReportInSearch) {
@@ -120,6 +130,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
+            const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
                     transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
@@ -131,6 +142,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                     policyCategories: undefined,
                     allTransactions,
+                    policyTagList,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
@@ -181,7 +193,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
+        const policyForRestriction = policy.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`] : undefined;
+        if (policyForRestriction && shouldRestrictUserBillableActions(policyForRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }

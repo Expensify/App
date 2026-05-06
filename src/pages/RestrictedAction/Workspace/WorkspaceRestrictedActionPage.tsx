@@ -34,6 +34,7 @@ function WorkspaceRestrictedActionPage({
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     // Track grace periods in a ref so openSubscriptionPage can roll back on failure
     // without adding the collection to effect dependencies (which would re-trigger the fetch
@@ -57,7 +58,6 @@ function WorkspaceRestrictedActionPage({
             return;
         }
         openSubscriptionPage(gracePeriodsRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
@@ -65,10 +65,10 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
+        if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, session?.accountID)) {
             Navigation.goBack();
         }
-    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, session?.accountID]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.

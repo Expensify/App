@@ -118,7 +118,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
 
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, styles.appBG]}>
             <CurrentPage
                 onSubmit={onSubmit}
                 onBackButtonPress={onBackButtonPress}

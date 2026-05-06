@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
@@ -86,7 +86,8 @@ function TaxPicker({
 
     const {taxCode, taxValue} = currentTransaction ?? {};
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
-    const effectiveTaxCode = taxCode && taxCode.length > 0 ? taxCode : defaultTaxCode;
+    const fallbackTaxCode = transactionID ? defaultTaxCode : '';
+    const effectiveTaxCode = taxCode && taxCode.length > 0 ? taxCode : fallbackTaxCode;
     const effectiveSelectedTaxRate = selectedTaxRate || (effectiveTaxCode ? (transformedTaxRates(policy, currentTransaction)[effectiveTaxCode]?.modifiedName ?? '') : '');
     const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
     const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
@@ -164,7 +165,7 @@ function TaxPicker({
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedItemKey={selectedOptionKey ?? undefined}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />

@@ -27,7 +27,6 @@ jest.mock('@libs/BootSplash', () => ({
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -372,6 +371,7 @@ describe('Pagination', () => {
         scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
+        await waitForNetworkPromises();
         await waitForBatchedUpdatesWithAct();
 
         // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.

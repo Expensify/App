@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {setHasRadio} from '@libs/NetworkState';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -73,6 +74,11 @@ const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
+const mockReactionListContextValue = {
+    showReactionList: () => {},
+    hideReactionList: () => {},
+    isActiveReportAction: () => false,
+};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
@@ -86,7 +92,7 @@ const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     signUpWithTestUser();
 });
@@ -100,7 +106,7 @@ function ReportActionsListWrapper() {
     return (
         <NavigationContainer ref={navigationRef}>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
-                <ReactionListContext.Provider value={mockRef}>
+                <ReactionListContext.Provider value={mockReactionListContextValue}>
                     <ActionListContext.Provider value={mockRef}>
                         <ReportActionsList
                             parentReportAction={parentReportAction}

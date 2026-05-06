@@ -15,40 +15,34 @@ const EMOJIS = {
     ERROR: '🔴',
 };
 
-const log = (...args: unknown[]) => {
-    console.debug(...args);
-};
-
 const info = (...args: unknown[]) => {
-    const lines = [EMOJIS.INFO, ...args];
-    log(...lines);
+    console.log(EMOJIS.INFO, ...args);
 };
 
 const bold = (...args: unknown[]) => {
-    const lines = [COLOR_BOLD, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(COLOR_BOLD, ...args, COLOR_RESET);
 };
 
 const success = (...args: unknown[]) => {
-    const lines = [`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET);
 };
 
 const warn = (...args: unknown[]) => {
-    const lines = [`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.warn(`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET);
 };
 
 const note = (...args: unknown[]) => {
-    const lines = [COLOR_DIM, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(COLOR_DIM, ...args, COLOR_RESET);
 };
 
 const error = (...args: unknown[]) => {
-    const lines = [`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.error(`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET);
+};
+
+const errorDetail = (...args: unknown[]) => {
+    console.error(`   ${COLOR_RED}↳`, ...args, COLOR_RESET);
 };
 
 const formatLink = (name: string | number, url: string) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 
-export {log, info, warn, note, error, success, formatLink, bold};
+export {info, warn, note, error, errorDetail, success, formatLink, bold};

@@ -1,10 +1,25 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
+import SidePanelActions from './actions/SidePanel';
+import {setOnboardingRHPVariant} from './actions/Welcome';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
+
+let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
+    callback: (value) => {
+        onboardingRHPVariant = value;
+    },
+});
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
@@ -50,11 +65,22 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     setDisableDismissOnEscape(false);
 
-    if (shouldOpenRHPVariant()) {
-        handleRHPVariantNavigation(onboardingPolicyID);
+    // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
+    // should navigate directly to the Concierge DM (which contains onboarding tasks).
+    // This check is outside shouldOpenRHPVariant because that function returns false on native
+    // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
+    const variant = variantOverride ?? onboardingRHPVariant;
+    if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        return;
+    }
+
+    if (shouldOpenRHPVariant(variantOverride)) {
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
 
@@ -83,6 +109,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -94,8 +121,37 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
+            variantOverride,
         );
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue};
+/**
+ * After creating or joining a Submit workspace during onboarding,
+ * navigate to Workspace > Categories with the side panel open so
+ * the #admins room is visible in Concierge Anywhere.
+ */
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, isSmallScreenWidth = false) {
+    setDisableDismissOnEscape(false);
+
+    if (!policyID) {
+        Navigation.navigate(ROUTES.HOME);
+        return;
+    }
+
+    setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+    Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        SidePanelActions.openSidePanel(!isSmallScreenWidth);
+    });
+}
+
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, isSmallScreenWidth = false) {
+    Navigation.dismissModal();
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, isSmallScreenWidth);
+    });
+}
+
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};

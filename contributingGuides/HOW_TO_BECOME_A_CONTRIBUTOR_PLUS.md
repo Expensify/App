@@ -31,3 +31,5 @@ Email contributors@expensify.com and include "C+ Team Application" in the subjec
 1. Your GitHub username.
 2. A link to the PRs you've authored that have been merged. ie. `https://github.com/Expensify/App/pulls?q=is%3Apr+is%3Amerged+author%3Aparasharrajat`.
 3. Links to three GitHub issues that were particularly challenging and best demonstrate your skill level.
+4. If you work for an agency, please let us know. We would love to get to know more about your agency and we are always looking for new agencies to form direct partnerships with.
+

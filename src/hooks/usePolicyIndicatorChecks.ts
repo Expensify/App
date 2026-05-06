@@ -26,7 +26,11 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR]: cleanPolicies.find(shouldShowCustomUnitsError),
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR]: cleanPolicies.find(shouldShowEmployeeListError),
         [CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS]: cleanPolicies.find((cleanPolicy) =>
-            shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
+            shouldShowSyncError(
+                cleanPolicy,
+                isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
+                CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES,
+            ),
         ),
         [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR]: cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError),
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR]: cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy),

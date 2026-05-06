@@ -80,10 +80,12 @@ function BaseTextInput({
     placeholderTextColor,
     onClearInput,
     iconContainerStyle,
+    clearButtonStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
     rightHandSideComponent,
+    shouldAllowFocusInLandscapeMode = false,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -263,7 +265,7 @@ function BaseTextInput({
     const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
@@ -374,7 +376,7 @@ function BaseTextInput({
                             )}
                             <InputComponent
                                 ref={(element: BaseTextInputRef | null): void => {
-                                    const baseTextInputRef = isInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
+                                    const baseTextInputRef = isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
 
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
@@ -388,7 +390,7 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                autoFocus={isInLandscapeMode ? false : inputProps.autoFocus}
+                                autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
@@ -432,7 +434,7 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                disableFullscreenUI={isInLandscapeMode}
+                                disableFullscreenUI
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -451,7 +453,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (

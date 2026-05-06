@@ -47,7 +47,7 @@ function Composer({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     useEffect(() => {
-        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+        if (!textInput.current?.setSelection || !selection || isComposerFullSize) {
             return;
         }
 
@@ -136,7 +136,7 @@ function Composer({
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
-            disableFullscreenUI={isInLandscapeMode}
+            disableFullscreenUI
         />
     );
 }

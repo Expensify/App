@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
@@ -35,6 +34,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const reportAttributes = useReportAttributes();
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const styles = useThemeStyles();
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
@@ -84,6 +84,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
+                    conciergeReportID={conciergeReportID}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
@@ -92,12 +93,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 />
             );
         },
-        [reportAttributes, reports, policy, personalDetails, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
+        [reportAttributes, reports, policy, personalDetails, conciergeReportID, optionMode, shouldDisableFocusOptions, onSelectRow, onLayoutItem],
     );
 
     const extraData = useMemo(
-        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
-        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
+        () => [reports, reportAttributes, policy, personalDetails, conciergeReportID, data.length, optionMode, isOffline],
+        [reports, reportAttributes, policy, personalDetails, conciergeReportID, data.length, optionMode, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);

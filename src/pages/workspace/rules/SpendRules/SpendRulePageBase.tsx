@@ -1,5 +1,8 @@
+import type {NavigationProp} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -8,28 +11,32 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setExpensifyCardRule} from '@libs/actions/Card';
-import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
+import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
+import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
-import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
 
 type SpendRulePageBaseProps = {
     policyID: string;
+    ruleID?: string;
     titleKey: TranslationPaths;
     testID: string;
 };
@@ -47,17 +54,36 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
     return '';
 }
 
-function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps) {
+function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
+    const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [isErrorVisible, setIsErrorVisible] = useState(false);
+    const currentRuleID = ruleID ?? ROUTES.NEW;
+    const isEditing = currentRuleID !== ROUTES.NEW;
+    const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
 
     useEffect(() => () => clearDraftSpendRule(), []);
+
+    useEffect(() => {
+        if (!isEditing || !existingRule) {
+            return;
+        }
+
+        const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
+        if (!existingFormValues) {
+            return;
+        }
+
+        setDraftSpendRule(existingFormValues);
+    }, [existingRule, isEditing]);
 
     const cardIDs = spendRuleForm?.cardIDs;
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
@@ -83,19 +109,20 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
+        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
     };
 
     function getCardsMenuTitle(cardIDsToSummarize: string[] | undefined): string {
+        const activeCardIDs = cardIDsToSummarize?.filter((id) => cardsList?.[id] !== undefined);
         return getTruncatedSpendRuleSummary(
-            cardIDsToSummarize?.map((id) => {
+            activeCardIDs?.map((id) => {
                 const card = cardsList?.[id];
                 if (card === undefined) {
                     return id;
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
+                return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );
@@ -133,10 +160,36 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         }
 
         clearError();
-        setExpensifyCardRule(domainAccountID, rand64(), spendRuleForm);
+        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
         clearDraftSpendRule();
-        Navigation.goBack();
+        navigation.goBack();
     };
+
+    const handleDeleteRule = () => {
+        if (!existingRule) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.rules.spendRules.deleteRule'),
+            prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
+            clearDraftSpendRule();
+            navigation.goBack();
+        });
+    };
+
+    if (isEditing && !existingRule) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -156,7 +209,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('workspace.rules.spendRules.chooseCards')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CARD, {policyID, ruleID: currentRuleID});
                         }}
                         shouldShowRightIcon
                         title={cardsMenuTitle}
@@ -178,7 +231,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('common.merchant')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS, {policyID, ruleID: currentRuleID});
                         }}
                         shouldShowRightIcon
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
@@ -190,7 +243,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('workspace.rules.spendRules.spendCategory')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID));
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_CATEGORY, {policyID, ruleID: currentRuleID});
                         }}
                         shouldShowRightIcon
                         title={categoriesMenuTitle}
@@ -206,7 +259,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                                 openCurrencyMismatchModal();
                                 return;
                             }
-                            Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID));
+                            navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT, {policyID, ruleID: currentRuleID});
                         }}
                         shouldShowRightIcon
                         title={maxAmountMenuTitle}
@@ -222,6 +275,18 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     onSubmit={handleSaveRule}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        isEditing ? (
+                            <Button
+                                text={translate('workspace.rules.spendRules.deleteRule')}
+                                onPress={handleDeleteRule}
+                                style={[styles.mb4]}
+                                large
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                            />
+                        ) : undefined
+                    }
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

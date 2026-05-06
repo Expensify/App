@@ -1,23 +1,19 @@
+import {filterPolicyIDSelector} from '@selectors/Search';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import type {PopoverComponentProps} from './DropdownButton';
 import type {MultiSelectItem} from './MultiSelectPopup';
 import MultiSelectPopup from './MultiSelectPopup';
 
-type WorkspaceSelectPopupProps = PopoverComponentProps & {
-    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
+type WorkspaceSelectPopupProps = {
     policyIDQuery: string[] | undefined;
+    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
+    closeOverlay: () => void;
 };
-
-function filterPolicyIDSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
-    return searchAdvancedFiltersForm?.policyID;
-}
 
 function WorkspaceSelectPopup({policyIDQuery, updateFilterForm, closeOverlay}: WorkspaceSelectPopupProps) {
     const {translate} = useLocalize();

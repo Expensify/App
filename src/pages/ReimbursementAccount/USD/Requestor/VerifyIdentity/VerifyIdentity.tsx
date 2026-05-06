@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
@@ -34,13 +34,15 @@ function VerifyIdentity({onBackButtonPress, onSubmit}: VerifyIdentityProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
+    const isOnfidoAlreadyComplete = useRef(reimbursementAccount?.achData?.isOnfidoSetupComplete);
+    const onSubmitRef = useRef(onSubmit);
+
     // If Onfido is already complete (e.g. direct URL navigation), skip to next step
     useEffect(() => {
-        if (!reimbursementAccount?.achData?.isOnfidoSetupComplete) {
+        if (!isOnfidoAlreadyComplete.current) {
             return;
         }
-        onSubmit?.();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only check on mount
+        onSubmitRef.current?.();
     }, []);
 
     const handleOnfidoSuccess = useCallback(

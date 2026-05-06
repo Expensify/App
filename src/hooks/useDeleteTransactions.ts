@@ -2,9 +2,11 @@ import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, getIOURequestPolicyID} from '@libs/actions/IOU';
+import {getIOURequestPolicyID} from '@libs/actions/IOU';
+import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
-import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU/Split';
+import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
+import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
@@ -14,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -48,6 +51,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const {isOffline} = useNetwork();
 
     /**
      * Delete transactions by IDs
@@ -107,9 +111,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
             for (const transactionID of Object.keys(splitTransactionsByOriginalTransactionID)) {
                 const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
-                const childTransactions = getChildTransactions(allTransactions, allReports, transactionID).filter(
-                    (transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)),
-                );
+                const allChildTransactions = getChildTransactions(allTransactions, allReports, transactionID);
+                const childTransactions = allChildTransactions.filter((transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)));
 
                 if (childTransactions.length === 0) {
                     nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
@@ -154,6 +157,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
                         splitExpenses: remainingSplitExpenses,
+                        splitExpensesTotal: allChildTransactions.reduce((total, childTransaction) => {
+                            const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+                            return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
+                        }, 0),
                     },
                     searchContext: {
                         currentSearchHash,
@@ -175,6 +182,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     personalDetails,
                     transactionReport: report,
                     expenseReport,
+                    isOffline,
                 });
             }
 
@@ -232,6 +240,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            isOffline,
         ],
     );
 

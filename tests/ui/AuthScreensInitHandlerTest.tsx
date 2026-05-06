@@ -2,14 +2,14 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
-import {openApp, reconnectApp} from '@userActions/App';
+import {openApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -24,7 +24,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 const TEST_ACCOUNT_ID = 1;
 
 jest.mock('@libs/Pusher', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         init: jest.fn(() => Promise.resolve()),
@@ -32,7 +31,6 @@ jest.mock('@libs/Pusher', () => ({
 }));
 
 jest.mock('@libs/PusherConnectionManager', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         init: jest.fn(),
@@ -40,7 +38,6 @@ jest.mock('@libs/PusherConnectionManager', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         isActiveRoute: jest.fn(() => false),
@@ -51,7 +48,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Navigation/currentUrl', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ''),
 }));
@@ -59,15 +55,6 @@ jest.mock('@libs/Navigation/currentUrl', () => ({
 jest.mock('@libs/SessionUtils', () => ({
     isLoggingInAsNewUser: jest.fn(() => false),
     didUserLogInDuringSession: jest.fn(() => false),
-}));
-
-jest.mock('@libs/NetworkConnection', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: {
-        listenForReconnect: jest.fn(),
-        onReconnect: jest.fn(),
-    },
 }));
 
 jest.mock('@libs/ActiveClientManager', () => ({
@@ -81,6 +68,7 @@ jest.mock('@userActions/App', () => ({
     reconnectApp: jest.fn(),
     setUpPoliciesAndNavigate: jest.fn(),
     confirmReadyToOpenApp: jest.fn(),
+    setLocale: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({
@@ -124,13 +112,13 @@ const mockedIsLoggingInAsNewUser = jest.mocked(isLoggingInAsNewUser);
 const mockedDidUserLogInDuringSession = jest.mocked(didUserLogInDuringSession);
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
-const mockedOnReconnect = jest.mocked(NetworkConnection.onReconnect);
-
 function renderAuthScreensInitHandler() {
     return render(
-        <View>
-            <AuthScreensInitHandler />
-        </View>,
+        <LocaleContextProvider>
+            <View>
+                <AuthScreensInitHandler />
+            </View>
+        </LocaleContextProvider>,
     );
 }
 
@@ -220,39 +208,6 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false);
-    });
-
-    it('calls handleNetworkReconnect with openApp when isLoadingApp is true', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
-        await waitForBatchedUpdates();
-
-        renderAuthScreensInitHandler();
-        await waitForBatchedUpdatesWithAct();
-
-        // Get the reconnect handler that was registered
-        expect(mockedOnReconnect).toHaveBeenCalled();
-
-        const reconnectHandler = mockedOnReconnect.mock.calls.at(0)?.[0] as () => void;
-        reconnectHandler();
-
-        expect(openApp).toHaveBeenCalled();
-    });
-
-    it('calls handleNetworkReconnect with reconnectApp when isLoadingApp is false', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-        await waitForBatchedUpdates();
-
-        renderAuthScreensInitHandler();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockedOnReconnect).toHaveBeenCalled();
-
-        const reconnectHandler = mockedOnReconnect.mock.calls.at(0)?.[0] as () => void;
-        reconnectHandler();
-
-        expect(reconnectApp).toHaveBeenCalled();
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

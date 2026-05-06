@@ -83,7 +83,7 @@ function AddPlaidBankAccount({
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {initWithStoredValues: false});
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -218,7 +218,7 @@ function AddPlaidBankAccount({
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
                     onExit={onExitPlaid}
                     receivedRedirectURI={receivedRedirectURI}
                 />
@@ -251,9 +251,11 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
-            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
+                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
+            </Text>
+            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
@@ -267,14 +269,16 @@ function AddPlaidBankAccount({
                     )}
                 </View>
             </View>
-            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
             <RadioButtons
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
-                onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.mb6]}
+                onSelect={handleSelectingPlaidAccount}
             />
-            <FormHelpMessage message={errorText} />
+            <FormHelpMessage
+                style={styles.mh5}
+                message={errorText}
+            />
         </FullPageOfflineBlockingView>
     );
 }

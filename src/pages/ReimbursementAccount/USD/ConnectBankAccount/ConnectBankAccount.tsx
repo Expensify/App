@@ -72,7 +72,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => Navigation.dismissModal()}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
                 isNonUSDWorkspace={false}

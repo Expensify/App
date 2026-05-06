@@ -12,6 +12,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import TaskListItemRow from './TaskListItemRow';
 import type {TaskListItemProps, TaskListItemType} from './types';
 
+/**
+ * A task row in search results showing date, title, description, creator, assignee,
+ * and a complete/completed badge action.
+ */
 function TaskListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -55,6 +59,7 @@ function TaskListItem<TItem extends ListItem>({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const fsClass = FS.getChatFSClass(parentReport);
@@ -76,7 +81,7 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

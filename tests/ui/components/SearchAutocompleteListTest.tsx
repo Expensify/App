@@ -26,7 +26,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         shouldUseNarrowLayout: true,
@@ -34,18 +33,19 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     })),
 }));
 
-jest.mock('@components/OptionListContextProvider', () => {
-    const ActualReact = jest.requireActual<typeof React>('react');
-    return {
-        useOptionsList: jest.fn(() => ({
-            options: {},
-            areOptionsInitialized: true,
-        })),
-        OptionsListStateContext: ActualReact.createContext({
-            areOptionsInitialized: true,
-        }),
-    };
-});
+jest.mock('@hooks/useFilteredOptions', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+        options: {
+            reports: [],
+            personalDetails: [],
+        },
+        isLoading: false,
+        loadMore: jest.fn(),
+        hasMore: false,
+        isLoadingMore: false,
+    })),
+}));
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
@@ -98,12 +98,14 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
+
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -116,10 +118,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -139,12 +137,13 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -157,10 +156,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
