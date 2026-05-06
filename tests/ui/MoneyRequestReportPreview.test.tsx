@@ -1,6 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -79,7 +80,7 @@ const hasViolations = (
     shouldShowInReview?: boolean,
 ) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
-const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
+const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchorRef = React.createRef()}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <OptionsListContextProvider>
@@ -90,7 +91,7 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                             action={mockAction}
                             iouReportID={mockIOUReport.reportID}
                             chatReportID={mockChatReport.chatReportID}
-                            contextMenuAnchor={contextMenuAnchor}
+                            contextMenuAnchorRef={contextMenuAnchorRef}
                             checkIfContextMenuActive={() => {}}
                             onPaymentOptionsShow={() => {}}
                             onPaymentOptionsHide={() => {}}

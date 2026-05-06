@@ -84,7 +84,7 @@ function MoneyRequestReportPreviewContent({
     chatReportID,
     action,
     containerStyles,
-    contextMenuAnchor,
+    contextMenuAnchorRef,
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
@@ -623,7 +623,7 @@ function MoneyRequestReportPreviewContent({
                             if (!shouldDisplayContextMenu) {
                                 return;
                             }
-                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                            showContextMenuForReport(event, contextMenuAnchorRef?.current, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                         }}
                         shouldUseHapticsOnLongPress
                         style={[

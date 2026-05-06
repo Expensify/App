@@ -54,8 +54,8 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The chat report associated with taskReport */
     chatReportID: string | undefined;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: ContextMenuAnchor;
+    /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
+    contextMenuAnchorRef: React.RefObject<ContextMenuAnchor>;
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: () => void;
@@ -72,7 +72,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 
 function TaskPreview({
     action,
-    contextMenuAnchor,
+    contextMenuAnchorRef,
     chatReportID,
     checkIfContextMenuActive,
     currentUserPersonalDetails,
@@ -151,7 +151,7 @@ function TaskPreview({
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                        return showContextMenuForReport(event, contextMenuAnchorRef.current, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                     })
                 }
                 shouldUseHapticsOnLongPress
