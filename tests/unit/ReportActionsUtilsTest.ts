@@ -1516,6 +1516,31 @@ describe('ReportActionsUtils', () => {
             // Without other URLs there should be no "and" separator before the travel fragment.
             expect(fragments.some((fragment) => fragment.text === translateLocal('common.and'))).toBe(false);
         });
+
+        it('joins the company card and travel card links with "and" for a QBD export with two URLs', () => {
+            const nonReimbursableUrl = 'https://example.qbd.com/non-reimbursable/1';
+            const travelUrl = 'https://example.qbd.com/travel/1';
+            const action = makeQBDExportAction({
+                nonReimbursableUrls: [nonReimbursableUrl],
+                travelInvoicingUrls: [travelUrl],
+            });
+
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+            const linkTexts = fragments.map((fragment) => fragment.text);
+            const nonReimbursableLinkText = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
+            const travelLinkText = translateLocal('report.actions.type.exportedToIntegration.travelCardLink');
+            const andText = translateLocal('common.and');
+
+            const nonReimbursableIndex = linkTexts.indexOf(nonReimbursableLinkText);
+            const andIndex = linkTexts.indexOf(andText);
+            const travelIndex = linkTexts.indexOf(travelLinkText);
+
+            expect(nonReimbursableIndex).toBeGreaterThanOrEqual(0);
+            expect(andIndex).toBe(nonReimbursableIndex + 1);
+            expect(travelIndex).toBe(andIndex + 1);
+            expect(fragments.at(nonReimbursableIndex)?.url).toBe(nonReimbursableUrl);
+            expect(fragments.at(travelIndex)?.url).toBe(travelUrl);
+        });
     });
 
     describe('getReportActionText', () => {
