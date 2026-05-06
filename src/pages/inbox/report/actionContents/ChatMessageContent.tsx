@@ -58,7 +58,6 @@ type ChatMessageContentProps = {
         checkIfContextMenuActive: () => void;
         onShowContextMenu: (callback: () => void) => void;
     };
-    userBillingFundID: number | undefined;
 };
 
 function ChatMessageContent({
@@ -79,7 +78,6 @@ function ChatMessageContent({
     currentSearchHash,
     contextMenuStateValue,
     contextMenuActionsValue,
-    userBillingFundID,
 }: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -136,7 +134,6 @@ function ChatMessageContent({
                                         originalReport={originalReport}
                                         reportID={reportID}
                                         originalReportID={originalReportID}
-                                        userBillingFundID={userBillingFundID}
                                     />
                                 )}
                             </View>

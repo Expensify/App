@@ -304,7 +304,6 @@ function SearchList({
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -457,7 +456,6 @@ function SearchList({
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         personalDetails={personalDetails}
-                        userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
@@ -489,7 +487,6 @@ function SearchList({
             columns,
             policies,
             personalDetails,
-            userBillingFundID,
             isOffline,
             violations,
             lastPaymentMethod,

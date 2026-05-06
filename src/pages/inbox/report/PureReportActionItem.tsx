@@ -188,9 +188,6 @@ type PureReportActionItemProps = {
         keys?: string[],
     ) => void;
 
-    /** User payment card ID */
-    userBillingFundID?: number;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
@@ -238,7 +235,6 @@ function PureReportActionItem({
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
-    userBillingFundID,
     shouldShowBorder,
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
@@ -725,7 +721,6 @@ function PureReportActionItem({
                                                 isThreadReportParentAction={isThreadReportParentAction}
                                                 isOnSearch={isOnSearch}
                                                 shouldDisplayContextMenuValue={shouldDisplayContextMenuValue}
-                                                userBillingFundID={userBillingFundID}
                                                 index={index}
                                                 contextMenuAnchorRef={popoverAnchorRef}
                                                 composerTextInputRef={composerTextInputRef}
@@ -798,7 +793,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
         prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID

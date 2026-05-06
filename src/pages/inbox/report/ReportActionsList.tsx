@@ -192,7 +192,6 @@ function ReportActionsList({
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -776,7 +775,6 @@ function ReportActionsList({
                         personalDetails={personalDetailsList}
                         originalReportID={originalReportID}
                         isReportArchived={isReportArchived}
-                        userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                         reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                         reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
@@ -805,7 +803,6 @@ function ReportActionsList({
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
             personalDetailsList,
-            userBillingFundID,
             isTryNewDotNVPDismissed,
             isReportArchived,
             reportNameValuePairs?.origin,

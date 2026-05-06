@@ -157,9 +157,6 @@ type ActionContentRouterProps = {
     /** Whether the context menu should be displayed for this action */
     shouldDisplayContextMenuValue: boolean;
 
-    /** User payment card ID */
-    userBillingFundID?: number;
-
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -251,7 +248,6 @@ function ActionContentRouter({
     isThreadReportParentAction,
     isOnSearch,
     shouldDisplayContextMenuValue,
-    userBillingFundID,
     index,
     contextMenuAnchorRef,
     composerTextInputRef,
@@ -594,7 +590,6 @@ function ActionContentRouter({
                 currentSearchHash={currentSearchHash}
                 contextMenuStateValue={contextMenuStateValue}
                 contextMenuActionsValue={contextMenuActionsValue}
-                userBillingFundID={userBillingFundID}
             />
         );
     }

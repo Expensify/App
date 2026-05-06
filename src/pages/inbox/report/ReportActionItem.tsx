@@ -24,9 +24,6 @@ type ReportActionItemProps = PureReportActionItemProps & {
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed?: boolean;
 };
@@ -36,7 +33,6 @@ function ReportActionItem({
     report,
     draftMessage,
     personalDetails,
-    userBillingFundID,
     linkedTransactionRouteError: linkedTransactionRouteErrorProp,
     isTryNewDotNVPDismissed,
     ...props
@@ -80,7 +76,6 @@ function ReportActionItem({
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
-            userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );
