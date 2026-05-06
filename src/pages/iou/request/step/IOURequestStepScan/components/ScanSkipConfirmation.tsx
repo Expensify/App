@@ -91,7 +91,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), disableMultiScan);
+    useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {
@@ -233,7 +233,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         }
 
         if (!isMultiScanEnabled) {
-            removeDraftTransactionsByIDs(Object.keys(draftTransactionIDs ?? {}), true);
+            removeDraftTransactionsByIDs(draftTransactionIDs ?? [], true);
         }
 
         const newReceiptFiles = buildReceiptFiles({
@@ -249,6 +249,10 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         });
 
         setReceiptFiles(newReceiptFiles);
+
+        if (isMultiScanEnabled) {
+            return;
+        }
 
         const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
         if (gpsRequired) {

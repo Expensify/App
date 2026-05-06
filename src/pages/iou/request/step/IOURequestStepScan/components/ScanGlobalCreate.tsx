@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
@@ -52,7 +53,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
 
     const transactions = transaction ? [transaction] : [];
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), disableMultiScan);
+    useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const navigateGlobalCreate = (receiptFiles: ReceiptFile[]) => {
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
@@ -94,7 +95,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         }
 
         if (!isMultiScanEnabled) {
-            removeDraftTransactionsByIDs(Object.keys(draftTransactionIDs ?? {}), true);
+            removeDraftTransactionsByIDs(draftTransactionIDs ?? [], true);
         }
 
         const receiptFiles = buildReceiptFiles({
@@ -110,7 +111,17 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         });
 
         startScanProcessSpan(isMultiScanEnabled);
-        navigateGlobalCreate(receiptFiles);
+
+        if (isMultiScanEnabled) {
+            return;
+        }
+
+        const firstSource = receiptFiles.at(0)?.source;
+        if (typeof firstSource === 'string' && firstSource) {
+            pregenerateThumbnail(firstSource).then(() => navigateGlobalCreate(receiptFiles));
+        } else {
+            navigateGlobalCreate(receiptFiles);
+        }
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture((files: FileObject[]) => {

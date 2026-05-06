@@ -249,10 +249,15 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
             .then((photo: PhotoFile) => {
-                setDidCapturePhoto(true);
-                const source = getPhotoSource(photo.path);
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
+                if (isMultiScanEnabled) {
+                    isCapturingPhoto.current = false;
+                } else {
+                    setDidCapturePhoto(true);
+                }
+
+                const source = getPhotoSource(photo.path);
                 const cameraFile: FileObject = {
                     uri: source,
                     name: photo.path,
@@ -260,9 +265,6 @@ function Camera({onCapture, shouldAcceptMultipleFiles = false, onLayout, onCamer
                 };
 
                 onCapture(cameraFile, source);
-
-                setDidCapturePhoto(false);
-                isCapturingPhoto.current = false;
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;

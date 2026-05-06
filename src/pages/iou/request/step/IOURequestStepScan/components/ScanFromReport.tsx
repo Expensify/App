@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
@@ -42,7 +43,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
     // TODO: derive transactions from useOptimisticDraftTransactions when wired up
     const transactions = transaction ? [transaction] : [];
 
-    useScanFileReadabilityCheck(transactions, Object.keys(draftTransactionIDs ?? {}), disableMultiScan);
+    useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const processReceipts = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -50,7 +51,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
         }
 
         if (!isMultiScanEnabled) {
-            removeDraftTransactionsByIDs(Object.keys(draftTransactionIDs ?? {}), true);
+            removeDraftTransactionsByIDs(draftTransactionIDs ?? [], true);
         }
 
         const receiptFiles = buildReceiptFiles({
@@ -67,10 +68,23 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
 
         startScanProcessSpan(isMultiScanEnabled);
 
-        const fileTransactionIDs = receiptFiles.map((rf: ReceiptFile) => rf.transactionID);
-        setMultipleMoneyRequestParticipantsFromReport(fileTransactionIDs, report, currentUserPersonalDetails.accountID).then(() =>
-            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport),
-        );
+        if (isMultiScanEnabled) {
+            return;
+        }
+
+        const navigate = () => {
+            const fileTransactionIDs = receiptFiles.map((rf: ReceiptFile) => rf.transactionID);
+            setMultipleMoneyRequestParticipantsFromReport(fileTransactionIDs, report, currentUserPersonalDetails.accountID).then(() =>
+                navigateToConfirmationPage(iouType, transactionID, reportID, backToReport),
+            );
+        };
+
+        const firstSource = receiptFiles.at(0)?.source;
+        if (typeof firstSource === 'string' && firstSource) {
+            pregenerateThumbnail(firstSource).then(navigate);
+        } else {
+            navigate();
+        }
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture((files: FileObject[]) => {
