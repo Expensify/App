@@ -39,7 +39,9 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
 
-    const cardRuleListItems: SpendRuleListItemType[] = cardRules.map((cardRule) => ({
+    // We only allow cards that share the same currency to be on a spend rule
+    const availableCardRules = cardRules.filter((cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency);
+    const cardRuleListItems: SpendRuleListItemType[] = availableCardRules.map((cardRule) => ({
         keyForList: cardRule.ruleID,
         action: cardRule.action,
         summary: cardRule.cardSummary,

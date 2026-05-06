@@ -69,6 +69,7 @@ export default function useExpensifyCardRules(policyID: string) {
                 summaryParts,
                 accessibilityLabel,
                 created: cardRule.created,
+                currencyCode: selectedCurrency,
                 action: formValues.restrictionAction,
                 pendingAction: cardRule.pendingAction,
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
