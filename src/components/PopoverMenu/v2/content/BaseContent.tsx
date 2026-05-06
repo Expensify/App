@@ -98,7 +98,6 @@ function BaseContent({
                         isVisible={isVisible}
                         onModalShow={onModalShow}
                         onModalHide={onModalHide}
-                        // Menus don't animate; v2 commits to instant open/close so the popover lands in the same frame.
                         disableAnimation
                         restoreFocusType={restoreFocusType}
                         innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}

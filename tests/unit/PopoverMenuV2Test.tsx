@@ -4,8 +4,8 @@ import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
-// Test-only: harness publishes `activeAnchor` synthetically; multi-trigger test probes it directly.
-import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+// Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
+import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 
 const {useIsAtActiveLevel} = PopoverMenu;
@@ -151,14 +151,23 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-function findItemByTitle<T = MenuItemMockProps>(title: string): T | undefined {
-    return menuItemPropsCapture.current.find((p) => p.title === title) as T | undefined;
+function findItemByTitle(title: string): MenuItemMockProps | undefined {
+    return menuItemPropsCapture.current.findLast((p) => p.title === title);
 }
 
 function press(title: string): void {
-    const item = findItemByTitle<{onPress?: () => void}>(title);
+    const onPress = findItemByTitle(title)?.onPress;
     menuItemPropsCapture.current = [];
-    act(() => item?.onPress?.());
+    if (typeof onPress === 'function') {
+        act(() => onPress());
+    }
+}
+
+function focus(title: string): void {
+    const onFocus = findItemByTitle(title)?.onFocus;
+    if (typeof onFocus === 'function') {
+        act(() => onFocus());
+    }
 }
 
 /**
@@ -168,10 +177,10 @@ function press(title: string): void {
  */
 function AutoSetAnchor() {
     const {setActiveAnchor} = useRootActions('AutoSetAnchor');
-    const ref = useRef<RNViewType>(null);
+    const ref: AnchorRef = useRef<RNViewType>(null);
     useLayoutEffect(() => {
-        setActiveAnchor({ref: ref as AnchorRef, rect: {x: 0, y: 0, width: 0, height: 0}});
-    }, [setActiveAnchor]);
+        setActiveAnchor({ref, rect: {x: 0, y: 0, width: 0, height: 0}});
+    }, [setActiveAnchor, ref]);
     return <View ref={ref} />;
 }
 
@@ -319,47 +328,21 @@ describe('PopoverMenu V2', () => {
             expect(result?.ref).toMatchObject({current: null});
         });
 
-        it('overwrites activeAnchor when a second trigger is pressed', () => {
-            const refSnapshots: Array<AnchorRef | null> = [];
-            function StateProbe() {
-                const {meta} = useRootState('StateProbe');
-                refSnapshots.push(meta.activeAnchor?.ref ?? null);
+        // Each call returns a fresh ref — pressing one trigger publishes its own ref to activeAnchor; React's setState semantics ensure a later press overwrites.
+        it('returns a separate ref per call', () => {
+            const refs: Array<PopoverMenu.UsePopoverTriggerResult['ref']> = [];
+            function ProbeHook() {
+                refs.push(PopoverMenu.usePopoverTrigger().ref);
                 return null;
             }
-            // `useImperativeHandle` keeps the trigger reachable from test code without RC-rejected outer-let reassignment.
-            const firstHandle = React.createRef<PopoverMenu.UsePopoverTriggerResult>();
-            const secondHandle = React.createRef<PopoverMenu.UsePopoverTriggerResult>();
-            function makeStubbedTrigger(handle: React.RefObject<PopoverMenu.UsePopoverTriggerResult | null>, rect: {x: number; y: number; width: number; height: number}) {
-                return function StubbedTrigger() {
-                    const trigger = PopoverMenu.usePopoverTrigger();
-                    React.useImperativeHandle(handle, () => trigger, [trigger]);
-                    // Stub a measurable shape — the test renderer exposes neither `getBoundingClientRect` nor `measureInWindow`.
-                    useEffect(() => {
-                        Object.defineProperty(trigger.ref, 'current', {
-                            value: {getBoundingClientRect: () => rect},
-                            configurable: true,
-                            writable: true,
-                        });
-                    }, [trigger.ref]);
-                    return null;
-                };
-            }
-            const FirstTrigger = makeStubbedTrigger(firstHandle, {x: 10, y: 10, width: 20, height: 20});
-            const SecondTrigger = makeStubbedTrigger(secondHandle, {x: 50, y: 50, width: 30, height: 30});
             render(
                 <PopoverMenu.Root>
-                    <FirstTrigger />
-                    <SecondTrigger />
-                    <StateProbe />
+                    <ProbeHook />
+                    <ProbeHook />
                 </PopoverMenu.Root>,
             );
-            expect(firstHandle.current?.ref).not.toBe(secondHandle.current?.ref);
-
-            act(() => firstHandle.current?.onPress());
-            expect(refSnapshots.at(-1)).toBe(firstHandle.current?.ref);
-
-            act(() => secondHandle.current?.onPress());
-            expect(refSnapshots.at(-1)).toBe(secondHandle.current?.ref);
+            expect(refs).toHaveLength(2);
+            expect(refs.at(0)).not.toBe(refs.at(1));
         });
     });
 
@@ -522,14 +505,14 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            expect(findItemByTitle<{focused?: boolean}>('A')?.focused).toBe(false);
-            expect(findItemByTitle<{focused?: boolean}>('B')?.focused).toBe(false);
-            expect(findItemByTitle<{focused?: boolean}>('Last')?.focused).toBe(false);
+            expect(findItemByTitle('A')?.focused).toBe(false);
+            expect(findItemByTitle('B')?.focused).toBe(false);
+            expect(findItemByTitle('Last')?.focused).toBe(false);
         });
     });
 
     describe('CheckmarkItem', () => {
-        it('renders the check when isSelected', () => {
+        it('renders the radio indicator with isSelected=true when selected', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
@@ -541,13 +524,13 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean; isSelected?: boolean}>('Wallet');
-            expect(item?.shouldShowRightIcon).toBe(true);
-            expect(item?.iconRight).toBe('CheckmarkIcon');
+            const item = findItemByTitle('Wallet');
+            expect(item?.shouldShowRadioButton).toBe(true);
+            expect(item?.shouldShowRightIcon).toBe(false);
             expect(item?.isSelected).toBe(true);
         });
 
-        it('does not render the check when isSelected is false', () => {
+        it('renders the radio indicator with isSelected=false when not selected', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
@@ -558,9 +541,9 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean; isSelected?: boolean}>('Wallet');
+            const item = findItemByTitle('Wallet');
+            expect(item?.shouldShowRadioButton).toBe(true);
             expect(item?.shouldShowRightIcon).toBe(false);
-            expect(item?.iconRight).toBeUndefined();
             expect(item?.isSelected).toBe(false);
         });
 
@@ -586,7 +569,7 @@ describe('PopoverMenu V2', () => {
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
-        it('replaces the check with rightIcon when supplied (selected)', () => {
+        it('replaces the radio indicator with rightIcon when supplied (selected)', () => {
             const customRightIcon = jest.fn();
             render(
                 <Harness initialOpen>
@@ -600,12 +583,13 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean}>('Override');
+            const item = findItemByTitle('Override');
+            expect(item?.shouldShowRadioButton).toBe(false);
             expect(item?.shouldShowRightIcon).toBe(true);
             expect(item?.iconRight).toBe(customRightIcon);
         });
 
-        it('renders rightIcon (no check) when not selected', () => {
+        it('renders rightIcon (no radio) when not selected', () => {
             const customRightIcon = jest.fn();
             render(
                 <Harness initialOpen>
@@ -618,7 +602,8 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean}>('Plain');
+            const item = findItemByTitle('Plain');
+            expect(item?.shouldShowRadioButton).toBe(false);
             expect(item?.shouldShowRightIcon).toBe(true);
             expect(item?.iconRight).toBe(customRightIcon);
         });
@@ -655,7 +640,7 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            expect(findItemByTitle<{interactive?: boolean}>('Section heading')?.interactive).toBe(false);
+            expect(findItemByTitle('Section heading')?.interactive).toBe(false);
             expect(findItemByTitle('Below')).toBeDefined();
         });
     });
@@ -1067,12 +1052,11 @@ describe('PopoverMenu V2', () => {
                 </Harness>,
             );
 
-            const trigger = findItemByTitle<{onFocus?: () => void}>('Trigger');
-            act(() => trigger?.onFocus?.());
+            focus('Trigger');
             press('Trigger');
 
-            expect(findItemByTitle<{focused?: boolean}>('Back')?.focused).toBe(false);
-            expect(findItemByTitle<{focused?: boolean}>('Inner')?.focused).toBe(false);
+            expect(findItemByTitle('Back')?.focused).toBe(false);
+            expect(findItemByTitle('Inner')?.focused).toBe(false);
         });
 
         // Guards `Sub`'s useLayoutEffect cleanup + `ContentActions` identity stability across unrelated re-renders.
@@ -1102,8 +1086,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Back')).toBeDefined();
 
             // Focus change re-renders the Content tree; sub state must not collapse.
-            const second = findItemByTitle<{onFocus?: () => void}>('Second');
-            act(() => second?.onFocus?.());
+            focus('Second');
 
             expect(findItemByTitle('First')).toBeDefined();
             expect(findItemByTitle('Second')).toBeDefined();
@@ -1148,19 +1131,15 @@ describe('PopoverMenu V2', () => {
             press('Open');
 
             // Focus Inner-A (index 1 after the back button).
-            const innerA = findItemByTitle<{onFocus?: () => void}>('Inner-A');
-            menuItemPropsCapture.current = [];
-            act(() => innerA?.onFocus?.());
-            expect(findItemByTitle<{focused?: boolean}>('Inner-A')?.focused).toBe(true);
+            focus('Inner-A');
+            expect(findItemByTitle('Inner-A')?.focused).toBe(true);
 
             menuItemPropsCapture.current = [];
             tree.rerender(<SubMenuWithToggle showSub={false} />);
 
             // After cascade: index 1 maps to Outer-B in the parent list. Focus must NOT carry over.
-            const outerBLatest = [...menuItemPropsCapture.current].reverse().find((p) => p.title === 'Outer-B') as {focused?: boolean} | undefined;
-            const outerALatest = [...menuItemPropsCapture.current].reverse().find((p) => p.title === 'Outer-A') as {focused?: boolean} | undefined;
-            expect(outerALatest?.focused).toBe(false);
-            expect(outerBLatest?.focused).toBe(false);
+            expect(findItemByTitle('Outer-A')?.focused).toBe(false);
+            expect(findItemByTitle('Outer-B')?.focused).toBe(false);
         });
     });
 

@@ -13,12 +13,9 @@ import useMaxHeightStyle from './useMaxHeightStyle';
 
 type VirtualizedContentProps<T> = Omit<BasePopoverProps, 'children'> & {
     data: T[];
-
     keyExtractor: (item: T, index: number) => string;
-
     /** Single `<Item>` or `<CheckmarkItem>` per row — `<Sub>` would cascade-pop nav when its host item recycles. Arrow-key nav is limited to visible rows. */
     renderItem: ListRenderItem<T>;
-
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 

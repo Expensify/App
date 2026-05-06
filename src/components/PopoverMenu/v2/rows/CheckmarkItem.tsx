@@ -1,7 +1,6 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
@@ -20,13 +19,13 @@ type CheckmarkItemOwnProps = {
     disabled?: boolean;
     pendingAction?: PendingAction;
     testID?: string;
-    /** When set, replaces the check icon. */
+    /** Replaces the built-in radio indicator. */
     rightIcon?: IconAsset;
 };
 
 type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
 
-/** Selectable row that renders a check when `isSelected` — Radix's `DropdownMenu.CheckboxItem` analogue. */
+/** Selectable row with a radio-style selection indicator (green badge with white check when selected). */
 function CheckmarkItem({
     text,
     isSelected = false,
@@ -41,15 +40,11 @@ function CheckmarkItem({
 }: CheckmarkItemProps): React.ReactElement | null {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: CheckmarkItem.displayName, onSelect, disabled});
 
     if (!isAtActiveLevel) {
         return null;
     }
-
-    // `rightIcon` replaces the check; otherwise selected rows render the Checkmark.
-    const effectiveRightIcon = rightIcon ?? (isSelected ? icons.Checkmark : undefined);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -60,12 +55,14 @@ function CheckmarkItem({
                 title={text}
                 iconWidth={iconWidth ?? variables.iconSizeNormal}
                 iconHeight={iconHeight ?? variables.iconSizeNormal}
-                iconRight={effectiveRightIcon}
-                shouldShowRightIcon={!!effectiveRightIcon}
+                iconRight={rightIcon}
+                shouldShowRightIcon={!!rightIcon}
+                shouldShowRadioButton={!rightIcon}
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                wrapperStyle={StyleUtils.getItemBackgroundColorStyle(isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
+                // Skip the row tint when the radio indicator is the visual cue (matches main).
+                wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!rightIcon && isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
                 shouldRemoveHoverBackground={isSelected}
                 onPress={onPress}
                 onFocus={onFocus}

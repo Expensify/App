@@ -65,10 +65,10 @@ function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObjec
     const {translate} = useLocalize();
 
     const handlePress = () => {
-        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
         if (!videoPlayerRef.current) {
             return;
         }
+        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
         updateSource(url);
         onPress();
     };

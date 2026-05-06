@@ -12,13 +12,13 @@ function VideoPopoverMenu() {
     const {isOffline} = useNetwork();
     const {currentPlaybackSpeed, isLocalFile} = useVideoPopoverMenuState();
     const {updatePlaybackSpeed, downloadAttachment} = useVideoPopoverMenuActions();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
 
     const showDownload = !isOffline && !isLocalFile;
     const playbackSpeedLabel = translate('videoPlayer.playbackSpeed');
 
     return (
-        <PopoverMenu.Content>
+        <PopoverMenu.ScrollableContent>
             {showDownload && (
                 <PopoverMenu.Item
                     text={translate('common.download')}
@@ -43,7 +43,7 @@ function VideoPopoverMenu() {
                     ))}
                 </PopoverMenu.Sub.Content>
             </PopoverMenu.Sub>
-        </PopoverMenu.Content>
+        </PopoverMenu.ScrollableContent>
     );
 }
 

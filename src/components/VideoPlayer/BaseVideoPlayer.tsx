@@ -29,28 +29,40 @@ import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
-function BaseVideoPlayer({
-    url,
-    onSourceLoaded,
-    isLooping = false,
-    style,
-    videoPlayerStyle,
-    videoControlsStyle,
-    videoDuration = 0,
-    shouldUseSharedVideoElement = false,
-    shouldUseSmallVideoControls = false,
-    // TODO: investigate what is the root cause of the bug with unexpected video switching
-    // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
-    // but current workaround is just not to use it here for now. This causes not displaying the video controls when
-    // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isVideoHovered = false,
-    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
-    shouldPlay,
-    isPreview,
-    reportID,
-    onTap,
-}: VideoPlayerProps & {reportID: string}) {
+type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
+
+/** Wraps the player tree in a `<PopoverMenu.Root>` so descendants (controls, popover) share popover state. */
+function BaseVideoPlayer(props: BaseVideoPlayerProps) {
+    return (
+        <PopoverMenu.Root>
+            <BaseVideoPlayerInner playerProps={props} />
+        </PopoverMenu.Root>
+    );
+}
+
+function BaseVideoPlayerInner({playerProps}: {playerProps: BaseVideoPlayerProps}) {
+    const {
+        url,
+        onSourceLoaded,
+        isLooping = false,
+        style,
+        videoPlayerStyle,
+        videoControlsStyle,
+        videoDuration = 0,
+        shouldUseSharedVideoElement = false,
+        shouldUseSmallVideoControls = false,
+        // TODO: investigate what is the root cause of the bug with unexpected video switching
+        // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
+        // but current workaround is just not to use it here for now. This causes not displaying the video controls when
+        // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isVideoHovered = false,
+        controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
+        shouldPlay,
+        isPreview,
+        reportID,
+        onTap,
+    } = playerProps;
     const styles = useThemeStyles();
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
@@ -66,7 +78,7 @@ function BaseVideoPlayer({
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const isPopoverVisible = PopoverMenu.useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
@@ -493,8 +505,7 @@ function BaseVideoPlayer({
     }, [hasError, sharedElement]);
 
     return (
-        <PopoverMenu.Root>
-            <PopoverVisibilityObserver onChange={setIsPopoverVisible} />
+        <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
             <PressableWithoutFeedback
@@ -620,17 +631,8 @@ function BaseVideoPlayer({
                 </Hoverable>
             </PressableWithoutFeedback>
             <VideoPopoverMenu />
-        </PopoverMenu.Root>
+        </>
     );
-}
-
-/** Sibling of BaseVideoPlayer's render so `useIsPopoverVisible` can mirror into a parent setter without splitting the component. */
-function PopoverVisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
-    const isVisible = PopoverMenu.useIsPopoverVisible();
-    useEffect(() => {
-        onChange(isVisible);
-    }, [isVisible, onChange]);
-    return null;
 }
 
 export default BaseVideoPlayer;
