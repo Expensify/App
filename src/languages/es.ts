@@ -9459,6 +9459,8 @@ ${amount} para ${merchant} - ${date}`,
         save: 'Guardar',
         resume: 'Reanudar',
         discard: 'Descartar',
+        edit: 'Editar',
+        editStop: 'Editar parada',
         discardDistanceTrackingModal: {
             title: 'Descartar seguimiento de distancia',
             prompt: '¿Estás seguro? Esto descartará tu trayecto actual y no se puede deshacer.',

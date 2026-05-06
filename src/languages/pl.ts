@@ -8189,6 +8189,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         save: 'Zapisz',
         resume: 'Wznów',
         discard: 'Odrzuć',
+        edit: 'Edytuj',
+        editStop: 'Edytuj przystanek',
         discardDistanceTrackingModal: {
             title: 'Odrzuć śledzenie dystansu',
             prompt: 'Na pewno? Spowoduje to porzucenie Twojej bieżącej ścieżki i nie będzie można tego cofnąć.',

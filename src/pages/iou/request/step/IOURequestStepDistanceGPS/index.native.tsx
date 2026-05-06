@@ -21,7 +21,7 @@ import {setGPSTransactionDraftData} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates, getTrimmedGpsRoute} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -172,9 +172,12 @@ function IOURequestStepDistanceGPS({
         mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
     }, [gpsDraftDetails]);
 
-    const waypointMarkers = useGPSWaypointMarkers();
+    const gpsWaypointMarkers = useGPSWaypointMarkers({gpsDraftDetails});
+    const directionCoordinates: Coordinate[][] = getTrimmedGpsRoute(getGpsPoints(gpsDraftDetails), gpsDraftDetails?.trimmedEndPoint).map((points): Coordinate[] =>
+        points.map(({lat, long}) => [long, lat]),
+    );
 
-    const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
+    console.log({gpsWaypointMarkers});
 
     return (
         <StepScreenWrapper
@@ -192,12 +195,12 @@ function IOURequestStepDistanceGPS({
                         pitchEnabled={false}
                         initialState={{
                             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
+                            location: gpsWaypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                         }}
                         style={[styles.mapView, styles.mapEditView]}
                         overlayStyle={styles.mapEditView}
                         styleURL={CONST.MAPBOX.STYLE_URL}
-                        waypoints={waypointMarkers}
+                        waypoints={gpsWaypointMarkers}
                         directionCoordinates={directionCoordinates}
                         ref={mapRef}
                     />
@@ -207,6 +210,11 @@ function IOURequestStepDistanceGPS({
                     <Waypoints
                         unit={unit}
                         isInLandscapeMode={isInLandscapeMode}
+                        action={action}
+                        iouType={iouType}
+                        transactionID={transactionID}
+                        reportID={reportID}
+                        backToReport={backToReport}
                     />
 
                     <View style={[styles.gap3, styles.ph5, isInLandscapeMode ? styles.pv3 : styles.pb5]}>

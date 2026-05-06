@@ -8192,6 +8192,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         save: 'Salvar',
         resume: 'Currículo',
         discard: 'Descartar',
+        edit: 'Editar',
+        editStop: 'Editar parada',
         discardDistanceTrackingModal: {
             title: 'Descartar rastreamento de distância',
             prompt: 'Tem certeza? Isso vai descartar sua jornada atual e não poderá ser desfeito.',
