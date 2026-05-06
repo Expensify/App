@@ -294,6 +294,7 @@ describe('OnboardingWorkspaces Page', () => {
                     employeeCount: 4,
                     hasPendingAccess: false,
                     automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.SUBMIT,
                 },
             });
         });
@@ -315,10 +316,11 @@ describe('OnboardingWorkspaces Page', () => {
             expect(mockCompleteOnboarding).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                    onboardingPolicyID: undefined,
                 }),
             );
         });
+        const lastCompleteOnboardingArgs = mockCompleteOnboarding.mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined;
+        expect(lastCompleteOnboardingArgs).not.toHaveProperty('onboardingPolicyID');
 
         await waitFor(() => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);

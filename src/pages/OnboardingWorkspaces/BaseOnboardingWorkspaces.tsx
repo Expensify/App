@@ -78,12 +78,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
-        // Only mirror the EMPLOYER ("Get paid back by my employer") + Submit-2026 onboarding flow
-        // when the user actually picked EMPLOYER, or when no Purpose was selected (private-domain
-        // users who reach this screen without going through the Purpose step). Users on the Submit
-        // beta who picked a different Purpose (e.g. MANAGE_TEAM) must not be re-routed through
-        // the Submit flow.
-        const shouldUseSubmitFlow = canUseSubmit2026 && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
+        const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
@@ -104,7 +100,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
 
-        if (shouldUseSubmitFlow && policy.automaticJoiningEnabled) {
+        if (shouldUseSubmitFlow) {
             navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, isSmallScreenWidth);
             return;
         }
