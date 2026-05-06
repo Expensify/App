@@ -119,6 +119,7 @@ function prepareRejectMoneyRequestData(
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     const allTransactionViolations = getAllTransactionViolations();
+    const sharedRejectOptions = options;
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
@@ -365,12 +366,13 @@ function prepareRejectMoneyRequestData(
             );
 
         if (existingOpenReport) {
+            const originalRejectedReportTotal = existingOpenReport?.total ?? 0;
             movedToReport = {
                 ...existingOpenReport,
-                total: (existingOpenReport?.total ?? 0) - transactionAmount,
+                total: originalRejectedReportTotal - transactionAmount,
             };
-            if (options) {
-                options.existingRejectedReport = movedToReport;
+            if (sharedRejectOptions) {
+                sharedRejectOptions.existingRejectedReport = movedToReport;
             }
             rejectedToReportID = existingOpenReport.reportID;
 
@@ -430,7 +432,7 @@ function prepareRejectMoneyRequestData(
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                     value: {
-                        total: movedToReport?.total ?? 0,
+                        total: originalRejectedReportTotal,
                         pendingFields: {total: null},
                     },
                 },
@@ -483,8 +485,8 @@ function prepareRejectMoneyRequestData(
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
-            if (options) {
-                options.existingRejectedReport = newExpenseReport;
+            if (sharedRejectOptions) {
+                sharedRejectOptions.existingRejectedReport = newExpenseReport;
             }
             optimisticData.push(
                 {
