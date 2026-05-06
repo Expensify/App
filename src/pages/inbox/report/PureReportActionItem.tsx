@@ -514,7 +514,7 @@ function PureReportActionItem({
 
     const contextMenuStateValue = useMemo(
         () => ({
-            anchor: popoverAnchorRef.current,
+            anchor: popoverAnchorRef,
             report,
             isReportArchived,
             action,

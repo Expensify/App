@@ -39,7 +39,7 @@ type MoneyRequestReportPreviewProps = {
     iouReportID: string | undefined;
 
     /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
-    contextMenuAnchorRef?: React.RefObject<ContextMenuAnchor>;
+    contextMenuAnchorRef?: React.RefObject<ContextMenuAnchor> | null;
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
