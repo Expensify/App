@@ -77,6 +77,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Login from '@src/types/onyx/Login';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -662,7 +663,7 @@ describe('OptionsListUtils', () => {
         },
     ];
 
-    const loginList = {};
+    const loginList: OnyxEntry<Login> = {};
     const CURRENT_USER_ACCOUNT_ID = 2;
     const CURRENT_USER_EMAIL = 'tonystark@expensify.com';
 
@@ -3302,7 +3303,6 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,

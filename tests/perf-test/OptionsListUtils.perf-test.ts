@@ -1,5 +1,6 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
@@ -8,6 +9,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy} from '@src/types/onyx';
+import type Login from '@src/types/onyx/Login';
 import type Report from '@src/types/onyx/Report';
 import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
@@ -109,7 +111,7 @@ const ValidOptionsConfig = {
     sortedActions: undefined,
 };
 
-const loginList = {};
+const loginList: OnyxEntry<Login> = {};
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
@@ -304,7 +306,6 @@ describe('OptionsListUtils', () => {
             {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
             allPolicies,
             {},
-            nvpDismissedProductTraining,
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
