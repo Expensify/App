@@ -20,20 +20,9 @@ type ReportActionItemProps = PureReportActionItemProps & {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed?: boolean;
 };
 
-function ReportActionItem({
-    action,
-    report,
-    draftMessage,
-    personalDetails,
-    linkedTransactionRouteError: linkedTransactionRouteErrorProp,
-    isTryNewDotNVPDismissed,
-    ...props
-}: ReportActionItemProps) {
+function ReportActionItem({action, report, draftMessage, personalDetails, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
@@ -67,7 +56,6 @@ function ReportActionItem({
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );
 }

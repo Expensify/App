@@ -1564,7 +1564,7 @@ describe('PureReportActionItem', () => {
 
             expect(screen.queryByText(translateLocal('bankAccount.addBankAccount'))).toBeNull();
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
-            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', 'Hidden'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', actorEmail))).toBeOnTheScreen();
         });
 
         it('REIMBURSEMENT_QUEUED with a Gold wallet tier hides the enable wallet button', async () => {
@@ -1603,7 +1603,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
-            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', 'Hidden'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', actorEmail))).toBeOnTheScreen();
         });
 
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {

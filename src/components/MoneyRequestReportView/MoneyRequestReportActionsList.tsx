@@ -127,8 +127,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const parentReportAction = useParentReportAction(report);
 
     const personalDetails = usePersonalDetails();
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
@@ -580,7 +578,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     personalDetails={personalDetails}
                     originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
@@ -597,7 +594,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             firstVisibleReportActionID,
             linkedReportActionID,
             personalDetails,
-            isTryNewDotNVPDismissed,
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,

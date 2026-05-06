@@ -168,9 +168,6 @@ type PureReportActionItemProps = {
     /** Whether to highlight the action for a few seconds */
     shouldHighlight?: boolean;
 
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed?: boolean;
-
     /** Report name value pairs origin */
     reportNameValuePairsOrigin?: string;
 
@@ -205,7 +202,6 @@ function PureReportActionItem({
     isClosedExpenseReportWithNoExpenses,
     shouldShowBorder,
     shouldHighlight = false,
-    isTryNewDotNVPDismissed = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
 }: PureReportActionItemProps) {
@@ -627,8 +623,6 @@ function PureReportActionItem({
                                                             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                                                             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
-                                                            personalDetails={personalDetails}
-                                                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                                             shouldShowBorder={shouldShowBorder}
                                                             isOnSearch={isOnSearch}
                                                             index={index}
