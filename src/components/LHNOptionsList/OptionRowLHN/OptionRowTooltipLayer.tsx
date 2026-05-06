@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
@@ -24,15 +25,15 @@ type OptionRowTooltipLayerProps = {
     /** Option data, used to forward pendingAction and errors to OfflineWithFeedback */
     optionItem: OptionData;
 
-    /** Renders the row content. */
-    renderChildren: () => React.ReactNode;
+    /** Row content */
+    children: ReactNode;
 };
 
 type OptionRowTooltipLayerInnerProps = {
-    renderChildren: () => React.ReactNode;
+    children: ReactNode;
 };
 
-function OptionRowTooltipLayerInner({renderChildren}: OptionRowTooltipLayerInnerProps) {
+function OptionRowTooltipLayerInner({children}: OptionRowTooltipLayerInnerProps) {
     const styles = useThemeStyles();
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
 
@@ -50,14 +51,14 @@ function OptionRowTooltipLayerInner({renderChildren}: OptionRowTooltipLayerInner
             onTooltipPress={hideProductTrainingTooltip}
             shouldHideOnScroll
         >
-            {renderChildren()}
+            {children}
         </EducationalTooltip>
     );
 }
 
 OptionRowTooltipLayerInner.displayName = 'OptionRowTooltipLayerInner';
 
-function OptionRowTooltipLayer({reportID, report, optionItem, renderChildren}: OptionRowTooltipLayerProps) {
+function OptionRowTooltipLayer({reportID, report, optionItem, children}: OptionRowTooltipLayerProps) {
     const {firstReportIDWithGBRorRBR, onboardingPurpose, onboarding} = useLHNTooltipContext();
     const session = useSession();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -77,7 +78,7 @@ function OptionRowTooltipLayer({reportID, report, optionItem, renderChildren}: O
             shouldShowErrorMessages={false}
             needsOffscreenAlphaCompositing
         >
-            {shouldEvaluateTooltip ? <OptionRowTooltipLayerInner renderChildren={renderChildren} /> : renderChildren()}
+            {shouldEvaluateTooltip ? <OptionRowTooltipLayerInner>{children}</OptionRowTooltipLayerInner> : children}
         </OfflineWithFeedback>
     );
 }
