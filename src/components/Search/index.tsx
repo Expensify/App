@@ -1777,7 +1777,6 @@ function Search({
                         transactionCount={holdMenuParams.transactionCount}
                         hasNonHeldExpenses={holdMenuParams?.hasNoneHeldExpenses}
                         nonHeldAmount={holdMenuParams.hasNoneHeldExpenses && holdMenuParams.hasValidNonHeldAmount ? holdMenuParams.nonHeldAmount : undefined}
-                        requestType={holdMenuParams.requestType}
                         paymentType={holdMenuParams.paymentType}
                     />
                 )}
