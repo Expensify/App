@@ -31,16 +31,7 @@ import VideoPlayerControls from './VideoPlayerControls';
 
 type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
 
-/** Wraps the player tree in a `<PopoverMenu.Root>` so descendants (controls, popover) share popover state. */
 function BaseVideoPlayer(props: BaseVideoPlayerProps) {
-    return (
-        <PopoverMenu.Root>
-            <BaseVideoPlayerInner playerProps={props} />
-        </PopoverMenu.Root>
-    );
-}
-
-function BaseVideoPlayerInner({playerProps}: {playerProps: BaseVideoPlayerProps}) {
     const {
         url,
         onSourceLoaded,
@@ -62,7 +53,7 @@ function BaseVideoPlayerInner({playerProps}: {playerProps: BaseVideoPlayerProps}
         isPreview,
         reportID,
         onTap,
-    } = playerProps;
+    } = props;
     const styles = useThemeStyles();
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
