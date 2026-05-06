@@ -73,7 +73,7 @@ jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useTheme', () => () => ({border: 'borderColor', icon: 'iconColor', iconHovered: 'iconHovered'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false}));
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({BackArrow: 'BackArrowIcon', ArrowRight: 'ArrowRightIcon'}),
+    useMemoizedLazyExpensifyIcons: () => ({BackArrow: 'BackArrowIcon', ArrowRight: 'ArrowRightIcon', Checkmark: 'CheckmarkIcon'}),
 }));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
@@ -456,8 +456,9 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; isSelected?: boolean}>('Wallet');
-            expect(item?.shouldShowSelectedItemCheck).toBe(true);
+            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean; isSelected?: boolean}>('Wallet');
+            expect(item?.shouldShowRightIcon).toBe(true);
+            expect(item?.iconRight).toBe('CheckmarkIcon');
             expect(item?.isSelected).toBe(true);
         });
 
@@ -472,8 +473,9 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; isSelected?: boolean}>('Wallet');
-            expect(item?.shouldShowSelectedItemCheck).toBe(true);
+            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean; isSelected?: boolean}>('Wallet');
+            expect(item?.shouldShowRightIcon).toBe(false);
+            expect(item?.iconRight).toBeUndefined();
             expect(item?.isSelected).toBe(false);
         });
 
@@ -513,8 +515,7 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; iconRight?: unknown; shouldShowRightIcon?: boolean}>('Override');
-            expect(item?.shouldShowSelectedItemCheck).toBe(false);
+            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean}>('Override');
             expect(item?.shouldShowRightIcon).toBe(true);
             expect(item?.iconRight).toBe(customRightIcon);
         });
@@ -532,8 +533,7 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </ControlledHarness>,
             );
-            const item = findItemByTitle<{shouldShowSelectedItemCheck?: boolean; iconRight?: unknown; shouldShowRightIcon?: boolean}>('Plain');
-            expect(item?.shouldShowSelectedItemCheck).toBe(false);
+            const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean}>('Plain');
             expect(item?.shouldShowRightIcon).toBe(true);
             expect(item?.iconRight).toBe(customRightIcon);
         });

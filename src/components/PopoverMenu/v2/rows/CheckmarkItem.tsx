@@ -1,6 +1,7 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
@@ -40,11 +41,15 @@ function CheckmarkItem({
 }: CheckmarkItemProps): React.ReactElement | null {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: CheckmarkItem.displayName, onSelect, disabled});
 
     if (!isAtActiveLevel) {
         return null;
     }
+
+    // `rightIcon` replaces the check; otherwise selected rows render the Checkmark.
+    const effectiveRightIcon = rightIcon ?? (isSelected ? icons.Checkmark : undefined);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
@@ -55,12 +60,11 @@ function CheckmarkItem({
                 title={text}
                 iconWidth={iconWidth ?? variables.iconSizeNormal}
                 iconHeight={iconHeight ?? variables.iconSizeNormal}
-                iconRight={rightIcon}
-                shouldShowRightIcon={!!rightIcon}
+                iconRight={effectiveRightIcon}
+                shouldShowRightIcon={!!effectiveRightIcon}
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                shouldShowSelectedItemCheck={!rightIcon}
                 wrapperStyle={StyleUtils.getItemBackgroundColorStyle(isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
                 shouldRemoveHoverBackground={isSelected}
                 onPress={onPress}
