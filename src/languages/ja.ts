@@ -1389,8 +1389,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `${valueName} を ${newValueToDisplay} に（以前は ${oldValueToDisplay}）`,
         updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `${translatedChangedField} を ${newMerchant}（以前は ${oldMerchant}）に変更したため、金額が ${newAmountToDisplay}（以前は ${oldAmountToDisplay}）に更新されました`,
-        setTheCategoryTax: (newCategory: string, newTaxRate: string) =>
-            `カテゴリを「${newCategory}」に設定し、ワークスペースルールに基づき税率が ${newTaxRate} に設定されました`,
+        setTheCategoryTax: (newCategory: string, newTaxRate: string) => `カテゴリを「${newCategory}」に設定し、ワークスペースルールに基づき税率が ${newTaxRate} に設定されました`,
         updatedTheCategoryTax: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string) =>
             `カテゴリを「${newCategory}」（以前は「${oldCategory}」）に変更したため、ワークスペースルールに基づき税率が ${newTaxRate}（以前は ${oldTaxRate}）に更新されました`,
         updatedTheCategoryTaxWithAmount: (newCategory: string, oldCategory: string, newTaxRate: string, oldTaxRate: string, newTaxAmount: string, oldTaxAmount: string) =>
