@@ -7518,10 +7518,6 @@ const CONST = {
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
-
-    // Max time (ms) to wait for a transaction thread report before falling back to renderable content.
-    SKELETON_LOADING_TIMEOUT_MS: 10000,
-
     NEW_EXPENSIFY_PATH: '/New Expensify',
     RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 

@@ -520,7 +520,6 @@ function getMoneyRequestPolicyTags({
         (moneyRequestReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`]?.policyID : undefined) ??
         parentChatReport?.policyID ??
         allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`]?.policyID;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return getPolicyTagsData(iouReportPolicyID) ?? {};
 }
 
@@ -1048,7 +1047,6 @@ function buildOnyxDataForTestDriveIOU(
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[deprecatedUserAccountID]?.firstName ?? '');
     // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const textComment = buildOptimisticAddCommentReportAction({
@@ -1755,7 +1753,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.SET,
             // buildOptimisticNextStep is used in parallel
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             value: buildNextStepNew({
                 report: iou.report,
                 predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
@@ -2174,7 +2171,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: iouReport,
         predictedNextStatus,
@@ -2728,11 +2724,9 @@ export {
     getRecentAttendees,
     getReceiptError,
     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyTagsData,
     getSearchOnyxUpdate,
     getPolicyTags,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getMoneyRequestPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,

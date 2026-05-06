@@ -69,7 +69,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -198,6 +197,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
                 previousMessage: [],
                 originalMessage: {
+                    ...(randomReportAction.originalMessage as Partial<OriginalMessageIOU>),
                     IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
@@ -1054,7 +1054,6 @@ describe('canEditFieldOfMoneyRequest', () => {
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ...randomReportAction.originalMessage,
                 IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,

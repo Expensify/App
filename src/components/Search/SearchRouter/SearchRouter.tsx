@@ -22,6 +22,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -86,7 +87,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
-    const [contextualReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`);
+    const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
         selector: privateIsArchivedSelector,
     });
@@ -123,7 +124,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = getReportOrDraftReport(reportForContextualSearch?.reportID);
+            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
             const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
@@ -277,7 +278,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     if (!textInputRef.current) {
                         return;

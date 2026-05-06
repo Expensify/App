@@ -96,9 +96,9 @@ function SearchTransactionsChangeReport() {
             return undefined;
         }
 
-        const report = getReportOrDraftReport(reportIDWithOwner);
+        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
         return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys]);
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
@@ -201,7 +201,6 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             policyTagList,
         });
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });
