@@ -38,7 +38,7 @@ describe('useSearchFocusSync', () => {
             data: fullData,
         });
 
-        expect(scrollToIndex).toHaveBeenCalledWith(2);
+        expect(scrollToIndex).toHaveBeenCalledWith(2, false);
         expect(setFocusedIndex).toHaveBeenCalledWith(2);
     });
 });
