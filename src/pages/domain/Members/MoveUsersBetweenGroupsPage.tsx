@@ -1,5 +1,5 @@
 import {domainNameSelector, groupsSelector} from '@selectors/Domain';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -36,9 +36,17 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
-    const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
+    const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
 
     const memberCount = selectedMemberAccountIDs?.length ?? 0;
+
+    // Redirect back to the members page if there are no members to move.
+    useEffect(() => {
+        if (memberCount > 0) {
+            return;
+        }
+        Navigation.navigate(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID));
+    }, [memberCount, domainAccountID]);
 
     const data: SecurityGroupItem[] = (securityGroups ?? []).map(({id, details}) => ({
         text: details.name ?? '',
