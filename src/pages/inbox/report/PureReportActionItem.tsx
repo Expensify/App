@@ -727,7 +727,7 @@ function PureReportActionItem({
                                                 shouldDisplayContextMenuValue={shouldDisplayContextMenuValue}
                                                 userBillingFundID={userBillingFundID}
                                                 index={index}
-                                                contextMenuAnchor={popoverAnchorRef.current}
+                                                contextMenuAnchorRef={popoverAnchorRef}
                                                 composerTextInputRef={composerTextInputRef}
                                                 contextMenuStateValue={contextMenuStateValue}
                                                 contextMenuActionsValue={contextMenuActionsValue}

@@ -30,7 +30,7 @@ function MoneyRequestReportPreview({
     policyID,
     chatReportID,
     action,
-    contextMenuAnchor,
+    contextMenuAnchorRef,
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
@@ -133,7 +133,7 @@ function MoneyRequestReportPreview({
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
+            contextMenuAnchorRef={contextMenuAnchorRef}
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
@@ -158,7 +158,7 @@ function MoneyRequestReportPreview({
             chatReport={chatReport}
             action={action}
             containerStyles={[reportPreviewStyles.componentStyle]}
-            contextMenuAnchor={contextMenuAnchor}
+            contextMenuAnchorRef={contextMenuAnchorRef}
             isHovered={isHovered}
             isWhisper={isWhisper}
             checkIfContextMenuActive={checkIfContextMenuActive}

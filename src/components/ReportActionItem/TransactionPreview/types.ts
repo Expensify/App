@@ -1,3 +1,4 @@
+import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -26,8 +27,8 @@ type TransactionPreviewProps = {
     /** All the data of the action, used for showing context menu */
     action: OnyxEntry<ReportAction>;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
+    /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
+    contextMenuAnchorRef?: RefObject<ContextMenuAnchor>;
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;

@@ -84,8 +84,8 @@ export default {
             options: [{marginTop: 8}],
             control: {type: 'radio'},
         },
-        /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: {
+        /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
+        contextMenuAnchorRef: {
             options: [null],
             control: {type: 'radio'},
         },

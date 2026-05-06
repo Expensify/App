@@ -45,8 +45,8 @@ type MoneyRequestActionProps = {
     /** The ID of the current report */
     reportID: string | undefined;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
+    /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
+    contextMenuAnchorRef?: React.RefObject<ContextMenuAnchor>;
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
@@ -72,7 +72,7 @@ function MoneyRequestAction({
     chatReportID,
     requestReportID,
     reportID,
-    contextMenuAnchor,
+    contextMenuAnchorRef,
     checkIfContextMenuActive = () => {},
     isHovered = false,
     style,
@@ -162,7 +162,7 @@ function MoneyRequestAction({
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
+            contextMenuAnchorRef={contextMenuAnchorRef}
             checkIfContextMenuActive={checkIfContextMenuActive}
             onPreviewPressed={onMoneyRequestPreviewPressed}
             containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, isReviewDuplicateTransactionPage ? [containerStyles, styles.borderNone] : styles.mt2]}

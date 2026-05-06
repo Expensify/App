@@ -1,4 +1,5 @@
 import type {ListRenderItem} from '@shopify/flash-list';
+import type React from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
@@ -37,8 +38,8 @@ type MoneyRequestReportPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
+    /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
+    contextMenuAnchorRef?: React.RefObject<ContextMenuAnchor>;
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
