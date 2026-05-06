@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
@@ -84,7 +84,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 // Remount the list when the focus-refreshed initial selection changes so FlashList resets its preserved viewport.
                 key={initialSelectedValue ?? ''}
                 data={searchResults}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
                 searchValueForFocusSync={debouncedSearchValue}

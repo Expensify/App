@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
@@ -96,7 +96,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     textInputOptions={textInputOptions}
                     searchValueForFocusSync={debouncedSearchValue}
                     onSelectRow={onCountrySelected}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     initiallyFocusedItemKey={initiallyFocusedCountry}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
