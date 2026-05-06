@@ -257,7 +257,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     });
                     if (action === ModalActions.CONFIRM) {
                         deletePolicyTags(policyData, selectedTags);
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             setSelectedTags([]);
                         });
@@ -441,12 +440,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         turnOnSelectionModeOnLongPress={!hasDependentTags}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeaderContent={listHeaderContent}
                         canSelectMultiple={canSelectMultiple}
                         onSelectRow={navigateToTagSettings}
                         shouldShowListEmptyContent={false}
-                        onCheckboxPress={toggleTag}
+                        onSelectionButtonPress={toggleTag}
                         shouldHeaderBeInsideList
                         shouldShowRightCaret
                         showScrollIndicator

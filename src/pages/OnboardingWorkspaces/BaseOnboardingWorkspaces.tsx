@@ -6,9 +6,10 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
@@ -69,20 +70,34 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026;
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
+        // Only mirror the EMPLOYER ("Get paid back by my employer") + Submit-2026 onboarding flow
+        // when the user actually picked EMPLOYER, or when no Purpose was selected (private-domain
+        // users who reach this screen without going through the Purpose step). Users on the Submit
+        // beta who picked a different Purpose (e.g. MANAGE_TEAM) must not be re-routed through
+        // the Submit flow.
+        const shouldUseSubmitFlow = canUseSubmit2026 && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER);
+
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
         } else {
             askToJoinPolicy(policy.policyID);
         }
+
+        const engagementChoice = shouldUseSubmitFlow ? CONST.ONBOARDING_CHOICES.EMPLOYER : CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
         completeOnboarding({
-            engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+            engagementChoice,
+            onboardingMessage: onboardingMessages[engagementChoice],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
+            onboardingPolicyID: shouldUseSubmitFlow && policy.automaticJoiningEnabled ? policy.policyID : undefined,
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,
@@ -90,6 +105,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
+
+        if (shouldUseSubmitFlow && policy.automaticJoiningEnabled) {
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, isSmallScreenWidth);
+            return;
+        }
 
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
@@ -146,6 +166,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     });
 
     const skipJoiningWorkspaces = () => {
+        if (isEmployerWithSubmit) {
+            autoCreateSubmitWorkspace(onboardingPersonalDetails?.firstName ?? '', onboardingPersonalDetails?.lastName ?? '');
+            return;
+        }
+
         if (isVsb) {
             Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
             return;
@@ -176,7 +201,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             <SelectionList
                 data={policyIDItems}
                 onSelectRow={() => {}}
-                ListItem={UserListItem}
+                ListItem={BareUserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
                 shouldShowLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation

@@ -37,7 +37,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
     showTooltip,
     canSelectMultiple,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onSelectRow,
     columns,
     groupBy,
@@ -185,7 +185,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const handleOnPress = (transaction: TransactionListItemType) => {
         if (isMobileSelectionModeEnabled) {
-            onCheckboxPress?.(transaction as unknown as TItem);
+            onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }
         openReportInRHP(transaction);
@@ -245,7 +245,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                        onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
                         onButtonPress={() => handleButtonPress(transaction)}
                         style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}

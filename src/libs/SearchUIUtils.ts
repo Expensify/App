@@ -2353,12 +2353,7 @@ function getActions(
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
-    if (
-        canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) &&
-        isAllowedToApproveExpenseReport &&
-        !hasOnlyPendingCardOrScanningTransactions &&
-        !hasHeldExpenses(report.reportID, allReportTransactions)
-    ) {
+    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
@@ -2439,7 +2434,6 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -2580,7 +2574,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     ...reportAction,
                     reportID,
                     from,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
@@ -5330,9 +5323,11 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            // If the transaction has any tax info (code, value, or amount),
-            // show both TAX_RATE and TAX_AMOUNT columns. Zero is valid tax data.
-            const hasTaxInfo = !!transaction.taxCode || transaction.taxAmount != null || (transaction.taxValue !== undefined && transaction.taxValue !== '');
+            // Show both TAX_RATE and TAX_AMOUNT when the transaction has a meaningful tax signal.
+            // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
+            // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
+            // which would otherwise flash tax columns on for offline-pending transactions.
+            const hasTaxInfo = !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
             if (hasTaxInfo) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
