@@ -250,7 +250,6 @@ function WorkspaceTaxesPage({
         }
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });

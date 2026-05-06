@@ -197,7 +197,6 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             policyTagList,
         });
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });

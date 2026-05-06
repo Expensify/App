@@ -153,7 +153,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             };
             if (getPlatform() === CONST.PLATFORM.IOS) {
                 // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => openHoldMenu(holdMenuParams));
             } else {
                 openHoldMenu(holdMenuParams);
