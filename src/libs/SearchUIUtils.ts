@@ -597,18 +597,6 @@ type GetSectionsParams = {
  */
 const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
-const SKIPPED_SEARCH_FILTERS = new Set<SearchAdvancedFiltersKey>([
-    FILTER_KEYS.GROUP_BY,
-    FILTER_KEYS.GROUP_CURRENCY,
-    FILTER_KEYS.LIMIT,
-    FILTER_KEYS.TYPE,
-    FILTER_KEYS.VIEW,
-    FILTER_KEYS.PAYER,
-    FILTER_KEYS.ACTION,
-    FILTER_KEYS.COLUMNS,
-    FILTER_KEYS.KEYWORD,
-]);
-
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
 }
@@ -4189,10 +4177,6 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function isTransactionSearchType(type: string | undefined): boolean {
-    return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
-}
-
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
@@ -5855,8 +5839,6 @@ export {
     FILTER_LABEL_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
-    isTransactionSearchType,
-    SKIPPED_SEARCH_FILTERS,
 };
 export type {
     SavedSearchMenuItem,
