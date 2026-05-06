@@ -1,10 +1,7 @@
 import {use} from 'react';
 import {RootStateContext} from './RootContext';
 
-/**
- * Returns whether the enclosing `<Root>`'s popover is currently open. Read-only — for callers that want
- * to render trigger affordances (e.g. an active-state icon color) based on the popover's visibility.
- */
+/** Read-only `Root.isVisible` — for descendants that render trigger affordances based on popover state. */
 function useIsPopoverVisible(): boolean {
     const value = use(RootStateContext);
     if (!value) {

@@ -7,11 +7,7 @@ type UseSecondaryInteractionTriggerResult = {
     onSecondaryInteraction: () => void;
 };
 
-/**
- * Returns `{ref, onSecondaryInteraction}` to attach to any pressable so a long-press (native) or
- * right-click (web) opens the enclosing `<Root>`'s popover. Mirror of `usePopoverTrigger` for the
- * secondary-interaction gesture.
- */
+/** Long-press (native) / right-click (web) variant of `usePopoverTrigger`. Returns `{ref, onSecondaryInteraction}`. */
 function useSecondaryInteractionTrigger(): UseSecondaryInteractionTriggerResult {
     const {ref, open} = useAnchorOpener('useSecondaryInteractionTrigger');
     return {ref, onSecondaryInteraction: open};

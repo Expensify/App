@@ -57,7 +57,7 @@ type VideoPlayerControlsProps = {
     onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
 };
 
-/** Three-dots overflow button — `usePopoverTrigger` opens the enclosing `<Root>`'s popover; the popover-menu actions context records the active player + source. */
+/** Three-dots overflow trigger; records the active player + source before opening. */
 function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; small: boolean}) {
     const {ref, onPress} = PopoverMenu.usePopoverTrigger();
     const {updateVideoPopoverMenuPlayerRef, updateSource} = useVideoPopoverMenuActions();

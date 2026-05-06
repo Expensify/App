@@ -144,7 +144,6 @@ function AutoSetAnchor() {
     return <View ref={ref} />;
 }
 
-/** Reads `useIsPopoverVisible` and forwards transitions to a parent callback — replaces v1's `onOpenChange` prop in tests. */
 function VisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
     const isVisible = PopoverMenu.useIsPopoverVisible();
     useEffect(() => {
@@ -153,7 +152,7 @@ function VisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
     return null;
 }
 
-/** v2 is uncontrolled-only; `onOpenChange` here is a test-side observer of `useIsPopoverVisible`, not a prop on Root. */
+/** `onOpenChange` here is a test-side observer of `useIsPopoverVisible`, not a prop on Root (v2 is uncontrolled-only). */
 function Harness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
     return (
         <PopoverMenu.Root defaultOpen={initialOpen}>

@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import CONST from '@src/CONST';
 
-/** Menu content for the video player overflow menu — must be rendered inside a `<PopoverMenu.Root>`. */
+/** Must be rendered inside a `<PopoverMenu.Root>`. */
 function VideoPopoverMenu() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

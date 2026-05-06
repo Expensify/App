@@ -494,7 +494,6 @@ function BaseVideoPlayer({
 
     return (
         <PopoverMenu.Root>
-            {/* Mirror the popover's visibility into local state for the auto-hide effects + Hoverable freeze; setter passed via context. */}
             <PopoverVisibilityObserver onChange={setIsPopoverVisible} />
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
@@ -625,7 +624,7 @@ function BaseVideoPlayer({
     );
 }
 
-/** Mirrors the enclosing `<Root>`'s `isVisible` into a parent state setter. Sibling component so the hook can run without splitting BaseVideoPlayer. */
+/** Sibling of BaseVideoPlayer's render so `useIsPopoverVisible` can mirror into a parent setter without splitting the component. */
 function PopoverVisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
     const isVisible = PopoverMenu.useIsPopoverVisible();
     useEffect(() => {

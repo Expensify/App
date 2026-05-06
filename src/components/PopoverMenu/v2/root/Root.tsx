@@ -10,11 +10,11 @@ type RootProps = {
     children: ReactNode;
     /** Escape hatch for callers that drive the popover without `usePopoverTrigger()` (e.g. KYC flow). */
     anchorRef?: AnchorRef;
-    /** Initial visibility — uncontrolled. Used mainly by tests; production callers open via `usePopoverTrigger()`. */
+    /** Initial visibility — production callers open via `usePopoverTrigger()`. */
     defaultOpen?: boolean;
 };
 
-/** Uncontrolled by design — the popover owns its own visibility. Observe via `useIsPopoverVisible()`. */
+/** Uncontrolled — observe via `useIsPopoverVisible()`. */
 function Root({children, anchorRef, defaultOpen = false}: RootProps): React.ReactElement {
     const [isVisible, setIsVisible] = useState(defaultOpen);
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);

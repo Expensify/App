@@ -9,12 +9,7 @@ type UseAnchorOpenerResult = {
     open: () => void;
 };
 
-/**
- * Shared core of `usePopoverTrigger` / `useSecondaryInteractionTrigger`. Owns the anchor ref and
- * the measure-and-open state machine; the public hooks only rename `open` to the gesture-specific
- * prop (`onPress`, `onSecondaryInteraction`). Single source of truth for the Fabric vs. Old-Arch
- * measurement branching.
- */
+/** Shared core of `usePopoverTrigger` / `useSecondaryInteractionTrigger` — anchor ref + measure-and-open. */
 function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
     const actions = use(RootActionsContext);
     if (!actions) {
