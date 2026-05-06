@@ -62,7 +62,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         [optionsList, selectedOption],
     );
 
-    const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues, (item) => item.value);
+    const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);

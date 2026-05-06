@@ -53,7 +53,7 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const orderedCountryStates = moveInitialSelectionToTop(countryStates, initialSelectedValues, (item) => item.value);
+    const orderedCountryStates = moveInitialSelectionToTop(countryStates, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 

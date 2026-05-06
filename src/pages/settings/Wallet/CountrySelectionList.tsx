@@ -58,7 +58,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
         };
     });
 
-    const orderedCountries = moveInitialSelectionToTop(countriesList, initialSelectedValues, (item) => item.value);
+    const orderedCountries = moveInitialSelectionToTop(countriesList, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
 
     const textInputOptions = {

@@ -8,7 +8,7 @@ describe('SelectionListOrderUtils', () => {
             keyForList: `item-${index}`,
         }));
 
-        expect(moveInitialSelectionToTop(items, ['item-3'], (item) => item.value)).toEqual(items);
+        expect(moveInitialSelectionToTop(items, ['item-3'])).toEqual(items);
     });
 
     it('moves the initially selected values to the top while preserving source order', () => {
@@ -18,7 +18,7 @@ describe('SelectionListOrderUtils', () => {
         }));
         const selectedValues = [`item-${CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD}`, `item-${CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD + 1}`];
 
-        const reorderedItems = moveInitialSelectionToTop(items, selectedValues, (item) => item.value);
+        const reorderedItems = moveInitialSelectionToTop(items, selectedValues);
 
         expect(reorderedItems.map((item) => item.value)).toEqual([...selectedValues, ...items.filter((item) => !selectedValues.includes(item.value)).map((item) => item.value)]);
     });

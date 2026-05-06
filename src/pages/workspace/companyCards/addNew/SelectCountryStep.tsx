@@ -89,7 +89,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         });
-    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues, (item) => item.value);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
     const filteredCountries = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const searchResults = filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value}));
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';

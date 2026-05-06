@@ -56,7 +56,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             }),
         [translate, currentCountry],
     );
-    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues, (item) => item.value);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 

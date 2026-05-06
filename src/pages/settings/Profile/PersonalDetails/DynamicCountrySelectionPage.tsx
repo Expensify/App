@@ -45,7 +45,7 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
         [translate, currentCountry],
     );
 
-    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues, (item) => item.value);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
 
     const selectCountry = useCallback(

@@ -20,7 +20,7 @@ function ValueSelectionList({
 
     const options = useMemo(() => {
         const mappedOptions = items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''}));
-        const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : [], (item) => item.value);
+        const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
 
         return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));
     }, [initialSelectedValue, items, selectedItem?.value]);
