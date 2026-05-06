@@ -392,6 +392,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
+                hasCreatedActionAdded={shouldAddCreatedAction}
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}

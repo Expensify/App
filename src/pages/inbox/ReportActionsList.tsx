@@ -53,8 +53,11 @@ function ReportActionsList() {
         return () => cancelAnimationFrame(requestedFrame);
     }, []);
 
-    if (isDeferred || !report || shouldWaitForTransactions) {
-        return <ReportActionsSkeletonView shouldDelay />;
+    if (isDeferred) {
+        return null
+    }
+    if (!report || shouldWaitForTransactions) {
+        return <ReportActionsSkeletonView />;
     }
 
     if (shouldDisplayMoneyRequestActionsList) {

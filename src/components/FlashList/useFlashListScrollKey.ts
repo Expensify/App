@@ -16,19 +16,9 @@ type FlashListScrollKeyProps<T> = {
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
-
-    /** Whether the list should initially render from the bottom. */
-    startRenderingFromBottom?: boolean;
 };
 
-export default function useFlashListScrollKey<T>({
-    data,
-    keyExtractor,
-    initialScrollKey,
-    onStartReached,
-    shouldMaintainVisibleContentPosition,
-    startRenderingFromBottom,
-}: FlashListScrollKeyProps<T>) {
+export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, shouldMaintainVisibleContentPosition}: FlashListScrollKeyProps<T>) {
     const [isInitialRender, setIsInitialRender] = useState(true);
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
 
@@ -46,10 +36,7 @@ export default function useFlashListScrollKey<T>({
         });
     }, [isInitialRender, initialScrollKey]);
 
-    const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = {
-        disabled: !shouldMaintainVisibleContentPosition && hasLinkingSettled,
-        startRenderingFromBottom,
-    };
+    const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = {disabled: !shouldMaintainVisibleContentPosition && hasLinkingSettled};
 
     if (!isInitialRender || !initialScrollKey) {
         return {displayedData: data, onStartReached, maintainVisibleContentPosition};

@@ -1,5 +1,5 @@
 import type GetShowScrollIndicator from './types';
 
-const getShowScrollIndicator: GetShowScrollIndicator = () => true;
+const getShowScrollIndicator: GetShowScrollIndicator = (shouldScrollToEndAfterLayout) => !shouldScrollToEndAfterLayout;
 
 export default getShowScrollIndicator;

@@ -20,27 +20,15 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
-
-    /** Whether the list should initially render from the bottom. */
-    startRenderingFromBottom?: boolean;
 };
 
-function InvertedFlashList<T>({
-    data,
-    keyExtractor,
-    initialScrollKey,
-    onStartReached: onStartReachedProp,
-    shouldMaintainVisibleContentPosition,
-    startRenderingFromBottom,
-    ...restProps
-}: InvertedFlashListProps<T>) {
+function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, shouldMaintainVisibleContentPosition, ...restProps}: InvertedFlashListProps<T>) {
     const {displayedData, onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         onStartReached: onStartReachedProp,
         shouldMaintainVisibleContentPosition,
-        startRenderingFromBottom,
     });
 
     return (

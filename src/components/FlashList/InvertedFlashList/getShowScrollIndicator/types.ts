@@ -1,3 +1,3 @@
-type GetShowScrollIndicator = () => boolean;
+type GetShowScrollIndicator = (shouldScrollToEndAfterLayout: boolean) => boolean;
 
 export default GetShowScrollIndicator;
