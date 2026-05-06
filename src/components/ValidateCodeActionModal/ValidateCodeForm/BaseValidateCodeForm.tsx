@@ -1,7 +1,7 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, InteractionManager, View} from 'react-native';
+import {AccessibilityInfo, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -22,6 +22,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -119,6 +121,7 @@ function BaseValidateCodeForm({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
@@ -177,25 +180,39 @@ function BaseValidateCodeForm({
                 return;
             }
 
-            // Wait for in-flight interactions (animations) to finish, then ensure the app
-            // window has focus before focusing the input.  On Android this is essential —
-            // the soft keyboard only appears when the window is focused (see Android docs
-            // for showSoftInput).  `isWindowReadyToFocus` is a no-op on other platforms.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
+            // Wait for the screen transition to finish, then ensure the app window has
+            // focus before focusing the input.  On Android the soft keyboard only appears
+            // when the window is focused (see Android docs for `showSoftInput`).
+            // `isWindowReadyToFocus` is a no-op on iOS and web.
+            let didFocus = false;
+            const focusOnce = () => {
+                if (didFocus) {
+                    return;
+                }
+                didFocus = true;
                 isWindowReadyToFocus().then(() => {
                     inputValidateCodeRef.current?.focusLastSelected();
                 });
-            });
+            };
 
-            return () => {
-                focusTaskHandle.cancel();
-                if (!focusTimeoutRef.current) {
+            const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
+                if (event?.data?.closing) {
                     return;
                 }
-                clearTimeout(focusTimeoutRef.current);
+                focusOnce();
+            });
+
+            // Fallback in case `transitionEnd` does not fire (e.g. when the screen is
+            // already focused while this effect runs).
+            focusTimeoutRef.current = setTimeout(focusOnce, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+            return () => {
+                unsubscribeTransitionEnd?.();
+                if (focusTimeoutRef.current) {
+                    clearTimeout(focusTimeoutRef.current);
+                }
             };
-        }, []),
+        }, [navigation]),
     );
 
     useEffect(() => {
