@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useState} from 'react';
 import type {ReactNode} from 'react';
-import useControllableState from '@hooks/useControllableState';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RootActionsContext, RootStateContext} from './RootContext';
@@ -9,16 +8,15 @@ import type {ActiveAnchor, AnchorRef, RootActions, RootState} from './RootContex
 
 type RootProps = {
     children: ReactNode;
-    /** Escape hatch for callers that open without a `<Trigger>` (e.g. KYC flow, Onyx-derived state). */
+    /** Escape hatch for callers that drive the popover without `usePopoverTrigger()` (e.g. KYC flow). */
     anchorRef?: AnchorRef;
-    open?: boolean;
+    /** Initial visibility — uncontrolled. Used mainly by tests; production callers open via `usePopoverTrigger()`. */
     defaultOpen?: boolean;
-    onOpenChange?: (open: boolean) => void;
 };
 
-/** Supports both controlled (`open`/`onOpenChange`) and uncontrolled (`defaultOpen`) modes — Radix `DropdownMenu.Root` pattern. */
-function Root({children, anchorRef, open, defaultOpen = false, onOpenChange}: RootProps): React.ReactElement {
-    const [isVisible, setIsVisible] = useControllableState({value: open, defaultValue: defaultOpen, onChange: onOpenChange});
+/** Uncontrolled by design — the popover owns its own visibility. Observe via `useIsPopoverVisible()`. */
+function Root({children, anchorRef, defaultOpen = false}: RootProps): React.ReactElement {
+    const [isVisible, setIsVisible] = useState(defaultOpen);
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
 
     // Close when a non-popover alert modal is about to cover us. Render-phase auto-correction

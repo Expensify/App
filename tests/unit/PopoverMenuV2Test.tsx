@@ -1,5 +1,5 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
@@ -87,13 +87,36 @@ jest.mock('@react-navigation/native', () => ({
     },
 }));
 
-const mockModalState: {value: {willAlertModalBecomeVisible?: boolean; isPopover?: boolean} | undefined} = {value: undefined};
-jest.mock('@hooks/useOnyx', () => () => [mockModalState.value, {status: 'loaded'}]);
+const mockModalState: {
+    value: {willAlertModalBecomeVisible?: boolean; isPopover?: boolean} | undefined;
+    listeners: Set<() => void>;
+} = {value: undefined, listeners: new Set()};
+jest.mock('@hooks/useOnyx', () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
+    const ReactActual = jest.requireActual('react');
+    return () => {
+        const [, force] = ReactActual.useState({});
+        ReactActual.useEffect(() => {
+            const listener = () => force({});
+            mockModalState.listeners.add(listener);
+            return () => mockModalState.listeners.delete(listener);
+        }, []);
+        return [mockModalState.value, {status: 'loaded'}];
+    };
+});
+
+function setMockModal(value: typeof mockModalState.value): void {
+    mockModalState.value = value;
+    for (const fn of mockModalState.listeners) {
+        fn();
+    }
+}
 
 beforeEach(() => {
     menuItemPropsCapture.current = [];
     mockFocusState.cleanup = undefined;
     mockModalState.value = undefined;
+    mockModalState.listeners.clear();
     jest.clearAllMocks();
 });
 
@@ -121,29 +144,21 @@ function AutoSetAnchor() {
     return <View ref={ref} />;
 }
 
-/** Drives `<Root>` via the controlled `open`/`onOpenChange` props. */
-function ControlledHarness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
-    const [open, setOpen] = useState(initialOpen);
-    const handleOpenChange = (next: boolean) => {
-        setOpen(next);
-        onOpenChange?.(next);
-    };
-    return (
-        <PopoverMenu.Root
-            open={open}
-            onOpenChange={handleOpenChange}
-        >
-            <AutoSetAnchor />
-            {children}
-        </PopoverMenu.Root>
-    );
+/** Reads `useIsPopoverVisible` and forwards transitions to a parent callback — replaces v1's `onOpenChange` prop in tests. */
+function VisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
+    const isVisible = PopoverMenu.useIsPopoverVisible();
+    useEffect(() => {
+        onChange(isVisible);
+    }, [isVisible, onChange]);
+    return null;
 }
 
-/** Drives `<Root>` via `defaultOpen` (uncontrolled). */
-function UncontrolledHarness({defaultOpen = false, children}: PropsWithChildren<{defaultOpen?: boolean}>) {
+/** v2 is uncontrolled-only; `onOpenChange` here is a test-side observer of `useIsPopoverVisible`, not a prop on Root. */
+function Harness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
     return (
-        <PopoverMenu.Root defaultOpen={defaultOpen}>
+        <PopoverMenu.Root defaultOpen={initialOpen}>
             <AutoSetAnchor />
+            {onOpenChange ? <VisibilityObserver onChange={onOpenChange} /> : null}
             {children}
         </PopoverMenu.Root>
     );
@@ -153,42 +168,42 @@ describe('PopoverMenu V2', () => {
     describe('Root', () => {
         it('renders nothing when closed', () => {
             render(
-                <ControlledHarness>
+                <Harness>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="Hidden"
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle('Hidden')).toBeUndefined();
         });
 
         it('renders Content when open', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="Visible"
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle('Visible')).toBeDefined();
         });
 
         it('mounts visible with `defaultOpen` (uncontrolled)', () => {
             render(
-                <UncontrolledHarness defaultOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="Default"
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </UncontrolledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle('Default')).toBeDefined();
         });
@@ -196,7 +211,7 @@ describe('PopoverMenu V2', () => {
         it('closes on screen blur via useFocusEffect cleanup', () => {
             const onOpenChange = jest.fn();
             render(
-                <ControlledHarness
+                <Harness
                     initialOpen
                     onOpenChange={onOpenChange}
                 >
@@ -206,7 +221,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             onOpenChange.mockClear();
             act(() => mockFocusState.cleanup?.());
@@ -215,68 +230,50 @@ describe('PopoverMenu V2', () => {
 
         it('closes when a non-popover modal is about to become visible', () => {
             const onOpenChange = jest.fn();
-            function Harness() {
-                const [open, setOpen] = useState(true);
-                const handleOpenChange = (next: boolean) => {
-                    setOpen(next);
-                    onOpenChange(next);
-                };
-                return (
-                    <PopoverMenu.Root
-                        open={open}
-                        onOpenChange={handleOpenChange}
-                    >
-                        <AutoSetAnchor />
-                        <PopoverMenu.Content>
-                            <PopoverMenu.Item
-                                text="A"
-                                onSelect={() => {}}
-                            />
-                        </PopoverMenu.Content>
-                    </PopoverMenu.Root>
-                );
-            }
-            const {rerender} = render(<Harness />);
+            const tree = (
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>
+            );
+            render(tree);
             onOpenChange.mockClear();
-            mockModalState.value = {willAlertModalBecomeVisible: true, isPopover: false};
-            rerender(<Harness />);
+            act(() => setMockModal({willAlertModalBecomeVisible: true, isPopover: false}));
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
         it('does not close when the covering modal is itself a popover', () => {
             const onOpenChange = jest.fn();
-            function Harness() {
-                const [open, setOpen] = useState(true);
-                const handleOpenChange = (next: boolean) => {
-                    setOpen(next);
-                    onOpenChange(next);
-                };
-                return (
-                    <PopoverMenu.Root
-                        open={open}
-                        onOpenChange={handleOpenChange}
-                    >
-                        <AutoSetAnchor />
-                        <PopoverMenu.Content>
-                            <PopoverMenu.Item
-                                text="A"
-                                onSelect={() => {}}
-                            />
-                        </PopoverMenu.Content>
-                    </PopoverMenu.Root>
-                );
-            }
-            const {rerender} = render(<Harness />);
+            const tree = (
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>
+            );
+            render(tree);
             onOpenChange.mockClear();
-            mockModalState.value = {willAlertModalBecomeVisible: true, isPopover: true};
-            rerender(<Harness />);
+            act(() => setMockModal({willAlertModalBecomeVisible: true, isPopover: true}));
             expect(onOpenChange).not.toHaveBeenCalled();
         });
 
         // Event-coord callers like VideoPopoverMenu drive Root with anchorPosition only — anchorPosition alone must be sufficient.
         it('renders with anchorPosition only (no Trigger, no Root anchorRef)', () => {
             render(
-                <PopoverMenu.Root open>
+                <PopoverMenu.Root defaultOpen>
                     <PopoverMenu.Content anchorPosition={{horizontal: 100, vertical: 200}}>
                         <PopoverMenu.Item
                             text="Anchored by coords"
@@ -335,9 +332,9 @@ describe('PopoverMenu V2', () => {
                 return null;
             }
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <Probe />
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(captured.at(-1)).toBe(true);
         });
@@ -349,9 +346,9 @@ describe('PopoverMenu V2', () => {
                 return null;
             }
             render(
-                <ControlledHarness>
+                <Harness>
                     <Probe />
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(captured.at(-1)).toBe(false);
         });
@@ -361,14 +358,14 @@ describe('PopoverMenu V2', () => {
         it('fires onSelect when pressed', () => {
             const onSelect = jest.fn();
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="Pay"
                             onSelect={onSelect}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             press('Pay');
             expect(onSelect).toHaveBeenCalledTimes(1);
@@ -377,7 +374,7 @@ describe('PopoverMenu V2', () => {
         it('closes the menu by default after onSelect', () => {
             const onOpenChange = jest.fn();
             render(
-                <ControlledHarness
+                <Harness
                     initialOpen
                     onOpenChange={onOpenChange}
                 >
@@ -387,7 +384,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             onOpenChange.mockClear();
             press('Pay');
@@ -397,7 +394,7 @@ describe('PopoverMenu V2', () => {
         it('keeps the menu open when onSelect calls event.preventDefault()', () => {
             const onOpenChange = jest.fn();
             render(
-                <ControlledHarness
+                <Harness
                     initialOpen
                     onOpenChange={onOpenChange}
                 >
@@ -407,7 +404,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={(event) => event.preventDefault()}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             onOpenChange.mockClear();
             press('Stay');
@@ -417,7 +414,7 @@ describe('PopoverMenu V2', () => {
         it('skips onSelect when disabled', () => {
             const onSelect = jest.fn();
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="Disabled"
@@ -425,7 +422,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={onSelect}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             press('Disabled');
             expect(onSelect).not.toHaveBeenCalled();
@@ -434,14 +431,14 @@ describe('PopoverMenu V2', () => {
         it('still closes the menu when no onSelect is provided', () => {
             const onOpenChange = jest.fn();
             render(
-                <ControlledHarness
+                <Harness
                     initialOpen
                     onOpenChange={onOpenChange}
                 >
                     <PopoverMenu.Content>
                         <PopoverMenu.Item text="Plain" />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             onOpenChange.mockClear();
             press('Plain');
@@ -450,7 +447,7 @@ describe('PopoverMenu V2', () => {
 
         it('does not mark the last item as focused when no row is focused', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="A"
@@ -465,7 +462,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle<{focused?: boolean}>('A')?.focused).toBe(false);
             expect(findItemByTitle<{focused?: boolean}>('B')?.focused).toBe(false);
@@ -476,7 +473,7 @@ describe('PopoverMenu V2', () => {
     describe('CheckmarkItem', () => {
         it('renders the check when isSelected', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.CheckmarkItem
                             text="Wallet"
@@ -484,7 +481,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean; isSelected?: boolean}>('Wallet');
             expect(item?.shouldShowRightIcon).toBe(true);
@@ -494,14 +491,14 @@ describe('PopoverMenu V2', () => {
 
         it('does not render the check when isSelected is false', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.CheckmarkItem
                             text="Wallet"
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean; isSelected?: boolean}>('Wallet');
             expect(item?.shouldShowRightIcon).toBe(false);
@@ -513,7 +510,7 @@ describe('PopoverMenu V2', () => {
             const onSelect = jest.fn();
             const onOpenChange = jest.fn();
             render(
-                <ControlledHarness
+                <Harness
                     initialOpen
                     onOpenChange={onOpenChange}
                 >
@@ -523,7 +520,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={onSelect}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             onOpenChange.mockClear();
             press('Pick');
@@ -534,7 +531,7 @@ describe('PopoverMenu V2', () => {
         it('replaces the check with rightIcon when supplied (selected)', () => {
             const customRightIcon = jest.fn();
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.CheckmarkItem
                             text="Override"
@@ -543,7 +540,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean}>('Override');
             expect(item?.shouldShowRightIcon).toBe(true);
@@ -553,7 +550,7 @@ describe('PopoverMenu V2', () => {
         it('renders rightIcon (no check) when not selected', () => {
             const customRightIcon = jest.fn();
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.CheckmarkItem
                             text="Plain"
@@ -561,7 +558,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             const item = findItemByTitle<{iconRight?: unknown; shouldShowRightIcon?: boolean}>('Plain');
             expect(item?.shouldShowRightIcon).toBe(true);
@@ -571,7 +568,7 @@ describe('PopoverMenu V2', () => {
         it('skips onSelect when disabled', () => {
             const onSelect = jest.fn();
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.CheckmarkItem
                             text="Disabled"
@@ -580,7 +577,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={onSelect}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             press('Disabled');
             expect(onSelect).not.toHaveBeenCalled();
@@ -590,7 +587,7 @@ describe('PopoverMenu V2', () => {
     describe('Label', () => {
         it('renders a non-interactive row', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Label text="Section heading" />
                         <PopoverMenu.Item
@@ -598,7 +595,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle<{interactive?: boolean}>('Section heading')?.interactive).toBe(false);
             expect(findItemByTitle('Below')).toBeDefined();
@@ -608,7 +605,7 @@ describe('PopoverMenu V2', () => {
     describe('Header', () => {
         it('renders at the root level', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Item
@@ -616,14 +613,14 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(screen.getByText('Pick a payment')).toBeTruthy();
         });
 
         it('hides once a sub is entered', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Sub>
@@ -636,7 +633,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(screen.getByText('Pick a payment')).toBeTruthy();
             press('Pay as business');
@@ -646,7 +643,7 @@ describe('PopoverMenu V2', () => {
 
     describe('Sub', () => {
         const renderTwoLevelMenu = () => (
-            <ControlledHarness initialOpen>
+            <Harness initialOpen>
                 <PopoverMenu.Content>
                     <PopoverMenu.Item
                         text="Top 1"
@@ -666,7 +663,7 @@ describe('PopoverMenu V2', () => {
                         onSelect={() => {}}
                     />
                 </PopoverMenu.Content>
-            </ControlledHarness>
+            </Harness>
         );
 
         it('shows top-level items + SubTrigger when no sub is entered', () => {
@@ -699,7 +696,7 @@ describe('PopoverMenu V2', () => {
         it('selecting a sub item closes the menu by default', () => {
             const onOpenChange = jest.fn();
             render(
-                <ControlledHarness
+                <Harness
                     initialOpen
                     onOpenChange={onOpenChange}
                 >
@@ -714,7 +711,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             press('Sub');
             onOpenChange.mockClear();
@@ -723,11 +720,10 @@ describe('PopoverMenu V2', () => {
         });
 
         it('resets to top level when the menu closes via item selection and reopens', () => {
-            // Remounting `<Root>` (key bump) is the strict-uncontrolled equivalent of toggling
-            // `open` from outside: tear down nav state and rebuild, so the next open lands at root.
-            function Harness({remountKey}: {remountKey: number}) {
+            // Remounting `<Root>` (key bump) tears down nav state — the test's substitute for a "close + reopen" cycle.
+            function RemountingHarness({remountKey}: {remountKey: number}) {
                 return (
-                    <ControlledHarness
+                    <Harness
                         key={remountKey}
                         initialOpen
                     >
@@ -742,16 +738,16 @@ describe('PopoverMenu V2', () => {
                                 </PopoverMenu.Sub.Content>
                             </PopoverMenu.Sub>
                         </PopoverMenu.Content>
-                    </ControlledHarness>
+                    </Harness>
                 );
             }
 
-            const tree = render(<Harness remountKey={1} />);
+            const tree = render(<RemountingHarness remountKey={1} />);
             press('Open Sub');
             expect(findItemByTitle('Choose')).toBeDefined();
 
             menuItemPropsCapture.current = [];
-            tree.rerender(<Harness remountKey={2} />);
+            tree.rerender(<RemountingHarness remountKey={2} />);
 
             expect(findItemByTitle('Open Sub')).toBeDefined();
             expect(findItemByTitle('Choose')).toBeUndefined();
@@ -759,7 +755,7 @@ describe('PopoverMenu V2', () => {
 
         it('renders a nested SubTrigger when its parent sub is the active level', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="A">
                             <PopoverMenu.Sub.Trigger text="Open A" />
@@ -780,7 +776,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
 
             expect(findItemByTitle('Open A')).toBeDefined();
@@ -806,7 +802,7 @@ describe('PopoverMenu V2', () => {
         it('pops to parent when an active <Sub> unmounts mid-flight', () => {
             function SubMenuWithToggle({showSub}: {showSub: boolean}) {
                 return (
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Content>
                             <PopoverMenu.Item
                                 text="Top"
@@ -824,7 +820,7 @@ describe('PopoverMenu V2', () => {
                                 </PopoverMenu.Sub>
                             )}
                         </PopoverMenu.Content>
-                    </ControlledHarness>
+                    </Harness>
                 );
             }
 
@@ -842,7 +838,7 @@ describe('PopoverMenu V2', () => {
         it('cascades back to root when both a nested <Sub> and its parent unmount together', () => {
             function NestedTree({showSubs}: {showSubs: boolean}) {
                 return (
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Content>
                             <PopoverMenu.Item
                                 text="Top"
@@ -865,7 +861,7 @@ describe('PopoverMenu V2', () => {
                                 </PopoverMenu.Sub>
                             )}
                         </PopoverMenu.Content>
-                    </ControlledHarness>
+                    </Harness>
                 );
             }
 
@@ -888,7 +884,7 @@ describe('PopoverMenu V2', () => {
             }
 
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub>
                             <PopoverMenu.Sub.Trigger text="Trigger" />
@@ -901,7 +897,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
 
             // Custom content would otherwise leak — built-in Items self-gate, this doesn't.
@@ -924,7 +920,7 @@ describe('PopoverMenu V2', () => {
             }
 
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
                             <PopoverMenu.Sub.Trigger text="Outer" />
@@ -942,7 +938,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
 
             press('Outer');
@@ -963,7 +959,7 @@ describe('PopoverMenu V2', () => {
             }
 
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
                             <PopoverMenu.Sub.Trigger text="Open outer" />
@@ -981,7 +977,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
 
             press('Open outer');
@@ -994,7 +990,7 @@ describe('PopoverMenu V2', () => {
 
         it('resets focus when entering a submenu', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="Above"
@@ -1010,7 +1006,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
 
             const trigger = findItemByTitle<{onFocus?: () => void}>('Trigger');
@@ -1024,7 +1020,7 @@ describe('PopoverMenu V2', () => {
         it('resets focus when an active sub unmounts mid-flight', () => {
             function SubMenuWithToggle({showSub}: {showSub: boolean}) {
                 return (
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Content>
                             <PopoverMenu.Item
                                 text="Outer-A"
@@ -1050,7 +1046,7 @@ describe('PopoverMenu V2', () => {
                                 </PopoverMenu.Sub>
                             )}
                         </PopoverMenu.Content>
-                    </ControlledHarness>
+                    </Harness>
                 );
             }
 
@@ -1077,7 +1073,7 @@ describe('PopoverMenu V2', () => {
     describe('Separator', () => {
         it('renders at the top level', () => {
             const tree = render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Item
                             text="A"
@@ -1089,7 +1085,7 @@ describe('PopoverMenu V2', () => {
                             onSelect={() => {}}
                         />
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle('A')).toBeDefined();
             expect(findItemByTitle('B')).toBeDefined();
@@ -1098,7 +1094,7 @@ describe('PopoverMenu V2', () => {
 
         it('hides at top level when a sub is entered', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Separator />
                         <PopoverMenu.Sub>
@@ -1111,7 +1107,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             press('Sub');
             expect(findItemByTitle('Sub')).toBeUndefined();
@@ -1122,7 +1118,7 @@ describe('PopoverMenu V2', () => {
     describe('Group', () => {
         it('keeps a Sub inside a Group navigable', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Group>
                             <PopoverMenu.Sub>
@@ -1136,7 +1132,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub>
                         </PopoverMenu.Group>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
 
             press('Open');
@@ -1145,7 +1141,7 @@ describe('PopoverMenu V2', () => {
 
         it('renders its children at the top level', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Group>
                             <PopoverMenu.Label text="Currency" />
@@ -1155,7 +1151,7 @@ describe('PopoverMenu V2', () => {
                             />
                         </PopoverMenu.Group>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             expect(findItemByTitle('Currency')).toBeDefined();
             expect(findItemByTitle('USD')).toBeDefined();
@@ -1163,7 +1159,7 @@ describe('PopoverMenu V2', () => {
 
         it('hides its children when a sub is entered', () => {
             render(
-                <ControlledHarness initialOpen>
+                <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Group>
                             <PopoverMenu.Item
@@ -1181,7 +1177,7 @@ describe('PopoverMenu V2', () => {
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
-                </ControlledHarness>,
+                </Harness>,
             );
             press('More');
             expect(findItemByTitle('USD')).toBeUndefined();
@@ -1236,12 +1232,12 @@ describe('PopoverMenu V2', () => {
         it('throws when Item is rendered outside Content', () => {
             expect(() =>
                 render(
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
                         />
-                    </ControlledHarness>,
+                    </Harness>,
                 ),
             ).toThrow(/<PopoverMenu\.Item> must be rendered inside <PopoverMenu\.Content>/);
         });
@@ -1249,11 +1245,11 @@ describe('PopoverMenu V2', () => {
         it('throws when Group is rendered outside Content', () => {
             expect(() =>
                 render(
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Group>
                             <View />
                         </PopoverMenu.Group>
-                    </ControlledHarness>,
+                    </Harness>,
                 ),
             ).toThrow(/<PopoverMenu\.Group> must be rendered inside <PopoverMenu\.Content>/);
         });
@@ -1261,11 +1257,11 @@ describe('PopoverMenu V2', () => {
         it('throws when Sub is rendered outside Content', () => {
             expect(() =>
                 render(
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Sub>
                             <PopoverMenu.Sub.Trigger text="X" />
                         </PopoverMenu.Sub>
-                    </ControlledHarness>,
+                    </Harness>,
                 ),
             ).toThrow(/<PopoverMenu\.Sub> must be rendered inside <PopoverMenu\.Content>/);
         });
@@ -1273,11 +1269,11 @@ describe('PopoverMenu V2', () => {
         it('throws when Sub.Trigger is rendered outside Sub', () => {
             expect(() =>
                 render(
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Content>
                             <PopoverMenu.Sub.Trigger text="X" />
                         </PopoverMenu.Content>
-                    </ControlledHarness>,
+                    </Harness>,
                 ),
             ).toThrow(/<PopoverMenu\.SubTrigger> must be rendered inside <PopoverMenu\.Sub>/);
         });
@@ -1285,7 +1281,7 @@ describe('PopoverMenu V2', () => {
         it('throws when Sub.Content is rendered outside Sub', () => {
             expect(() =>
                 render(
-                    <ControlledHarness initialOpen>
+                    <Harness initialOpen>
                         <PopoverMenu.Content>
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
@@ -1294,7 +1290,7 @@ describe('PopoverMenu V2', () => {
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Content>
-                    </ControlledHarness>,
+                    </Harness>,
                 ),
             ).toThrow(/<PopoverMenu\.SubContent> must be rendered inside <PopoverMenu\.Sub>/);
         });
