@@ -47,7 +47,7 @@ describe('conciergeDraftState', () => {
         expect(draft?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
         expect(draft?.reportAction.created).toBe(CREATED);
         expect(getFirstMessageHTML(draft)).toContain('<strong>world</strong>');
-        expect(getFirstMessageText(draft)).toBe('Hello, *world*!');
+        expect(getFirstMessageText(draft)).toBe('Hello, world!');
     });
 
     it('should update the same draft session when a newer sequence arrives', () => {
@@ -79,7 +79,7 @@ describe('conciergeDraftState', () => {
         );
 
         expect(staleDraft).toBe(initialDraft);
-        expect(getFirstMessageText(staleDraft)).toBe('Hello, *world*!');
+        expect(getFirstMessageText(staleDraft)).toBe('Hello, world!');
     });
 
     it('should keep the draft visible through completion and prefer finalRenderedHTML when provided', () => {
@@ -138,8 +138,12 @@ describe('conciergeDraftState', () => {
         });
 
         it('does not alter complete markdown', () => {
-            const complete = 'Hello **bold** and [link](https://example.com) and `code`';
+            const complete = 'Hello *bold* and [link](https://example.com) and `code`';
             expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        it('normalizes complete double-delimiter emphasis for ExpensiMark', () => {
+            expect(stripIncompleteMarkdown('Hello **bold** and ~~strike~~')).toBe('Hello *bold* and ~strike~');
         });
 
         // --- Links / Images ---
@@ -182,7 +186,7 @@ describe('conciergeDraftState', () => {
         });
 
         it('preserves complete bold and strips only the unclosed one', () => {
-            expect(stripIncompleteMarkdown('**done** and **broken')).toBe('**done** and ');
+            expect(stripIncompleteMarkdown('**done** and **broken')).toBe('*done* and ');
         });
 
         // --- Strikethrough (~~) ---
@@ -221,6 +225,13 @@ describe('conciergeDraftState', () => {
         });
 
         // --- Streaming integration ---
+        it('keeps complete double-delimiter bold styled without showing raw delimiters during streaming', () => {
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello **bold**!'}), REPORT_ID);
+
+            expect(getFirstMessageHTML(draft)).toContain('<strong>bold</strong>');
+            expect(getFirstMessageHTML(draft)).not.toContain('*');
+        });
+
         it('strips incomplete markdown during a streaming draft event', () => {
             const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Check [this link'}), REPORT_ID);
             // The raw '[this link' syntax should NOT appear in the rendered HTML

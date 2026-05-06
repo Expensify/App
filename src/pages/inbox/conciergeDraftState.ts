@@ -110,10 +110,30 @@ function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignored
     return text;
 }
 
+function normalizeDelimiterForExpensiMark(text: string, delimiter: string, replacement: string, ignoredRanges: MarkdownRange[] = []): string {
+    let result = '';
+
+    for (let pos = 0; pos < text.length; pos++) {
+        const isInIgnoredRange = ignoredRanges.some((range) => pos >= range.start && pos < range.end);
+        if (text.startsWith(delimiter, pos) && !isEscaped(text, pos) && !isInIgnoredRange) {
+            result += replacement;
+            pos += delimiter.length - 1;
+            continue;
+        }
+
+        result += text[pos];
+    }
+
+    return result;
+}
+
 /**
  * Strips incomplete markdown constructs from the tail of a streaming markdown
  * string so that ExpensiMark doesn't render raw syntax for half-finished
- * links, bold, strikethrough, or code blocks.
+ * links, bold, strikethrough, or code blocks. Completed double-delimiter
+ * emphasis is normalized to ExpensiMark's single-delimiter syntax so the text
+ * stays styled without leaking raw delimiters while the server-rendered HTML is
+ * still pending.
  */
 function stripIncompleteMarkdown(markdown: string): string {
     if (!markdown) {
@@ -149,7 +169,13 @@ function stripIncompleteMarkdown(markdown: string): string {
 
     codeRanges = getCodeRanges(result).ranges;
     result = stripUnpairedLastLineDelimiter(result, '**', codeRanges);
+    codeRanges = getCodeRanges(result).ranges;
+    result = normalizeDelimiterForExpensiMark(result, '**', '*', codeRanges);
+
+    codeRanges = getCodeRanges(result).ranges;
     result = stripUnpairedLastLineDelimiter(result, '~~', codeRanges);
+    codeRanges = getCodeRanges(result).ranges;
+    result = normalizeDelimiterForExpensiMark(result, '~~', '~', codeRanges);
 
     return result;
 }
