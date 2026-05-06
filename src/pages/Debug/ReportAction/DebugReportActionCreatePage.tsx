@@ -1,5 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -50,8 +48,6 @@ function DebugReportActionCreatePage({
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -122,8 +118,6 @@ function DebugReportActionCreatePage({
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
-                                    userWalletTierName={userWalletTierName}
-                                    isUserValidated={isUserValidated}
                                     personalDetails={personalDetailsList}
                                     userBillingFundID={userBillingFundID}
                                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

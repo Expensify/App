@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -24,7 +25,6 @@ function setCodesAreCopied() {
 
 function quitAndNavigateBack(backTo?: Route) {
     Navigation.goBack(backTo);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
 }
 

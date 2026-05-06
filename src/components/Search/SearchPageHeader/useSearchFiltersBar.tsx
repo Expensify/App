@@ -41,6 +41,7 @@ import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
 type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+    onClosePress: () => void;
 };
 
 type UseSearchFiltersBarResult = {
@@ -61,6 +62,7 @@ const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([
     FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
+    FILTER_KEYS.KEYWORD,
 ]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
@@ -121,6 +123,13 @@ function makeDateFilterItem(
             />
         ),
         sentryLabel: getFilterSentryLabel(filterKey),
+        onClosePress: () =>
+            updateFilterForm({
+                [`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`]: undefined,
+                [`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`]: undefined,
+                [`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: undefined,
+                [`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`]: undefined,
+            }),
     };
 }
 
@@ -146,6 +155,12 @@ function makeAmountFilterItem(
             />
         ),
         sentryLabel: getFilterSentryLabel(filterKey),
+        onClosePress: () =>
+            updateFilterForm({
+                [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`]: undefined,
+                [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: undefined,
+                [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]: undefined,
+            }),
     };
 }
 
@@ -202,19 +217,29 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 
         if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
             return {
-                PopoverComponent: ({closeOverlay}) => (
+                PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
                     <ReportFieldPopup
                         closeOverlay={closeOverlay}
+                        setPopoverWidth={setPopoverWidth}
                         updateFilterForm={updateFilterForm}
                     />
                 ),
                 sentryLabel: getFilterSentryLabel(filterKey),
+                onClosePress: () => {
+                    const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
+                        if (curr.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                            acc[curr as SearchAdvancedFiltersKey] = undefined;
+                        }
+                        return acc;
+                    }, {} as Partial<SearchAdvancedFiltersForm>);
+                    updateFilterForm(formValues);
+                },
             };
         }
 
         const label = FILTER_LABEL_MAP[filterKey];
         if (!label) {
-            return {PopoverComponent: () => null};
+            return {PopoverComponent: () => null, onClosePress: () => {}};
         }
 
         switch (filterKey) {
@@ -238,6 +263,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             }
             case FILTER_KEYS.CARD_ID: {
@@ -250,6 +276,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             }
             case FILTER_KEYS.FEED: {
@@ -262,12 +289,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             }
             case FILTER_KEYS.MERCHANT:
             case FILTER_KEYS.DESCRIPTION:
             case FILTER_KEYS.REPORT_ID:
-            case FILTER_KEYS.KEYWORD:
             case FILTER_KEYS.TITLE:
             case FILTER_KEYS.WITHDRAWAL_ID: {
                 return {
@@ -281,6 +308,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             }
             case FILTER_KEYS.CURRENCY:
@@ -299,6 +327,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             }
             case FILTER_KEYS.BILLABLE:
@@ -316,7 +345,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         onChange={(item) => updateFilterForm({[filterKey]: item?.value})}
                     />
                 );
-                return {PopoverComponent: singleSelectComponent, sentryLabel: getFilterSentryLabel(filterKey)};
+                return {PopoverComponent: singleSelectComponent, sentryLabel: getFilterSentryLabel(filterKey), onClosePress: () => updateFilterForm({[filterKey]: undefined})};
             }
             case FILTER_KEYS.HAS:
             case FILTER_KEYS.IS:
@@ -349,7 +378,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     />
                 );
 
-                return {PopoverComponent: multiSelectComponent, sentryLabel: getFilterSentryLabel(filterKey)};
+                return {PopoverComponent: multiSelectComponent, sentryLabel: getFilterSentryLabel(filterKey), onClosePress: () => updateFilterForm({[filterKey]: undefined})};
             }
             case FILTER_KEYS.ASSIGNEE:
             case FILTER_KEYS.ATTENDEE:
@@ -369,6 +398,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             case FILTER_KEYS.POLICY_ID:
                 return {
@@ -380,10 +410,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
+                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
                 };
             default:
                 // This should be unreachable
-                return {PopoverComponent: () => null};
+                return {PopoverComponent: () => null, onClosePress: () => {}};
         }
     });
 

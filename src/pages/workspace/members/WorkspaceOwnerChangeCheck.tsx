@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ type WorkspaceOwnerChangeCheckProps = {
 function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [displayTexts, setDisplayTexts] = useState({
         title: '',
@@ -46,9 +48,9 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        const texts = getOwnershipChecksDisplayText(error, translate, policy, userPersonalDetails?.login);
+        const texts = getOwnershipChecksDisplayText(error, translate, convertToDisplayString, policy, userPersonalDetails?.login);
         setDisplayTexts(texts);
-    }, [error, userPersonalDetails?.login, policy, translate]);
+    }, [error, userPersonalDetails?.login, policy, translate, convertToDisplayString]);
 
     useEffect(() => {
         updateDisplayTexts();

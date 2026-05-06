@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
@@ -108,7 +109,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const hideModalAndReset = () => {
         setIsErrorModalVisible(false);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             reset();
         });
@@ -382,7 +382,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // the error modal is dismissed before opening the attachment modal
         if (isValidatingReceipts === false && fileError) {
             setIsErrorModalVisible(false);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);
