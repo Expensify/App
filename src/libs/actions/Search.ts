@@ -1321,25 +1321,29 @@ function getPayOption(
             ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
             : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
+    const selectedCurrencies =
+        selectedReports.length > 0 ? selectedReports.map((report) => report.currency) : transactionKeys.map((transactionIDKey) => selectedTransactions[transactionIDKey].currency);
+
+    const hasMixedCurrencies = new Set(selectedCurrencies).size > 1;
+
     const shouldShowBulkPayOption =
         selectedReports.length > 0
             ? selectedReports.every(
                   (report) =>
                       report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
                       getReportType(report.reportID) === getReportType(firstReport?.reportID) &&
-                      report.currency === firstReport?.currency &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID) &&
-                      selectedTransactions[transactionIDKey].currency === firstTransaction?.currency,
+                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
               );
 
     return {
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
+        hasMixedCurrencies,
     };
 }
 

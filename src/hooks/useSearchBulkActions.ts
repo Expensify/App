@@ -334,13 +334,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
 
+    const selectedCurrencies = selectedReports.length > 0 ? selectedReports.map((report) => report.currency) : Object.values(selectedTransactions).map((transaction) => transaction.currency);
+    const hasMixedCurrencies = new Set(selectedCurrencies).size > 1;
+
     const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
-        onlyShowPayElsewhere,
+        onlyShowPayElsewhere: onlyShowPayElsewhere || hasMixedCurrencies,
     });
 
     const {status, hash} = queryJSON ?? {};
