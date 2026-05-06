@@ -77,11 +77,11 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 return;
             }
             setIssueNewCardStepAndData({
-                step: isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.SPEND_RULES : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
+                step: CONST.EXPENSIFY_CARD.STEP.SPEND_RULES,
                 policyID,
             });
         });
-    }, [isEditing, isVirtualCard, policyID]);
+    }, [isEditing, policyID]);
 
     return (
         <InteractiveStepWrapper
