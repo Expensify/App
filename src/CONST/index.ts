@@ -3709,6 +3709,8 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'certinia',
+                RILLET: 'rillet',
+                CAMPFIRE: 'campfire',
                 GUSTO: 'gusto',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
@@ -3724,6 +3726,8 @@ const CONST = {
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
+                RILLET: 'rillet',
+                CAMPFIRE: 'campfire',
                 GUSTO: 'gusto',
             },
             NAME_USER_FRIENDLY: {
@@ -3734,6 +3738,8 @@ const CONST = {
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
                 certinia: 'Certinia',
+                rillet: 'Rillet',
+                campfire: 'Campfire',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
@@ -3743,7 +3749,7 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.CAMPFIRE] as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO] as const;
@@ -6099,6 +6105,8 @@ const CONST = {
         SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
+    RILLET_INTEGRATION_URL: 'https://www.rillet.com/integrations/expensify',
+    CAMPFIRE_INTEGRATION_URL: 'https://campfire.ai/integrations',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',

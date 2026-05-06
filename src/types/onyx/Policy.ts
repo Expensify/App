@@ -1507,6 +1507,12 @@ type Connections = {
     /** Certinia integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
 
+    /** Rillet integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: Connection<Record<string, never>, Record<string, never>>;
+
+    /** Campfire integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<Record<string, never>, Record<string, never>>;
+
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 };
