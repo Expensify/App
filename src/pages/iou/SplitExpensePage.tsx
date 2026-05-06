@@ -37,7 +37,7 @@ import {
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU/SplitExpenseItems';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {buildPolicyTagListByReportID, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -217,8 +217,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
     };
-
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`] ?? {};
 
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
@@ -282,6 +282,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
+        const policyTagListByReportID = buildPolicyTagListByReportID({
+            splitExpenses,
+            allReportsList: allReports,
+            expenseReport,
+            currentUserPersonalDetails,
+            allPolicyTagsList: allPolicyTags,
+        });
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
@@ -306,11 +313,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
-            policyTags: policyTags ?? {},
+            policyTags,
             personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
+            policyTagListByReportID,
         });
     };
 

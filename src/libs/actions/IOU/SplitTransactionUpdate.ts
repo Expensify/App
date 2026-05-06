@@ -54,11 +54,66 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports, getMoneyRequestInformation, getMoneyRequestParticipantsFromReport, getMoneyRequestPolicyTags, getPolicyTagsData, getReportPreviewAction} from './index';
+import {getAllReports, getMoneyRequestInformation, getMoneyRequestParticipantsFromReport, getPolicyTagsData, getReportPreviewAction} from './index';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './index';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
+
+function buildPolicyTagListByReportID({
+    splitExpenses,
+    allReportsList,
+    expenseReport,
+    currentUserPersonalDetails,
+    allPolicyTagsList,
+}: {
+    splitExpenses: SplitExpense[];
+    allReportsList: OnyxCollection<OnyxTypes.Report>;
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    allPolicyTagsList: OnyxCollection<OnyxTypes.PolicyTagLists>;
+}): Record<string, OnyxTypes.PolicyTagLists> {
+    const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
+    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    const fallbackPolicyParticipant =
+        autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
+            ? {
+                  accountID: 0,
+                  reportID: expenseReport.chatReportID,
+                  isPolicyExpenseChat: true,
+                  selected: true,
+                  policyID: expenseReport.policyID,
+              }
+            : undefined;
+    const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
+    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
+
+    let fallbackPolicyParentChatReport = expenseReportParentChat;
+    if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
+        fallbackPolicyParentChatReport = chatReport;
+    }
+    if (!fallbackPolicyParentChatReport && fallbackPolicyParticipant) {
+        fallbackPolicyParentChatReport = {
+            reportID: fallbackPolicyParticipant.reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: fallbackPolicyParticipant.policyID,
+            ownerAccountID: expenseReport?.ownerAccountID,
+        } as OnyxTypes.Report;
+    }
+
+    return splitExpenses.reduce<Record<string, OnyxTypes.PolicyTagLists>>((acc, splitExpense) => {
+        if (!splitExpense.reportID) {
+            return acc;
+        }
+        const iouReportPolicyID =
+            (splitExpense.reportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID : undefined) ??
+            fallbackPolicyParentChatReport?.policyID ??
+            allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID ?? undefined}`]?.policyID;
+        acc[splitExpense.reportID] = allPolicyTagsList?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`] ?? {};
+        return acc;
+    }, {});
+}
 
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
@@ -90,6 +145,7 @@ type UpdateSplitTransactionsParams = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
+    policyTagListByReportID: Record<string, OnyxTypes.PolicyTagLists>;
 };
 
 function updateSplitTransactions({
@@ -117,6 +173,7 @@ function updateSplitTransactions({
     transactionReport,
     expenseReport,
     isOffline,
+    policyTagListByReportID,
 }: UpdateSplitTransactionsParams) {
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
     const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
@@ -352,6 +409,7 @@ function updateSplitTransactions({
         });
 
         const splitExpenseMerchant = splitExpense.merchant ?? '';
+        const policyTagList = splitExpense.reportID ? policyTagListByReportID[splitExpense.reportID] : undefined;
 
         const requestMoneyInformation = {
             participantParams: {
@@ -363,6 +421,7 @@ function updateSplitTransactions({
                 policy,
                 policyCategories,
                 policyTags,
+                policyTagList,
             },
             transactionParams: {
                 amount: Math.abs(originalTransaction?.amount ?? 0),
@@ -441,11 +500,7 @@ function updateSplitTransactions({
         } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
-            policyParams: {
-                ...policyParams,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                policyTagList: getMoneyRequestPolicyTags({moneyRequestReportID: splitExpense?.reportID, parentChatReport, participant: participantParams.participant}),
-            },
+            policyParams,
             transactionParams,
             moneyRequestReportID: splitExpense?.reportID,
             existingTransaction,
@@ -1377,6 +1432,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     });
 }
 
-export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
+export {buildPolicyTagListByReportID, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
 
 export type {UpdateSplitTransactionsParams};

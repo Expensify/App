@@ -6,7 +6,7 @@ import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
-import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {buildPolicyTagListByReportID, updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
@@ -148,6 +148,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const activeGroupSearchHashes =
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
+                const policyTagListByReportID = buildPolicyTagListByReportID({
+                    splitExpenses: remainingSplitExpenses,
+                    allReportsList: allReports,
+                    expenseReport,
+                    currentUserPersonalDetails,
+                    allPolicyTagsList: allPolicyTags,
+                });
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -183,6 +190,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionReport: report,
                     expenseReport,
                     isOffline,
+                    policyTagListByReportID,
                 });
             }
 
