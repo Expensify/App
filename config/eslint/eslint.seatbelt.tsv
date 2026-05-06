@@ -357,7 +357,7 @@
 "../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	30
 "../../src/pages/inbox/report/ListBoundaryLoader.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/inbox/report/PureReportActionItem.tsx"	"react-hooks/refs"	3
+"../../src/pages/inbox/report/PureReportActionItem.tsx"	"react-hooks/refs"	2
 "../../src/pages/inbox/report/PureReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions/ComposerWithSuggestions.tsx"	"react-hooks/preserve-manual-memoization"	2
