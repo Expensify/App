@@ -9,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
-import {replaceReceipt} from '@userActions/IOU/Receipt';
+import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -49,6 +49,7 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
     };
 
     const handleCapture = (file: FileObject, source: string) => {
+        setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
         replaceReceipt({transactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         navigateBack();
     };
