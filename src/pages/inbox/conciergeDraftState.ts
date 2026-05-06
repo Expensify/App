@@ -20,8 +20,82 @@ type BuildConciergeDraftReportActionParams = {
     reportID: string;
 };
 
+/**
+ * Count non-overlapping occurrences of `needle` in `haystack`.
+ */
+function countOccurrences(haystack: string, needle: string): number {
+    let count = 0;
+    let pos = 0;
+    while (true) {
+        const idx = haystack.indexOf(needle, pos);
+        if (idx === -1) {
+            break;
+        }
+        count++;
+        pos = idx + needle.length;
+    }
+    return count;
+}
+
+/**
+ * If the last line of `text` contains an odd number of `delimiter` occurrences,
+ * the final one opened a construct that was never closed. Strip from that
+ * opening delimiter to the end of the string.
+ */
+function stripUnpairedLastLineDelimiter(text: string, delimiter: string): string {
+    const lastNewline = text.lastIndexOf('\n');
+    const lastLine = text.substring(lastNewline + 1);
+    const count = countOccurrences(lastLine, delimiter);
+
+    if (count > 0 && count % 2 !== 0) {
+        return text.substring(0, text.lastIndexOf(delimiter));
+    }
+    return text;
+}
+
+/**
+ * Strips incomplete markdown constructs from the tail of a streaming markdown
+ * string so that ExpensiMark doesn't render raw syntax for half-finished
+ * links, bold, strikethrough, or code blocks.
+ */
+function stripIncompleteMarkdown(markdown: string): string {
+    if (!markdown) {
+        return markdown;
+    }
+
+    let result = markdown;
+
+    // 1. Incomplete link/image: find the last '[' and check whether a
+    //    complete [text](url) follows it. If not, strip from '[' (or '![').
+    const lastOpenBracket = result.lastIndexOf('[');
+    if (lastOpenBracket !== -1) {
+        const tail = result.substring(lastOpenBracket);
+        if (!/^\[[^\]]*\]\([^)]*\)/.test(tail)) {
+            const stripFrom = lastOpenBracket > 0 && result[lastOpenBracket - 1] === '!' ? lastOpenBracket - 1 : lastOpenBracket;
+            result = result.substring(0, stripFrom);
+        }
+    }
+
+    // 2. Unclosed bold (**) on the last line.
+    result = stripUnpairedLastLineDelimiter(result, '**');
+
+    // 3. Unclosed strikethrough (~~) on the last line.
+    result = stripUnpairedLastLineDelimiter(result, '~~');
+
+    // 4. Unclosed code block (``` spans multiple lines).
+    const codeBlockCount = countOccurrences(result, '```');
+    if (codeBlockCount % 2 !== 0) {
+        result = result.substring(0, result.lastIndexOf('```'));
+    }
+
+    // 5. Unclosed inline code (`) on the last line (after code-block handling).
+    result = stripUnpairedLastLineDelimiter(result, '`');
+
+    return result;
+}
+
 function buildConciergeDraftReportAction({bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
-    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(bodyMarkdown, {reportID}) : '');
+    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
 
     if (!html) {
         return null;
@@ -101,5 +175,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, buildConciergeDraftReportAction, getCachedDraft, setCachedDraft};
+export {applyConciergeDraftEvent, buildConciergeDraftReportAction, getCachedDraft, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};
