@@ -23,6 +23,9 @@ type AddTrackedExpenseToPolicyParams = {
     modifiedExpenseReportActionID: string;
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
+
+    /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default AddTrackedExpenseToPolicyParams;
