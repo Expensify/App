@@ -8,10 +8,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DomUtils from '@libs/DomUtils';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {OptionData} from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {OptionData} from '@src/libs/ReportUtils';
+import useLHNRowProductTrainingTooltip from './useLHNRowProductTrainingTooltip';
 
 type OptionRowPressableProps = {
     reportID: string;
@@ -19,7 +22,7 @@ type OptionRowPressableProps = {
     isOptionFocused: boolean;
     isScreenFocused: boolean;
     popoverAnchor: RefObject<View | null>;
-    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    onSelectRow: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
     onLayout?: (event: LayoutChangeEvent) => void;
     accessibilityLabel: string;
     accessibilityHint?: string;
@@ -33,13 +36,26 @@ function OptionRowPressable({
     isOptionFocused,
     isScreenFocused,
     popoverAnchor,
-    onPress,
+    onSelectRow,
     onLayout,
     accessibilityLabel,
     accessibilityHint,
     testID,
     children,
 }: OptionRowPressableProps) {
+    const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
+    const onPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        hideProductTrainingTooltip();
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+            name: 'OptionRowLHN',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+
+        event?.preventDefault();
+        // Enable Composer to focus on clicking the same chat after opening the context menu.
+        ReportActionComposeFocusManager.focus();
+        onSelectRow(optionItem, popoverAnchor);
+    };
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

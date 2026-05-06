@@ -1,13 +1,13 @@
 import React from 'react';
 import type {ColorValue, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import LHNAvatar from '@components/LHNOptionsList/LHNAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
-import LHNAvatar from './LHNAvatar';
 
 type OptionRowAvatarProps = {
     optionItem: OptionData;
@@ -18,7 +18,7 @@ type OptionRowAvatarProps = {
     singleAvatarContainerStyle: ViewStyle[];
 };
 
-function OptionRowAvatar({optionItem, report, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
+function OptionRowAvatarInner({optionItem, report, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
     const personalDetails = usePersonalDetails();
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
@@ -51,12 +51,6 @@ function OptionRowAvatar({optionItem, report, isInFocusMode, subscriptAvatarBord
         delegateTooltipAccountID = Number(optionItem.icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
     }
 
-    const firstIcon = optionItem.icons?.at(0);
-
-    if (!optionItem.icons?.length || !firstIcon) {
-        return null;
-    }
-
     return (
         <LHNAvatar
             icons={icons}
@@ -69,6 +63,25 @@ function OptionRowAvatar({optionItem, report, isInFocusMode, subscriptAvatarBord
             shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
             delegateAccountID={skipDelegate ? undefined : delegateAccountID}
             delegateTooltipAccountID={delegateTooltipAccountID}
+        />
+    );
+}
+
+OptionRowAvatarInner.displayName = 'OptionRowAvatarInner';
+
+function OptionRowAvatar({optionItem, report, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
+    // Bail out before subscribing to personal details when the row has no avatar to render.
+    if (!optionItem.icons?.length || !optionItem.icons.at(0)) {
+        return null;
+    }
+    return (
+        <OptionRowAvatarInner
+            optionItem={optionItem}
+            report={report}
+            isInFocusMode={isInFocusMode}
+            subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+            secondaryAvatarBackgroundColor={secondaryAvatarBackgroundColor}
+            singleAvatarContainerStyle={singleAvatarContainerStyle}
         />
     );
 }

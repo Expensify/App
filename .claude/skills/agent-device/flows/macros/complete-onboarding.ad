@@ -3,8 +3,8 @@
 # @post   text="Home"
 # @post   role="button" label="Search"
 # @tag    onboarding
-env FIRST_NAME=Agent
-env LAST_NAME=Device
+# @param  FIRST_NAME First name to enter on onboarding profile step.
+# @param  LAST_NAME Last name to enter on onboarding profile step.
 
 press "id=\"onboardingPrivateEmailSkipButton\" || role=\"button\" label=\"Skip\" || label=\"Skip\""
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""

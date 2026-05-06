@@ -921,11 +921,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'Liste des discussions',
         saveTheWorld: 'Sauver le monde',
         tooltip: 'Commencez ici !',
-        redirectToExpensifyClassicModal: {
-            title: 'Bientôt disponible',
-            description:
-                'Nous sommes en train d’ajuster encore quelques éléments de New Expensify pour l’adapter à votre configuration spécifique. En attendant, rendez-vous sur Expensify Classic.',
-        },
     },
     homePage: {
         forYou: 'Pour vous',
@@ -2209,12 +2204,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Votre compte est verrouillé',
         chatToConciergeToUnlock: 'Discutez avec Concierge pour résoudre vos problèmes de sécurité et déverrouiller votre compte.',
         chatWithConcierge: 'Discuter avec Concierge',
-    },
-    deviceManagementPage: {
-        title: 'Gestion des appareils',
-        description: 'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify.',
-        revoke: 'Révoquer',
-        unknownDevice: 'Appareil Inconnu',
     },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',
@@ -6484,7 +6473,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             updateToUSD: 'Mettre à jour en USD',
             updateWorkspaceCurrency: 'Mettre à jour la devise de l’espace de travail',
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
-            yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">liste des devises prises en charge</a>.`,
+            yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
         },
         changeOwner: {
@@ -7035,16 +7024,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             settingsTitle: 'Paramètres Gusto',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importation des données Gusto';
-                    case 'gustoSyncLoadCompany':
-                        return "Chargement des données de l'entreprise Gusto";
-                    case 'gustoSyncImportEmployees':
-                        return 'Importation des employés';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Création de chaînes d’approbation';
-                    case 'gustoSyncFinalize':
-                        return 'Finalisation de la synchronisation';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'En attente du chargement des données importées';
                     default: {
@@ -7058,6 +7043,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 finalApprover: 'Approbateur final',
                 connect: 'Connect',
                 connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
+                syncNow: 'Synchroniser maintenant',
+                disconnect: 'Déconnecter',
+                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+                syncError: 'Impossible de se connecter à Gusto',
+                disconnectTitle: 'Déconnecter Gusto',
+                disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
             },
         },
     },
