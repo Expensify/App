@@ -15,7 +15,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
-jest.mock('@components/SelectionList/ListItem/RadioListItem', () => jest.fn(() => null));
+jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
 
 describe('ValueSelectionList', () => {
     const mockedSelectionList = jest.mocked(SelectionList);

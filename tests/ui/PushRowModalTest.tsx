@@ -21,7 +21,7 @@ jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/Modal', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
-jest.mock('@components/SelectionList/ListItem/RadioListItem', () => jest.fn(() => null));
+jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
 jest.mock('@hooks/useDebouncedState', () =>
     jest.fn((initialValue: string) => {
         const [value, setValue] = mockUseState(initialValue);
