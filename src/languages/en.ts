@@ -1027,6 +1027,12 @@ const translations = {
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
+        yourSpend: {
+            title: 'Your spend',
+            awaitingApproval: 'Awaiting approval',
+            repaidLast30Days: 'Repaid in the last 30 days',
+            recentTransactions: ({last4}: {last4: string}) => `Recent transactions • ${last4}`,
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',

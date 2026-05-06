@@ -925,6 +925,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         assignedCards: 'Tus tarjetas Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
+        yourSpend: {
+            title: 'Tu gasto',
+            awaitingApproval: 'Pendiente de aprobación',
+            repaidLast30Days: 'Reembolsado en los últimos 30 días',
+            recentTransactions: ({last4}: {last4: string}) => `Transacciones recientes • ${last4}`,
+        },
         announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',

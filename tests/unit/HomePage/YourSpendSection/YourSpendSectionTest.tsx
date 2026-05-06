@@ -45,7 +45,7 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLay
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => ({
     ...jest.requireActual('@pages/home/YourSpendSection/useYourSpendData'),
-    default: jest.fn(() => ({
+    useYourSpendData: jest.fn(() => ({
         approvalRowState: 'loading',
         paymentRowState: 'loading',
         cardRows: [],

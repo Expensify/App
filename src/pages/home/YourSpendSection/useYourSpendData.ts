@@ -1,11 +1,20 @@
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards} from '@libs/CardUtils';
 import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {CardList} from '@src/types/onyx/Card';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import YOUR_SPEND_ROW_STATE from './const';
+import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
 
 type YourSpendRowState = ValueOf<typeof YOUR_SPEND_ROW_STATE>;
 
@@ -60,7 +69,79 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
-    throw new Error('useYourSpendData is not implemented yet.');
+    const {accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+
+    const awaitingApprovalQuery = useMemo(() => buildAwaitingApprovalQuery(accountID), [accountID]);
+    const repaidLast30DaysQuery = useMemo(() => buildRepaidLast30DaysQuery(accountID), [accountID]);
+
+    const approvalQueryJSON = useMemo(() => buildSearchQueryJSON(awaitingApprovalQuery), [awaitingApprovalQuery]);
+    const paymentQueryJSON = useMemo(() => buildSearchQueryJSON(repaidLast30DaysQuery), [repaidLast30DaysQuery]);
+
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
+    const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
+
+    const {isApprovalApplicable, isPaymentApplicable} = useMemo(() => getYourSpendApplicability(policies, cardList), [policies, cardList]);
+
+    const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+    const cardRows: YourSpendCardRow[] = useMemo(
+        () =>
+            displayableCards.map((card) => ({
+                cardID: card.cardID,
+                lastFour: card.lastFourPAN ?? '',
+                query: buildRecentCardTransactionsQuery(accountID, card.cardID),
+            })),
+        [displayableCards, accountID],
+    );
+
+    const approvalRowState = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
+    const paymentRowState = getYourSpendRowState({isApplicable: isPaymentApplicable, isOffline, searchResults: paymentSearchResults});
+
+    const fireSearches = useEffectEvent(() => {
+        if (isOffline) {
+            return;
+        }
+        if (approvalQueryJSON) {
+            search({
+                queryJSON: approvalQueryJSON,
+                searchKey: undefined,
+                offset: 0,
+                isOffline,
+                isLoading: false,
+                shouldCalculateTotals: true,
+                shouldUpdateLastSearchParams: false,
+            });
+        }
+        if (paymentQueryJSON) {
+            search({
+                queryJSON: paymentQueryJSON,
+                searchKey: undefined,
+                offset: 0,
+                isOffline,
+                isLoading: false,
+                shouldCalculateTotals: true,
+                shouldUpdateLastSearchParams: false,
+            });
+        }
+    });
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        fireSearches();
+    }, [isFocused, isOffline]);
+
+    return {
+        approvalRowState,
+        paymentRowState,
+        cardRows,
+        awaitingApprovalQuery,
+        repaidLast30DaysQuery,
+    };
 }
 
 export {YOUR_SPEND_ROW_STATE, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
