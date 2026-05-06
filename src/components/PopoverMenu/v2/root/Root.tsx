@@ -2,8 +2,6 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {RootActionsContext, RootStateContext} from './RootContext';
 import type {ActiveAnchor, RootActions, RootState} from './RootContext';
-import useCloseOnModalCover from './useCloseOnModalCover';
-import useCloseOnScreenBlur from './useCloseOnScreenBlur';
 
 type RootProps = {
     children: ReactNode;
@@ -15,9 +13,6 @@ type RootProps = {
 function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
     const [isVisible, setIsVisible] = useState(defaultOpen);
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
-
-    useCloseOnModalCover(isVisible, setIsVisible);
-    useCloseOnScreenBlur(setIsVisible);
 
     const stateValue: RootState = {
         state: {isVisible},

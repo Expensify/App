@@ -5,7 +5,7 @@ import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
-import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {computeAnchorPosition} from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,12 +61,10 @@ function BaseContent({
         state: {isVisible},
         meta: {activeAnchor},
     } = useRootState(BaseContent.displayName);
-    // Threaded into the controller so `close()` batches `setIsVisible(false)` atomically with sub/focus reset.
-    const {setIsVisible} = useRootActions(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const {navigation, focus, subActions, itemActions, close} = useContentController({isVisible, setIsVisible});
+    const {navigation, focus, subActions, itemActions, close} = useContentController(BaseContent.displayName);
 
     if (!activeAnchor) {
         return null;

@@ -1,31 +1,34 @@
-import {useState} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
+import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
 import type {ContentClose, ContentFocus, ContentItemActions, ContentNavigation, ContentSubActions} from './ContentContext';
+import useCloseOnModalCover from './useCloseOnModalCover';
+import useCloseOnScreenBlur from './useCloseOnScreenBlur';
 import useFocusableRegistry from './useFocusableRegistry';
 import useSubNavigation from './useSubNavigation';
 
-function useContentController({isVisible, setIsVisible}: {isVisible: boolean; setIsVisible: Dispatch<SetStateAction<boolean>>}): {
+function useContentController(componentName: string): {
     navigation: ContentNavigation;
     focus: ContentFocus;
     subActions: ContentSubActions;
     itemActions: ContentItemActions;
     close: ContentClose;
 } {
+    const {
+        state: {isVisible},
+    } = useRootState(componentName);
+    const {setIsVisible} = useRootActions(componentName);
+
     const focus = useFocusableRegistry({isVisible});
     // Order matters: useFocusableRegistry first so its `resetFocus` exists for `onLevelChange`.
     const subNav = useSubNavigation({onLevelChange: focus.resetFocus});
 
-    // Bound to `isVisible`, not to `close()` — catches Root-driven closes (blur, modal-cover) that bypass `close()`.
-    const [wasVisible, setWasVisible] = useState(isVisible);
-    if (wasVisible !== isVisible) {
-        setWasVisible(isVisible);
-        if (wasVisible && !isVisible) {
-            subNav.resetToRoot();
-            focus.resetFocus();
-        }
-    }
+    const close: ContentClose = () => {
+        setIsVisible(false);
+        subNav.resetToRoot();
+        focus.resetFocus();
+    };
 
-    const close: ContentClose = () => setIsVisible(false);
+    useCloseOnModalCover(isVisible, close);
+    useCloseOnScreenBlur(close);
 
     return {
         navigation: {currentSubID: subNav.currentSubID, isAncestorOfCurrent: subNav.isAncestorOfCurrent},
