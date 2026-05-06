@@ -169,7 +169,7 @@ type SearchContextData = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
-    currentSearchQueryJSON: SearchQueryJSON | undefined;
+    currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
     currentSearchResults: SearchResults | undefined;
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
@@ -179,8 +179,6 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
-    /** True when at least one transaction is selected. */
-    hasSelectedTransactions: boolean;
 };
 
 type SearchStateContextValue = SearchContextData & {
@@ -328,7 +326,7 @@ type SearchAutocompleteQueryRange = {
 };
 
 type SearchParams = {
-    queryJSON: SearchQueryJSON;
+    queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
     offset: number;
     prevReportsLength?: number;

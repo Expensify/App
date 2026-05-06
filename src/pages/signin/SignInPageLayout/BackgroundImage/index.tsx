@@ -1,4 +1,5 @@
 import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +35,6 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
