@@ -1,5 +1,4 @@
 import {useRef, useState} from 'react';
-import useOnValueChange from './useOnValueChange';
 
 type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
 
@@ -20,16 +19,15 @@ type UseSubNavigationResult = {
     resetToRoot: () => void;
 };
 
-/** Owns sub-menu navigation state and the mounted-sub registry. */
+/** Owns sub-menu navigation state. Level-change side-effects (e.g. focus reset) fire atomically per action. */
 function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubNavigationResult {
     const [currentSub, setCurrentSub] = useState<CurrentSub>(ROOT_SUB);
     const mountedSubs = useRef<Set<string>>(new Set());
 
-    useOnValueChange(currentSub.id, onLevelChange);
-
     const actions: SubNavigationActions = {
         enterSub: (id, ancestorChain) => {
             setCurrentSub({id, ancestorChain});
+            onLevelChange();
         },
         exitSub: (target = null) => {
             setCurrentSub((prev) => {
@@ -40,16 +38,19 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
                 const newChain = idx >= 0 ? prev.ancestorChain.slice(0, idx) : [];
                 return {id: target, ancestorChain: newChain};
             });
+            onLevelChange();
         },
         registerSub: (subID) => {
             mountedSubs.current.add(subID);
         },
         unregisterSub: (subID, ancestorChain) => {
             mountedSubs.current.delete(subID);
+            let movedLevel = false;
             setCurrentSub((prev) => {
                 if (prev.id !== subID) {
                     return prev;
                 }
+                movedLevel = true;
                 const newID = ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
                 if (newID === null) {
                     return ROOT_SUB;
@@ -58,6 +59,9 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
                 const newChain = idx >= 0 ? ancestorChain.slice(0, idx) : [];
                 return {id: newID, ancestorChain: newChain};
             });
+            if (movedLevel) {
+                onLevelChange();
+            }
         },
     };
 

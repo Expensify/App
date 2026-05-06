@@ -3,7 +3,7 @@ import type {ListRenderItem} from '@shopify/flash-list';
 import React from 'react';
 import type {ReactElement} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import {useAssertInsideRoot} from '@components/PopoverMenu/v2/root/RootContext';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -24,8 +24,7 @@ type VirtualizedContentProps<T> = Omit<BasePopoverProps, 'children'> & {
 
 /** Popover surface backed by FlashList. Use when the row count is genuinely unbounded (hundreds+). */
 function VirtualizedContent<T>({data, keyExtractor, renderItem, contentContainerStyle, ...rest}: VirtualizedContentProps<T>): ReactElement | null {
-    // Result discarded — attributes hierarchy violations to VirtualizedContent, not BaseContent.
-    useRootState(VirtualizedContent.displayName);
+    useAssertInsideRoot(VirtualizedContent.displayName);
     const {windowHeight} = useWindowDimensions();
     // Cap to window height (with a floor of POPOVER_MENU_MAX_HEIGHT) so FlashList has a bounded box to virtualize within.
     const maxHeightStyle = useMaxHeightStyle({

@@ -99,15 +99,24 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
-const mockFocusState: {cleanup: (() => void) | undefined} = {cleanup: undefined};
+const mockNavigationState: {blurListeners: Set<() => void>} = {blurListeners: new Set()};
 jest.mock('@react-navigation/native', () => ({
-    useFocusEffect: (callback: () => (() => void) | void) => {
-        const cleanup = callback();
-        if (typeof cleanup === 'function') {
-            mockFocusState.cleanup = cleanup;
-        }
-    },
+    useNavigation: () => ({
+        addListener: (event: string, listener: () => void) => {
+            if (event !== 'blur') {
+                return () => {};
+            }
+            mockNavigationState.blurListeners.add(listener);
+            return () => mockNavigationState.blurListeners.delete(listener);
+        },
+    }),
 }));
+
+function fireBlur(): void {
+    for (const fn of mockNavigationState.blurListeners) {
+        fn();
+    }
+}
 
 const mockModalState: {
     value: {willAlertModalBecomeVisible?: boolean; isPopover?: boolean} | undefined;
@@ -136,7 +145,7 @@ function setMockModal(value: typeof mockModalState.value): void {
 
 beforeEach(() => {
     menuItemPropsCapture.current = [];
-    mockFocusState.cleanup = undefined;
+    mockNavigationState.blurListeners.clear();
     mockModalState.value = undefined;
     mockModalState.listeners.clear();
     jest.clearAllMocks();
@@ -229,7 +238,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Default')).toBeDefined();
         });
 
-        it('closes on screen blur via useFocusEffect cleanup', () => {
+        it('closes on screen blur via navigation.addListener', () => {
             const onOpenChange = jest.fn();
             render(
                 <Harness
@@ -245,7 +254,7 @@ describe('PopoverMenu V2', () => {
                 </Harness>,
             );
             onOpenChange.mockClear();
-            act(() => mockFocusState.cleanup?.());
+            act(() => fireBlur());
             expect(onOpenChange).toHaveBeenCalledWith(false);
         });
 
@@ -289,21 +298,6 @@ describe('PopoverMenu V2', () => {
             onOpenChange.mockClear();
             act(() => setMockModal({willAlertModalBecomeVisible: true, isPopover: true}));
             expect(onOpenChange).not.toHaveBeenCalled();
-        });
-
-        // Event-coord callers like VideoPopoverMenu drive Root with anchorPosition only — anchorPosition alone must be sufficient.
-        it('renders with anchorPosition only (no Trigger, no Root anchorRef)', () => {
-            render(
-                <PopoverMenu.Root defaultOpen>
-                    <PopoverMenu.Content anchorPosition={{horizontal: 100, vertical: 200}}>
-                        <PopoverMenu.Item
-                            text="Anchored by coords"
-                            onSelect={() => {}}
-                        />
-                    </PopoverMenu.Content>
-                </PopoverMenu.Root>,
-            );
-            expect(findItemByTitle('Anchored by coords')).toBeDefined();
         });
     });
 
@@ -1081,6 +1075,42 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle<{focused?: boolean}>('Inner')?.focused).toBe(false);
         });
 
+        // Guards `Sub`'s useLayoutEffect cleanup + `ContentActions` identity stability across unrelated re-renders.
+        it('stays in the sub when focus changes inside it (re-render stability)', () => {
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="sub">
+                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Content backButtonText="Back">
+                                <PopoverMenu.Item
+                                    text="First"
+                                    onSelect={() => {}}
+                                />
+                                <PopoverMenu.Item
+                                    text="Second"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('Open');
+            expect(findItemByTitle('First')).toBeDefined();
+            expect(findItemByTitle('Second')).toBeDefined();
+            expect(findItemByTitle('Back')).toBeDefined();
+
+            // Focus change re-renders the Content tree; sub state must not collapse.
+            const second = findItemByTitle<{onFocus?: () => void}>('Second');
+            act(() => second?.onFocus?.());
+
+            expect(findItemByTitle('First')).toBeDefined();
+            expect(findItemByTitle('Second')).toBeDefined();
+            expect(findItemByTitle('Back')).toBeDefined();
+            expect(findItemByTitle('Open')).toBeUndefined();
+        });
+
         it('resets focus when an active sub unmounts mid-flight', () => {
             function SubMenuWithToggle({showSub}: {showSub: boolean}) {
                 return (
@@ -1257,9 +1287,8 @@ describe('PopoverMenu V2', () => {
                 {id: '3', label: 'Gamma'},
             ];
             render(
-                <PopoverMenu.Root defaultOpen>
+                <Harness initialOpen>
                     <PopoverMenu.VirtualizedContent
-                        anchorPosition={{horizontal: 0, vertical: 0}}
                         data={data}
                         keyExtractor={(item) => item.id}
                         renderItem={({item}) => (
@@ -1269,7 +1298,7 @@ describe('PopoverMenu V2', () => {
                             />
                         )}
                     />
-                </PopoverMenu.Root>,
+                </Harness>,
             );
             expect(findItemByTitle('Alpha')).toBeDefined();
             expect(findItemByTitle('Beta')).toBeDefined();

@@ -65,5 +65,10 @@ function useContentActions(componentName: string): ContentActions {
     return value;
 }
 
-export {ContentNavigationContext, ContentFocusContext, ContentActionsContext, useContentNavigation, useContentFocus, useContentActions};
+/** Hierarchy throw for passthrough components that touch no Content state. */
+function useAssertInsideContent(componentName: string): void {
+    useContentActions(componentName);
+}
+
+export {ContentNavigationContext, ContentFocusContext, ContentActionsContext, useContentNavigation, useContentFocus, useContentActions, useAssertInsideContent};
 export type {ContentNavigation, ContentFocus, ContentActions, FocusableItem};

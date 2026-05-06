@@ -61,7 +61,7 @@ Reads `Root`'s `isVisible` for descendants that want to render trigger affordanc
 
 ### Lifecycle closes (built into `<Root>`)
 
-- **Screen blur** — `useFocusEffect`'s teardown closes the popover so navigating away never leaves a stranded menu.
+- **Screen blur** — subscribes via `navigation.addListener('blur', …)` (per [react-navigation guidance](https://reactnavigation.org/docs/use-focus-effect/)) so navigating away never leaves a stranded menu.
 - **Modal-stack cover** — when a non-popover alert modal is about to cover the popover (`willAlertModalBecomeVisible && !isPopover`), `<Root>` closes via render-phase auto-correction.
 
 No `shouldOverlay` opt-out: item selection closes the popover synchronously in the event handler, so no v1-style timing race exists.
@@ -74,9 +74,9 @@ Three variants cover the full N regime:
 - **`<ScrollableContent>`** — wraps children in a `<ScrollView>` capped at window height. Use when N is bounded but might exceed viewport.
 - **`<VirtualizedContent>`** — FlashList-backed; takes `data` + `keyExtractor` + `renderItem` instead of children. Use when N is genuinely unbounded (hundreds+). Constraints: only `<Item>`/`<CheckmarkItem>` rows allowed (no `<Sub>`); arrow-key nav is limited to currently-visible rows.
 
-### Anchor escape hatches
+### Anchor
 
-`anchorRef` (on `<Root>`) and `anchorPosition` (on any content variant) cover callers that drive the popover without `usePopoverTrigger()` — e.g. event-coordinate anchors from a context menu, or KYC flows that open imperatively. The trigger hook's captured rect always wins when present.
+The pressable attached to a trigger hook's `ref` IS the anchor — there is no separate `<Anchor>` slot, no `anchorRef` prop, no `anchorPosition` prop. The trigger captures `getBoundingClientRect()` on press and publishes the rect to context. Multiple triggers in one `<Root>` are supported; the popover anchors to whichever was pressed last.
 
 ## Folder layout
 
@@ -93,7 +93,7 @@ Each file carries a high-level header comment describing its role; treat that as
 
 - **Public vs private boundary is a barrel.** Anything not re-exported from a folder's `index.ts` is implementation detail. External consumers should only deep-import in tests, and only after a deliberate review.
 - **Hooks live next to the data they touch.** `useFocusableRow` lives in `rows/` because it's the registration API rows use; `useOrderedIDs` lives in `content/` because the registry it sorts is owned by `Content`.
-- **Dependency direction is one-way.** `rows/` and `sub/` may import from `content/` and `root/`. `content/` may import from `root/`. `root/` imports nothing else in v2. There are no cycles.
+- **Dependency direction (file-level, no cycles).** `root/` imports nothing else in v2; `content/` imports from `root/`; `sub/` and `rows/` import from `content/` and `root/`, plus a narrow cross-edge: `rows/useSelectableRow` reads `sub/SubContext`, and `sub/SubTrigger` + `sub/SubBackButton` read `rows/useFocusableRow`.
 
 ## Architectural rules
 

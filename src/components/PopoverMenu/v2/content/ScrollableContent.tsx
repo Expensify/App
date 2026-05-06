@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import {useAssertInsideRoot} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -15,8 +15,7 @@ type ScrollableContentProps = BasePopoverProps & {
 
 /** Popover surface that wraps children in a `<ScrollView>` for unbounded row counts. */
 function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
-    // Result discarded — attributes hierarchy violations to ScrollableContent, not BaseContent.
-    useRootState(ScrollableContent.displayName);
+    useAssertInsideRoot(ScrollableContent.displayName);
     const {windowHeight} = useWindowDimensions();
     // Cap to window height (with a floor of POPOVER_MENU_MAX_HEIGHT) so the inner scroll has room.
     const maxHeightStyle = useMaxHeightStyle({

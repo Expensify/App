@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
@@ -6,6 +6,7 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
 import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import type {AnchorRect} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,14 +15,11 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
-import useAnchorMeasurement from './useAnchorMeasurement';
 import useContentController from './useContentController';
 
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
-    /** Highest precedence — for callers that anchor to event coordinates (long-press, right-click). */
-    anchorPosition?: AnchorPosition;
     containerStyles?: StyleProp<ViewStyle>;
     innerContainerStyle?: ViewStyle;
     onLayout?: (e: LayoutChangeEvent) => void;
@@ -43,11 +41,24 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-/** Intentionally unaware of "scrollable" as a concept — variants pre-resolve their own max-height policy. */
+/** Sync mirror of `usePopoverPosition`'s alignment math. */
+function computeAnchorPosition(rect: AnchorRect, alignment: AnchorAlignment): AnchorPosition {
+    const {x, y, width, height} = rect;
+    let horizontal: number;
+    if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
+        horizontal = x;
+    } else if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER) {
+        horizontal = x + width / 2;
+    } else {
+        horizontal = x + width;
+    }
+    const vertical = alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP ? y + height + CONST.MODAL.POPOVER_MENU_PADDING : y - CONST.MODAL.POPOVER_MENU_PADDING;
+    return {horizontal, vertical};
+}
+
 function BaseContent({
     children,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    anchorPosition: anchorPositionProp,
     containerStyles,
     innerContainerStyle,
     maxHeightStyle,
@@ -61,23 +72,19 @@ function BaseContent({
     const styles = useThemeStyles();
     const {
         state: {isVisible},
-        meta: {anchorRef, activeAnchor},
+        meta: {activeAnchor},
     } = useRootState(BaseContent.displayName);
-    // Threaded into the controller so `close()` can batch `setIsVisible(false)` atomically with sub/focus reset.
+    // Threaded into the controller so `close()` batches `setIsVisible(false)` atomically with sub/focus reset.
     const {setIsVisible} = useRootActions(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const anchorPosition = useAnchorMeasurement({activeAnchor, anchorRef, anchorPositionProp, anchorAlignment, isVisible});
     const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
 
-    // Fallback ref for event-coord callers — PopoverWithMeasuredContent requires one even when anchorPosition fully determines layout.
-    const fallbackAnchorRef = useRef<View>(null);
-    const effectiveAnchorRef = activeAnchor?.ref ?? anchorRef ?? fallbackAnchorRef;
-
-    if (!anchorPosition) {
+    if (!activeAnchor) {
         return null;
     }
+    const anchorPosition = computeAnchorPosition(activeAnchor.rect, anchorAlignment);
 
     return (
         <ContentNavigationContext.Provider value={navigation}>
@@ -85,7 +92,7 @@ function BaseContent({
                 <ContentActionsContext.Provider value={actions}>
                     <PopoverWithMeasuredContent
                         anchorPosition={anchorPosition}
-                        anchorRef={effectiveAnchorRef}
+                        anchorRef={activeAnchor.ref}
                         anchorAlignment={anchorAlignment}
                         onClose={actions.close}
                         isVisible={isVisible}

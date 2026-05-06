@@ -16,9 +16,7 @@ type ActiveAnchor = {
 type RootState = {
     state: {isVisible: boolean};
     meta: {
-        /** Legacy escape hatch for callers without a `<Trigger>`. */
-        anchorRef: AnchorRef | null;
-        /** Set by `<Trigger>` on press. Wins over `anchorRef`. */
+        /** Set by `usePopoverTrigger` / `useSecondaryInteractionTrigger` on press. */
         activeAnchor: ActiveAnchor | null;
     };
 };
@@ -50,5 +48,10 @@ function useRootActions(componentName: string): RootActions {
     return value;
 }
 
-export {RootStateContext, RootActionsContext, useRootState, useRootActions};
+/** Hierarchy throw for passthrough components that touch no Root state. */
+function useAssertInsideRoot(componentName: string): void {
+    useRootState(componentName);
+}
+
+export {RootStateContext, RootActionsContext, useRootState, useRootActions, useAssertInsideRoot};
 export type {ActiveAnchor, AnchorRect, AnchorRef, RootState, RootActions};
