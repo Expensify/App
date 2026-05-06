@@ -7453,6 +7453,23 @@ const translations = {
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `changed the auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'removed the auto-pay approved reports threshold',
+        updatedCategoryTaxRate: ({
+            categoryName,
+            oldTaxName,
+            oldTaxPercentage,
+            newTaxName,
+            newTaxPercentage,
+        }: {
+            categoryName: string;
+            oldTaxName: string;
+            oldTaxPercentage: string;
+            newTaxName: string;
+            newTaxPercentage: string;
+        }) => {
+            const oldTax = oldTaxPercentage ? `${oldTaxName} (${oldTaxPercentage})` : oldTaxName;
+            const newTax = newTaxPercentage ? `${newTaxName} (${newTaxPercentage})` : newTaxName;
+            return `changed the "${categoryName}" category default tax rate to "${newTax}" (previously "${oldTax}")`;
+        },
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
         changedSubmitsToApprover: ({
