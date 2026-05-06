@@ -4,14 +4,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isPendingRemove} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {emptyHTML, isEmptyHTML} from './actionContents/emptyHTML';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionItemSingle from './ReportActionItemSingle';
 
 type ReportActionItemFrameProps = {
-    /** Action-content JSX produced by ActionContentRouter */
-    children: React.JSX.Element;
+    /** Action content */
+    children: React.ReactNode;
 
     /** All the data of the action item */
     action: OnyxTypes.ReportAction;
@@ -34,23 +33,14 @@ type ReportActionItemFrameProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Whether this row is being hovered */
+    /** Whether the report action is hovered (or context menu / emoji picker active) */
     hovered: boolean;
 
-    /** Whether the report action context menu is active */
-    isContextMenuActive: boolean;
-
-    /** Whether the report action is currently active (linked) */
-    isReportActionActive: boolean;
+    /** Whether the report action is currently active (linked, not occluded by context menu) */
+    isActive: boolean;
 
     /** Latest moderation decision used to compute hasBeenFlagged */
     moderationDecision: OnyxTypes.DecisionName;
-
-    /** Whether the renderer should bail out for this action type (table-view conditional) */
-    shouldRenderViewBasedOnAction: boolean;
-
-    /** Whether the provided report is a closed expense report with no expenses */
-    isClosedExpenseReportWithNoExpenses?: boolean;
 };
 
 function ReportActionItemFrame({
@@ -63,17 +53,10 @@ function ReportActionItemFrame({
     isWhisper,
     isOnSearch,
     hovered,
-    isContextMenuActive,
-    isReportActionActive,
+    isActive,
     moderationDecision,
-    shouldRenderViewBasedOnAction,
-    isClosedExpenseReportWithNoExpenses,
 }: ReportActionItemFrameProps): React.JSX.Element {
     const styles = useThemeStyles();
-
-    if (isEmptyHTML(children) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
-        return emptyHTML;
-    }
 
     if (draftMessage !== undefined) {
         return <ReportActionItemDraft>{children}</ReportActionItemDraft>;
@@ -90,8 +73,8 @@ function ReportActionItemFrame({
                 }}
                 report={report}
                 iouReport={iouReport}
-                isHovered={hovered || isContextMenuActive}
-                isActive={isReportActionActive && !isContextMenuActive}
+                isHovered={hovered}
+                isActive={isActive}
                 hasBeenFlagged={
                     ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                 }

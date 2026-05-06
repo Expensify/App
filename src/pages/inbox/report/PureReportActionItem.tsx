@@ -51,7 +51,6 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
-    useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {canWriteInReport, isCompletedTaskReport, isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils, isTaskReport} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -72,7 +71,6 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
-import ReportActionItemFrame from './ReportActionItemFrame';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
 import WhisperBanner from './WhisperBanner';
@@ -259,7 +257,6 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
@@ -682,65 +679,48 @@ function PureReportActionItem({
                                         onPress={onPress}
                                     >
                                         {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
-                                        <ReportActionItemFrame
+                                        <ActionContentRouter
                                             action={action}
                                             report={report}
+                                            originalReport={originalReport}
+                                            originalReportID={originalReportID}
                                             iouReport={iouReport}
+                                            reportID={reportID}
                                             displayAsGroup={displayAsGroup}
                                             draftMessage={draftMessage}
                                             isWhisper={isWhisper}
-                                            isOnSearch={isOnSearch}
-                                            hovered={!!hovered || !!isReportActionLinked}
-                                            isContextMenuActive={isContextMenuActive}
-                                            isReportActionActive={isReportActionActive}
+                                            hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
+                                            hasErrors={hasErrors}
+                                            isActive={isReportActionActive && !isContextMenuActive}
+                                            isHidden={isHidden}
                                             moderationDecision={moderationDecision}
-                                            shouldRenderViewBasedOnAction={shouldRenderViewBasedOnAction}
+                                            updateHiddenState={updateHiddenState}
+                                            isArchivedRoom={isArchivedRoom}
+                                            isReportArchived={isReportArchived}
                                             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
-                                        >
-                                            <ActionContentRouter
-                                                action={action}
-                                                report={report}
-                                                originalReport={originalReport}
-                                                originalReportID={originalReportID}
-                                                iouReport={iouReport}
-                                                reportID={reportID}
-                                                displayAsGroup={displayAsGroup}
-                                                draftMessage={draftMessage}
-                                                isWhisper={isWhisper}
-                                                hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
-                                                hasErrors={hasErrors}
-                                                isContextMenuActive={isContextMenuActive}
-                                                isReportActionActive={isReportActionActive}
-                                                isHidden={isHidden}
-                                                moderationDecision={moderationDecision}
-                                                updateHiddenState={updateHiddenState}
-                                                isArchivedRoom={isArchivedRoom}
-                                                isReportArchived={isReportArchived}
-                                                isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
-                                                isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-                                                reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
-                                                personalDetails={personalDetails}
-                                                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                                                shouldShowBorder={shouldShowBorder}
-                                                isThreadReportParentAction={isThreadReportParentAction}
-                                                isOnSearch={isOnSearch}
-                                                shouldDisplayContextMenuValue={shouldDisplayContextMenuValue}
-                                                userBillingFundID={userBillingFundID}
-                                                index={index}
-                                                contextMenuAnchorRef={popoverAnchorRef}
-                                                composerTextInputRef={composerTextInputRef}
-                                                contextMenuStateValue={contextMenuStateValue}
-                                                contextMenuActionsValue={contextMenuActionsValue}
-                                                setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                                setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                                toggleContextMenuFromActiveReportAction={toggleContextMenuFromActiveReportAction}
-                                                handleShowContextMenu={handleShowContextMenu}
-                                                showPopover={showPopover}
-                                                resolveActionableMentionWhisper={resolveActionableMentionWhisper}
-                                                resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
-                                                currentSearchHash={currentSearchHash}
-                                            />
-                                        </ReportActionItemFrame>
+                                            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+                                            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+                                            personalDetails={personalDetails}
+                                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                                            shouldShowBorder={shouldShowBorder}
+                                            isThreadReportParentAction={isThreadReportParentAction}
+                                            isOnSearch={isOnSearch}
+                                            shouldDisplayContextMenuValue={shouldDisplayContextMenuValue}
+                                            userBillingFundID={userBillingFundID}
+                                            index={index}
+                                            contextMenuAnchorRef={popoverAnchorRef}
+                                            composerTextInputRef={composerTextInputRef}
+                                            contextMenuStateValue={contextMenuStateValue}
+                                            contextMenuActionsValue={contextMenuActionsValue}
+                                            setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
+                                            setIsEmojiPickerActive={setIsEmojiPickerActive}
+                                            toggleContextMenuFromActiveReportAction={toggleContextMenuFromActiveReportAction}
+                                            handleShowContextMenu={handleShowContextMenu}
+                                            showPopover={showPopover}
+                                            resolveActionableMentionWhisper={resolveActionableMentionWhisper}
+                                            resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
+                                            currentSearchHash={currentSearchHash}
+                                        />
                                     </SearchActionHeader>
                                 </OfflineWithFeedback>
                             </View>

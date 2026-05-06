@@ -49,11 +49,13 @@ import {
     isRenamedAction,
     isTaskAction,
     isTripPreview,
+    useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {getMovedActionMessage, isExpenseReport, shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from '@pages/inbox/report/LinkPreviewer';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+import ReportActionItemFrame from '@pages/inbox/report/ReportActionItemFrame';
 import ReportActionItemThread from '@pages/inbox/report/ReportActionItemThread';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -110,11 +112,8 @@ type ActionContentRouterProps = {
     /** Whether the report action has any errors */
     hasErrors: boolean;
 
-    /** Whether the report action context menu is active */
-    isContextMenuActive: boolean;
-
-    /** Whether the report action is currently active (linked) */
-    isReportActionActive: boolean;
+    /** Whether the report action is currently active (linked, not occluded by context menu) */
+    isActive: boolean;
 
     /** Whether the message is moderation-hidden */
     isHidden: boolean;
@@ -224,8 +223,7 @@ function ActionContentRouter({
     isWhisper,
     hovered,
     hasErrors,
-    isContextMenuActive,
-    isReportActionActive,
+    isActive,
     isHidden,
     moderationDecision,
     updateHiddenState,
@@ -257,6 +255,8 @@ function ActionContentRouter({
 }: ActionContentRouterProps): React.JSX.Element {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
+
+    const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
     let children: React.JSX.Element;
     const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -588,7 +588,7 @@ function ActionContentRouter({
         );
     }
 
-    if (isEmptyHTML(children)) {
+    if (isEmptyHTML(children) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
         return emptyHTML;
     }
 
@@ -602,7 +602,18 @@ function ActionContentRouter({
     const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
 
     return (
-        <>
+        <ReportActionItemFrame
+            action={action}
+            report={report}
+            iouReport={iouReport}
+            displayAsGroup={displayAsGroup}
+            draftMessage={draftMessage}
+            isWhisper={isWhisper}
+            isOnSearch={isOnSearch}
+            hovered={hovered}
+            isActive={isActive}
+            moderationDecision={moderationDecision}
+        >
             {children}
             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                 <View style={draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {}}>
@@ -627,14 +638,14 @@ function ActionContentRouter({
                         report={report}
                         numberOfReplies={numberOfThreadReplies}
                         mostRecentReply={`${action.childLastVisibleActionCreated}`}
-                        isHovered={hovered || isContextMenuActive}
+                        isHovered={hovered}
                         accountIDs={oldestFourAccountIDs}
                         onSecondaryInteraction={showPopover}
-                        isActive={isReportActionActive && !isContextMenuActive}
+                        isActive={isActive}
                     />
                 </View>
             )}
-        </>
+        </ReportActionItemFrame>
     );
 }
 
