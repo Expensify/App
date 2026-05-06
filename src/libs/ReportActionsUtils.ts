@@ -2782,9 +2782,21 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
         if (travelInvoicingUrls.length === 1) {
             const travelInvoicingUrl = travelInvoicingUrls.at(0) ?? '';
             url = travelInvoicingUrl.startsWith('https://') ? travelInvoicingUrl : '';
-        } else if (label === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite) {
-            url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
-            url += wasExportedAfterBase62 ? base62ReportID : reportID;
+        } else {
+            // QuickBooks Desktop has no canonical web URL for an audit trail export, so the
+            // multi-URL fallback uses the QBO expenses page as a best-effort landing surface,
+            // matching how the nonReimbursable branch handles QBD.
+            switch (label) {
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite:
+                    url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
+                    url += wasExportedAfterBase62 ? base62ReportID : reportID;
+                    break;
+                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop:
+                    url = QBO_EXPENSES_URL;
+                    break;
+                default:
+                    url = '';
+            }
         }
 
         result.push({text, url});
