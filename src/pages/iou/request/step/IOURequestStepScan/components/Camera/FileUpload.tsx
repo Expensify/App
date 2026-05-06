@@ -24,7 +24,7 @@ const panResponder = PanResponder.create({
  * FileUpload — desktop web capture variant.
  * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
  */
-function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isReplacingReceipt = false, isDraggingOverWrapper}: CameraProps) {
+function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isReplacingReceipt = false, isDraggingOverWrapper}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -51,9 +51,7 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
             return file;
         });
 
-        if (onDrop) {
-            onDrop(files, Array.from(e.dataTransfer?.items ?? []));
-        }
+        onPicked?.(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -96,7 +94,7 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
                                     style={[styles.p5]}
                                     onPress={() => {
                                         openPicker({
-                                            onPicked: (data) => onDrop?.(data, []),
+                                            onPicked: (data) => onPicked?.(data, []),
                                         });
                                     }}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}

@@ -1,16 +1,19 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useFilesValidation from '@hooks/useFilesValidation';
 import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -18,7 +21,6 @@ import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/uti
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {setTransactionReport} from '@userActions/Transaction';
-import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,12 +39,19 @@ type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
     backToReport: string | undefined;
 };
 
+const preloadConfirmation = () => {
+    // Preload the confirmation screen module so its JS is parsed and ready by the time
+    // we navigate after capture — avoids a cold-start module load on slower devices.
+    require('../../IOURequestStepConfirmation');
+};
+
 /**
  * ScanGlobalCreate — initiated from the FAB (+) button (no specific report).
  * Uses default expense policy to auto-select workspace, or navigates to participant picker.
  */
 function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanGlobalCreateProps) {
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -50,14 +59,15 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {isMultiScanEnabled} = useMultiScanState();
     const {disableMultiScan} = useMultiScanActions();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
-    const transactions = transaction ? [transaction] : [];
+    const [transactions] = useOptimisticDraftTransactions(transaction);
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const navigateGlobalCreate = (receiptFiles: ReceiptFile[]) => {
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting;
+            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -90,14 +100,6 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
     };
 
     const processReceipts = (files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
-
-        if (!isMultiScanEnabled) {
-            removeDraftTransactionsByIDs(draftTransactionIDs ?? [], true);
-        }
-
         const receiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -108,7 +110,14 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,
             transactions,
+            // Global create is the only flow that wipes stale drafts when starting fresh.
+            draftTransactionIDsToCleanUp: draftTransactionIDs ?? [],
+            isStartingScan: true,
         });
+
+        if (receiptFiles.length === 0) {
+            return;
+        }
 
         startScanProcessSpan(isMultiScanEnabled);
 
@@ -116,15 +125,10 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             return;
         }
 
-        const firstSource = receiptFiles.at(0)?.source;
-        if (typeof firstSource === 'string' && firstSource) {
-            pregenerateThumbnail(firstSource).then(() => navigateGlobalCreate(receiptFiles));
-        } else {
-            navigateGlobalCreate(receiptFiles);
-        }
+        navigateGlobalCreate(receiptFiles);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files);
     });
 
@@ -132,10 +136,18 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         <>
             {PDFValidationComponent}
             <Camera
-                onCapture={(file) => {
-                    processReceipts([file]);
+                onCapture={(file, source) => {
+                    if (isMultiScanEnabled) {
+                        processReceipts([file]);
+                        return;
+                    }
+                    // Pre-warm the thumbnail cache before navigating so the confirm page
+                    // doesn't flash an un-thumbnailed receipt.
+                    pregenerateThumbnail(source).then(() => processReceipts([file]));
                 }}
-                onDrop={validateFiles}
+                onPicked={validateFiles}
+                onCameraInitialized={preloadConfirmation}
+                onAttachmentPickerStatusChange={setIsLoaderVisible}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

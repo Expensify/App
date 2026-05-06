@@ -2,8 +2,10 @@ import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermis
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -20,13 +22,11 @@ import {calculateDefaultReimbursable} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
-import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
-import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,6 +80,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
     const {disableMultiScan} = useMultiScanActions();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
@@ -228,14 +229,6 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     };
 
     const processReceipts = (files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
-
-        if (!isMultiScanEnabled) {
-            removeDraftTransactionsByIDs(draftTransactionIDs ?? [], true);
-        }
-
         const newReceiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -247,6 +240,10 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
             isMultiScanEnabled,
             transactions,
         });
+
+        if (newReceiptFiles.length === 0) {
+            return;
+        }
 
         setReceiptFiles(newReceiptFiles);
 
@@ -267,7 +264,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         submitDirectly(newReceiptFiles, false);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files);
     });
 
@@ -278,7 +275,8 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 onCapture={(file) => {
                     processReceipts([file]);
                 }}
-                onDrop={validateFiles}
+                onPicked={validateFiles}
+                onAttachmentPickerStatusChange={setIsLoaderVisible}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

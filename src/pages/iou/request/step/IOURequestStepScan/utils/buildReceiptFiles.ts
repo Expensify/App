@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
-import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -17,11 +17,24 @@ type BuildReceiptFilesParams = {
     shouldAcceptMultipleFiles: boolean;
     isMultiScanEnabled: boolean;
     transactions: Transaction[];
+
+    /**
+     * IDs of stale draft transactions to wipe before building new ones.
+     * Only applied when {@link isStartingScan} is true and multi-scan is off — i.e. global-create entry, first capture.
+     */
+    draftTransactionIDsToCleanUp?: string[];
+
+    /**
+     * True when the scan is starting fresh from the global-create flow. Gates the draft cleanup so other entry points
+     * (FromReport, SkipConfirmation, EditReceipt) don't nuke unrelated drafts.
+     */
+    isStartingScan?: boolean;
 };
 
 /**
  * Builds ReceiptFile[] from captured/picked files, creating optimistic transaction drafts as needed
- * and storing receipts in Onyx via setMoneyRequestReceipt.
+ * and storing receipts in Onyx via setMoneyRequestReceipt. When invoked from the global-create flow
+ * with isStartingScan, wipes any stale drafts left from a previous scan first.
  */
 function buildReceiptFiles({
     files,
@@ -33,7 +46,17 @@ function buildReceiptFiles({
     shouldAcceptMultipleFiles,
     isMultiScanEnabled,
     transactions,
+    draftTransactionIDsToCleanUp,
+    isStartingScan = false,
 }: BuildReceiptFilesParams): ReceiptFile[] {
+    if (files.length === 0) {
+        return [];
+    }
+
+    if (!isMultiScanEnabled && isStartingScan && draftTransactionIDsToCleanUp && draftTransactionIDsToCleanUp.length > 0) {
+        removeDraftTransactionsByIDs(draftTransactionIDsToCleanUp, true);
+    }
+
     const receiptFiles: ReceiptFile[] = [];
 
     for (const [index, file] of files.entries()) {

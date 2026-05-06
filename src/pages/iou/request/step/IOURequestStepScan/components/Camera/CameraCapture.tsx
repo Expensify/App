@@ -34,7 +34,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a camera viewfinder, shutter button, flash toggle and gallery picker.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
+function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -124,10 +124,7 @@ function CameraCapture({onCapture, shouldAcceptMultipleFiles = false, onLayout}:
     };
 
     const emitPickedFiles = (files: FileObject[]) => {
-        for (const file of files) {
-            const source = file.uri ?? URL.createObjectURL(file as Blob);
-            onCapture(file, source);
-        }
+        onPicked?.(files, []);
     };
 
     return (

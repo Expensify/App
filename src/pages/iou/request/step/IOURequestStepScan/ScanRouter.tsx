@@ -1,14 +1,13 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
@@ -27,26 +26,99 @@ type ScanRouterProps = {
     backToReport: string | undefined;
 };
 
+type NonGlobalCreateProps = {
+    report: OnyxEntry<Report>;
+    iouType: IOUType;
+    reportID: string;
+    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
+    backToReport: string | undefined;
+};
+
+type NewReceiptProps = NonGlobalCreateProps;
+
+const policyRequiresTagOrCategorySelector = (policy: OnyxEntry<Policy>) => (policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false);
+
 /**
- * ScanRouter — thin routing layer that selects the appropriate scan variant
- * based on route params and transaction state.
+ * Owns the policy + skip-confirmation subscriptions so the edit and global-create branches don't pay for them.
+ * Decides between SkipConfirmation (quick action) and FromReport (report (+) entry).
+ */
+function ScanNonGlobalCreate({report, iouType, reportID, transactionID, transaction, backToReport}: NonGlobalCreateProps) {
+    const [policyRequiresTagOrCategory] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {selector: policyRequiresTagOrCategorySelector});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const shouldSkipConfirmation = !!skipConfirmation && !!report?.reportID && !(isPolicyExpenseChat(report) && policyRequiresTagOrCategory);
+
+    if (shouldSkipConfirmation) {
+        return (
+            <ScanSkipConfirmation
+                report={report}
+                iouType={iouType}
+                reportID={reportID}
+                transactionID={transactionID}
+                transaction={transaction}
+                backToReport={backToReport}
+            />
+        );
+    }
+
+    return (
+        <ScanFromReport
+            report={report}
+            iouType={iouType}
+            reportID={reportID}
+            transactionID={transactionID}
+            transaction={transaction}
+            backToReport={backToReport}
+        />
+    );
+}
+
+ScanNonGlobalCreate.displayName = 'ScanNonGlobalCreate';
+
+/**
+ * Splits new-receipt flows: global-create (FAB) vs. report-scoped (FromReport / SkipConfirm).
+ * The archived-report check lives here so neither global-create nor non-global-create variants need to subscribe.
+ */
+function ScanNewReceipt({report, iouType, reportID, transactionID, transaction, backToReport}: NewReceiptProps) {
+    const isArchived = useReportIsArchived(report?.reportID);
+    const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
+
+    if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
+        return (
+            <ScanNonGlobalCreate
+                report={report}
+                iouType={iouType}
+                reportID={reportID}
+                transactionID={transactionID}
+                transaction={transaction}
+                backToReport={backToReport}
+            />
+        );
+    }
+
+    return (
+        <ScanGlobalCreate
+            iouType={iouType}
+            reportID={reportID}
+            transactionID={transactionID}
+            transaction={transaction}
+            backToReport={backToReport}
+        />
+    );
+}
+
+ScanNewReceipt.displayName = 'ScanNewReceipt';
+
+/**
+ * ScanRouter — selects the appropriate scan variant based on route params and transaction state.
  *
- * MultiScanGate wraps non-edit variants so they can access MultiScanContext.
- *
- * Variant selection:
- *   Edit       — replacing an existing receipt (backTo or isEditing)
- *   SkipConfirm — quick action with skipConfirmation flag (direct submit)
- *   FromReport — initiated from report (+) button (sets participants, shows confirmation)
- *   GlobalCreate — FAB (+) global create (auto-selects workspace or shows participant picker)
+ * Edit branch is a fast-path that subscribes to nothing extra. Non-edit branches go through MultiScanGate
+ * and the layered ScanNewReceipt/ScanNonGlobalCreate components, which scope their subscriptions to the
+ * narrowest variant that needs them.
  */
 function ScanRouter({report, action, iouType, reportID, transactionID, transaction, backTo, backToReport}: ScanRouterProps) {
-    const policy = usePolicy(report?.policyID);
-    const isArchived = useReportIsArchived(report?.reportID);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    // Edit/replace receipt flow — no multi-scan needed
     if (backTo || isEditing) {
         return (
             <ScanEditReceipt
@@ -57,44 +129,10 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
         );
     }
 
-    const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
-    const shouldSkipConfirmation =
-        !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-
-    // Non-edit variants are wrapped in MultiScanGate so they can read multi-scan state
-    if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
-        if (shouldSkipConfirmation) {
-            return (
-                <MultiScanGate>
-                    <ScanSkipConfirmation
-                        report={report}
-                        iouType={iouType}
-                        reportID={reportID}
-                        transactionID={transactionID}
-                        transaction={transaction}
-                        backToReport={backToReport}
-                    />
-                </MultiScanGate>
-            );
-        }
-
-        return (
-            <MultiScanGate>
-                <ScanFromReport
-                    report={report}
-                    iouType={iouType}
-                    reportID={reportID}
-                    transactionID={transactionID}
-                    transaction={transaction}
-                    backToReport={backToReport}
-                />
-            </MultiScanGate>
-        );
-    }
-
     return (
         <MultiScanGate>
-            <ScanGlobalCreate
+            <ScanNewReceipt
+                report={report}
                 iouType={iouType}
                 reportID={reportID}
                 transactionID={transactionID}

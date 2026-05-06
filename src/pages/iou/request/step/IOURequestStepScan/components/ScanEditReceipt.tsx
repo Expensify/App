@@ -1,10 +1,12 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
+import useFilesValidation from '@hooks/useFilesValidation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import useScanCapture from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanCapture';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
@@ -27,8 +29,10 @@ type ScanEditReceiptProps = {
  * Simplest variant: no multi-scan, no participants, no confirmation page.
  */
 function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) {
+    const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const navigateBack = () => {
         // Fix for issue where navigation state is lost after returning from device settings
@@ -49,7 +53,7 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
         navigateBack();
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useScanCapture((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         const file = files.at(0);
         if (!file) {
             return;
@@ -60,7 +64,7 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
 
     return (
         <StepScreenDragAndDropWrapper
-            headerTitle=""
+            headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID="ScanEditReceipt"
@@ -70,7 +74,8 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
                     {PDFValidationComponent}
                     <Camera
                         onCapture={handleCapture}
-                        onDrop={validateFiles}
+                        onPicked={validateFiles}
+                        onAttachmentPickerStatusChange={setIsLoaderVisible}
                         isReplacingReceipt
                     />
                     {ErrorModal}

@@ -10,8 +10,12 @@ type CameraProps = {
     /** Called when the camera view finishes layout */
     onLayout?: () => void;
 
-    /** Called to validate user-selected files (drag-and-drop or file picker) */
-    onDrop?: (files: FileObject[], items: DataTransferItem[]) => void;
+    /**
+     * Called when files are selected from the gallery picker (native), the file picker (web),
+     * or dropped onto the upload zone (desktop web). Files must be validated by the consumer
+     * before being treated as receipts; the camera shutter path stays on `onCapture`.
+     */
+    onPicked?: (files: FileObject[], items: DataTransferItem[]) => void;
 
     /** Whether we are replacing an existing receipt (affects drop zone icon/title on desktop) */
     isReplacingReceipt?: boolean;
