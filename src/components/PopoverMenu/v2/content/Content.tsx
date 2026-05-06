@@ -20,8 +20,7 @@ function Content(props: ContentProps): React.ReactElement | null {
 
     return (
         <BaseContent
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards BasePopoverProps through to BaseContent
-            {...props}
+            baseProps={props}
             maxHeightStyle={maxHeightStyle}
         />
     );

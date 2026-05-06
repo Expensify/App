@@ -17,7 +17,7 @@ type UseFocusableRegistryResult = {
     resetFocus: () => void;
 };
 
-/** Owns the item registry, focus index, and Enter shortcut. */
+/** Registry is rebuilt as `new Map(prev)` per change — in-place mutation breaks RC memoization of action closures (allocation cost noted in plan §11). */
 function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRegistryResult {
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIDs = useOrderedIDs(registry);

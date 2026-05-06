@@ -3,8 +3,8 @@ import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentCo
 
 type SubContextValue = {
     subID: string;
-    /** Outermost-to-immediate-parent. Empty at root. */
-    ancestorChain: readonly string[];
+    /** `null` at the outermost level. */
+    parentSubID: string | null;
 };
 
 const SubContext = createContext<SubContextValue | null>(null);
@@ -28,9 +28,5 @@ function useIsAtActiveLevel(componentName: string): boolean {
     return currentSubID === (subContext?.subID ?? null);
 }
 
-function getParentSubID(ctx: SubContextValue): string | null {
-    return ctx.ancestorChain.at(-1) ?? null;
-}
-
-export {SubContext, useSubContext, useSubContextOptional, useIsAtActiveLevel, getParentSubID};
+export {SubContext, useSubContext, useSubContextOptional, useIsAtActiveLevel};
 export type {SubContextValue};

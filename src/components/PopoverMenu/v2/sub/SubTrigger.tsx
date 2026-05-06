@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import {useContentActions, useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getParentSubID, useSubContext} from './SubContext';
+import {useSubContext} from './SubContext';
 
 type SubTriggerProps = {
     text: string;
@@ -30,10 +30,10 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
     // Resolve Sub first — closer-neighbor error wins over the also-true "outside <Content>".
     const subContext = useSubContext(SubTrigger.displayName);
     const {currentSubID} = useContentNavigation(SubTrigger.displayName);
-    const {enterSub} = useContentActions(SubTrigger.displayName);
+    const {enterSub} = useContentSubActions(SubTrigger.displayName);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const isVisible = currentSubID === getParentSubID(subContext);
+    const isVisible = currentSubID === subContext.parentSubID;
 
     const {ref, focused, onPress, onFocus} = useFocusableRow({
         componentName: SubTrigger.displayName,
@@ -43,7 +43,7 @@ function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, d
             if (disabled) {
                 return;
             }
-            enterSub(subContext.subID, subContext.ancestorChain);
+            enterSub(subContext.subID);
         },
     });
 

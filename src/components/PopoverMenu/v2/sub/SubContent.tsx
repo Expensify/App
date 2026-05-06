@@ -13,10 +13,10 @@ type SubContentProps = {
 function SubContent({children, backButtonText}: SubContentProps): React.ReactElement | null {
     // Resolve Sub first — closer-neighbor error wins over the also-true "outside <Content>".
     const subContext = useSubContext(SubContent.displayName);
-    const {currentSubID, currentSubAncestorChain} = useContentNavigation(SubContent.displayName);
+    const {currentSubID, isAncestorOfCurrent} = useContentNavigation(SubContent.displayName);
 
     const isActiveLevel = currentSubID === subContext.subID;
-    const isAncestorOfActive = currentSubAncestorChain.includes(subContext.subID);
+    const isAncestorOfActive = isAncestorOfCurrent(subContext.subID);
 
     if (!isActiveLevel && !isAncestorOfActive) {
         return null;

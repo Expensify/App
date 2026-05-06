@@ -14,13 +14,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import {ContentActionsContext, ContentFocusContext, ContentNavigationContext} from './ContentContext';
+import {ContentCloseContext, ContentFocusContext, ContentItemActionsContext, ContentNavigationContext, ContentSubActionsContext} from './ContentContext';
 import useContentController from './useContentController';
 
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
     containerStyles?: StyleProp<ViewStyle>;
+    /** Replaces the modal's default `paddingVertical: 0` — include it in your override to keep it. */
     innerContainerStyle?: ViewStyle;
     onLayout?: (e: LayoutChangeEvent) => void;
     onModalShow?: () => void;
@@ -30,7 +31,8 @@ type BasePopoverProps = {
     testID?: string;
 };
 
-type BaseContentProps = BasePopoverProps & {
+type BaseContentProps = {
+    baseProps: BasePopoverProps;
     maxHeightStyle?: ViewStyle;
     /** Set to `false` by `<ScrollableContent>` since it wraps children in a `<ScrollView>` itself. */
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
@@ -56,19 +58,8 @@ function computeAnchorPosition(rect: AnchorRect, alignment: AnchorAlignment): An
     return {horizontal, vertical};
 }
 
-function BaseContent({
-    children,
-    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    containerStyles,
-    innerContainerStyle,
-    maxHeightStyle,
-    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
-    onLayout,
-    onModalShow,
-    onModalHide,
-    restoreFocusType,
-    testID,
-}: BaseContentProps): React.ReactElement | null {
+function BaseContent({baseProps, maxHeightStyle, shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true}: BaseContentProps): React.ReactElement | null {
+    const {children, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, containerStyles, innerContainerStyle, onLayout, onModalShow, onModalHide, restoreFocusType, testID} = baseProps;
     const styles = useThemeStyles();
     const {
         state: {isVisible},
@@ -79,7 +70,7 @@ function BaseContent({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const {navigation, focus, actions} = useContentController({isVisible, setIsVisible});
+    const {navigation, focus, subActions, itemActions, close} = useContentController({isVisible, setIsVisible});
 
     if (!activeAnchor) {
         return null;
@@ -89,38 +80,42 @@ function BaseContent({
     return (
         <ContentNavigationContext.Provider value={navigation}>
             <ContentFocusContext.Provider value={focus}>
-                <ContentActionsContext.Provider value={actions}>
-                    <PopoverWithMeasuredContent
-                        anchorPosition={anchorPosition}
-                        anchorRef={activeAnchor.ref}
-                        anchorAlignment={anchorAlignment}
-                        onClose={actions.close}
-                        isVisible={isVisible}
-                        onModalShow={onModalShow}
-                        onModalHide={onModalHide}
-                        disableAnimation
-                        restoreFocusType={restoreFocusType}
-                        innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
-                        shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
-                        testID={testID}
-                    >
-                        <FocusTrapForModal active={isVisible}>
-                            <CompactMenuContext.Provider value>
-                                <View
-                                    onLayout={onLayout}
-                                    style={[
-                                        isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
-                                        isSmallScreenWidth ? styles.pv4 : styles.pv2,
-                                        maxHeightStyle,
-                                        containerStyles,
-                                    ]}
-                                >
-                                    {children}
-                                </View>
-                            </CompactMenuContext.Provider>
-                        </FocusTrapForModal>
-                    </PopoverWithMeasuredContent>
-                </ContentActionsContext.Provider>
+                <ContentSubActionsContext.Provider value={subActions}>
+                    <ContentItemActionsContext.Provider value={itemActions}>
+                        <ContentCloseContext.Provider value={close}>
+                            <PopoverWithMeasuredContent
+                                anchorPosition={anchorPosition}
+                                anchorRef={activeAnchor.ref}
+                                anchorAlignment={anchorAlignment}
+                                onClose={close}
+                                isVisible={isVisible}
+                                onModalShow={onModalShow}
+                                onModalHide={onModalHide}
+                                disableAnimation
+                                restoreFocusType={restoreFocusType}
+                                innerContainerStyle={innerContainerStyle ?? styles.pv0}
+                                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
+                                testID={testID}
+                            >
+                                <FocusTrapForModal active={isVisible}>
+                                    <CompactMenuContext.Provider value>
+                                        <View
+                                            onLayout={onLayout}
+                                            style={[
+                                                isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
+                                                isSmallScreenWidth ? styles.pv4 : styles.pv2,
+                                                maxHeightStyle,
+                                                containerStyles,
+                                            ]}
+                                        >
+                                            {children}
+                                        </View>
+                                    </CompactMenuContext.Provider>
+                                </FocusTrapForModal>
+                            </PopoverWithMeasuredContent>
+                        </ContentCloseContext.Provider>
+                    </ContentItemActionsContext.Provider>
+                </ContentSubActionsContext.Provider>
             </ContentFocusContext.Provider>
         </ContentNavigationContext.Provider>
     );

@@ -1,6 +1,6 @@
 import React, {useId, useLayoutEffect} from 'react';
 import type {ReactNode} from 'react';
-import {useContentActions} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import {SubContext, useSubContextOptional} from './SubContext';
 import type {SubContextValue} from './SubContext';
 
@@ -15,17 +15,16 @@ function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
     const subID = id ?? fallbackID;
     const outerSub = useSubContextOptional();
-    // Chain changes only via JSX restructure (which unmounts this Sub).
-    const ancestorChain: readonly string[] = outerSub ? [...outerSub.ancestorChain, outerSub.subID] : [];
-    const value = {subID, ancestorChain} satisfies SubContextValue;
+    const parentSubID = outerSub?.subID ?? null;
+    const value = {subID, parentSubID} satisfies SubContextValue;
 
-    const {registerSub, unregisterSub} = useContentActions(Sub.displayName);
+    const {registerSub, unregisterSub} = useContentSubActions(Sub.displayName);
 
     // Layout effect: post-paint cleanup would render a ghost frame pointing at the unmounted Sub.
     useLayoutEffect(() => {
-        registerSub(subID);
-        return () => unregisterSub(subID, ancestorChain);
-    }, [subID, registerSub, unregisterSub, ancestorChain]);
+        registerSub(subID, parentSubID);
+        return () => unregisterSub(subID);
+    }, [subID, parentSubID, registerSub, unregisterSub]);
 
     return <SubContext.Provider value={value}>{children}</SubContext.Provider>;
 }

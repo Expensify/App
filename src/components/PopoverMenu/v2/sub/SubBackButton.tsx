@@ -1,13 +1,13 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
-import {useContentActions} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {getParentSubID, useSubContext} from './SubContext';
+import {useSubContext} from './SubContext';
 
 type SubBackButtonProps = {
     /** Defaults to a localized "Go back". */
@@ -16,9 +16,9 @@ type SubBackButtonProps = {
 
 /** Back-row auto-rendered by `<SubContent>` at the active level; pops one sub on press. */
 function SubBackButton({backButtonText}: SubBackButtonProps): React.ReactElement {
-    const {exitSub} = useContentActions(SubBackButton.displayName);
+    const {exitSub} = useContentSubActions(SubBackButton.displayName);
     const subContext = useSubContext(SubBackButton.displayName);
-    const parentSubID = getParentSubID(subContext);
+    const {parentSubID} = subContext;
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();

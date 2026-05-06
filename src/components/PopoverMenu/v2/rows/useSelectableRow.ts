@@ -1,4 +1,4 @@
-import {useContentActions} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useFocusableRow from './useFocusableRow';
 import type {FocusableRow} from './useFocusableRow';
@@ -21,7 +21,7 @@ function createSelectEvent(): ItemSelectEvent {
 type SelectableRow = FocusableRow & {isAtActiveLevel: boolean};
 
 function useSelectableRow({componentName, onSelect, disabled}: {componentName: string; onSelect?: (event: ItemSelectEvent) => void; disabled: boolean}): SelectableRow {
-    const {close} = useContentActions(componentName);
+    const close = useContentClose(componentName);
     const isAtActiveLevel = useIsAtActiveLevel(componentName);
 
     const row = useFocusableRow({

@@ -22,15 +22,14 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
         desktopFallback: {maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)},
     });
 
+    const baseProps: BasePopoverProps = {...rest, children: <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>};
+
     return (
         <BaseContent
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards BasePopoverProps through to BaseContent
-            {...rest}
+            baseProps={baseProps}
             maxHeightStyle={maxHeightStyle}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-        >
-            <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>
-        </BaseContent>
+        />
     );
 }
 

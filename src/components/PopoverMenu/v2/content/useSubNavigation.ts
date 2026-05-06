@@ -1,77 +1,75 @@
 import {useLayoutEffect, useRef, useState} from 'react';
 
-type CurrentSub = {id: string | null; ancestorChain: readonly string[]};
-
-const ROOT_SUB: CurrentSub = {id: null, ancestorChain: []};
-
 type SubNavigationActions = {
-    enterSub: (id: string, ancestorChain: readonly string[]) => void;
+    enterSub: (id: string) => void;
     exitSub: (target?: string | null) => void;
-    registerSub: (subID: string) => void;
+    registerSub: (subID: string, parentSubID: string | null) => void;
     /** Pops to the nearest still-mounted ancestor when an active sub unmounts. */
-    unregisterSub: (subID: string, ancestorChain: readonly string[]) => void;
+    unregisterSub: (subID: string) => void;
 };
 
 type UseSubNavigationResult = {
     currentSubID: string | null;
-    currentSubAncestorChain: readonly string[];
+    isAncestorOfCurrent: (subID: string) => boolean;
     actions: SubNavigationActions;
     resetToRoot: () => void;
 };
 
-/** Owns sub-menu navigation state. `onLevelChange` fires once per `currentSub.id` transition, regardless of cause. */
+/** `parentLinks` is append-only so cascade-on-unmount can walk through deleted intermediates; `mountedSubs` is the authoritative mount-state set. */
 function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubNavigationResult {
-    const [currentSub, setCurrentSub] = useState<CurrentSub>(ROOT_SUB);
+    const [currentSubID, setCurrentSubID] = useState<string | null>(null);
+    const parentLinks = useRef<Map<string, string | null>>(new Map());
     const mountedSubs = useRef<Set<string>>(new Set());
 
-    const previousIDRef = useRef(currentSub.id);
     useLayoutEffect(() => {
-        if (previousIDRef.current === currentSub.id) {
-            return;
-        }
-        previousIDRef.current = currentSub.id;
         onLevelChange();
-    });
+    }, [currentSubID, onLevelChange]);
+
+    const isAncestorOfCurrent = (subID: string): boolean => {
+        if (currentSubID === null) {
+            return false;
+        }
+        let cursor = parentLinks.current.get(currentSubID) ?? null;
+        while (cursor !== null) {
+            if (cursor === subID) {
+                return true;
+            }
+            cursor = parentLinks.current.get(cursor) ?? null;
+        }
+        return false;
+    };
 
     const actions: SubNavigationActions = {
-        enterSub: (id, ancestorChain) => {
-            setCurrentSub({id, ancestorChain});
+        enterSub: (id) => {
+            setCurrentSubID(id);
         },
         exitSub: (target = null) => {
-            setCurrentSub((prev) => {
-                if (target === null) {
-                    return ROOT_SUB;
-                }
-                const idx = prev.ancestorChain.indexOf(target);
-                const newChain = idx >= 0 ? prev.ancestorChain.slice(0, idx) : [];
-                return {id: target, ancestorChain: newChain};
-            });
+            setCurrentSubID(target);
         },
-        registerSub: (subID) => {
+        registerSub: (subID, parentSubID) => {
+            parentLinks.current.set(subID, parentSubID);
             mountedSubs.current.add(subID);
         },
-        unregisterSub: (subID, ancestorChain) => {
+        unregisterSub: (subID) => {
             mountedSubs.current.delete(subID);
-            setCurrentSub((prev) => {
-                if (prev.id !== subID) {
+            setCurrentSubID((prev) => {
+                if (prev !== subID) {
                     return prev;
                 }
-                const newID = ancestorChain.findLast((ancestor) => mountedSubs.current.has(ancestor)) ?? null;
-                if (newID === null) {
-                    return ROOT_SUB;
+                let cursor = parentLinks.current.get(subID) ?? null;
+                while (cursor !== null && !mountedSubs.current.has(cursor)) {
+                    cursor = parentLinks.current.get(cursor) ?? null;
                 }
-                const idx = ancestorChain.indexOf(newID);
-                const newChain = idx >= 0 ? ancestorChain.slice(0, idx) : [];
-                return {id: newID, ancestorChain: newChain};
+                return cursor;
             });
         },
     };
 
     return {
-        currentSubID: currentSub.id,
-        currentSubAncestorChain: currentSub.ancestorChain,
+        currentSubID,
+        isAncestorOfCurrent,
         actions,
-        resetToRoot: () => setCurrentSub(ROOT_SUB),
+        resetToRoot: () => setCurrentSubID(null),
     };
 }
 
