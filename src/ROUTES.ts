@@ -814,6 +814,10 @@ const ROUTES = {
         route: 'settings/wallet/add-personal-card/:feed/bank-connection',
         getRoute: (feed: PersonalCardFeed) => `settings/wallet/add-personal-card/${feed}/bank-connection` as const,
     },
+    SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {
+        route: 'settings/wallet/personal-card/:cardID/fix-connection',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/fix-connection` as const,
+    },
     SETTINGS_WALLET_PERSONAL_CARD_UPGRADE: 'settings/wallet/add-personal-card/upgrade',
     SETTINGS_WALLET_PERSONAL_CARD_WARNING: 'settings/wallet/add-personal-card/warning',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
@@ -1362,16 +1366,6 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/taxAmount/${transactionID}/${reportID}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
-        route: ':action/:iouType/category/new/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, backTo = '') => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY_CREATE route');
-            }
-            // eslint-disable-next-line no-restricted-syntax -- backTo is needed here to track where editing was initiated from (e.g. search/view or r/:reportID)
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/new/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_CATEGORY: {
@@ -4161,6 +4155,11 @@ const ROUTES = {
     DOMAIN_GROUP_EDIT_NAME: {
         route: 'domain/:domainAccountID/groups/:groupID/name',
         getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/name` as const,
+    },
+
+    DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE: {
+        route: 'domain/:domainAccountID/groups/:groupID/preferred-workspace',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/preferred-workspace` as const,
     },
 } as const;
 

@@ -198,7 +198,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         }
     }
 
-    const searchQueryItems = textInputValue
+    const searchQueryItems = textInputValue?.trim()
         ? [
               {
                   text: textInputValue,

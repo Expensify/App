@@ -36,6 +36,10 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
     return 'searchItemType' in item;
 }
 
+/**
+ * A row with an optional icon, title, and subtitle used in the search router for autocomplete
+ * suggestions, saved searches, and recent queries.
+ */
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, shouldDisableHoverStyle}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -53,6 +57,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             shouldSyncFocus={shouldSyncFocus}
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
+            shouldHighlightSelectedItem
         >
             <>
                 {!!item.singleIcon && (
