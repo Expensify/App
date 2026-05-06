@@ -1865,7 +1865,10 @@ describe('actions/IOU/TrackExpense', () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
@@ -1973,7 +1976,10 @@ describe('actions/IOU/TrackExpense', () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);

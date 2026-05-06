@@ -52,16 +52,15 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    dismissModalAndOpenReportInInboxTab,
     getAllPersonalDetails,
     getAllReports,
     getPolicyTags,
     getReportPreviewAction,
-    highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
 import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
+import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
@@ -215,6 +214,7 @@ type RecentlyUsedParams = {
 };
 
 type PerDiemExpenseInformation = {
+    conciergeReportID: string | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -238,6 +238,7 @@ type PerDiemExpenseInformation = {
 };
 
 type PerDiemExpenseInformationParams = {
+    conciergeReportID: string | undefined;
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -288,6 +289,7 @@ type PerDiemExpenseInformationForSelfDMResult = {
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
     const {
+        conciergeReportID,
         parentChatReport,
         transactionParams,
         participantParams,
@@ -448,6 +450,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             payeeEmail,
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -455,7 +458,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, conciergeReportID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -481,7 +484,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const predictedNextStatus =
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: iouReport,
         predictedNextStatus,
@@ -600,7 +602,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
         const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
-        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailParam, currentTime);
+        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticSelfDMReportID = optimisticSelfDMReport.reportID;
         optimisticSelfDMCreatedReportActionID = selfDMCreatedReportAction.reportActionID;
         chatReport = optimisticSelfDMReport;
@@ -728,6 +730,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
         participants: [participant],
         transactionID: optimisticTransaction.transactionID,
         isPersonalTrackingExpense: true,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     onyxData.optimisticData?.push(
@@ -878,6 +881,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
     const {
+        conciergeReportID,
         report,
         participantParams,
         policyParams = {},
@@ -931,6 +935,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
     } = getPerDiemExpenseInformation({
+        conciergeReportID,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
@@ -1002,7 +1007,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
@@ -1086,7 +1090,6 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     if (shouldHandleNavigation) {

@@ -91,7 +91,7 @@ function SelectionListWithModal<TItem extends ListItem>({
             return;
         }
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
-            rest?.onCheckboxPress?.(item);
+            rest?.onSelectionButtonPress?.(item);
             return;
         }
 

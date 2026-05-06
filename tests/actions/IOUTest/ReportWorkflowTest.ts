@@ -516,8 +516,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => Onyx.merge(ONYXKEYS.SESSION, {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL}))
                     .then(() => waitForBatchedUpdates())
                     .then(() => {
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(true);
                     })
                     .then(
                         () =>
@@ -534,8 +534,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         expect(expenseReport?.stateNum).toBe(0);
                                         expect(expenseReport?.statusNum).toBe(0);
 
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(false);
                                     },
                                 });
                             }),
@@ -574,8 +574,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         expect(expenseReport?.stateNum).toBe(2);
                                         expect(expenseReport?.statusNum).toBe(2);
 
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(true);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(true);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(true);
                                     },
                                 });
                             }),
@@ -621,8 +621,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         Onyx.disconnect(connection);
                                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(false);
                                         resolve();
                                     },
                                 });
@@ -791,8 +791,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => Onyx.merge(ONYXKEYS.SESSION, {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL}))
                     .then(() => waitForBatchedUpdates())
                     .then(() => {
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
-                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(true);
+                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(true);
                     })
                     .then(
                         () =>
@@ -845,8 +845,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                         // Report was submitted with some fail
                                         expect(expenseReport?.stateNum).toBe(0);
                                         expect(expenseReport?.statusNum).toBe(0);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(false);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], true)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, [], false)).toBe(false);
                                         resolve();
                                     },
                                 });
@@ -1420,12 +1420,12 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, undefined, invoiceReceiverPolicy)).toBe(true);
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, undefined, invoiceReceiverPolicy)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, undefined, invoiceReceiverPolicy)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, invoiceReceiverPolicy)).toBe(true);
 
             // When the invoice is archived
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
         });
     });
 
@@ -1462,11 +1462,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scanning transactions', async () => {
             const policyID = '2';
@@ -1518,11 +1518,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -1565,11 +1565,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transaction is not pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -1618,11 +1618,11 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeTruthy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeTruthy();
             // Then should return true when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeTruthy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, RORY_ACCOUNT_ID, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
         it('should return false if the report is closed', async () => {
@@ -1651,9 +1651,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed
-            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, [fakeTransaction])).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeFalsy();
         });
     });
 
@@ -1714,8 +1714,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], true)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBeTruthy();
         });
 
         it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {
@@ -1757,9 +1757,9 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, onlyNonReimbursableTransactions, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, onlyNonReimbursableTransactions, true)).toBeTruthy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, onlyNonReimbursableTransactions, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, onlyNonReimbursableTransactions, true)).toBeTruthy();
         });
 
         it('should return false for report with only non-reimbursable expenses when amount is 0 (onlyShowPayElsewhere=true)', async () => {
@@ -1801,8 +1801,8 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, zeroAmountNonReimbursableTransactions, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, zeroAmountNonReimbursableTransactions, true)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, true)).toBeFalsy();
         });
     });
 

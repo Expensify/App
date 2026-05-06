@@ -142,11 +142,8 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
                                     JSON.stringify(metadata?.accounts),
-                                    addNewCard.data.statementPeriodEnd,
-                                    addNewCard.data.statementPeriodEndDay,
                                     '',
                                 );
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
                                         cardToAssign: {
@@ -173,7 +170,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                         }
 
                         setAddNewCompanyCardStepAndData({
-                            step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE,
+                            step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
                                 plaidConnectedFeed,

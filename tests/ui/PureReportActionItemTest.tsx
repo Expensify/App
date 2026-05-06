@@ -15,6 +15,7 @@ import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
+import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -2632,6 +2633,79 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
+        });
+    });
+
+    // Path: No FE flow creates IOU + reject/cancel/delete/approve actions; this defensive path is only
+    // reachable from BE-emitted actions
+    describe('IouReportActionMessage edge subtypes', () => {
+        const TEST_REPORT_ID = 'iouEdgeReport123';
+        const TEST_TRANSACTION_ID = 'iouEdgeTx456';
+
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.REJECT, CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DELETE, CONST.IOU.REPORT_ACTION_TYPE.APPROVE])(
+            'renders IOU display text for IOU + %s action when transaction exists in Onyx',
+            async (subtype) => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                        transactionID: TEST_TRANSACTION_ID,
+                        amount: 4200,
+                        currency: 'USD',
+                        reportID: TEST_REPORT_ID,
+                        merchant: 'Test Merchant',
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`, {
+                        reportID: TEST_REPORT_ID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    });
+                });
+
+                const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                    type: subtype,
+                    IOUReportID: TEST_REPORT_ID,
+                    IOUTransactionID: TEST_TRANSACTION_ID,
+                    amount: 4200,
+                    currency: 'USD',
+                });
+                renderItemWithAction(action);
+                await waitForBatchedUpdatesWithAct();
+
+                // getIOUReportActionDisplayMessage only special-cases `type === 'pay'`. For all other action
+                // types, the displayed text is picked from the REPORT's state (isSettled, isReportApproved)
+                // and the action's structural shape (split bill, track expense).
+                expect(screen.getByText(translateLocal('iou.expenseAmount', '-$42.00', 'Test Merchant'))).toBeOnTheScreen();
+            },
+        );
+
+        it('renders flagged content text instead of IOU display when isHidden is true', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.REJECT,
+                IOUReportID: TEST_REPORT_ID,
+                IOUTransactionID: TEST_TRANSACTION_ID,
+                amount: 4200,
+                currency: 'USD',
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItemMessage
+                                    action={action}
+                                    displayAsGroup={false}
+                                    reportID={TEST_REPORT_ID}
+                                    isHidden
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('moderation.flaggedContent'))).toBeOnTheScreen();
         });
     });
 });

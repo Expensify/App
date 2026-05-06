@@ -43,9 +43,9 @@ import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
-import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
@@ -258,9 +258,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
 
-        /** Should we make this selectable with a checkbox */
-        shouldShowSelectedState?: boolean;
-
         /** Should we truncate the title */
         shouldTruncateTitle?: boolean;
 
@@ -402,8 +399,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         shouldShowLoadingSpinnerIcon?: boolean;
 
-        /** Should selected item be marked with checkmark */
-        shouldShowSelectedItemCheck?: boolean;
+        /** Whether to show a radio button on each item to indicate which one is currently selected */
+        shouldShowRadioButton?: boolean;
 
         /** Should use auto width for the icon container. */
         shouldIconUseAutoWidthStyle?: boolean;
@@ -545,7 +542,6 @@ function MenuItem({
     characterLimit = 200,
     isLabelHoverable = true,
     rightLabel,
-    shouldShowSelectedState = false,
     isSelected = false,
     shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false,
@@ -590,7 +586,7 @@ function MenuItem({
     renderTooltipContent,
     onEducationTooltipPress,
     additionalIconStyles,
-    shouldShowSelectedItemCheck = false,
+    shouldShowRadioButton = false,
     shouldIconUseAutoWidthStyle = false,
     shouldBreakWord = false,
     pressableTestID,
@@ -1171,13 +1167,16 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
-                                                {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
-                                                {shouldShowSelectedItemCheck && isSelected && (
-                                                    <Icon
-                                                        src={icons.Checkmark}
-                                                        fill={theme.iconSuccessFill}
-                                                        additionalStyles={styles.alignSelfCenter}
-                                                    />
+                                                {shouldShowRadioButton && (
+                                                    <View style={[styles.alignSelfCenter, styles.ml3]}>
+                                                        <RadioButton
+                                                            isChecked={isSelected}
+                                                            onPress={onPressAction}
+                                                            accessibilityLabel={title ?? ''}
+                                                            accessible={false}
+                                                            tabIndex={-1}
+                                                        />
+                                                    </View>
                                                 )}
                                                 {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>

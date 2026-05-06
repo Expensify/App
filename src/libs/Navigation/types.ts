@@ -237,6 +237,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION]: {
         feed: PersonalCardFeed;
     };
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
@@ -383,6 +386,10 @@ type SettingsNavigatorParamList = {
         categoryName: string;
     };
     [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: {
         policyID: string;
         categoryName: string;
     };
@@ -1618,11 +1625,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_MOVE_TO_GROUP]: {
+        domainAccountID: number;
+        accountID: number;
+    };
     [SCREENS.DOMAIN.GROUP_DETAILS]: {
         domainAccountID: number;
         groupID: string;
     };
     [SCREENS.DOMAIN.GROUP_EDIT_NAME]: {
+        domainAccountID: number;
+        groupID: string;
+    };
+    [SCREENS.DOMAIN.SECURITY_GROUPS_PREFERRED_WORKSPACE]: {
         domainAccountID: number;
         groupID: string;
     };
@@ -2219,6 +2234,7 @@ type WorkspaceConfirmationNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: undefined;
+    [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: undefined;
     [SCREENS.CURRENCY.SELECTION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;

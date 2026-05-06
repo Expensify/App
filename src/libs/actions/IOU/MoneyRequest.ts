@@ -26,6 +26,7 @@ import type {
     BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
+    OdometerDraft,
     PersonalDetailsList,
     Policy,
     PolicyTagLists,
@@ -165,6 +166,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
+    previousOdometerDraft?: OnyxEntry<OdometerDraft>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
@@ -595,6 +597,7 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerStart,
     odometerEnd,
     odometerDistance,
+    previousOdometerDraft,
     betas,
     recentWaypoints,
     unit,
@@ -716,6 +719,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
+                    previousOdometerDraft,
                 });
                 return;
             }
@@ -754,6 +758,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 personalDetails,
                 recentWaypoints,
                 betas,
+                previousOdometerDraft,
             });
             return;
         }

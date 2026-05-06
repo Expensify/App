@@ -499,7 +499,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const deleteTags = () => {
         deletePolicyTags(policyData, selectedTags);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
@@ -916,11 +915,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                             turnOnSelectionModeOnLongPress={!hasDependentTags}
                             shouldSingleExecuteRowSelect={!canSelectMultiple}
-                            shouldUseDefaultRightHandSideCheckmark={false}
                             customListHeaderContent={headerContent}
                             shouldShowListEmptyContent={false}
                             showScrollIndicator={false}
-                            onCheckboxPress={toggleTag}
+                            onSelectionButtonPress={toggleTag}
                             isSelected={isTagSelected}
                             shouldHeaderBeInsideList
                             shouldShowRightCaret
