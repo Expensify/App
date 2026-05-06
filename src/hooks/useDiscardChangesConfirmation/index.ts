@@ -19,6 +19,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
+    const shouldIgnoreNextBeforeRemove = useRef(false);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
@@ -54,6 +55,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                         shouldNavigateBack.current = false;
                     });
             } else {
+                shouldIgnoreNextBeforeRemove.current = true;
                 blockedNavigationAction.current = undefined;
                 shouldNavigateBack.current = false;
                 onCancel?.();
@@ -62,6 +64,12 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     }, [showConfirmModal, translate, navigateBack, onCancel, onConfirm, onVisibilityChange]);
 
     useBeforeRemove((e) => {
+        if (shouldIgnoreNextBeforeRemove.current) {
+            shouldIgnoreNextBeforeRemove.current = false;
+            e.preventDefault();
+            return;
+        }
+
         if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
             return;
         }
