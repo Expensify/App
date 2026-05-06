@@ -20,7 +20,8 @@ function Content(props: ContentProps): React.ReactElement | null {
 
     return (
         <BaseContent
-            baseProps={props}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- forwarding the variant's caller props
+            {...props}
             maxHeightStyle={maxHeightStyle}
         />
     );

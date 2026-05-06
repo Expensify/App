@@ -28,24 +28,20 @@ function VirtualizedContent<T>({data, keyExtractor, renderItem, contentContainer
         desktopFallback: {maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)},
     });
 
-    const baseProps: BasePopoverProps = {
-        ...rest,
-        children: (
+    return (
+        <BaseContent
+            // eslint-disable-next-line react/jsx-props-no-spreading -- forwarding the variant's caller props
+            {...rest}
+            maxHeightStyle={maxHeightStyle}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+        >
             <FlashList
                 data={data}
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 contentContainerStyle={contentContainerStyle}
             />
-        ),
-    };
-
-    return (
-        <BaseContent
-            baseProps={baseProps}
-            maxHeightStyle={maxHeightStyle}
-            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-        />
+        </BaseContent>
     );
 }
 

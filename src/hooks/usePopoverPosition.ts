@@ -19,6 +19,24 @@ const defaultAnchorAlignment = {
  */
 type MeasurableRef = RefObject<View | null>;
 
+type Rect = {x: number; y: number} & Dimensions;
+
+/** Sync popover-position math, shared by the async measure-and-resolve hook and any caller that already has a measured rect (e.g. from `getBoundingClientRect()`). */
+function computeAnchorPosition(rect: Rect, alignment: AnchorAlignment): AnchorPosition {
+    const {x, y, width, height} = rect;
+    let horizontal = x + width;
+    if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
+        horizontal = x;
+    } else if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER) {
+        horizontal = x + width / 2;
+    }
+    const vertical =
+        alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
+            ? y + height + CONST.MODAL.POPOVER_MENU_PADDING // TOP: menu opens below the anchor — add height + padding
+            : y - CONST.MODAL.POPOVER_MENU_PADDING; // BOTTOM: menu opens above the anchor — subtract padding
+    return {horizontal, vertical};
+}
+
 /**
  * Hook for calculating the position of a popover relative to an anchor element.
  *
@@ -51,22 +69,8 @@ function usePopoverPosition() {
             }
             return new Promise<AnchorPosition & Dimensions>((resolve) => {
                 element.measureInWindow((x, y, width, height) => {
-                    let horizontal = x + width;
-                    if (anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
-                        horizontal = x;
-                    } else if (anchorAlignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER) {
-                        horizontal = x + width / 2;
-                    }
-                    const vertical =
-                        anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
-                            ? y + height + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
-                            : y - CONST.MODAL.POPOVER_MENU_PADDING; // if it is BOTTOM, menu will open above the button so NO need to add height but DO subtract padding
-                    resolve({
-                        horizontal,
-                        vertical,
-                        width,
-                        height,
-                    });
+                    const {horizontal, vertical} = computeAnchorPosition({x, y, width, height}, anchorAlignment);
+                    resolve({horizontal, vertical, width, height});
                 });
             });
         },
@@ -77,4 +81,5 @@ function usePopoverPosition() {
 }
 
 export default usePopoverPosition;
+export {computeAnchorPosition};
 export type {MeasurableRef};

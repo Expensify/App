@@ -6,17 +6,17 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
 import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
-import type {AnchorRect} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import {computeAnchorPosition} from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentCloseContext, ContentFocusContext, ContentItemActionsContext, ContentNavigationContext, ContentSubActionsContext} from './ContentContext';
 import useContentController from './useContentController';
 
+/** Props exposed to callers of `<Content>`, `<ScrollableContent>`, and `<VirtualizedContent>`. */
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
@@ -31,8 +31,8 @@ type BasePopoverProps = {
     testID?: string;
 };
 
-type BaseContentProps = {
-    baseProps: BasePopoverProps;
+/** Adds internal-only layout props that each variant sets, not the caller. */
+type BaseContentProps = BasePopoverProps & {
     maxHeightStyle?: ViewStyle;
     /** Set to `false` by `<ScrollableContent>` since it wraps children in a `<ScrollView>` itself. */
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
@@ -43,23 +43,19 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-/** Sync mirror of `usePopoverPosition`'s alignment math. */
-function computeAnchorPosition(rect: AnchorRect, alignment: AnchorAlignment): AnchorPosition {
-    const {x, y, width, height} = rect;
-    let horizontal: number;
-    if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
-        horizontal = x;
-    } else if (alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER) {
-        horizontal = x + width / 2;
-    } else {
-        horizontal = x + width;
-    }
-    const vertical = alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP ? y + height + CONST.MODAL.POPOVER_MENU_PADDING : y - CONST.MODAL.POPOVER_MENU_PADDING;
-    return {horizontal, vertical};
-}
-
-function BaseContent({baseProps, maxHeightStyle, shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true}: BaseContentProps): React.ReactElement | null {
-    const {children, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, containerStyles, innerContainerStyle, onLayout, onModalShow, onModalHide, restoreFocusType, testID} = baseProps;
+function BaseContent({
+    children,
+    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
+    containerStyles,
+    innerContainerStyle,
+    onLayout,
+    onModalShow,
+    onModalHide,
+    restoreFocusType,
+    testID,
+    maxHeightStyle,
+    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
+}: BaseContentProps): React.ReactElement | null {
     const styles = useThemeStyles();
     const {
         state: {isVisible},
