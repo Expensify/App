@@ -3112,7 +3112,10 @@ function createDraftWorkspace({
     return params;
 }
 
-function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string}) {
+function buildOptimisticDuplicatePolicy(
+    sourcePolicy: Policy,
+    policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string; customUnitRateID: string},
+) {
     const {
         policyName: duplicatedPolicyName = '',
         targetPolicyID: duplicatedPolicyID,
@@ -3121,6 +3124,7 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
         localCurrency: duplicatedLocalCurrency,
         distanceCustomUnitID: duplicatedDistanceCustomUnitID,
         perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+        customUnitRateID: duplicatedCustomUnitRateID,
     } = policyOptions;
 
     const isMemberFeatureSelected = duplicatedParts?.people;
@@ -3182,6 +3186,7 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
         customUnits: getCustomUnitsForDuplication(sourcePolicy, isDistanceRatesFeatureSelected, isPerDiemFeatureSelected, {
             distanceCustomUnitID: duplicatedDistanceCustomUnitID,
             perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+            customUnitRateID: duplicatedCustomUnitRateID,
         }),
         taxRates: isTaxesFeatureSelected ? taxRatesWithoutPendingDelete : undefined,
         rules: isCodingRulesFeatureSelected ? {codingRules: codingRulesWithoutPendingDelete} : undefined,
@@ -3264,7 +3269,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID}),
+            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID}),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
