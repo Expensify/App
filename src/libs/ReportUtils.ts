@@ -11524,10 +11524,10 @@ function hasForwardedAction(reportID: string, reportActions?: MoveExpenseReportA
 }
 
 /**
- * Snapshot fallback for Search results that know the report is waiting on a forwarded-to manager
+ * Search can know the report is waiting on a forwarded-to manager
  * before the FORWARDED report action is loaded locally.
  */
-function hasForwardedSnapshotEvidence(iouReport: OnyxInputOrEntry<Report>, policy: OnyxEntry<Policy>, submitToAccountID: number): boolean {
+function isWaitingOnForwardedManager(iouReport: OnyxInputOrEntry<Report>, policy: OnyxEntry<Policy>, submitToAccountID: number): boolean {
     if (!iouReport || !policy || !isExpenseReport(iouReport) || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID) || !iouReport.submitted) {
         return false;
     }
@@ -11549,7 +11549,7 @@ function hasForwardedSnapshotEvidence(iouReport: OnyxInputOrEntry<Report>, polic
 
 /**
  * Move-expense fallback for when the FORWARDED report action is missing locally.
- * We require snapshot evidence, not only submitToAccountID !== managerID,
+ * We require the report to be waiting on the forwarded-to manager, not only submitToAccountID !== managerID,
  * because policy approver changes can create the same mismatch for reports that were never forwarded.
  */
 function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
@@ -11565,7 +11565,7 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, policy
         return false;
     }
 
-    return hasForwardedSnapshotEvidence(iouReport, reportPolicy, submitToAccountID);
+    return isWaitingOnForwardedManager(iouReport, reportPolicy, submitToAccountID);
 }
 
 function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>, reportActions?: MoveExpenseReportActions, policy?: OnyxEntry<Policy>): boolean {

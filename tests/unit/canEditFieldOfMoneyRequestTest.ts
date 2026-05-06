@@ -289,7 +289,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
             };
 
-            const seedForwardedSnapshotMoveFixture = async ({
+            const seedWaitingOnForwardedManagerMoveFixture = async ({
                 nextStep = {
                     actorAccountID: FORWARDED_MANAGER_ACCOUNT_ID,
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
@@ -479,8 +479,8 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
-            it('should hide move when the report snapshot shows the submit-to approver forwards to the current manager', async () => {
-                await seedForwardedSnapshotMoveFixture();
+            it('should hide move when the report is waiting on the forwarded manager', async () => {
+                await seedWaitingOnForwardedManagerMoveFixture();
                 const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
                 const submitToAccountID = getSubmitToAccountID(currentPolicy, currentReport);
 
@@ -503,8 +503,8 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
-            it('should use the caller-provided policy for the forwarded snapshot fallback when global policy data is stale', async () => {
-                await seedForwardedSnapshotMoveFixture();
+            it('should use the caller-provided policy for the forwarded manager fallback when global policy data is stale', async () => {
+                await seedWaitingOnForwardedManagerMoveFixture();
                 const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
                 if (!currentPolicy) {
                     throw new Error('Expected policy fixture');
@@ -554,8 +554,8 @@ describe('canEditFieldOfMoneyRequest', () => {
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     },
                 ],
-            ] satisfies Array<[string, Report['nextStep'] | null]>)('should keep move enabled when the snapshot guard is incomplete because %s', async (_caseName, nextStep) => {
-                await seedForwardedSnapshotMoveFixture({nextStep});
+            ] satisfies Array<[string, Report['nextStep'] | null]>)('should keep move enabled when the forwarded manager guard is incomplete because %s', async (_caseName, nextStep) => {
+                await seedWaitingOnForwardedManagerMoveFixture({nextStep});
                 const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
 
                 expect(getSubmitToAccountID(currentPolicy, currentReport)).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
@@ -576,7 +576,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             it('should keep move enabled when submit-to differs from manager but the policy does not forward to that manager', async () => {
-                await seedForwardedSnapshotMoveFixture({
+                await seedWaitingOnForwardedManagerMoveFixture({
                     submitToEmployee: {
                         email: FORWARDED_APPROVER_EMAIL,
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -602,7 +602,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             it('should hide move when passed report actions contain FORWARDED even if the global report action cache is empty', async () => {
-                await seedForwardedSnapshotMoveFixture({
+                await seedWaitingOnForwardedManagerMoveFixture({
                     nextStep: undefined,
                     submitToEmployee: {
                         email: FORWARDED_APPROVER_EMAIL,
