@@ -430,7 +430,7 @@ function SecuritySettingsPage() {
                                     title={translate('delegate.copilotDelegatedAccess')}
                                     renderSubtitle={() => (
                                         <SectionSubtitleHTML
-                                            html={`${translate('delegate.copilotDelegatedAccessDescription')} <a href="${CONST.COPILOT_HELP_URL}" aria-label="${translate('delegate.learnMoreAboutDelegatedAccess')}">${translate('common.learnMore')}</a>.`}
+                                            html={`${translate('delegate.copilotDelegatedAccessDescription')} <a href="${CONST.COPILOT_HELP_URL}" accessibilityLabel="${translate('delegate.learnMoreAboutDelegatedAccess')}">${translate('common.learnMore')}</a>.`}
                                             subtitleMuted
                                         />
                                     )}

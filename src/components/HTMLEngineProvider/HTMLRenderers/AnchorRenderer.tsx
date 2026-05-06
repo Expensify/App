@@ -106,7 +106,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressDefaultStyle
-                accessibilityLabel={htmlAttribs['aria-label']}
+                accessibilityLabel={htmlAttribs.accessibilityLabel}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </TextLink>
