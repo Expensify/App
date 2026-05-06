@@ -7327,23 +7327,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
             `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
         removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
-        updatedCategoryTaxRate: ({
-            categoryName,
-            oldTaxName,
-            oldTaxPercentage,
-            newTaxName,
-            newTaxPercentage,
-        }: {
-            categoryName: string;
-            oldTaxName: string;
-            oldTaxPercentage: string;
-            newTaxName: string;
-            newTaxPercentage: string;
-        }) => {
-            const oldTax = oldTaxPercentage ? `${oldTaxName} (${oldTaxPercentage})` : oldTaxName;
-            const newTax = newTaxPercentage ? `${newTaxName} (${newTaxPercentage})` : newTaxName;
-            return `actualizó la tasa de impuesto predeterminada de la categoría "${categoryName}" a "${newTax}" (previamente "${oldTax}")`;
-        },
+        updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
+            `actualizó la tasa de impuesto predeterminada de la categoría "${categoryName}" a "${newTax}" (previamente "${oldTax}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
         changedSubmitsToApprover: ({

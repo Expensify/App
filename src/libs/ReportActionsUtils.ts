@@ -3460,12 +3460,13 @@ function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: Report
         return getReportActionText(action);
     }
 
+    const oldTax = oldTaxPercentage ? `${oldTaxName} (${oldTaxPercentage})` : (oldTaxName ?? '');
+    const newTax = newTaxPercentage ? `${newTaxName} (${newTaxPercentage})` : newTaxName;
+
     return translate('workspaceActions.updatedCategoryTaxRate', {
         categoryName,
-        oldTaxName: oldTaxName ?? '',
-        oldTaxPercentage: oldTaxPercentage ?? '',
-        newTaxName,
-        newTaxPercentage: newTaxPercentage ?? '',
+        oldTax,
+        newTax,
     });
 }
 
