@@ -1111,6 +1111,7 @@ const ONYXKEYS = {
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
         SPEND_RULE_MAX_AMOUNT_FORM: 'spendRuleMaxAmountForm',
+        SPEND_RULE_MAX_AMOUNT_FORM_DRAFT: 'spendRuleMaxAmountFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
