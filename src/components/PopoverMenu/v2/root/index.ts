@@ -4,4 +4,5 @@ export {default as usePopoverTrigger} from './usePopoverTrigger';
 export type {UsePopoverTriggerResult} from './usePopoverTrigger';
 export {default as useSecondaryInteractionTrigger} from './useSecondaryInteractionTrigger';
 export type {UseSecondaryInteractionTriggerResult} from './useSecondaryInteractionTrigger';
+export {default as useIsPopoverVisible} from './useIsPopoverVisible';
 export type {AnchorRef} from './RootContext';

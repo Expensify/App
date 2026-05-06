@@ -327,6 +327,36 @@ describe('PopoverMenu V2', () => {
         });
     });
 
+    describe('useIsPopoverVisible', () => {
+        it('reflects Root visibility', () => {
+            const captured: boolean[] = [];
+            function Probe() {
+                captured.push(PopoverMenu.useIsPopoverVisible());
+                return null;
+            }
+            render(
+                <ControlledHarness initialOpen>
+                    <Probe />
+                </ControlledHarness>,
+            );
+            expect(captured.at(-1)).toBe(true);
+        });
+
+        it('returns false when Root is closed', () => {
+            const captured: boolean[] = [];
+            function Probe() {
+                captured.push(PopoverMenu.useIsPopoverVisible());
+                return null;
+            }
+            render(
+                <ControlledHarness>
+                    <Probe />
+                </ControlledHarness>,
+            );
+            expect(captured.at(-1)).toBe(false);
+        });
+    });
+
     describe('Item', () => {
         it('fires onSelect when pressed', () => {
             const onSelect = jest.fn();
@@ -1180,6 +1210,14 @@ describe('PopoverMenu V2', () => {
                 return null;
             }
             expect(() => render(<CallSecondaryHook />)).toThrow(/useSecondaryInteractionTrigger\(\) must be called inside <PopoverMenu\.Root>/);
+        });
+
+        it('throws when useIsPopoverVisible is called outside Root', () => {
+            function CallVisibilityHook() {
+                PopoverMenu.useIsPopoverVisible();
+                return null;
+            }
+            expect(() => render(<CallVisibilityHook />)).toThrow(/useIsPopoverVisible\(\) must be called inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Content is rendered outside Root', () => {
