@@ -23,7 +23,6 @@ import Permissions from '@libs/Permissions';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
-    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
@@ -64,6 +63,7 @@ import ChatTransactionPreview from './ChatTransactionPreview';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import {emptyHTML, isEmptyHTML} from './emptyHTML';
 import FraudAlertContent from './FraudAlertContent';
+import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
 import MentionWhisperContent from './MentionWhisperContent';
 import ModifiedExpenseContent from './ModifiedExpenseContent';
@@ -138,12 +138,6 @@ type ActionContentRouterProps = {
 
     /** The originalID component of report name value pairs (used by the Created action of harvest reports) */
     reportNameValuePairsOriginalID?: string;
-
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
-    /** Did the user dismiss trying out NewDot? */
-    isTryNewDotNVPDismissed?: boolean;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
@@ -242,8 +236,6 @@ function ActionContentRouter({
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
     reportNameValuePairsOriginalID,
-    personalDetails,
-    isTryNewDotNVPDismissed,
     shouldShowBorder,
     isThreadReportParentAction,
     isOnSearch,
@@ -370,7 +362,6 @@ function ActionContentRouter({
                 action={action}
                 report={report}
                 iouReport={iouReport}
-                personalDetails={personalDetails}
             />
         );
     } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
@@ -534,9 +525,10 @@ function ActionContentRouter({
         children = <ReportActionItemBasicMessage message={message} />;
     } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         children = (
-            <ReportActionItemBasicMessage message="">
-                <RenderHTML html={`<comment><muted-text>${getIntegrationSyncFailedMessage(translate, action, report?.policyID, isTryNewDotNVPDismissed)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
+            <IntegrationSyncFailedMessage
+                action={action}
+                policyID={report?.policyID}
+            />
         );
     } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         children = (

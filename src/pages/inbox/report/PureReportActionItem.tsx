@@ -195,7 +195,6 @@ type PureReportActionItemProps = {
     shouldHighlight?: boolean;
 
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed?: boolean;
 
     /** Report name value pairs origin */
     reportNameValuePairsOrigin?: string;
@@ -237,7 +236,6 @@ function PureReportActionItem({
     clearAllRelatedReportActionErrors = () => {},
     shouldShowBorder,
     shouldHighlight = false,
-    isTryNewDotNVPDismissed = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
 }: PureReportActionItemProps) {
@@ -715,8 +713,6 @@ function PureReportActionItem({
                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                                                 reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
-                                                personalDetails={personalDetails}
-                                                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                                 shouldShowBorder={shouldShowBorder}
                                                 isThreadReportParentAction={isThreadReportParentAction}
                                                 isOnSearch={isOnSearch}

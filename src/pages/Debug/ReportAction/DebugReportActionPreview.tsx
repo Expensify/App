@@ -18,8 +18,6 @@ type DebugReportActionPreviewProps = {
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
     const personalDetails = usePersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
     return (
         <ScrollView>
@@ -33,7 +31,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
                 personalDetails={personalDetails}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             />
         </ScrollView>
     );

@@ -58,8 +58,6 @@ type ReportActionsListItemRendererProps = {
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
     /** Whether the report is archived */
     isReportArchived: boolean;
 
@@ -87,7 +85,6 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
     originalReportID,
     personalDetails,
-    isTryNewDotNVPDismissed = false,
     isReportArchived = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
@@ -184,7 +181,6 @@ function ReportActionsListItemRenderer({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 personalDetails={personalDetails}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
             />
         );
@@ -207,7 +203,6 @@ function ReportActionsListItemRenderer({
             shouldHighlight={shouldHighlight}
             personalDetails={personalDetails}
             draftMessage={draftMessage}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}
             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
         />
