@@ -2276,6 +2276,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
@@ -2346,6 +2347,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
@@ -2386,6 +2388,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: undefined,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
@@ -2426,6 +2429,7 @@ describe('actions/IOU/TrackExpense', () => {
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
                     personalDetails: undefined,
+                    policyTagList: undefined,
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
