@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
 import type {ContentClose, ContentFocus, ContentItemActions, ContentNavigation, ContentSubActions} from './ContentContext';
 import useFocusableRegistry from './useFocusableRegistry';
@@ -14,12 +15,17 @@ function useContentController({isVisible, setIsVisible}: {isVisible: boolean; se
     // Order matters: useFocusableRegistry first so its `resetFocus` exists for `onLevelChange`.
     const subNav = useSubNavigation({onLevelChange: focus.resetFocus});
 
-    // Batched into one render so the next open lands at root with no focused row.
-    const close: ContentClose = () => {
-        setIsVisible(false);
-        subNav.resetToRoot();
-        focus.resetFocus();
-    };
+    // Bound to `isVisible`, not to `close()` — catches Root-driven closes (blur, modal-cover) that bypass `close()`.
+    const [wasVisible, setWasVisible] = useState(isVisible);
+    if (wasVisible !== isVisible) {
+        setWasVisible(isVisible);
+        if (wasVisible && !isVisible) {
+            subNav.resetToRoot();
+            focus.resetFocus();
+        }
+    }
+
+    const close: ContentClose = () => setIsVisible(false);
 
     return {
         navigation: {currentSubID: subNav.currentSubID, isAncestorOfCurrent: subNav.isAncestorOfCurrent},

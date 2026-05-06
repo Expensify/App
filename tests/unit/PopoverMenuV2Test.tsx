@@ -4,6 +4,7 @@ import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
+import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
 // Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
 import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
@@ -17,14 +18,12 @@ type MenuItemMockProps = Record<string, unknown> & {
 
 const menuItemPropsCapture: {current: MenuItemMockProps[]} = {current: []};
 
+// Production-faithful: keep children mounted across `isVisible` flips (mirrors react-native-modal during close animation).
 jest.mock('@components/PopoverWithMeasuredContent', () => {
     function MockPopoverWithMeasuredContent({isVisible, children}: {isVisible?: boolean; children?: ReactNode}) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
         const {View: RNView} = jest.requireActual('react-native');
-        if (!isVisible) {
-            return null;
-        }
-        return <RNView testID="mock-popover">{children}</RNView>;
+        return <RNView testID={isVisible ? 'mock-popover-open' : 'mock-popover-closed'}>{children}</RNView>;
     }
     return MockPopoverWithMeasuredContent;
 });
@@ -205,7 +204,7 @@ function Harness({initialOpen = false, onOpenChange, children}: PropsWithChildre
 
 describe('PopoverMenu V2', () => {
     describe('Root', () => {
-        it('renders nothing when closed', () => {
+        it('renders the popover in the closed state when not open', () => {
             render(
                 <Harness>
                     <PopoverMenu.Content>
@@ -216,7 +215,8 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            expect(findItemByTitle('Hidden')).toBeUndefined();
+            expect(screen.getByTestId('mock-popover-closed')).toBeOnTheScreen();
+            expect(screen.queryByTestId('mock-popover-open')).toBeNull();
         });
 
         it('renders Content when open', () => {
@@ -794,6 +794,66 @@ describe('PopoverMenu V2', () => {
 
             expect(findItemByTitle('Open Sub')).toBeDefined();
             expect(findItemByTitle('Choose')).toBeUndefined();
+        });
+
+        it('resets sub navigation when the menu closes via screen blur (so reopen lands at top)', () => {
+            const captured: Array<string | null> = [];
+            function NavProbe() {
+                const {currentSubID} = useContentNavigation('NavProbe');
+                captured.push(currentSubID);
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <NavProbe />
+                        <PopoverMenu.Sub id="A">
+                            <PopoverMenu.Sub.Trigger text="Open Sub" />
+                            <PopoverMenu.Sub.Content backButtonText="Back">
+                                <PopoverMenu.Item
+                                    text="Choose"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('Open Sub');
+            expect(captured.at(-1)).toBe('A');
+
+            act(() => fireBlur());
+            expect(captured.at(-1)).toBeNull();
+        });
+
+        it('resets sub navigation when the menu closes via modal-stack cover (so reopen lands at top)', () => {
+            const captured: Array<string | null> = [];
+            function NavProbe() {
+                const {currentSubID} = useContentNavigation('NavProbe');
+                captured.push(currentSubID);
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <NavProbe />
+                        <PopoverMenu.Sub id="A">
+                            <PopoverMenu.Sub.Trigger text="Open Sub" />
+                            <PopoverMenu.Sub.Content backButtonText="Back">
+                                <PopoverMenu.Item
+                                    text="Choose"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('Open Sub');
+            expect(captured.at(-1)).toBe('A');
+
+            act(() => setMockModal({willAlertModalBecomeVisible: true, isPopover: false}));
+            expect(captured.at(-1)).toBeNull();
         });
 
         it('renders a nested SubTrigger when its parent sub is the active level', () => {
