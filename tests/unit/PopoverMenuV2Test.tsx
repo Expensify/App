@@ -1,3 +1,5 @@
+import {NavigationContext} from '@react-navigation/core';
+import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
@@ -99,17 +101,15 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
 const mockNavigationState: {blurListeners: Set<() => void>} = {blurListeners: new Set()};
-jest.mock('@react-navigation/native', () => ({
-    useNavigation: () => ({
-        addListener: (event: string, listener: () => void) => {
-            if (event !== 'blur') {
-                return () => {};
-            }
-            mockNavigationState.blurListeners.add(listener);
-            return () => mockNavigationState.blurListeners.delete(listener);
-        },
-    }),
-}));
+const mockNavigation = {
+    addListener: (event: string, listener: () => void) => {
+        if (event !== 'blur') {
+            return () => {};
+        }
+        mockNavigationState.blurListeners.add(listener);
+        return () => mockNavigationState.blurListeners.delete(listener);
+    },
+} as unknown as NavigationProp<ParamListBase>;
 
 function fireBlur(): void {
     for (const fn of mockNavigationState.blurListeners) {
@@ -194,11 +194,13 @@ function VisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
 /** `onOpenChange` here is a test-side observer of `useIsPopoverVisible`, not a prop on Root (v2 is uncontrolled-only). */
 function Harness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
     return (
-        <PopoverMenu.Root defaultOpen={initialOpen}>
-            <AutoSetAnchor />
-            {onOpenChange ? <VisibilityObserver onChange={onOpenChange} /> : null}
-            {children}
-        </PopoverMenu.Root>
+        <NavigationContext.Provider value={mockNavigation}>
+            <PopoverMenu.Root defaultOpen={initialOpen}>
+                <AutoSetAnchor />
+                {onOpenChange ? <VisibilityObserver onChange={onOpenChange} /> : null}
+                {children}
+            </PopoverMenu.Root>
+        </NavigationContext.Provider>
     );
 }
 
@@ -265,6 +267,21 @@ describe('PopoverMenu V2', () => {
             onOpenChange.mockClear();
             act(() => fireBlur());
             expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('renders without a NavigationContainer in scope', () => {
+            expect(() =>
+                render(
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="A"
+                                onSelect={() => {}}
+                            />
+                        </PopoverMenu.Content>
+                    </PopoverMenu.Root>,
+                ),
+            ).not.toThrow();
         });
 
         it('closes when a non-popover modal is about to become visible', () => {

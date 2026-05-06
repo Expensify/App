@@ -1,9 +1,9 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {RootActionsContext, RootStateContext} from './RootContext';
 import type {ActiveAnchor, RootActions, RootState} from './RootContext';
 import useCloseOnModalCover from './useCloseOnModalCover';
+import useCloseOnScreenBlur from './useCloseOnScreenBlur';
 
 type RootProps = {
     children: ReactNode;
@@ -17,10 +17,7 @@ function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
 
     useCloseOnModalCover(isVisible, setIsVisible);
-
-    // Subscribe to `blur` rather than `useFocusEffect` cleanup (per react-navigation docs).
-    const navigation = useNavigation();
-    useEffect(() => navigation.addListener('blur', () => setIsVisible(false)), [navigation]);
+    useCloseOnScreenBlur(setIsVisible);
 
     const stateValue: RootState = {
         state: {isVisible},
