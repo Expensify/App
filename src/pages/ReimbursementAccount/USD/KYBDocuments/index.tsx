@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -7,13 +8,16 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isUserAddressVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserAddressVerificationRequired';
 import isUserDOBVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserDOBVerificationRequired';
-import {clearReimbursementAccountUploadKYBDocuments, uploadUserKYBDocs} from '@userActions/BankAccounts';
+import {uploadUserKYBDocs} from '@userActions/BankAccounts';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -21,16 +25,38 @@ import type {FileObject} from '@src/types/utils/Attachment';
 type KYBDocumentsProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Handles submit button press (URL-based navigation) */
+    onSubmit?: () => void;
 };
 
-function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
+function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const reimbursementAccountData = reimbursementAccount?.achData?.verifications?.externalApiResponse;
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isLoading = reimbursementAccount?.isLoading;
+
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat(
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            betas,
+            true,
+            undefined,
+            undefined,
+            reimbursementAccount?.achData?.ACHRequestReportActionID,
+        );
 
     const defaultValues = {
         companyTaxID: reimbursementAccountDraft?.companyTaxID ?? [],
@@ -111,7 +137,9 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
 
-    const submit = () => {
+    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
+
+    const submit = useCallback(() => {
         const params: Record<string, FileObject> = {};
         for (const [key, files] of Object.entries(uploadedFiles)) {
             const file = files.at(0);
@@ -123,7 +151,8 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
             ...params,
             bankAccountID,
         });
-    };
+        markSubmitting();
+    }, [uploadedFiles, bankAccountID, markSubmitting]);
 
     const requiredDocuments = DOCUMENTS_CONFIG.filter((document) => document.required);
     const footer = (
@@ -131,24 +160,10 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
             large
             style={[styles.mv3]}
             text={translate('documentsStep.finishViaChat')}
-            onPress={() => {}}
+            onPress={handleNavigateToConciergeChat}
+            isDisabled={isLoading}
         />
     );
-
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isUploadingKYBDocuments || !reimbursementAccount?.isSuccess) {
-            return;
-        }
-
-        if (reimbursementAccount?.isSuccess) {
-            clearReimbursementAccountUploadKYBDocuments();
-        }
-
-        return () => {
-            clearReimbursementAccountUploadKYBDocuments();
-        };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isUploadingKYBDocuments, reimbursementAccount?.isSuccess]);
 
     return (
         <InteractiveStepWrapper
@@ -168,7 +183,7 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
                 enabledWhenOffline={false}
                 shouldRenderFooterAboveSubmit
                 footerContent={footer}
-                isLoading={reimbursementAccount?.isUploadingKYBDocuments}
+                isLoading={isLoading}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('documentsStep.beforeYouGo')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('documentsStep.verificationFailed')}</Text>

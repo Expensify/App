@@ -1068,10 +1068,6 @@ type OpenReimbursementAccountPageActionParams = {
     shouldPreserveDraft?: boolean;
 };
 
-function clearReimbursementAccountUploadKYBDocuments() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isUploadingKYBDocuments: null});
-}
-
 /**
  * Function to display and fetch data for Reimbursement Account step
  * @param stepToOpen - current step to open
@@ -1215,41 +1211,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
 }
 
 function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isUploadingKYBDocuments: true,
-                    errors: null,
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isUploadingKYBDocuments: false,
-                    isSuccess: true,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isUploadingKYBDocuments: false,
-                    isSuccess: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
-            },
-        ],
-    };
-
-    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView(policyID: string | undefined) {
@@ -1762,5 +1724,4 @@ export {
     initiateBankAccountUnlock,
     pressLockedBankAccount,
     uploadUserKYBDocs,
-    clearReimbursementAccountUploadKYBDocuments,
 };

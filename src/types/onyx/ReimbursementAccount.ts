@@ -307,9 +307,6 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are sending a reminder about filling signer information via the API */
     isSendingReminderForCorpaySignerInformation?: boolean;
 
-    /** Whether we are uploading KYB documents via the API */
-    isUploadingKYBDocuments?: boolean;
-
     /** Where the request is successful */
     isSuccess?: boolean;
 
