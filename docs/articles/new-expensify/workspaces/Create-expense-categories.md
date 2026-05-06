@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Also covers creating categories directly from the expense creation flow. Does not cover personal expense rules or accounting integration setup.
 ---
 
 
@@ -23,6 +23,18 @@ The Categories table displays the category **Name**, **GL Code** (if assigned), 
 3. Click **Categories**.
 4. Click **Add Category** in the top-right corner.
 5. Enter a category name and click **Save**.
+
+## How to create a category while creating or editing an expense
+
+Workspace Admins can also add a new category directly from the category selection step when creating or editing an expense, without leaving the expense flow. This option is only available when the workspace does not have an accounting integration connected.
+
+1. While creating or editing an expense, tap or click the **Category** field.
+2. Click the **+** icon in the top-right corner of the category list.
+3. Enter a category name and click **Save**.
+
+The new category is created in the workspace and automatically applied to the expense.
+
+## How to delete a category
 
 To delete a category:
 1. Click the category from the list.
