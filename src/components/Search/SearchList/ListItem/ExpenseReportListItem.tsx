@@ -49,6 +49,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    onHoldMenuOpen,
     onSelectionButtonPress,
     lastPaymentMethod,
     personalPolicyID,
@@ -149,6 +150,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
             ownerBillingGracePeriodEnd,
             amountOwed,
         });
@@ -164,6 +166,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        onHoldMenuOpen,
         ownerBillingGracePeriodEnd,
         amountOwed,
     ]);
@@ -301,6 +304,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
+                            isSelected={!!reportItem.isSelected}
                         />
                     )}
                     {!isLargeScreenWidth && (

@@ -115,6 +115,7 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
             sections={sections}
             ListItem={MultiSelectListItem}
             initiallyFocusedItemKey={initiallyFocusedKey}
+            shouldUpdateFocusedIndex
             shouldClearInputOnSelect={false}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}

@@ -138,7 +138,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     let assigneeChatReportOnyxData;
 
     // Parent ReportAction indicating that a task has been created
-    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmail});
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 

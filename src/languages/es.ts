@@ -1387,6 +1387,7 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
+            failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
             invalidTaxAmount: (amount) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
@@ -2107,12 +2108,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Tu cuenta está bloqueada',
         chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
         chatWithConcierge: 'Chatear con Concierge',
-    },
-    deviceManagementPage: {
-        title: 'Gestión de dispositivos',
-        description: 'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify.',
-        revoke: 'Revocar',
-        unknownDevice: 'Dispositivo Desconocido',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
@@ -5258,6 +5253,8 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
             settlementFrequencyInfo:
                 'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días.',
+            applyCashbackToBill: 'Aplicar reembolso a mi factura de Expensify',
+            applyCashbackToBillDescription: 'El reembolso de la Tarjeta Expensify se utilizará para el pago de tu factura de Expensify.',
             frequency: {
                 daily: 'Cada día',
                 monthly: 'Mensual',
@@ -6221,16 +6218,12 @@ ${amount} para ${merchant} - ${date}`,
             settingsTitle: 'Configuración de Gusto',
             syncStageName: ({stage}) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importando datos desde Gusto';
-                    case 'gustoSyncLoadCompany':
-                        return 'Cargando datos de la empresa desde Gusto';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importando empleados';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Creando cadenas de aprobación';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizando la sincronización';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';
                     default: {
@@ -6241,6 +6234,12 @@ ${amount} para ${merchant} - ${date}`,
             gusto: {
                 title: 'Gusto',
                 connect: 'Conectar',
+                syncNow: 'Sincronizar ahora',
+                disconnect: 'Desconectar',
+                lastSync: (relativeDate) => `Última sincronización ${relativeDate}`,
+                syncError: 'No se puede conectar con Gusto',
+                disconnectTitle: 'Desconectar Gusto',
+                disconnectPrompt: '¿Seguro que quieres desconectar Gusto?',
                 connectionDescription: 'Conecta Gusto para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.',
                 approvalMode: 'Modo de aprobación',
                 finalApprover: 'Aprobador final',
@@ -6423,6 +6422,10 @@ ${amount} para ${merchant} - ${date}`,
                 corporate: {
                     label: 'Controlar',
                     description: 'Para organizaciones con requisitos avanzados.',
+                },
+                submit2026: {
+                    label: 'Enviar',
+                    description: 'Para empleados que buscan enviar gastos a su empleador.',
                 },
             },
             description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
@@ -7794,6 +7797,7 @@ ${amount} para ${merchant} - ${date}`,
                     automaticActionThree: 'y creó un registro con éxito para',
                     reimburseableLink: 'Exportar gastos por cuenta propia como',
                     nonReimbursableLink: 'gastos de la tarjeta de empresa',
+                    travelCardLink: 'gastos de la tarjeta de viaje',
                     pending: (label) => `comenzó a exportar este informe a ${label}...`,
                 },
                 integrationsMessage: (errorMessage, label, linkText, linkURL) =>
@@ -9439,6 +9443,8 @@ ${amount} para ${merchant} - ${date}`,
                 `Todos los nuevos informes y gastos se crearán en ${enabled ? 'el espacio de trabajo preferido seleccionado' : 'este espacio de trabajo'}.`,
             preferredWorkspaceSelectDescription: 'Todos los nuevos gastos e informes se crearán en este espacio de trabajo.',
             noWorkspacesMessage: 'No hay espacios de trabajo en este dominio. Se requiere un espacio de trabajo para habilitar esta restricción.',
+            restrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
+            restrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
         },
     },
     gps: {
