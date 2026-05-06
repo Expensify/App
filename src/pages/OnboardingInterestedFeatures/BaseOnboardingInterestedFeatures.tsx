@@ -1,5 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -12,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -58,13 +60,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
@@ -206,7 +208,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                       userReportedIntegration: newUserReportedIntegration,
                       featuresMap,
                       introSelected,
-                      activePolicyID,
+                      activePolicy,
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,
@@ -278,7 +280,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
         currentUserPersonalDetails?.localCurrencyCode,
-        activePolicyID,
+        activePolicy,
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         introSelected,
@@ -339,12 +341,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     }}
                     accessibilityLabel={item.title}
                     accessible={false}
-                    hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
+                    hoverStyle={styles.hoveredComponentBG}
                     style={[
                         styles.onboardingInterestedFeaturesItem,
                         // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
                         isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
-                        isSelected && styles.activeComponentBG,
                     ]}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >

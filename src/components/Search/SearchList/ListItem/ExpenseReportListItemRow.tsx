@@ -117,6 +117,7 @@ function ExpenseReportListItemRow({
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
                     isPending={item.shouldShowStatusAsPending}
+                    isSelected={item.isSelected}
                 />
             </View>
         ),
@@ -236,7 +237,8 @@ function ExpenseReportListItemRow({
         theme.highlightBG;
 
     if (!isLargeScreenWidth) {
-        const expenseCount = item.transactionCount ?? item.transactions?.length ?? 0;
+        const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
         const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
         const formattedDate = DateUtils.formatWithUTCTimeZone(
             item.created ?? '',
@@ -257,11 +259,11 @@ function ExpenseReportListItemRow({
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
+                        containerStyle={styles.m0}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}
@@ -294,11 +296,11 @@ function ExpenseReportListItemRow({
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
+                        containerStyle={styles.m0}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}

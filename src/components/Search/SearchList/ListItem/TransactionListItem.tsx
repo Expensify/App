@@ -45,7 +45,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
@@ -72,7 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
     // Use active policy (user's current workspace) as fallback for self DM tracking expenses
     // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
@@ -121,6 +121,9 @@ function TransactionListItem<TItem extends ListItem>({
                   ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
               }
             : {...styles.flexColumn, ...styles.alignItemsStretch},
+        isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+        !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
+        !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -220,9 +223,9 @@ function TransactionListItem<TItem extends ListItem>({
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
-                    !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
-                    !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                    !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
+                    !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
                     !isLargeScreenWidth && !isLastItem && styles.borderBottom,
                 ]}
             >
@@ -234,6 +237,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                                 stateNum={transactionItem.report?.stateNum}
                                 statusNum={transactionItem.report?.statusNum}
+                                isSelected={!!transactionItem.isSelected}
                             />
                         )}
                         <TransactionItemRow
@@ -242,7 +246,7 @@ function TransactionListItem<TItem extends ListItem>({
                             policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
-                            onCheckboxPress={() => onCheckboxPress?.(item)}
+                            onCheckboxPress={() => onSelectionButtonPress?.(item)}
                             shouldUseNarrowLayout={!isLargeScreenWidth}
                             isLargeScreenWidth={isLargeScreenWidth}
                             columns={columns}
@@ -259,7 +263,7 @@ function TransactionListItem<TItem extends ListItem>({
                             isActionColumnWide={transactionItem.isActionColumnWide}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? [styles.p0, styles.pt3] : isLargeScreenWidth && styles.noBorderRadius]}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? [styles.p0, styles.pt3, styles.noBorderRadius] : isLargeScreenWidth && styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}

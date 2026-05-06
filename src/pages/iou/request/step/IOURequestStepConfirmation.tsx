@@ -102,7 +102,7 @@ function IOURequestStepConfirmation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
     const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
@@ -230,7 +230,8 @@ function IOURequestStepConfirmation({
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `??` would not fall through when isFromGlobalCreate is explicitly `false` (QAB targets an existing report), preventing isFromFloatingActionButton from being considered.
+    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate || transaction?.isFromFloatingActionButton);
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
@@ -306,8 +307,10 @@ function IOURequestStepConfirmation({
 
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // Split flows handle their own dismiss/navigation, so pre-inserting would cause double navigation.
+        // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
+        // pre-inserting a report is wrong - the user should stay on Search after submission.
         const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
-        const canUseReportPreInsert = !isSplitRequest && !shouldPreInsertSearch && (!isFromGlobalCreate || isReportTopmostSplitNavigator());
+        const canUseReportPreInsert = !isSplitRequest && !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -666,8 +669,7 @@ function IOURequestStepConfirmation({
     );
 }
 
-/* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);
-/* eslint-disable rulesdir/no-negated-variables */
+
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;

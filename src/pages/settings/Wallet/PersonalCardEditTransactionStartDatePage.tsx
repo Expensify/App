@@ -114,7 +114,6 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                     initiallyFocusedItemKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
-                    shouldHighlightSelectedItem={false}
                     footerContent={
                         <Button
                             success

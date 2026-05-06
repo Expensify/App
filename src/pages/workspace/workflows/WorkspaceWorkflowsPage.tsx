@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
@@ -48,10 +49,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canEditWorkspaceSettings,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
     isControlPolicy,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
+    isGroupPolicy as isGroupPolicyUtil,
     isPolicyAdmin as isPolicyAdminUtil,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
@@ -629,7 +631,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
@@ -642,7 +644,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                shouldShowNotFoundPage={!isGroupPolicy || !canEditWorkspaceSettings(policy)}
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

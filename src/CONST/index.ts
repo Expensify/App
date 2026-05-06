@@ -869,6 +869,7 @@ const CONST = {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
         CSV_CARD_IMPORT: 'csvCardImport',
+        CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -886,6 +887,7 @@ const CONST = {
         BULK_DUPLICATE_REPORT: 'bulkDuplicateReport',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
+        SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
     },
     BUTTON_STATES: {
@@ -1399,7 +1401,7 @@ const CONST = {
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
-            ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
+            ADD_EXISTING_EXPENSE: 'addExistingExpense',
             TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
         },
         ACTION_BADGE: {
@@ -1493,6 +1495,7 @@ const CONST = {
                 RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
+                REASSIGN_APPROVER: 'REASSIGNAPPROVER',
                 REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SETTLEMENT_ACCOUNT_LOCKED: 'SETTLEMENTACCOUNTLOCKED',
@@ -1578,6 +1581,7 @@ const CONST = {
                     UPDATE_ADDRESS: 'POLICYCHANGELOG_UPDATE_ADDRESS',
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
+                    UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -1589,6 +1593,7 @@ const CONST = {
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
+                    UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT',
                     UPDATE_MAX_EXPENSE_AGE: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AGE',
                     UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
@@ -1969,6 +1974,9 @@ const CONST = {
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
+        SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
+        SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
+        SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
@@ -2038,6 +2046,7 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
@@ -3102,6 +3111,14 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    UPDATE_PERSONAL_BANK_ACCOUNT: {
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
         STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
@@ -3500,6 +3517,8 @@ const CONST = {
 
             // Often referred to as "collect" workspaces
             TEAM: 'team',
+
+            SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {
             MATCHES: 'matches',
@@ -3518,6 +3537,7 @@ const CONST = {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
+            EDITOR: 'editor',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
@@ -3742,7 +3762,6 @@ const CONST = {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
                 STARTING_IMPORT_QBD: 'startingImportQBD',
-                STARTING_IMPORT_GUSTO: 'startingImportGusto',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -3808,10 +3827,9 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
                 SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
-                GUSTO_SYNC_LOAD_COMPANY: 'gustoSyncLoadCompany',
-                GUSTO_SYNC_IMPORT_EMPLOYEES: 'gustoSyncImportEmployees',
-                GUSTO_SYNC_BUILD_APPROVAL_CHAINS: 'gustoSyncBuildApprovalChains',
-                GUSTO_SYNC_FINALIZE: 'gustoSyncFinalize',
+                GUSTO_SYNC_TITLE: 'gustoSyncTitle',
+                GUSTO_SYNC_LOAD_DATA: 'gustoSyncLoadData',
+                GUSTO_SYNC_PROVISIONING: 'gustoSyncProvisioning',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -4065,6 +4083,9 @@ const CONST = {
                 '2015',
             ],
         },
+        BULK_ACTIONS: {
+            EXPORT_CSV: 'exportCSV',
+        },
     },
     PERSONAL_CARDS: {
         FEED_KEY_SEPARATOR: '#',
@@ -4126,8 +4147,6 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
-            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
-            SELECT_DIRECT_STATEMENT_CLOSE_DATE: 'SelectDirectStatementCloseDate',
             IMPORT_FROM_FILE: 'ImportFromFile',
         },
         CARD_TYPE: {
@@ -4459,11 +4478,11 @@ const CONST = {
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
-        // eslint-disable-next-line max-len, no-misleading-character-class
+        // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
+
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
-        // eslint-disable-next-line max-len, no-misleading-character-class
+
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
@@ -6375,6 +6394,10 @@ const CONST = {
         SCROLLING: 'scrolling',
         TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
+    SELECTION_BUTTON_POSITION: {
+        LEFT: 'left',
+        RIGHT: 'right',
+    },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
     ICON_TEST_ID: 'Icon',
@@ -7495,6 +7518,10 @@ const CONST = {
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
+
+    // Max time (ms) to wait for a transaction thread report before falling back to renderable content.
+    SKELETON_LOADING_TIMEOUT_MS: 10000,
+
     NEW_EXPENSIFY_PATH: '/New Expensify',
     RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
@@ -7627,6 +7654,7 @@ const CONST = {
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
                 },
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
@@ -7662,12 +7690,13 @@ const CONST = {
                 CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                 TAG: this.TABLE_COLUMNS.TAG,
                 EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
                 REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
                 BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                 TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                 TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                 AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                TOTAL: this.TABLE_COLUMNS.TOTAL,
+                WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
             };
         },
         get GROUP_CUSTOM_COLUMNS() {
@@ -7973,6 +8002,7 @@ const CONST = {
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
             FIND_ITEM: 'findItem',
+            ASK_CONCIERGE: 'askConcierge',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -8233,6 +8263,7 @@ const CONST = {
         },
     },
     DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
+    DEFAULT_REPORT_LOADING_STATE: {isLoadingInitialReportActions: true},
     UPGRADE_PATHS: {
         CATEGORIES: 'categories',
         REPORTS: 'reports',
@@ -8577,9 +8608,6 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'training_scan_test_tooltip_shown',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'training_scan_test_tooltip_dismissed',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'training_scan_test_tooltip_confirmed',
         },
     },
 
@@ -8633,14 +8661,12 @@ const CONST = {
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
+    SELECTION_BUTTON_TEST_ID: 'selection-button-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        SCAN_TEST_TOOLTIP: 'scanTestTooltip',
-        SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
-        SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSTANDING_FILTER: 'outstandingFilter',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
@@ -8829,6 +8855,9 @@ const CONST = {
         ATTACHMENT_MODAL: {
             SEND_BUTTON: 'AttachmentModal-SendButton',
             IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        MODAL: {
+            DISMISS_DIALOG: 'Modal-DismissDialog',
         },
         ATTACHMENT_PREVIEW: {
             VIDEO_THUMBNAIL: 'AttachmentPreview-VideoThumbnail',
@@ -9050,7 +9079,7 @@ const CONST = {
             ADD_EXPENSE: 'MoreMenu-AddExpense',
             ADD_EXPENSE_CREATE: 'MoreMenu-AddExpenseCreate',
             ADD_EXPENSE_TRACK_DISTANCE: 'MoreMenu-AddExpenseTrackDistance',
-            ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
+            ADD_EXPENSE_EXISTING: 'MoreMenu-AddExpenseExisting',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
@@ -9136,6 +9165,7 @@ const CONST = {
         ACCOUNT: {
             PROFILE: 'Account-Profile',
             WALLET: 'Account-Wallet',
+            AGENTS: 'Account-Agents',
             RULES: 'Account-Rules',
             PREFERENCES: 'Account-Preferences',
             SECURITY: 'Account-Security',
@@ -9195,12 +9225,15 @@ const CONST = {
         },
         MERGE_EXPENSE: {
             MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
+            RECEIPT_ITEM: 'MergeExpense-ReceiptItem',
+            FIELD_VALUE_OPTION: 'MergeExpense-FieldValueOption',
         },
         IOU_REQUEST_STEP: {
             DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',
             DISTANCE_MAP_NEXT_BUTTON: 'IOURequestStep-DistanceMapNextButton',
             DISTANCE_MANUAL_NEXT_BUTTON: 'IOURequestStep-DistanceManualNextButton',
             DISTANCE_ODOMETER_NEXT_BUTTON: 'IOURequestStep-DistanceOdometerNextButton',
+            DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON: 'IOURequestStep-DistanceOdometerSaveForLaterButton',
             ODOMETER_CHOOSE_FILE_BUTTON: 'IOURequestStep-OdometerChooseFileButton',
             GPS_START_STOP_BUTTON: 'IOURequestStep-GPSStartStopButton',
             GPS_DISCARD_BUTTON: 'IOURequestStep-GPSDiscardButton',
@@ -9252,10 +9285,8 @@ const CONST = {
                 CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
         },
-        NEW_CHAT: {
-            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
-        },
         WORKSPACE_EXPENSIFY_CARD: {
+            BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {

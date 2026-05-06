@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
@@ -59,12 +58,10 @@ type SearchAutocompleteInputProps = {
 
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
-
     inputStyle?: StyleProp<TextStyle>;
-
     inputContainerStyle?: StyleProp<ViewStyle>;
-
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+    clearButtonStyle?: StyleProp<ViewStyle>;
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
@@ -97,6 +94,7 @@ function SearchAutocompleteInput({
     inputStyle,
     inputContainerStyle,
     touchableInputWrapperStyle,
+    clearButtonStyle,
     isSearchingForReports,
     selection,
     substitutionMap,
@@ -223,6 +221,7 @@ function SearchAutocompleteInput({
                     textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
                     inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
                     touchableInputWrapperStyle={touchableInputWrapperStyle}
+                    clearButtonStyle={clearButtonStyle}
                     placeholderTextColor={theme.textSupporting}
                     loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                     onFocus={() => {

@@ -192,7 +192,7 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getCategoryTaxCodeAndAmount', () => {
+    describe('getCategoryTaxDetails', () => {
         it('should return the associated tax when the category matches the tax expense rules', () => {
             // Given a policy with tax expense rules associated with a category
             const category = 'Advertising';
@@ -204,11 +204,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-            // Then it should return the associated tax code and amount
+            // Then it should return the associated tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
             expect(categoryTaxAmount).toBe(5);
+            expect(categoryTaxValue).toBe('5%');
         });
 
         it("should return the default tax when the category doesn't match the tax expense rules", () => {
@@ -223,11 +224,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
             expect(categoryTaxAmount).toBe(0);
+            expect(categoryTaxValue).toBe('0%');
         });
 
         it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
@@ -254,11 +256,12 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy);
 
-            // Then it should return the default tax code and amount
+            // Then it should return the default tax code, amount, and value
             expect(categoryTaxCode).toBe('id_TAX_RATE_2');
             expect(categoryTaxAmount).toBe(9);
+            expect(categoryTaxValue).toBe('10%');
         });
 
         describe('should return undefined tax', () => {
@@ -276,11 +279,12 @@ describe('TransactionUtils', () => {
                 };
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
 
             it('if there are no policy tax expense rules', () => {
@@ -294,11 +298,12 @@ describe('TransactionUtils', () => {
                 const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy);
 
-                // Then it should return undefined for both the tax code and the tax amount
+                // Then it should return undefined for the tax code, amount, and value
                 expect(categoryTaxCode).toBe(undefined);
                 expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
             });
         });
     });
@@ -327,6 +332,7 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.category).toBe(category);
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
+            expect(updatedTransaction.taxValue).toBe('5%');
         });
 
         it('should update transaction when distance is changed', () => {
@@ -1391,6 +1397,64 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getAttendeesListDisplayString', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {numeric: true, sensitivity: 'variant', caseFirst: 'upper'});
+
+        it('preserves insertion order when no localeCompare is provided', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees)).toBe('banana, apple');
+        });
+
+        it('returns attendees alphabetically regardless of insertion order (deploy blocker #89130)', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('apple, banana');
+        });
+
+        it('uses numeric-aware sort so "User 9" comes before "User 10"', () => {
+            const attendees: Attendee[] = [
+                {email: '10@x.com', displayName: 'User 10', avatarUrl: '', login: '10@x.com'},
+                {email: '9@x.com', displayName: 'User 9', avatarUrl: '', login: '9@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('User 9, User 10');
+        });
+
+        it('compares case-insensitively so the joined string matches pill order', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'Bob', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'alice', avatarUrl: '', login: 'a@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('alice, Bob');
+        });
+
+        it('strips the @expensify.sms domain so phone-login attendees render the same as in pills', () => {
+            const attendees: Attendee[] = [
+                {displayName: '+15551234567@expensify.sms', avatarUrl: '', login: '+15551234567@expensify.sms'},
+                {displayName: 'Alice', avatarUrl: '', login: 'alice@x.com'},
+            ];
+            expect(TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare)).toBe('+15551234567, Alice');
+        });
+
+        it('returns empty string for empty array', () => {
+            expect(TransactionUtils.getAttendeesListDisplayString([], localeCompare)).toBe('');
+        });
+
+        it('does not mutate the input array', () => {
+            const attendees: Attendee[] = [
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+            ];
+            const snapshot = [...attendees];
+            TransactionUtils.getAttendeesListDisplayString(attendees, localeCompare);
+            expect(attendees).toEqual(snapshot);
+        });
+    });
+
     describe('isCategoryBeingAnalyzed', () => {
         it('should return false for undefined transaction', () => {
             expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
@@ -1829,6 +1893,7 @@ describe('TransactionUtils', () => {
     describe('getTaxRateTitle', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
+            tax: {trackingEnabled: true},
             taxRates: CONST.DEFAULT_TAX,
         };
 
@@ -1890,6 +1955,22 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
 
             expect(result).toBe('Tax exempt (0%) • Default');
+        });
+
+        it('should return empty string when trackingEnabled is false and transaction has no taxCode', () => {
+            const policyWithTrackingDisabled: Policy = {
+                ...createRandomPolicy(0),
+                tax: {trackingEnabled: false},
+                taxRates: CONST.DEFAULT_TAX,
+            };
+            const transaction = generateTransaction({
+                taxCode: undefined,
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policyWithTrackingDisabled, transaction, false, undefined);
+
+            expect(result).toBe('');
         });
 
         it('should return empty string when policy is undefined', () => {
@@ -2822,6 +2903,39 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('buildNewTransactionAfterReviewingDuplicates', () => {
+        it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
+            const duplicatedTransaction = generateTransaction({
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: -500,
+                taxValue: '5%',
+            });
+
+            const reviewDuplicates = {
+                duplicates: [],
+                transactionID: 'transaction1',
+                reportID: 'report1',
+                merchant: 'Updated Merchant',
+                category: 'Travel',
+                tag: 'Project',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 900,
+                description: 'Updated comment',
+                comment: duplicatedTransaction.comment ?? {},
+                reimbursable: false,
+                billable: true,
+            };
+
+            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-500);
+            expect(updatedTransaction.taxValue).toBe('5%');
+        });
+    });
+
     describe('getTagArrayFromName', () => {
         it('splits simple tag by colon', () => {
             expect(TransactionUtils.getTagArrayFromName('tag1:tag2:tag3')).toEqual(['tag1', 'tag2', 'tag3']);
@@ -2855,6 +2969,8 @@ describe('TransactionUtils', () => {
                 currency: 'USD',
                 groupExchangeRate: 1.25,
                 groupCurrency: 'EUR',
+                amount: -100,
+                convertedAmount: -125,
             });
 
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
@@ -2884,6 +3000,8 @@ describe('TransactionUtils', () => {
                 currency: 'USD',
                 currencyConversionRate: '0.85',
                 groupCurrency: 'EUR',
+                amount: -100,
+                convertedAmount: -85,
             });
 
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('0.85 USD/EUR');
@@ -2908,15 +3026,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
-        it('uses fromCurrency as toCurrency when groupCurrency is not set', () => {
+        it('returns empty string when groupCurrency is not set (no conversion context)', () => {
             const transaction = generateTransaction({
                 currency: 'USD',
                 groupExchangeRate: 2.5,
                 groupCurrency: undefined,
             });
 
-            // groupCurrency falls back to fromCurrency (USD)
-            expect(TransactionUtils.getExchangeRate(transaction)).toBe('2.5 USD/USD');
+            // Without a different groupCurrency there is no conversion to show.
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
         it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
@@ -2925,9 +3043,116 @@ describe('TransactionUtils', () => {
                 groupExchangeRate: 1.25,
                 currencyConversionRate: '0.85',
                 groupCurrency: 'EUR',
+                amount: -100,
+                convertedAmount: -125,
             });
 
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 0 and currencies are the same', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 0,
+                groupCurrency: 'USD',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('shows groupExchangeRate even when rate is 0 if currencies differ and conversion happened', () => {
+            const transaction = generateTransaction({
+                currency: 'UZS',
+                groupExchangeRate: 0,
+                groupCurrency: 'USD',
+                amount: -5000,
+                convertedAmount: -1,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0 UZS/USD');
+        });
+
+        it('shows currencyConversionRate even when rate is 0 if report currency differs and conversion happened', () => {
+            const transaction = generateTransaction({
+                currency: 'UZS',
+                currencyConversionRate: '0.0',
+                amount: -5000,
+                convertedAmount: -1,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.0 UZS/USD');
+        });
+
+        it('shows currencyConversionRate when modified currency differs from report currency even if convertedAmount rounds to amount', () => {
+            // Repro: user modified an expense from USD to NZ$16.95. The NZD→USD conversion
+            // (1695 * 0.5897 ≈ 999.5) rounds back to the original 1000 cents, so `convertedAmount`
+            // and `amount` happen to match even though a real conversion occurred.
+            const transaction = generateTransaction({
+                currency: 'USD',
+                modifiedCurrency: 'NZD',
+                modifiedAmount: -1695,
+                amount: -1000,
+                convertedAmount: -1000,
+                currencyConversionRate: '0.5897',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.5897 NZD/USD');
+        });
+
+        it('returns empty string when currencyConversionRate is set but fromCurrency equals reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+            });
+
+            // Same currency — no meaningful conversion to show.
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('');
+        });
+
+        it('returns empty string on report view when fromCurrency equals reportCurrency even if groupCurrency differs', () => {
+            // Repro: expense in a workspace whose currency (EUR) differs from the user's default workspace currency (USD).
+            // Transaction is unconverted relative to the report, but groupExchangeRate targets groupCurrency (USD).
+            const transaction = generateTransaction({
+                currency: 'EUR',
+                amount: -1000,
+                convertedAmount: -1000,
+                groupCurrency: 'USD',
+                groupExchangeRate: 1.1,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
+        });
+    });
+
+    describe('shouldClearConvertedAmount', () => {
+        it('returns false when destinationCurrency is undefined', () => {
+            const transaction = generateTransaction({currency: 'USD'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'EUR', undefined)).toBe(false);
+        });
+
+        it('returns false when sourceCurrency equals destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'USD'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'EUR', 'EUR')).toBe(false);
+        });
+
+        it('returns false when transactionCurrency equals destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'EUR'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'USD', 'EUR')).toBe(false);
+        });
+
+        it('returns true when both sourceCurrency and transactionCurrency differ from destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'GBP'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, 'USD', 'EUR')).toBe(true);
+        });
+
+        it('falls back to transactionCurrency when sourceCurrency is undefined and currencies differ', () => {
+            const transaction = generateTransaction({currency: 'GBP'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(true);
+        });
+
+        it('returns false when sourceCurrency is undefined and transactionCurrency matches destinationCurrency', () => {
+            const transaction = generateTransaction({currency: 'EUR'});
+            expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(false);
         });
     });
 });

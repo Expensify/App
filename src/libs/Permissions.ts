@@ -35,8 +35,16 @@ function canUseTrackFlows(): boolean {
     return false;
 }
 
+/**
+ * Private notes are temporarily disabled.
+ */
+function canUsePrivateNotes(): boolean {
+    return false;
+}
+
 export default {
     canUseLinkPreviews,
     canUseTrackFlows,
+    canUsePrivateNotes,
     isBetaEnabled,
 };
