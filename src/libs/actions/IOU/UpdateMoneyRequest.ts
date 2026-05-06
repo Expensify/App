@@ -71,6 +71,7 @@ type UpdateMoneyRequestDateParams = {
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    isOffline: boolean;
 };
 
 /** Updates the created date of an expense */
@@ -88,6 +89,7 @@ function updateMoneyRequestDate({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    isOffline,
 }: UpdateMoneyRequestDateParams) {
     const transactionChanges: TransactionChanges = {
         created: value,
@@ -105,13 +107,13 @@ function updateMoneyRequestDate({
             policy,
             policyTagList: policyTags,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            isOffline,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -132,6 +134,7 @@ function updateMoneyRequestBillable({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    isOffline,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -144,6 +147,7 @@ function updateMoneyRequestBillable({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    isOffline: boolean;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -159,13 +163,13 @@ function updateMoneyRequestBillable({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        isOffline,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
@@ -209,7 +213,6 @@ function updateMoneyRequestReimbursable({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyCategories,
         currentUserAccountIDParam,
@@ -262,7 +265,6 @@ function updateMoneyRequestMerchant({
             policy,
             policyTagList,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
             policyCategories,
             currentUserAccountIDParam,
@@ -314,7 +316,6 @@ function updateMoneyRequestAttendees({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyCategories,
         violations,
@@ -370,7 +371,6 @@ function updateMoneyRequestTag({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyRecentlyUsedTags,
         policyCategories,
@@ -420,7 +420,6 @@ function updateMoneyRequestTaxAmount({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyCategories,
         currentUserAccountIDParam,
@@ -476,7 +475,6 @@ function updateMoneyRequestTaxRate({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyCategories,
         currentUserAccountIDParam,
@@ -550,7 +548,6 @@ function updateMoneyRequestDistance({
             policy,
             policyTagList,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
             policyCategories,
             currentUserAccountIDParam,
@@ -653,7 +650,6 @@ function updateMoneyRequestCategory({
         policy,
         policyTagList,
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
         policyCategories,
         policyRecentlyUsedCategories,
@@ -709,7 +705,6 @@ function updateMoneyRequestDescription({
             policy,
             policyTagList,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
             policyCategories,
             currentUserAccountIDParam,
@@ -788,7 +783,6 @@ function updateMoneyRequestDistanceRate({
             policy,
             policyTagList,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
             policyCategories,
             currentUserAccountIDParam,
@@ -868,7 +862,6 @@ function updateMoneyRequestAmountAndCurrency({
             policy,
             policyTagList,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
             policyCategories: policyCategories ?? null,
             allowNegative,
@@ -1418,7 +1411,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
                 // buildOptimisticNextStep is used in parallel
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 value: buildNextStepNew({
                     report: moneyRequestReport,
                     predictedNextStatus: iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
