@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
@@ -37,15 +37,7 @@ function useTimeSensitiveEarlyDiscount(): TimeSensitiveEarlyDiscountState {
         return () => clearInterval(intervalID);
     }, [isEligibleForDiscount]);
 
-    const discountInfo = useMemo(() => {
-        if (!isEligibleForDiscount) {
-            return null;
-        }
-        return getEarlyDiscountInfo(firstDayFreeTrial);
-        // `tick` is intentionally included so the countdown recomputes every second
-        // even though it is not referenced inside the memo body.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [firstDayFreeTrial, isEligibleForDiscount, tick]);
+    const discountInfo = isEligibleForDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null;
 
     const shouldShowEarlyDiscount = isEligibleForDiscount && discountInfo?.discountType === EARLY_DISCOUNT_HALF_OFF;
 
