@@ -2261,12 +2261,7 @@ describe('ReportActionsUtils', () => {
             const reportName = 'Original Report';
             const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
-            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
-                reportUrl,
-                reportName,
-                reportID,
-                isReportDeleted,
-            });
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', reportUrl, reportName, reportID, isReportDeleted);
 
             const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 

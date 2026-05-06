@@ -38,18 +38,18 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
-    const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList, false, false);
     const totalMembers = Object.keys(allIds).length;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
+    const taxesLength = Object.values(policy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const categoriesCount = Object.keys(policyCategories ?? {}).length;
-    const codingRulesCount = Object.keys(policy?.rules?.codingRules ?? {}).length;
+    const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const codingRulesCount = Object.values(policy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const reportFields = Object.keys(getReportFieldsByPolicyID(policyID)).length ?? 0;
+    const reportFields = Object.values(getReportFieldsByPolicyID(policyID) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
-    const allRates = Object.values(customUnitRates)?.length;
+    const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -57,7 +57,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
 
     const customUnit = getDistanceRateCustomUnit(policy);
-    const ratesCount = Object.keys(customUnit?.rates ?? {}).length;
+    const ratesCount = Object.values(customUnit?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const invoiceCompany =
         policy?.invoice?.companyName && policy?.invoice?.companyWebsite
             ? `${policy?.invoice?.companyName}, ${policy?.invoice?.companyWebsite}`
@@ -67,7 +67,10 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!policyTags) {
             return 0;
         }
-        return Object.values(policyTags).reduce((sum, tagGroup) => sum + Number(Object.values(tagGroup.tags)?.length ?? 0), 0);
+        return Object.values(policyTags).reduce(
+            (sum, tagGroup) => sum + (Object.values(tagGroup.tags)?.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0),
+            0,
+        );
     }, [policyTags]);
 
     const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
