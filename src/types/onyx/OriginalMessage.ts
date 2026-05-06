@@ -1235,6 +1235,11 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
+     * A list of URLs to the Travel Invoicing Journal Entry records
+     */
+    travelInvoicingUrls?: string[];
+
+    /**
      * The type of the export action
      */
     type?: string;

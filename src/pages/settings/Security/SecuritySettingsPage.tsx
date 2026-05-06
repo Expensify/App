@@ -35,7 +35,6 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {hasDeviceManagementError} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
 import colors from '@styles/theme/colors';
 import {close as modalClose} from '@userActions/Modal';
@@ -56,23 +55,10 @@ type BaseMenuItemType = WithSentryLabel & {
     action: () => Promise<void> | void;
     link?: string;
     wrapperStyle?: StyleProp<ViewStyle>;
-    brickRoadIndicator?: MenuItemProps['brickRoadIndicator'];
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons([
-        'ArrowCollapse',
-        'ClosedSign',
-        'FallbackAvatar',
-        'Fingerprint',
-        'Monitor',
-        'Pencil',
-        'Shield',
-        'ThreeDots',
-        'Trashcan',
-        'UserLock',
-        'UserPlus',
-    ]);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'FallbackAvatar', 'Fingerprint', 'Pencil', 'Shield', 'ThreeDots', 'Trashcan', 'UserLock', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
@@ -83,7 +69,6 @@ function SecuritySettingsPage() {
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const isUserValidated = account?.validated;
@@ -228,15 +213,6 @@ function SecuritySettingsPage() {
             });
         }
 
-        const deviceManagementBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-        baseMenuItems.push({
-            translationKey: 'deviceManagementPage.title',
-            icon: icons.Monitor,
-            brickRoadIndicator: deviceManagementBrickRoadIndicator,
-            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
-        });
-
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
             icon: icons.ClosedSign,
@@ -258,7 +234,6 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: item.sentryLabel,
-            brickRoadIndicator: item.brickRoadIndicator,
         }));
     }, [
         icons.ArrowCollapse,
@@ -266,7 +241,6 @@ function SecuritySettingsPage() {
         icons.UserLock,
         icons.Shield,
         icons.Fingerprint,
-        icons.Monitor,
         isAccountLocked,
         isActingAsDelegate,
         isUserValidated,
@@ -278,7 +252,6 @@ function SecuritySettingsPage() {
         translate,
         styles.sectionMenuItemTopDescription,
         hasEverRegisteredForMultifactorAuthentication,
-        hasDeviceManagementErrorValue,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
