@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -83,7 +82,6 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksAccountSelectPage"
             data={qboOnlineSelectorOptions}
-            listItem={RadioListItem}
             headerContent={listHeaderComponent}
             onSelectRow={saveSelection}
             shouldSingleExecuteRowSelect

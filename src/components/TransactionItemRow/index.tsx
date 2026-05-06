@@ -680,6 +680,7 @@ function TransactionItemRow({
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
                             isDeleted={isDeletedTransaction}
+                            isSelected={isSelected}
                         />
                     </View>
                 );
@@ -795,7 +796,6 @@ function TransactionItemRow({
                                     disabled={isDisabled}
                                     onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                     accessibilityLabel={CONST.ROLE.RADIO}
-                                    shouldUseNewStyle
                                 />
                             </View>
                         )}
@@ -851,7 +851,6 @@ function TransactionItemRow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                shouldUseNewStyle
                             />
                         </View>
                     )}

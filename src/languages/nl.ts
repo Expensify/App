@@ -1458,6 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
+            failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Dit foutbericht negeren verwijdert je geüploade bon volledig. Weet je het zeker?',
@@ -5353,6 +5354,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             settlementFrequency: 'Uitbetalingsfrequentie',
             settlementFrequencyDescription: 'Kies hoe vaak je het saldo van je Expensify Kaart betaalt.',
             settlementFrequencyInfo: 'Als je wilt overschakelen naar maandelijkse afrekening, moet je je bankrekening koppelen via Plaid en een positieve saldohistorie van 90 dagen hebben.',
+            applyCashbackToBill: 'Cashback toepassen op mijn Expensify-factuur',
+            applyCashbackToBillDescription: 'De cashback van de Expensify Kaart wordt gebruikt voor het betalen van je Expensify-factuur.',
             frequency: {
                 daily: 'Dagelijks',
                 monthly: 'Maandelijks',
@@ -6949,6 +6952,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     label: 'Beheer',
                     description: 'Voor organisaties met geavanceerde vereisten.',
                 },
+                submit2026: {
+                    label: 'Indienen',
+                    description: 'Voor werknemers die onkosten bij hun werkgever willen indienen.',
+                },
             },
             description: 'Kies een pakket dat bij je past. Voor een gedetailleerd overzicht van functies en prijzen, bekijk onze',
             subscriptionLink: 'hulppagina voor abonnementstypen en prijzen',
@@ -6964,16 +6971,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             settingsTitle: 'Gusto-instellingen',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Gusto-gegevens importeren';
-                    case 'gustoSyncLoadCompany':
-                        return 'Gusto-bedrijfsgegevens laden';
-                    case 'gustoSyncImportEmployees':
-                        return 'Werknemers importeren';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Goedkeuringstrajecten opbouwen';
-                    case 'gustoSyncFinalize':
-                        return 'Synchronisatie voltooien';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Wachten tot geïmporteerde gegevens zijn geladen';
                     default: {
@@ -6987,6 +6990,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 finalApprover: 'Laatste fiatteur',
                 connect: 'Verbinden',
                 connectionDescription: 'Verbind Gusto om goedkeuringen van werknemers gesynchroniseerd te houden met je workspace.',
+                syncNow: 'Nu synchroniseren',
+                disconnect: 'Verbreken',
+                lastSync: (relativeDate: string) => `Laatste synchronisatie ${relativeDate}`,
+                syncError: 'Kan geen verbinding maken met Gusto',
+                disconnectTitle: 'Verbinding met Gusto verbreken',
+                disconnectPrompt: 'Weet je zeker dat je de verbinding met Gusto wilt verbreken?',
             },
         },
     },
@@ -7915,6 +7924,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     reimburseableLink: 'uit eigen zak gemaakte uitgaven',
                     nonReimbursableLink: 'uitgaven met bedrijfskaart',
                     pending: (label: string) => `is begonnen dit rapport te exporteren naar ${label}...`,
+                    travelCardLink: 'reiskartuitgaven',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `het exporteren van dit rapport naar ${label} is mislukt ("${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
@@ -9140,7 +9150,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             forceTwoFactorAuthDescription: `<muted-text>Tweeledige verificatie vereisen voor alle leden van dit domein. Domeinleden worden gevraagd om tweefactorauthenticatie voor hun account in te stellen wanneer ze zich aanmelden.</muted-text>`,
             forceTwoFactorAuthError: 'Verplichte twee-factor-authenticatie kon niet worden gewijzigd. Probeer het later opnieuw.',
             resetTwoFactorAuth: 'Tweeledige verificatie opnieuw instellen',
-            error: 'Kon deze wijziging niet opslaan. Probeer het opnieuw.',
+            error: 'Deze wijziging kon niet worden opgeslagen. Probeer het opnieuw.',
         },
         groups: {
             title: 'Groepen',
@@ -9162,6 +9172,12 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Weet je het zeker? Dit wijst alle leden opnieuw toe aan de standaardgroep (${defaultGroupName}) en kan niet ongedaan worden gemaakt.`,
             deleteGroupError: 'Kan deze groep niet verwijderen. Probeer het opnieuw.',
+            preferredWorkspace: 'Voorkeurswerkruimte',
+            preferredWorkspaceDescription: (enabled: boolean) => `Alle nieuwe rapporten en uitgaven worden aangemaakt in ${enabled ? 'de geselecteerde voorkeurs' : 'deze'} werkruimte.`,
+            preferredWorkspaceSelectDescription: 'Alle nieuwe uitgaven en rapporten worden aangemaakt in deze werkruimte.',
+            noWorkspacesMessage: 'Er zijn geen werkruimtes op dit domein. Een werkruimte is vereist om deze beperking in te schakelen.',
+            restrictDefaultLoginSelection: 'Standaard login-selectie beperken',
+            restrictDefaultLoginSelectionDescription: 'Voorkomt dat leden hun login-e-mail wijzigen naar een adres buiten het bedrijfsdomein om beleidsbeperkingen te omzeilen.',
         },
     },
     proactiveAppReview: {

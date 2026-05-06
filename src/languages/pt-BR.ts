@@ -1455,6 +1455,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
+            failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',
@@ -5344,6 +5345,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             settlementFrequency: 'Frequência de liquidação',
             settlementFrequencyDescription: 'Escolha com que frequência você vai pagar o saldo do seu Cartão Expensify.',
             settlementFrequencyInfo: 'Se quiser mudar para liquidação mensal, você precisará conectar sua conta bancária via Plaid e ter um histórico de saldo positivo de 90 dias.',
+            applyCashbackToBill: 'Aplicar reembolso à minha fatura do Expensify',
+            applyCashbackToBillDescription: 'O reembolso do Cartão Expensify será usado para o pagamento da sua fatura do Expensify.',
             frequency: {
                 daily: 'Diariamente',
                 monthly: 'Mensal',
@@ -6948,6 +6951,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     label: 'Controle',
                     description: 'Para organizações com requisitos avançados.',
                 },
+                submit2026: {
+                    label: 'Enviar',
+                    description: 'Para funcionários que desejam enviar despesas ao empregador.',
+                },
             },
             description: 'Escolha o plano ideal para você. Para ver a lista detalhada de recursos e preços, confira nosso',
             subscriptionLink: 'página de ajuda sobre tipos de plano e preços',
@@ -6963,16 +6970,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             settingsTitle: 'Configurações do Gusto',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importando dados do Gusto';
-                    case 'gustoSyncLoadCompany':
-                        return 'Carregando dados da empresa Gusto';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importando funcionários';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Criando cadeias de aprovação';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizando a sincronização';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Aguardando o carregamento dos dados importados';
                     default: {
@@ -6986,6 +6989,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 finalApprover: 'Aprovador final',
                 connect: 'Conectar',
                 connectionDescription: 'Conecte o Gusto para manter as aprovações de funcionários sincronizadas com seu workspace.',
+                syncNow: 'Sincronizar agora',
+                disconnect: 'Desconectar',
+                lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
+                syncError: 'Não é possível conectar ao Gusto',
+                disconnectTitle: 'Desconectar Gusto',
+                disconnectPrompt: 'Tem certeza de que deseja desconectar o Gusto?',
             },
         },
     },
@@ -7907,6 +7916,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     reimburseableLink: 'despesas reembolsáveis',
                     nonReimbursableLink: 'despesas com cartão corporativo',
                     pending: (label: string) => `iniciou a exportação deste relatório para ${label}...`,
+                    travelCardLink: 'despesas do cartão de viagem',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `falha ao exportar este relatório para ${label} ("${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
@@ -9150,6 +9160,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
                 `Tem certeza? Isso reatribuirá todos os membros ao grupo padrão (${defaultGroupName}) e não poderá ser desfeito.`,
             deleteGroupError: 'Não foi possível excluir este grupo. Tente novamente.',
+            preferredWorkspace: 'Espaço de trabalho preferido',
+            preferredWorkspaceDescription: (enabled: boolean) =>
+                `Todos os novos relatórios e despesas serão criados ${enabled ? 'no espaço de trabalho preferido selecionado' : 'neste espaço de trabalho'}.`,
+            preferredWorkspaceSelectDescription: 'Todas as novas despesas e relatórios serão criados neste espaço de trabalho.',
+            noWorkspacesMessage: 'Não há espaços de trabalho neste domínio. Um espaço de trabalho é necessário para ativar esta restrição.',
+            restrictDefaultLoginSelection: 'Restringir seleção de login padrão',
+            restrictDefaultLoginSelectionDescription:
+                'Impede que os membros alterem o e-mail de login para um endereço fora do domínio da empresa, evitando que burlem restrições de políticas.',
         },
     },
     proactiveAppReview: {

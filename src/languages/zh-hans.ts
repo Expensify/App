@@ -1415,6 +1415,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
+            failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -5226,6 +5227,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择支付 Expensify 卡余额的频率。',
             settlementFrequencyInfo: '如果你想切换为按月结算，你需要通过 Plaid 连接你的银行账户，并且拥有过去 90 天为正数的余额记录。',
+            applyCashbackToBill: '将返现用于抵扣我的 Expensify 账单',
+            applyCashbackToBillDescription: 'Expensify 卡的返现将用于支付你的 Expensify 账单。',
             frequency: {
                 daily: '每日',
                 monthly: '每月',
@@ -6775,6 +6778,10 @@ ${reportName}
                     label: '控制',
                     description: '适用于具有高级需求的组织。',
                 },
+                submit2026: {
+                    label: '提交',
+                    description: '适用于希望向雇主提交费用的员工。',
+                },
             },
             description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
             subscriptionLink: '方案类型和价格帮助页面',
@@ -6790,16 +6797,12 @@ ${reportName}
             settingsTitle: 'Gusto 设置',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return '正在导入 Gusto 数据';
-                    case 'gustoSyncLoadCompany':
-                        return '正在加载 Gusto 公司数据';
-                    case 'gustoSyncImportEmployees':
-                        return '正在导入员工';
-                    case 'gustoSyncBuildApprovalChains':
-                        return '构建审批链';
-                    case 'gustoSyncFinalize':
-                        return '正在完成同步';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6807,7 +6810,19 @@ ${reportName}
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人', connect: '连接', connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                connect: '连接',
+                connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 Gusto',
+                disconnectTitle: '断开 Gusto',
+                disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+            },
         },
     },
     getAssistancePage: {
@@ -7705,6 +7720,7 @@ ${reportName}
                     reimburseableLink: '自付报销费用',
                     nonReimbursableLink: '公司卡消费',
                     pending: (label: string) => `已开始将此报表导出到 ${label}…`,
+                    travelCardLink: '差旅卡费用',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `未能将此报表导出到 ${label}（“${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}”）`,
@@ -8914,6 +8930,12 @@ ${reportName}
             deleteGroupDangerConfirmationModal: '删除群组',
             deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) => `您确定吗？这将把所有成员重新分配到默认群组（${defaultGroupName}），并且无法撤销。`,
             deleteGroupError: '无法删除此群组。请重试。',
+            preferredWorkspace: '首选工作区',
+            preferredWorkspaceDescription: (enabled: boolean) => `所有新报告和费用将在${enabled ? '选定的首选' : '此'}工作区中创建。`,
+            preferredWorkspaceSelectDescription: '所有新费用和报告将在此工作区中创建。',
+            noWorkspacesMessage: '此域上没有工作区。启用此限制需要一个工作区。',
+            restrictDefaultLoginSelection: '限制默认登录选择',
+            restrictDefaultLoginSelectionDescription: '防止成员将登录邮箱更改为公司域名以外的地址，以规避政策限制。',
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
