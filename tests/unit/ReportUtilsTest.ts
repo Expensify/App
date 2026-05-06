@@ -1843,7 +1843,6 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const reportName = getReportNameDeprecated({report: transactionThread, parentReportActionParam: unreportedTransactionAction});
 
                 // Should NOT contain HTML tags
@@ -2048,7 +2047,6 @@ describe('ReportUtils', () => {
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
                 };
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const reportName = getReportNameDeprecated({
                     report,
                     policy,
@@ -2068,7 +2066,6 @@ describe('ReportUtils', () => {
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                 };
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const reportName = getReportNameDeprecated({
                     report,
                     policy,
@@ -2090,7 +2087,6 @@ describe('ReportUtils', () => {
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
                 };
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const reportName = getReportNameDeprecated({report, policy, personalDetails: participantsPersonalDetails});
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
@@ -14051,7 +14047,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReport.reportID}`, conciergeReport);
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReport.reportID);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const name = getReportNameDeprecated({report: conciergeReport, conciergeReportID: conciergeReport.reportID});
             expect(name).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
@@ -14063,7 +14058,6 @@ describe('ReportUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${regularReport.reportID}`, regularReport);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const name = getReportNameDeprecated({report: regularReport, conciergeReportID: '999'});
             expect(name).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });

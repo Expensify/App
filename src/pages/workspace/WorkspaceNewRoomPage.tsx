@@ -137,7 +137,6 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             currentUserAccountID,
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);

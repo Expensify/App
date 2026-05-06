@@ -528,7 +528,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             reportIDList.filter((reportID) => reportID !== undefined),
         );
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });
@@ -576,7 +575,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(async () => {
             const result = await showConfirmModal({
                 title: deleteModalTitle,
@@ -589,7 +587,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
                     for (const reportID of selectedReportIDs) {
@@ -767,7 +764,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             payMoneyRequestOnSearch(hash, paymentData);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
@@ -1320,7 +1316,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             currentUserPersonalDetails?.accountID,
                         );
                     }
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
