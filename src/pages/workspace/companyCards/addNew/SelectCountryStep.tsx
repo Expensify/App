@@ -16,7 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -89,7 +89,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         });
-    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues, (item) => item.value);
     const filteredCountries = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const searchResults = filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value}));
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';

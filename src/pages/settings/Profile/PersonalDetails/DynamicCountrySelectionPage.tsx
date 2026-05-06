@@ -12,7 +12,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {Option} from '@libs/searchOptions';
 import searchOptions from '@libs/searchOptions';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
@@ -45,7 +45,7 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
         [translate, currentCountry],
     );
 
-    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues, (item) => item.value);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
 
     const selectCountry = useCallback(

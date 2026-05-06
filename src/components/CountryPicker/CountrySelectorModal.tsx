@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -56,7 +56,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             }),
         [translate, currentCountry],
     );
-    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues, (item) => item.value);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 

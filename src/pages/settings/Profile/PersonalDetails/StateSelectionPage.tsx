@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import type {Route} from '@src/ROUTES';
@@ -53,7 +53,7 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const orderedCountryStates = moveInitialSelectionToTopByValue(countryStates, initialSelectedValues);
+    const orderedCountryStates = moveInitialSelectionToTop(countryStates, initialSelectedValues, (item) => item.value);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 

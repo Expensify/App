@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useInitialSelection from '@hooks/useInitialSelection';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import type {ValueSelectionListProps} from './types';
 
 function ValueSelectionList({
@@ -20,7 +20,7 @@ function ValueSelectionList({
 
     const options = useMemo(() => {
         const mappedOptions = items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''}));
-        const orderedOptions = moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValue ? [initialSelectedValue] : []);
+        const orderedOptions = moveInitialSelectionToTop(mappedOptions, initialSelectedValue ? [initialSelectedValue] : [], (item) => item.value);
 
         return orderedOptions.map((item) => ({...item, isSelected: item.value === selectedItem?.value}));
     }, [initialSelectedValue, items, selectedItem?.value]);

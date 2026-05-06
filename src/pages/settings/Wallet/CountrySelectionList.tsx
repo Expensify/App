@@ -10,7 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Text from '@src/components/Text';
 import type {TranslationPaths} from '@src/languages/types';
@@ -58,7 +58,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
         };
     });
 
-    const orderedCountries = moveInitialSelectionToTopByValue(countriesList, initialSelectedValues);
+    const orderedCountries = moveInitialSelectionToTop(countriesList, initialSelectedValues, (item) => item.value);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
 
     const textInputOptions = {

@@ -8,7 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -62,7 +62,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         [optionsList, selectedOption],
     );
 
-    const orderedOptions = moveInitialSelectionToTopByValue(options, initialSelectedValues);
+    const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues, (item) => item.value);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
