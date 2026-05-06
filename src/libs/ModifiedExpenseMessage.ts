@@ -63,7 +63,7 @@ function buildMessageFragmentForValue(
         const fragment = translate('iou.removedTheRequest', displayValueName, oldValueToDisplay);
         removalFragments.push(fragment);
     } else {
-        const fragment = translate('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
+        const fragment = translate('iou.updatedTheRequest', displayValueName, newValueToDisplay, oldValueToDisplay);
         changeFragments.push(fragment);
     }
 }
@@ -121,13 +121,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     if (!oldMerchant.length) {
         return translate('iou.setTheDistanceMerchant', translatedChangedField, newMerchant, newAmount);
     }
-    return translate('iou.updatedTheDistanceMerchant', {
-        translatedChangedField,
-        newMerchant,
-        oldMerchant,
-        newAmountToDisplay: newAmount,
-        oldAmountToDisplay: oldAmount,
-    });
+    return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
 function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string, policy: OnyxEntry<Policy>) {

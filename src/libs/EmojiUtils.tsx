@@ -808,7 +808,6 @@ function getTextVSCursorOffset(text: string, cursorPosition: number | undefined 
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
-    findEmojiByName,
     findEmojiByCode,
     getLocalizedEmojiName,
     getProcessedText,
@@ -819,7 +818,6 @@ export {
     suggestEmojis,
     getEmojiCodeWithSkinColor,
     getPreferredEmojiCode,
-    getUniqueEmojiCodes,
     getEmojiReactionDetails,
     replaceAndExtractEmojis,
     extractEmojis,

@@ -180,7 +180,7 @@ function getTagListSections({
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
     const policyTagValueList = policyTagList
-        .filter((tag) => tag && tag.tags)
+        .filter((tag) => tag?.tags)
         .map(({tags}) => Object.values(tags))
         .flat();
 
@@ -213,7 +213,7 @@ function getTagVisibility({
     const policyTagLists = getTagLists(policyTags);
 
     return policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required ?? false;
+        const isTagRequired = required || !!policy?.requiresTag;
         let shouldShow = false;
 
         if (shouldShowTags) {
@@ -353,5 +353,5 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
+export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
 export type {SelectedTagOption, TagVisibility, TagOption};

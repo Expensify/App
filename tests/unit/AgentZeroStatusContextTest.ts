@@ -1,25 +1,10 @@
-import {act, renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import Pusher from '@libs/Pusher';
-import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
+import {AgentZeroStatusProvider, useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-const mockTranslate = jest.fn((key: string) => {
-    if (key === 'common.thinking') {
-        return 'Thinking...';
-    }
-    return key;
-});
-
-jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => ({
-        translate: mockTranslate,
-    }),
-}));
 
 jest.mock('@libs/Pusher');
 
@@ -65,6 +50,7 @@ describe('AgentZeroStatusContext', () => {
 
     afterEach(() => {
         jest.clearAllTimers();
+        jest.useRealTimers();
     });
 
     describe('basic functionality', () => {
@@ -73,14 +59,13 @@ describe('AgentZeroStatusContext', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
             // When we render the hook
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
 
             // Then it should return default state with no processing indicator
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.statusLabel).toBe('');
             expect(result.current.reasoningHistory).toEqual([]);
-            expect(result.current.kickoffWaitingIndicator).toBeInstanceOf(Function);
 
             // And no Pusher subscription should have been created
             expect(mockPusher.subscribe).not.toHaveBeenCalled();
@@ -123,91 +108,6 @@ describe('AgentZeroStatusContext', () => {
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.statusLabel).toBe('');
-        });
-    });
-
-    describe('kickoffWaitingIndicator', () => {
-        it('should trigger optimistic waiting state when called in Concierge chat without server label', async () => {
-            // Given a Concierge chat with no server label (user about to send a message)
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
-            await waitForBatchedUpdates();
-
-            // When the user triggers the waiting indicator (e.g., sending a message)
-            act(() => {
-                result.current.kickoffWaitingIndicator();
-            });
-
-            // Then it should show optimistic processing state with waiting label
-            await waitForBatchedUpdates();
-            expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
-        });
-
-        it('should not trigger waiting state if server label already exists', async () => {
-            // Given a Concierge chat that's already processing with a server label
-            const serverLabel = 'Concierge is looking up categories...';
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-                agentZeroProcessingRequestIndicator: serverLabel,
-            });
-
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
-            await waitForBatchedUpdates();
-
-            const initialLabel = result.current.statusLabel;
-
-            // When kickoff is called while already processing
-            act(() => {
-                result.current.kickoffWaitingIndicator();
-            });
-
-            // Then the server label should remain unchanged
-            await waitForBatchedUpdates();
-            expect(result.current.statusLabel).toBe(initialLabel);
-            expect(result.current.statusLabel).toBe(serverLabel);
-        });
-
-        it('should not trigger waiting state in non-Concierge chat', async () => {
-            // Given a regular chat (not Concierge)
-            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
-
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
-            await waitForBatchedUpdates();
-
-            // When kickoff is called
-            act(() => {
-                result.current.kickoffWaitingIndicator();
-            });
-
-            // Then it should not show processing state
-            await waitForBatchedUpdates();
-            expect(result.current.isProcessing).toBe(false);
-            expect(result.current.statusLabel).toBe('');
-        });
-
-        it('should clear optimistic waiting state when server label arrives', async () => {
-            // Given a Concierge chat with optimistic waiting state
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
-            await waitForBatchedUpdates();
-
-            act(() => {
-                result.current.kickoffWaitingIndicator();
-            });
-            await waitForBatchedUpdates();
-
-            expect(result.current.statusLabel).toBe('Thinking...');
-
-            // When a server label arrives
-            const serverLabel = 'Concierge is looking up categories...';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-                agentZeroProcessingRequestIndicator: serverLabel,
-            });
-
-            // Then it should replace the waiting label with the server label
-            await waitForBatchedUpdates();
-            await waitFor(() => {
-                expect(result.current.statusLabel).toBe(serverLabel);
-            });
         });
     });
 
@@ -352,41 +252,6 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.statusLabel).toBe('');
             expect(result.current.reasoningHistory).toEqual([]);
-        });
-
-        it('should clear optimistic state when server completes after kickoff', async () => {
-            // Given a Concierge chat where user triggered optimistic waiting
-            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
-            await waitForBatchedUpdates();
-
-            // User sends message → optimistic waiting state
-            act(() => {
-                result.current.kickoffWaitingIndicator();
-            });
-            await waitForBatchedUpdates();
-            expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
-
-            // Backend starts processing → server label arrives
-            const serverLabel = 'Processing your request...';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-                agentZeroProcessingRequestIndicator: serverLabel,
-            });
-            await waitForBatchedUpdates();
-
-            await waitFor(() => {
-                expect(result.current.statusLabel).toBe(serverLabel);
-            });
-
-            // When the final response arrives → backend clears indicator
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-                agentZeroProcessingRequestIndicator: '',
-            });
-
-            // Then all processing state should be cleared
-            await waitForBatchedUpdates();
-            expect(result.current.isProcessing).toBe(false);
-            expect(result.current.statusLabel).toBe('');
         });
     });
 });

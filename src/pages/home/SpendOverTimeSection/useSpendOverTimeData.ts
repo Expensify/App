@@ -1,7 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -51,11 +53,13 @@ function useSpendOverTimeData() {
     const {groupBy, view} = queryJSON ?? {};
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const isSearchLoading = !!searchResults?.search?.isLoading;
 
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
 
     const onConfigChanged = useEffectEvent(() => {
         if (!queryJSON || isSearchLoading || isOffline) {
@@ -73,8 +77,11 @@ function useSpendOverTimeData() {
     });
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         onConfigChanged();
-    }, [config.hash, isOffline]);
+    }, [config.hash, isOffline, isFocused]);
 
     const sortedData =
         searchResults?.data && queryJSON && groupBy && login
@@ -93,6 +100,7 @@ function useSpendOverTimeData() {
                       bankAccountList: undefined,
                       allReportMetadata: undefined,
                       conciergeReportID: undefined,
+                      convertToDisplayString,
                   })[0],
                   localeCompare,
                   translate,

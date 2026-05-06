@@ -116,7 +116,6 @@ function TransactionStartDateStep() {
                             initiallyFocusedItemKey={dateOptionSelected}
                             shouldUpdateFocusedIndex
                             addBottomSafeAreaPadding
-                            shouldHighlightSelectedItem={false}
                             footerContent={
                                 <Button
                                     success

@@ -1,5 +1,6 @@
 import {Keyboard} from 'react-native';
 import {isMobile, isMobileSafari} from '@libs/Browser';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import type {DismissKeyboardOptions} from './types';
@@ -79,6 +80,9 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     // This fixes a bug specific to native apps on Android < 16
     // For web it just executes callback
     // https://github.com/Expensify/App/issues/70692
+    if (isMobileSafari()) {
+        return dismiss().then(cb);
+    }
     return Promise.resolve().then(cb);
 };
 

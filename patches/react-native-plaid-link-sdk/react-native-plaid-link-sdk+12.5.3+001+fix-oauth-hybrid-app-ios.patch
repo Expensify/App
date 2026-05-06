@@ -1,0 +1,75 @@
+diff --git a/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.mm b/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.mm
+index cca454e..a1b66d7 100644
+--- a/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.mm
++++ b/node_modules/react-native-plaid-link-sdk/ios/RNLinksdk.mm
+@@ -12,6 +12,12 @@ static NSString* const kRNLinkKitEventNameKey = @"event";
+ static NSString* const kRNLinkKitEventMetadataKey = @"metadata";
+ static NSString* const kRNLinkKitVersionConstant = @"version";
+ 
++// Tracks the module instance whose linkHandler is currently active for OAuth.
++// Set when createPlaidLink succeeds, cleared whenever linkHandler is nilled.
++// Lets JS forward universal-link OAuth redirects back into the SDK via
++// the RCT_EXPORT_METHOD continueFromRedirectUri: below.
++static RNLinksdk *sSharedInstance = nil;
++
+ @interface RNLinksdk ()
+ @property (nonatomic, strong) id<PLKHandler> linkHandler;
+ @property (nonatomic, strong) UIViewController* presentingViewController;
+@@ -92,6 +98,9 @@ RCT_EXPORT_METHOD(createPlaidLink:(NSString*)token noLoadingState:(BOOL)noLoadin
+             }
+             strongSelf.exitCallback = nil;
+             strongSelf.linkHandler = nil;
++            if (sSharedInstance == strongSelf) {
++                sSharedInstance = nil;
++            }
+         }
+     };
+ 
+@@ -108,6 +117,9 @@ RCT_EXPORT_METHOD(createPlaidLink:(NSString*)token noLoadingState:(BOOL)noLoadin
+                 if (strongSelf.presentingViewController == nil) {
+                     // Deallocate the handler it's no longer needed.
+                     strongSelf.linkHandler = nil;
++                    if (sSharedInstance == strongSelf) {
++                        sSharedInstance = nil;
++                    }
+                 }
+             }
+         }
+@@ -121,6 +133,9 @@ RCT_EXPORT_METHOD(createPlaidLink:(NSString*)token noLoadingState:(BOOL)noLoadin
+     NSError *creationError = nil;
+     self.linkHandler = [RNPlaidHelper createWithLinkTokenConfiguration:config error:&creationError];
+     self.creationError = creationError;
++    if (self.linkHandler) {
++        sSharedInstance = self;
++    }
+ }
+ 
+ RCT_EXPORT_METHOD(open:(BOOL)fullScreen onSuccess:(RCTResponseSenderBlock)onSuccess onExit:(RCTResponseSenderBlock)onExit) {
+@@ -175,6 +190,15 @@ RCT_EXPORT_METHOD(open:(BOOL)fullScreen onSuccess:(RCTResponseSenderBlock)onSucc
+     }
+ }
+ 
++RCT_EXPORT_METHOD(continueFromRedirectUri:(NSString *)urlString) {
++    NSURL *url = [NSURL URLWithString:urlString];
++    RNLinksdk *instance = sSharedInstance;
++    if (url == nil || instance == nil || instance.linkHandler == nil) {
++        return;
++    }
++    [instance.linkHandler resumeAfterTermination:url];
++}
++
+ RCT_EXPORT_METHOD(dismiss) {
+     [self.presentingViewController dismissViewControllerAnimated:YES
+                                                       completion:nil];
+diff --git a/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts b/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts
+index a783aa9..a15e91f 100644
+--- a/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts
++++ b/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts
+@@ -12,6 +12,7 @@ export interface Spec extends TurboModule {
+         onSuccess: (result: UnsafeObject<LinkSuccess>) => void,
+         onExit: (error: UnsafeObject<LinkError>, result: UnsafeObject<LinkExit>) => void,
+       ): void;
++    continueFromRedirectUri(urlString: string): void;
+     dismiss(): void;
+     submit(
+       phoneNumber: string | undefined,

@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as API from '@src/libs/API';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -814,7 +815,7 @@ describe('APITests', () => {
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
-                value: 'onboarding.errorSelection',
+                value: 'onboarding.errorSelection' as TranslationPaths,
             },
         ];
 
@@ -823,8 +824,7 @@ describe('APITests', () => {
             [ONYXKEYS.SESSION]: {authToken: 'anyToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT},
         })
             .then(() => {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
+                API.write('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
                 return waitForNetworkPromises();
             })
             .then(waitForBatchedUpdates)
@@ -874,8 +874,8 @@ describe('API.write() persistence guarantees', () => {
             let requestPersistedBeforeOptimistic = false;
 
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
-                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+                // We use ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
+                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
                     requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === 'MockCommand');
@@ -888,7 +888,7 @@ describe('API.write() persistence guarantees', () => {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+                            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
                             value: true,
                         },
                     ],
