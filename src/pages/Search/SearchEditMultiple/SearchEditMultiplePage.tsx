@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,13 +26,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getTransactionEditContext, withSnapshotReportActions, withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
+import {
+    areAllTransactionsExpenseCompatible,
+    getTransactionEditContext,
+    hasCustomUnitMerchantInSelection,
+    isBulkEditTaxTrackingEnabled,
+    withSnapshotReportActions,
+    withSnapshotReports,
+    withSnapshotTransactions,
+} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {currentSearchHash, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
@@ -70,8 +80,7 @@ function SearchEditMultiplePage() {
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
-    const hasPartiallyEditableMerchantTransaction =
-        isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
+    const hasPartiallyEditableMerchantTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT) || hasCustomUnitMerchantInSelection(selectedTransactionContexts);
 
     const hasPartiallyEditableTaxRateTransaction =
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
@@ -101,15 +110,10 @@ function SearchEditMultiplePage() {
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     const policyTagLists = getTagLists(policyTags);
 
-    const isTaxTrackingEnabled = !hasPerDiemOrTimeTransaction && selectedTransactionContexts.every(({transactionPolicy}) => !!transactionPolicy?.tax?.trackingEnabled);
-    const areSelectedTransactionsExpenses = selectedTransactionContexts.every(({transaction, report}) => {
-        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
-        }
-        return !isIOUReport(report);
-    });
+    const isTaxTrackingEnabled = isBulkEditTaxTrackingEnabled(selectedTransactionContexts, policy, hasPerDiemOrTimeTransaction);
+    const areSelectedTransactionsExpenses = areAllTransactionsExpenseCompatible(selectedTransactionContexts);
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
-    const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
+    const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
     useEffect(() => {
         return () => {
@@ -169,6 +173,8 @@ function SearchEditMultiplePage() {
             allPolicies: policies,
             introSelected,
             betas,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
         });
         // Bulk edit can start from report (ID-based selection) or search (map-based selection),
         // so clear both stores to keep deselection behavior consistent.

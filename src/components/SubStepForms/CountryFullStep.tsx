@@ -13,7 +13,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -49,8 +48,6 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {environmentURL} = useEnvironment();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -80,7 +77,12 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         }
 
         setIsComingFromGlobalReimbursementsFlow(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID), {forceReplace: !isSmallScreenWidth});
+        const route = ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        Navigation.dismissModal({
+            afterTransition: () => {
+                Navigation.navigate(route);
+            },
+        });
     };
 
     const handleSubmit = () => {

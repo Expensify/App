@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,7 +14,6 @@ import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import Button from './Button';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -21,7 +21,6 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
-import SelectCircle from './SelectCircle';
 import Text from './Text';
 
 type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
@@ -38,21 +37,6 @@ type OptionRowProps = {
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (option: OptionDataWithOptionalReportID, refElement: View | HTMLDivElement | null) => void | Promise<void>;
-
-    /** Whether we should show the selected state */
-    showSelectedState?: boolean;
-
-    /** Whether to show a button pill instead of a checkbox */
-    shouldShowSelectedStateAsButton?: boolean;
-
-    /** Text for button pill */
-    selectedStateButtonText?: string;
-
-    /** Callback to fire when the multiple selector (checkbox or button) is clicked */
-    onSelectedStatePressed?: (option: OptionDataWithOptionalReportID) => void;
-
-    /** Whether we highlight selected option */
-    highlightSelected?: boolean;
 
     /** Whether this item is selected */
     isSelected?: boolean;
@@ -93,20 +77,15 @@ function OptionRow({
     onSelectRow,
     style,
     hoverStyle,
-    selectedStateButtonText,
     keyForList,
     isDisabled: isOptionDisabled = false,
     isMultilineSupported = false,
-    shouldShowSelectedStateAsButton = false,
-    highlightSelected = false,
     shouldHaveOptionSeparator = false,
     showTitleTooltip = false,
     optionIsFocused = false,
     boldStyle = false,
-    onSelectedStatePressed = () => {},
     backgroundColor,
     isSelected = false,
-    showSelectedState = false,
     shouldDisableRowInnerPadding = false,
     shouldPreventDefaultFocusOnSelectRow = false,
 }: OptionRowProps) {
@@ -307,38 +286,6 @@ function OptionRow({
                                         />
                                     </View>
                                 )}
-                                {showSelectedState &&
-                                    (shouldShowSelectedStateAsButton && !isSelected ? (
-                                        <Button
-                                            style={[styles.pl2]}
-                                            text={selectedStateButtonText ?? translate('common.select')}
-                                            onPress={() => onSelectedStatePressed(option)}
-                                            small
-                                            shouldUseDefaultHover={false}
-                                        />
-                                    ) : (
-                                        <PressableWithFeedback
-                                            onPress={() => onSelectedStatePressed(option)}
-                                            disabled={isDisabled}
-                                            role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={CONST.ROLE.BUTTON}
-                                            sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.USER_SELECTION_CHECKBOX}
-                                            style={[styles.ml2, styles.optionSelectCircle]}
-                                        >
-                                            <SelectCircle
-                                                isChecked={isSelected}
-                                                selectCircleStyles={styles.ml0}
-                                            />
-                                        </PressableWithFeedback>
-                                    ))}
-                                {isSelected && highlightSelected && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={icons.Checkmark}
-                                            fill={theme.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
                             </View>
                         </View>
                         {!!option.customIcon && (
@@ -370,9 +317,6 @@ export default React.memo(
         prevProps.isMultilineSupported === nextProps.isMultilineSupported &&
         prevProps.isSelected === nextProps.isSelected &&
         prevProps.shouldHaveOptionSeparator === nextProps.shouldHaveOptionSeparator &&
-        prevProps.selectedStateButtonText === nextProps.selectedStateButtonText &&
-        prevProps.showSelectedState === nextProps.showSelectedState &&
-        prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
         // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- icons array is created inline in some usages (e.g., BaseReactionList) with unstable references
         deepEqual(prevProps.option.icons, nextProps.option.icons) &&

@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -17,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -101,8 +102,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
     const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
 
     // Set the initial approval workflow when the page is loaded
     useEffect(() => {
