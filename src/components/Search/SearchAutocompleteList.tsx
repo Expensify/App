@@ -51,6 +51,8 @@ type GetAdditionalSectionsCallback = (options: Options, sectionIndex: number) =>
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+    /** Immediate (non-debounced) query from the input for UI-only behavior */
+    inputQueryValue?: string;
 
     /** Callback to trigger search action * */
     handleSearch: (value: string) => void;
@@ -130,6 +132,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
 
 function SearchAutocompleteList({
     autocompleteQueryValue,
+    inputQueryValue,
     handleSearch,
     searchQueryItem,
     getAdditionalSections,
@@ -161,6 +164,8 @@ function SearchAutocompleteList({
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
+    const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -235,7 +240,7 @@ function SearchAutocompleteList({
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
-    const prevQueryRef = useRef(autocompleteQueryValue);
+    const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
 
@@ -257,11 +262,11 @@ function SearchAutocompleteList({
             return;
         }
 
-        const queryChanged = prevQueryRef.current !== autocompleteQueryValue;
-        prevQueryRef.current = autocompleteQueryValue;
+        const queryChanged = prevQueryRef.current !== effectiveInputQueryValue;
+        prevQueryRef.current = effectiveInputQueryValue;
 
         if (queryChanged) {
-            if (autocompleteQueryValue === '') {
+            if (effectiveInputQueryValue === '') {
                 // When query is cleared, reset the initial focus guard so the initial focus
                 // effect can re-fire and correctly focus the first focusable item (skipping section headers).
                 hasSetInitialFocusRef.current = false;
@@ -271,7 +276,7 @@ function SearchAutocompleteList({
                 innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
             }
         }
-    }, [autocompleteQueryValue, isInitialRender]);
+    }, [effectiveInputQueryValue, isInitialRender]);
 
     // Track external text input focus to prevent list items from stealing focus while typing
     useEffect(() => {
@@ -289,7 +294,7 @@ function SearchAutocompleteList({
 
         // Note: We can't easily subscribe to focus/blur events on the ref, so we update on query changes
         // which happen when the user types (meaning input is focused)
-    }, [textInputRef, autocompleteQueryValue]);
+    }, [textInputRef, effectiveInputQueryValue]);
 
     const autocompleteSuggestions = useAutocompleteSuggestions({
         autocompleteQueryValue,
@@ -360,8 +365,13 @@ function SearchAutocompleteList({
     ]);
 
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
+        if (!hasEffectiveInputQuery) {
             return searchOptions.recentReports;
+        }
+
+        // User typed but debounce has not emitted yet; avoid showing stale empty-query results.
+        if (autocompleteQueryValue.trim() === '') {
+            return [];
         }
 
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
@@ -375,7 +385,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, hasEffectiveInputQuery, searchOptions]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -419,7 +429,7 @@ function SearchAutocompleteList({
             }
         }
 
-        if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+        if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
             pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
@@ -441,18 +451,18 @@ function SearchAutocompleteList({
 
         if (!isLoadingOptions) {
             pushSection({
-                title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+                title: !hasEffectiveInputQuery ? translate('search.recentChats') : undefined,
                 data: nextStyledRecentReports,
                 sectionIndex: sectionIndex++,
             });
-        } else if (autocompleteQueryValue.trim() !== '' && nextStyledRecentReports.length > 0) {
+        } else if (hasEffectiveInputQuery && nextStyledRecentReports.length > 0) {
             // When options aren't fully initialized but we have a search query with available results,
             // render them immediately so they're selectable instead of hiding the section entirely.
             pushSection({
                 data: nextStyledRecentReports,
                 sectionIndex: sectionIndex++,
             });
-        } else if (autocompleteQueryValue.trim() === '') {
+        } else if (!hasEffectiveInputQuery) {
             pushSection({
                 title: translate('search.recentChats'),
                 data: [],
@@ -491,6 +501,7 @@ function SearchAutocompleteList({
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
         autocompleteQueryValue,
+        hasEffectiveInputQuery,
         autocompleteSuggestions,
         expensifyIcons,
         getAdditionalSections,
