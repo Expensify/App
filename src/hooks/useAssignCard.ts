@@ -1,5 +1,4 @@
 import { useRef } from 'react';
-
 import { importPlaidAccounts } from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -66,11 +65,7 @@ function useAssignCard({ feedName, policyID, setShouldShowOfflineModal }: UseAss
     const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({ policyID });
-
-
-
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
-
     const getInitialAssignCardStep = useInitialAssignCardStep({ policyID, selectedFeed: feedName });
 
     /**
