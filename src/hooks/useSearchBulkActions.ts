@@ -865,7 +865,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
-    // eslint-disable-next-line react-hooks/refs -- invokeDuplicateHandler reads a ref only inside option event handlers, not for render decisions
     const duplicateReportHandlerRef = useRef<() => void>(() => {});
     const setDuplicateReportHandler = useCallback((handler: () => void) => {
         duplicateReportHandlerRef.current = handler;
