@@ -888,10 +888,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: '聊天列表',
         saveTheWorld: '拯救世界',
         tooltip: '从这里开始！',
-        redirectToExpensifyClassicModal: {
-            title: '即将推出',
-            description: '我们正在对新版 Expensify 做最后的一些细节调整，以适配你的特定设置。与此同时，请先前往 Expensify 经典版。',
-        },
     },
     homePage: {
         forYou: '为你',
@@ -1006,6 +1002,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
             setupRules: '设置消费规则',
+            inviteAccountant: '邀请你的会计',
         },
     },
     allSettingsScreen: {
@@ -1415,6 +1412,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
+            failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -2144,12 +2142,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: '与 Concierge 聊天以解决安全问题并解锁您的账户。',
         chatWithConcierge: '与 Concierge 聊天',
     },
-    deviceManagementPage: {
-        title: '设备管理',
-        description: '管理您使用 Expensify 账户登录过的所有设备。',
-        revoke: '撤销',
-        unknownDevice: '未知设备',
-    },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
         twoFactorAuthEnabled: '已启用双重身份验证',
@@ -2653,6 +2645,19 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: '通过自定义智能体自动化处理任务。',
         newAgent: '新代理人',
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
+        error: {
+            genericAdd: '添加此智能体时出现了问题',
+        },
+    },
+    addAgentPage: {
+        title: '新代理',
+        agentName: '代理名称',
+        instructions: '编写自定义说明',
+        createAgent: '创建代理',
+        switchAvatar: '切换头像',
+        defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
+        defaultPrompt:
+            '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
     expenseRulesPage: {
         title: '报销规则',
@@ -4203,6 +4208,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
         },
+        createdForClient: {
+            title: '您已为客户创建了工作区！',
+            description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `已连接到 ${organizationName}` : '在整个组织内自动化管理差旅和外卖餐饮报销。'),
@@ -5232,6 +5241,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择支付 Expensify 卡余额的频率。',
             settlementFrequencyInfo: '如果你想切换为按月结算，你需要通过 Plaid 连接你的银行账户，并且拥有过去 90 天为正数的余额记录。',
+            applyCashbackToBill: '将返现用于抵扣我的 Expensify 账单',
+            applyCashbackToBillDescription: 'Expensify 卡的返现将用于支付你的 Expensify 账单。',
             frequency: {
                 daily: '每日',
                 monthly: '每月',
@@ -6268,7 +6279,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             updateToUSD: '更新为 USD',
             updateWorkspaceCurrency: '更新工作区货币',
             workspaceCurrencyNotSupported: '不支持工作区货币',
-            yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">支持的货币列表</a>。`,
+            yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
         },
         changeOwner: {
@@ -6800,16 +6811,12 @@ ${reportName}
             settingsTitle: 'Gusto 设置',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return '正在导入 Gusto 数据';
-                    case 'gustoSyncLoadCompany':
-                        return '正在加载 Gusto 公司数据';
-                    case 'gustoSyncImportEmployees':
-                        return '正在导入员工';
-                    case 'gustoSyncBuildApprovalChains':
-                        return '构建审批链';
-                    case 'gustoSyncFinalize':
-                        return '正在完成同步';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6817,7 +6824,19 @@ ${reportName}
                     }
                 }
             },
-            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人', connect: '连接', connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。'},
+            gusto: {
+                title: 'Gusto',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                connect: '连接',
+                connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 Gusto',
+                disconnectTitle: '断开 Gusto',
+                disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+            },
         },
     },
     getAssistancePage: {
@@ -7538,6 +7557,7 @@ ${reportName}
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '集中开票',
             },
             is: '是',
             action: {
@@ -7715,6 +7735,7 @@ ${reportName}
                     reimburseableLink: '自付报销费用',
                     nonReimbursableLink: '公司卡消费',
                     pending: (label: string) => `已开始将此报表导出到 ${label}…`,
+                    travelCardLink: '差旅卡费用',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `未能将此报表导出到 ${label}（“${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}”）`,
@@ -8038,7 +8059,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         gpsFloatingPillText: '正在进行 GPS 跟踪…',
-        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度', lockScreenBadgeText: '距离', lockScreenTrackingText: '正在跟踪…'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',

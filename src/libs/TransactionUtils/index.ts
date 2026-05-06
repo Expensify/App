@@ -12,7 +12,7 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
-import {normalizeAttendees} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -723,7 +723,6 @@ function getUpdatedTransaction({
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
@@ -738,7 +737,6 @@ function getUpdatedTransaction({
                 unit,
                 rate,
                 transaction.currency,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
@@ -795,7 +793,6 @@ function getUpdatedTransaction({
                 unit,
                 rate,
                 updatedCurrency,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translateLocal,
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
@@ -881,7 +878,6 @@ function getUpdatedTransaction({
             unit,
             rate,
             updatedCurrency,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
@@ -1181,7 +1177,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
  */
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
-    const attendees = normalizeAttendees(Array.isArray(rawAttendees) ? rawAttendees : []);
+    const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1196,7 +1192,7 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
-    const attendees = normalizeAttendees(Array.isArray(rawAttendees) ? rawAttendees : []);
+    const attendees = normalizeAttendees(convertAttendeesToArray(rawAttendees));
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
@@ -2145,7 +2141,6 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 
         return policy && getDefaultTaxCode(policy, transaction);
     };
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;

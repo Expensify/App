@@ -905,10 +905,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'チャット一覧',
         saveTheWorld: '世界を救う',
         tooltip: 'ここから始めましょう！',
-        redirectToExpensifyClassicModal: {
-            title: '近日公開予定',
-            description: 'お客様の環境に合わせて New Expensify の細かな部分をいくつか調整しているところです。その間は、Expensify Classic をご利用ください。',
-        },
     },
     homePage: {
         forYou: 'あなた向け',
@@ -1023,6 +1019,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
+            inviteAccountant: '会計士を招待',
         },
     },
     allSettingsScreen: {
@@ -1442,6 +1439,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
+            failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',
@@ -2181,12 +2179,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティに関する懸念を解決し、アカウントのロックを解除するには、Concierge とチャットしてください。',
         chatWithConcierge: 'Conciergeとチャット',
     },
-    deviceManagementPage: {
-        title: 'デバイス管理',
-        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
-        revoke: '取り消す',
-        unknownDevice: '不明なデバイス',
-    },
     twoFactorAuth: {
         headerTitle: '2要素認証',
         twoFactorAuthEnabled: '2要素認証が有効になりました',
@@ -2703,6 +2695,19 @@ ${date} の ${merchant} への ${amount}`,
         subtitle: 'ワークフローを処理するエージェントを作成しましょう。手作業を省いて、1日の時間を何時間も取り戻せます。',
         newAgent: '新しいエージェント',
         emptyAgents: {title: 'エージェントは作成されていません', subtitle: '手作業はやめて、代わりにエージェントに指示を出して、時間を大幅に節約しましょう。'},
+        error: {
+            genericAdd: 'このエージェントの追加中に問題が発生しました',
+        },
+    },
+    addAgentPage: {
+        title: '新しいエージェント',
+        agentName: 'エージェント名',
+        instructions: 'カスタム指示を作成',
+        createAgent: 'エージェントを作成',
+        switchAvatar: 'アバターを切り替え',
+        defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
+        defaultPrompt:
+            'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
     },
     expenseRulesPage: {
         title: '経費ルール',
@@ -4272,6 +4277,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
         },
+        createdForClient: {
+            title: 'クライアントのワークスペースを作成しました！',
+            description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `${organizationName} に接続しました` : '組織全体の出張費や飲食デリバリー経費を自動化しましょう。'),
@@ -5317,6 +5326,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementFrequency: '清算頻度',
             settlementFrequencyDescription: 'Expensify カードの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次清算に切り替えるには、Plaid を通じて銀行口座を連携し、直近90日間の残高履歴がプラスである必要があります。',
+            applyCashbackToBill: 'キャッシュバックを Expensify 請求書に適用する',
+            applyCashbackToBillDescription: 'Expensify カードのキャッシュバックは、Expensify 請求書の支払いに使用されます。',
             frequency: {
                 daily: '毎日',
                 monthly: '毎月',
@@ -6374,7 +6385,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateToUSD: 'USD に更新',
             updateWorkspaceCurrency: 'ワークスペースの通貨を更新',
             workspaceCurrencyNotSupported: 'ワークスペースの通貨はサポートされていません',
-            yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
+            yourWorkspace: `ご利用のワークスペースはサポートされていない通貨に設定されています。<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">サポートされている通貨の一覧</a>を表示します。`,
             chooseAnExisting: '既存の銀行口座を選択して経費を支払うか、新しい口座を追加してください。',
         },
         changeOwner: {
@@ -6918,16 +6929,12 @@ ${reportName}
             settingsTitle: 'Gusto 設定',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Gusto データのインポート';
-                    case 'gustoSyncLoadCompany':
-                        return 'Gusto 会社データを読み込み中';
-                    case 'gustoSyncImportEmployees':
-                        return '従業員のインポート';
-                    case 'gustoSyncBuildApprovalChains':
-                        return '承認フローの構築';
-                    case 'gustoSyncFinalize':
-                        return '同期を完了しています';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'インポートしたデータの読み込みを待機しています';
                     default: {
@@ -6941,6 +6948,12 @@ ${reportName}
                 finalApprover: '最終承認者',
                 connect: '接続',
                 connectionDescription: 'Gusto を接続して、従業員の承認をワークスペースと同期させましょう。',
+                syncNow: '今すぐ同期',
+                disconnect: '切断',
+                lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
+                syncError: 'Gusto に接続できません',
+                disconnectTitle: 'Gusto の接続を解除',
+                disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
             },
         },
     },
@@ -7672,8 +7685,9 @@ ${reportName}
             },
             feed: 'フィード',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '一括請求',
             },
             is: 'は',
             action: {
@@ -7852,6 +7866,7 @@ ${reportName}
                     reimburseableLink: '立替経費',
                     nonReimbursableLink: '会社カード経費',
                     pending: (label: string) => `このレポートの${label}へのエクスポートを開始しました…`,
+                    travelCardLink: 'トラベルカード経費',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `このレポートを${label}にエクスポートできませんでした（"${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
@@ -8184,7 +8199,7 @@ ${reportName}
             prompt: 'GPSで距離の追跡を開始するには、端末の設定で位置情報へのアクセスを許可してください。',
         },
         gpsFloatingPillText: 'GPS 追跡を実行中です…',
-        liveActivity: {subtitle: '距離の記録', button: '進捗を表示'},
+        liveActivity: {subtitle: '距離の記録', button: '進捗を表示', lockScreenBadgeText: '距離', lockScreenTrackingText: '追跡中…'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績表の紛失または破損',

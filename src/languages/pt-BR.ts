@@ -917,10 +917,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'Lista de chats',
         saveTheWorld: 'Salvar o mundo',
         tooltip: 'Comece aqui!',
-        redirectToExpensifyClassicModal: {
-            title: 'Em breve',
-            description: 'Estamos ajustando mais alguns detalhes do New Expensify para acomodar sua configuração específica. Enquanto isso, vá para o Expensify Classic.',
-        },
     },
     homePage: {
         forYou: 'Para você',
@@ -1038,6 +1034,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Personalizar categorias contábeis',
             linkCompanyCards: 'Vincular cartões corporativos',
             setupRules: 'Configurar regras de gasto',
+            inviteAccountant: 'Convide seu contador',
         },
     },
     allSettingsScreen: {
@@ -1455,6 +1452,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
+            failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',
@@ -2194,12 +2192,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Converse com o Concierge para resolver questões de segurança e desbloquear sua conta.',
         chatWithConcierge: 'Converse com o Concierge',
     },
-    deviceManagementPage: {
-        title: 'Gerenciamento de dispositivos',
-        description: 'Gerencie todos os dispositivos nos quais você fez login com sua conta do Expensify.',
-        revoke: 'Revogar',
-        unknownDevice: 'Dispositivo Desconhecido',
-    },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',
         twoFactorAuthEnabled: 'Autenticação em duas etapas ativada',
@@ -2721,6 +2713,19 @@ ${amount} para ${merchant} - ${date}`,
         subtitle: 'Crie agentes para gerenciar seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia.',
         newAgent: 'Novo agente',
         emptyAgents: {title: 'Nenhum agente criado', subtitle: 'Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo.'},
+        error: {
+            genericAdd: 'Houve um problema ao adicionar este agente',
+        },
+    },
+    addAgentPage: {
+        title: 'Novo agente',
+        agentName: 'Nome do agente',
+        instructions: 'Escrever instruções personalizadas',
+        createAgent: 'Criar agente',
+        switchAvatar: 'Trocar avatar',
+        defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
+        defaultPrompt:
+            'Rejeite despesas relacionadas a jogos de azar, cinema ou outros motivos claramente não relacionados ao negócio.\n\nLembre o usuário de sempre incluir uma imagem do recibo em que a gorjeta fique clara.\n\nAprove o relatório se ele for muito semelhante a relatórios anteriores do mesmo usuário.\n\nRejeite relatórios com mais de US$ 500 em despesas de viagem.',
     },
     expenseRulesPage: {
         title: 'Regras de despesas',
@@ -4294,6 +4299,10 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
         },
+        createdForClient: {
+            title: 'Você criou um espaço de trabalho para seu cliente!',
+            description: 'Ótimas notícias 🎉. Entre em contato conosco se precisarem de ajuda com a configuração.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) =>
@@ -5350,6 +5359,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             settlementFrequency: 'Frequência de liquidação',
             settlementFrequencyDescription: 'Escolha com que frequência você vai pagar o saldo do seu Cartão Expensify.',
             settlementFrequencyInfo: 'Se quiser mudar para liquidação mensal, você precisará conectar sua conta bancária via Plaid e ter um histórico de saldo positivo de 90 dias.',
+            applyCashbackToBill: 'Aplicar reembolso à minha fatura do Expensify',
+            applyCashbackToBillDescription: 'O reembolso do Cartão Expensify será usado para o pagamento da sua fatura do Expensify.',
             frequency: {
                 daily: 'Diariamente',
                 monthly: 'Mensal',
@@ -6424,7 +6435,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             updateToUSD: 'Atualizar para USD',
             updateWorkspaceCurrency: 'Atualizar moeda do espaço de trabalho',
             workspaceCurrencyNotSupported: 'Moeda do workspace não suportada',
-            yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de moedas compatíveis</a>.`,
+            yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de moedas compatíveis</a>.`,
             chooseAnExisting: 'Escolha uma conta bancária existente para pagar despesas ou adicione uma nova.',
         },
         changeOwner: {
@@ -6973,16 +6984,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             settingsTitle: 'Configurações do Gusto',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importando dados do Gusto';
-                    case 'gustoSyncLoadCompany':
-                        return 'Carregando dados da empresa Gusto';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importando funcionários';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Criando cadeias de aprovação';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizando a sincronização';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Aguardando o carregamento dos dados importados';
                     default: {
@@ -6996,6 +7003,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 finalApprover: 'Aprovador final',
                 connect: 'Conectar',
                 connectionDescription: 'Conecte o Gusto para manter as aprovações de funcionários sincronizadas com seu workspace.',
+                syncNow: 'Sincronizar agora',
+                disconnect: 'Desconectar',
+                lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
+                syncError: 'Não é possível conectar ao Gusto',
+                disconnectTitle: 'Desconectar Gusto',
+                disconnectPrompt: 'Tem certeza de que deseja desconectar o Gusto?',
             },
         },
     },
@@ -7732,6 +7745,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Cartão Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento centralizado',
             },
             is: 'É',
             action: {
@@ -7917,6 +7931,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     reimburseableLink: 'despesas reembolsáveis',
                     nonReimbursableLink: 'despesas com cartão corporativo',
                     pending: (label: string) => `iniciou a exportação deste relatório para ${label}...`,
+                    travelCardLink: 'despesas do cartão de viagem',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `falha ao exportar este relatório para ${label} ("${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
@@ -8254,7 +8269,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
         gpsFloatingPillText: 'Rastreamento por GPS em andamento...',
-        liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso'},
+        liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso', lockScreenBadgeText: 'Distância', lockScreenTrackingText: 'Rastreando...'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',

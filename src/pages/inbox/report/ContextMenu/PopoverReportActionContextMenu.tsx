@@ -415,7 +415,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(
                     report,
