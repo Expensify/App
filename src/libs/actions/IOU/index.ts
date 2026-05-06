@@ -15,9 +15,6 @@ import {formatCurrentUserToAttendee, updateIOUOwnerAndTotal} from '@libs/IOUUtil
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import sharedDismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -74,7 +71,6 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {mergeTransactionIdsHighlightOnSearchRoute} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUAction, IOUActionParams} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -89,7 +85,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BasePolicyParams from './types/BasePolicyParams';
@@ -529,50 +525,6 @@ function getMoneyRequestPolicyTags({
 }
 
 /**
- * @private
- * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
- * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
- * It is a helper function used only in this file.
- */
-function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
-    const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
-    sharedDismissModalAndOpenReportInInboxTab(reportID, isInvoice, hasMultipleTransactions);
-}
-
-/**
- * Marks a transaction for highlight on the Search page when the expense was created
- * from the global create button and the user is not on the Inbox tab.
- */
-function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
-    if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
-        return;
-    }
-    mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
-}
-
-/**
- * Helper to navigate after an expense is created in order to standardize the post‑creation experience
- * when creating an expense from the global create button.
- * If the expense is created from the global create button then:
- * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
- */
-function handleNavigateAfterExpenseCreate({
-    activeReportID,
-    transactionID,
-    isFromGlobalCreate,
-    isInvoice,
-}: {
-    activeReportID?: string;
-    transactionID?: string;
-    isFromGlobalCreate?: boolean;
-    isInvoice?: boolean;
-}) {
-    const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions});
-}
-
-/**
  * Build a minimal transaction record for formula computation in buildOptimisticExpenseReport.
  * This allows formulas like {report:startdate}, {report:expensescount} to work correctly.
  */
@@ -691,13 +643,6 @@ function initMoneyRequest({
                 waypoint0: {keyForList: 'start_waypoint'},
                 waypoint1: {keyForList: 'stop_waypoint'},
             };
-        }
-        // Initialize odometer readings for odometer type
-        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
-            comment.odometerStart = undefined;
-            comment.odometerEnd = undefined;
-            comment.odometerStartImage = undefined;
-            comment.odometerEndImage = undefined;
         }
     }
 
@@ -2426,12 +2371,21 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
-    const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
 
-    if (isPolicyExpenseChat || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat, selected: true, policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined}];
+    if (isPolicyExpenseChat || isSelfDMChat) {
+        participants = [
+            {
+                accountID: 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat,
+                selected: true,
+                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
+                isSelfDM: isSelfDMChat,
+            },
+        ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
@@ -2725,7 +2679,6 @@ export {
     createDraftTransaction,
     getIOURequestPolicyID,
     initMoneyRequest,
-    dismissModalAndOpenReportInInboxTab,
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
     setGPSTransactionDraftData,
@@ -2783,12 +2736,10 @@ export {
     getMoneyRequestPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
-    handleNavigateAfterExpenseCreate,
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
     getMoneyRequestInformation,
     getTransactionWithPreservedLocalReceiptSource,
-    highlightTransactionOnSearchRouteIfNeeded,
 };
 export type {
     GPSPoint as GpsPoint,

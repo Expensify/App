@@ -4448,7 +4448,7 @@ describe('ReportUtils', () => {
         const reportID = '1';
 
         it('should disable on thread-disabled actions', () => {
-            const reportAction = buildOptimisticCreatedReportAction('email1@test.com');
+            const reportAction = buildOptimisticCreatedReportAction({emailCreatingAction: 'email1@test.com'});
             expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
@@ -5228,7 +5228,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return undefined for non-money-request actions', () => {
-            const action = buildOptimisticCreatedReportAction('user@test.com');
+            const action = buildOptimisticCreatedReportAction({emailCreatingAction: 'user@test.com'});
             const transaction = {
                 ...createRandomTransaction(100),
                 transactionID: 'txn-123',

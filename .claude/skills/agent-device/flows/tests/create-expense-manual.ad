@@ -12,9 +12,9 @@
 # @tag    sentry-ManualConfirmationListReady
 # @tag    sentry-ManualConfirmationReceiptLoad
 # @tag    sentry-ManualGeolocationWait
-env AMOUNT=22
-env CURRENCY=PLN
-env MERCHANT="Test Coffee"
+# @param  AMOUNT Whole-number amount to type into the Manual amount input (for example `22`).
+# @param  CURRENCY Currency symbol used by the submit CTA selector (for example `PLN` or `USD`).
+# @param  MERCHANT Merchant name to populate before submit.
 
 press "role=\"button\" label=\"Open actions menu\""
 press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
