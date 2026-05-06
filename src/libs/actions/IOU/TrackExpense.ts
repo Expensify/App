@@ -1363,6 +1363,7 @@ type AddTrackedExpenseToPolicyParam = {
     moneyRequestPreviewReportActionID: string;
     distance: number | undefined;
     attendees: string | undefined;
+    shouldDeferAutoSubmit?: boolean;
 } & ConvertTrackedWorkspaceParams;
 
 type ConvertTrackedExpenseToRequestParams = {
@@ -1401,6 +1402,7 @@ type ConvertTrackedExpenseToRequestParams = {
     onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>;
     workspaceParams?: ConvertTrackedWorkspaceParams;
     currentUserAccountID: number;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
