@@ -329,11 +329,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const shouldShowSkeletonForConciergeChat = isConciergeChat && !hasOnceLoadedReportActions && !isOffline;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-<<<<<<< krishna2323/issue/88635
-    const shouldShowSkeleton = shouldShowSkeletonForConciergeChat || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForTransactionThread;
-=======
-    const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
->>>>>>> main
+    const shouldShowSkeleton = shouldShowSkeletonForConciergeChat || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
     useEffect(() => {
         if (!shouldShowSkeleton || !report) {
