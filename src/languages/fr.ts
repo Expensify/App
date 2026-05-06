@@ -7023,10 +7023,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     label: 'Contrôle',
                     description: 'Pour les organisations ayant des exigences avancées.',
                 },
-                submit2026: {
-                    label: 'Soumettre',
-                    description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
-                },
             },
             description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
             subscriptionLink: "page d'aide sur les types de forfaits et les tarifs",
@@ -7059,6 +7055,17 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title: 'Gusto',
                 approvalMode: 'Mode d’approbation',
                 finalApprover: 'Approbateur final',
+                notSet: 'Non défini',
+                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec Gusto.',
+                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec Gusto sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
+                approvalModes: {
+                    basic: {label: 'Approbation simple', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
+                    manager: {label: 'Approbation du responsable', description: 'Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans Gusto.'},
+                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les circuits de validation dans Expensify.'},
+                },
                 connect: 'Connect',
                 connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
                 syncNow: 'Synchroniser maintenant',
@@ -8335,7 +8342,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour commencer le suivi de distance GPS.',
         },
         gpsFloatingPillText: 'Suivi GPS en cours...',
-        liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression'},
+        liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression', lockScreenBadgeText: 'Distance', lockScreenTrackingText: 'Suivi...'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'relevé de notes perdu ou endommagé',

@@ -6392,6 +6392,26 @@ const translations = {
                 connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
                 approvalMode: 'Approval mode',
                 finalApprover: 'Final approver',
+                notSet: 'Not set',
+                approvalModeDescription: 'Members and managers are set up to sync with Gusto.',
+                approvalModeWarningTitle: 'Change approval mode?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different Gusto-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+                approvalModeWarningConfirm: 'Change approval mode',
+                approvalModes: {
+                    basic: {
+                        label: 'Basic approval',
+                        description: 'All users submit to a single person for processing and approval.',
+                    },
+                    manager: {
+                        label: 'Manager approval',
+                        description: 'Employees submit reports to their direct manager configured in Gusto.',
+                    },
+                    custom: {
+                        label: 'Custom approval',
+                        description: 'I’ll manually setup approval workflows in Expensify.',
+                    },
+                },
             },
         },
         export: {
@@ -7015,10 +7035,6 @@ const translations = {
                 corporate: {
                     label: 'Control',
                     description: 'For organizations with advanced requirements.',
-                },
-                submit2026: {
-                    label: 'Submit',
-                    description: 'For employees looking to submit expenses to their employer.',
                 },
             },
             description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
@@ -8299,6 +8315,8 @@ const translations = {
         gpsFloatingPillText: 'GPS tracking in progress...',
         liveActivity: {
             subtitle: 'Tracking distance',
+            lockScreenBadgeText: 'Distance',
+            lockScreenTrackingText: 'Tracking...',
             button: 'View progress',
         },
     },

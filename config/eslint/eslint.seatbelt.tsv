@@ -321,6 +321,8 @@
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/Hold.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
 "../../src/libs/actions/IOU/Hold.ts"	"no-restricted-syntax"	2
+"../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
+"../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	3
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
@@ -348,12 +350,9 @@
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	13
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	1
-"../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
 "../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
 "../../src/libs/actions/IOU/index.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	2
-"../../src/libs/actions/IOU/index.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	11
+"../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	10
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/InputFocus/index.website.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/InputFocus/index.website.ts"	"no-restricted-syntax"	1

@@ -85,6 +85,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
+    getEffectiveReportErrors,
     getHarvestOriginalReportID,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
@@ -17338,6 +17339,66 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions)).toBe(false);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions)).toBeUndefined();
+        });
+    });
+
+    describe('getEffectiveReportErrors', () => {
+        const childErrors = {
+            error1: 'Some real error',
+        };
+
+        it('returns empty when attributes is undefined', () => {
+            expect(getEffectiveReportErrors(undefined)).toEqual({});
+        });
+
+        it('returns the report errors when not propagating to parent', () => {
+            const attributes = {
+                reportName: 'Report',
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: childErrors,
+                needsParentChatErrorPropagation: false,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual(childErrors);
+        });
+
+        it('returns empty when child is propagating to an accessible parent (brickRoadStatus suppressed)', () => {
+            const attributes = {
+                reportName: 'Child expense report',
+                isEmpty: false,
+                // brickRoadStatus suppressed by reportAttributes.ts because the parent workspace chat is accessible
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: childErrors,
+                needsParentChatErrorPropagation: true,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual({});
+        });
+
+        it('returns the report errors when child has its own brickRoadStatus (not propagating)', () => {
+            const attributes = {
+                reportName: 'Child IOU on personal DM',
+                isEmpty: false,
+                // brickRoadStatus stayed because parent is not an accessible workspace chat (e.g. DM-based IOU)
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                requiresAttention: false,
+                reportErrors: childErrors,
+                needsParentChatErrorPropagation: true,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual(childErrors);
+        });
+
+        it('returns empty when reportErrors is missing', () => {
+            const attributes = {
+                reportName: 'Report',
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: {},
+                needsParentChatErrorPropagation: false,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual({});
         });
     });
 

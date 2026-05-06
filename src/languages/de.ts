@@ -7001,10 +7001,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     label: 'Steuerung',
                     description: 'Für Organisationen mit erweiterten Anforderungen.',
                 },
-                submit2026: {
-                    label: 'Einreichen',
-                    description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
-                },
             },
             description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',
             subscriptionLink: 'Hilfeseite zu Plantypen und Preisen',
@@ -7037,6 +7033,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Gusto',
                 approvalMode: 'Genehmigungsmodus',
                 finalApprover: 'Endgültige:r Genehmiger:in',
+                notSet: 'Nicht festgelegt',
+                approvalModeDescription: 'Mitglieder und Manager sind für die Synchronisation mit Gusto eingerichtet.',
+                approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen Gusto-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
+                approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
+                approvalModes: {
+                    basic: {label: 'Einfache Genehmigung', description: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.'},
+                    manager: {label: 'Managergenehmigung', description: 'Mitarbeitende reichen Berichte bei ihrer in Gusto hinterlegten direkten Führungskraft ein.'},
+                    custom: {label: 'Benutzerdefinierte Genehmigung', description: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.'},
+                },
                 connect: 'Verbinden',
                 connectionDescription: 'Verbinde Gusto, um Mitarbeitergenehmigungen mit deinem Workspace zu synchronisieren.',
                 syncNow: 'Jetzt synchronisieren',
@@ -8312,7 +8319,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
         },
         gpsFloatingPillText: 'GPS-Verfolgung läuft...',
-        liveActivity: {subtitle: 'Entfernungserfassung', button: 'Fortschritt anzeigen'},
+        liveActivity: {subtitle: 'Entfernungserfassung', button: 'Fortschritt anzeigen', lockScreenBadgeText: 'Entfernung', lockScreenTrackingText: 'Verfolge …'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',

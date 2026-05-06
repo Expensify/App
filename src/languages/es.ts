@@ -6257,6 +6257,26 @@ ${amount} para ${merchant} - ${date}`,
                 connectionDescription: 'Conecta Gusto para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.',
                 approvalMode: 'Modo de aprobación',
                 finalApprover: 'Aprobador final',
+                notSet: 'No configurado',
+                approvalModeDescription: 'Los miembros y gerentes están configurados para sincronizarse con Gusto.',
+                approvalModeWarningTitle: '¿Cambiar modo de aprobación?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `¿Seguro que quieres cambiar el modo de aprobación de este espacio de trabajo? Obtén más información sobre los diferentes modos de flujo de trabajo con Gusto en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
+                approvalModeWarningConfirm: 'Cambiar modo de aprobación',
+                approvalModes: {
+                    basic: {
+                        label: 'Aprobación básica',
+                        description: 'Todos los usuarios envían a una sola persona para su procesamiento y aprobación.',
+                    },
+                    manager: {
+                        label: 'Aprobación del gerente',
+                        description: 'Los empleados envían informes a su gerente directo configurado en Gusto.',
+                    },
+                    custom: {
+                        label: 'Aprobación personalizada',
+                        description: 'Configuraré manualmente los flujos de aprobación en Expensify.',
+                    },
+                },
             },
         },
         export: {
@@ -6436,10 +6456,6 @@ ${amount} para ${merchant} - ${date}`,
                 corporate: {
                     label: 'Controlar',
                     description: 'Para organizaciones con requisitos avanzados.',
-                },
-                submit2026: {
-                    label: 'Enviar',
-                    description: 'Para empleados que buscan enviar gastos a su empleador.',
                 },
             },
             description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
@@ -9539,6 +9555,8 @@ ${amount} para ${merchant} - ${date}`,
         liveActivity: {
             subtitle: 'Seguimiento de distancia',
             button: 'Ver progreso',
+            lockScreenBadgeText: 'Distancia',
+            lockScreenTrackingText: 'Siguiendo...',
         },
     },
 };

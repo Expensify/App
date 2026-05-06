@@ -15,7 +15,7 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -231,10 +231,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    // Gate the page to users who can edit workspace settings (admins on any policy,
-    // or editors on Submit policies). `canPerformUpgrade` (strict admin) still controls
-    // whether the upgrade button is active, so editors see the intro but can't upgrade.
-    if (!canEditWorkspaceSettings(policy)) {
+    if (!canPerformUpgrade) {
         return <NotFoundPage />;
     }
 
@@ -267,7 +264,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         policyID={policyID}
                         feature={feature}
                         onUpgrade={onUpgradeToCorporate}
-                        buttonDisabled={isOffline || !canPerformUpgrade}
+                        buttonDisabled={isOffline}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
                     />

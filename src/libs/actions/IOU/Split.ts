@@ -66,23 +66,18 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getAllPersonalDetails, getAllReports, getAllTransactionDrafts, getAllTransactions, getMoneyRequestPolicyTags, getPolicyTagsData, getUserAccountID} from './index';
+import type {StartSplitBilActionParams} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    getAllPersonalDetails,
-    getAllReports,
-    getAllTransactionDrafts,
-    getAllTransactions,
     getMoneyRequestInformation,
-    getMoneyRequestPolicyTags,
-    getPolicyTagsData,
     getReceiptError,
     getReportPreviewAction,
-    getUserAccountID,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-} from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
+} from './MoneyRequestBuilder';
+import type {BuildOnyxDataForMoneyRequestKeys, OneOnOneIOUReport} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';

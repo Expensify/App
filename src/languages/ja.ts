@@ -6910,10 +6910,6 @@ ${reportName}
                     label: 'コントロール',
                     description: '高度な要件を持つ組織向け。',
                 },
-                submit2026: {
-                    label: '提出',
-                    description: '雇用主に経費を提出したい従業員向け。',
-                },
             },
             description: '自分に合ったプランをお選びください。機能と料金の詳細な一覧は、こちらのページをご覧ください',
             subscriptionLink: 'プランの種類と料金のヘルプページ',
@@ -6946,6 +6942,17 @@ ${reportName}
                 title: 'Gusto',
                 approvalMode: '承認モード',
                 finalApprover: '最終承認者',
+                notSet: '未設定',
+                approvalModeDescription: 'メンバーとマネージャーは Gusto と同期するように設定されています。',
+                approvalModeWarningTitle: '承認モードを変更しますか？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `このワークスペースの承認モードを変更してもよろしいですか？Gusto 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
+                approvalModeWarningConfirm: '承認モードを変更',
+                approvalModes: {
+                    basic: {label: '基本承認', description: 'すべてのユーザーは、処理と承認のために 1 人の担当者に提出します。'},
+                    manager: {label: 'マネージャー承認', description: '従業員は、Gusto で設定された直属のマネージャーにレポートを提出します。'},
+                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
+                },
                 connect: '接続',
                 connectionDescription: 'Gusto を接続して、従業員の承認をワークスペースと同期させましょう。',
                 syncNow: '今すぐ同期',
@@ -8199,7 +8206,7 @@ ${reportName}
             prompt: 'GPSで距離の追跡を開始するには、端末の設定で位置情報へのアクセスを許可してください。',
         },
         gpsFloatingPillText: 'GPS 追跡を実行中です…',
-        liveActivity: {subtitle: '距離の記録', button: '進捗を表示'},
+        liveActivity: {subtitle: '距離の記録', button: '進捗を表示', lockScreenBadgeText: '距離', lockScreenTrackingText: '追跡中…'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績表の紛失または破損',
