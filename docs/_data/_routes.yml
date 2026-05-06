@@ -319,3 +319,8 @@ platforms:
         title: Event Management
         icon: /assets/images/envelope-receipt.svg
         description: "Learn how to create and manage Travel Events for group bookings."
+
+      - href: travel-invoicing
+        title: Travel Invoicing
+        icon: /assets/images/subscription-annual.svg
+        description: "Centralize travel payments so employees can book trips without using personal cards or submitting reimbursements."  
