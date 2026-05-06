@@ -18,7 +18,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/SpendRuleForm';
+import INPUT_IDS from '@src/types/form/SpendRuleMerchantEditForm';
 
 type SpendRuleMerchantEditBasePageProps = {
     policyID: string;
@@ -111,7 +111,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.SPEND_RULE_FORM}
+                    formID={ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_EDIT_FORM}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.mt3]}
                     onSubmit={submit}
@@ -122,7 +122,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                     <View style={[styles.mb5, styles.ph5]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.MERCHANT_NAMES}
+                            inputID={INPUT_IDS.MERCHANT_NAME}
                             label={translate('common.merchant')}
                             accessibilityLabel={translate('common.merchant')}
                             value={merchantName}
