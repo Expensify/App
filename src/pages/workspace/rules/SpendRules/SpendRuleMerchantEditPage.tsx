@@ -12,6 +12,7 @@ type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigator
 function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const {policyID, merchantIndex} = route.params;
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    const [spendRuleFormDraft] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT);
 
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
