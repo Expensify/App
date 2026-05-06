@@ -53,9 +53,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &

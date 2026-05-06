@@ -38,7 +38,6 @@ type ChatMessageContentProps = {
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
     isOnSearch: boolean;
-    userBillingFundID: number | undefined;
 };
 
 function ChatMessageContent({
@@ -54,7 +53,6 @@ function ChatMessageContent({
     updateHiddenState,
     isArchivedRoom,
     isOnSearch,
-    userBillingFundID,
 }: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -108,7 +106,6 @@ function ChatMessageContent({
                                 originalReport={originalReport}
                                 reportID={reportID}
                                 originalReportID={originalReportID}
-                                userBillingFundID={userBillingFundID}
                             />
                         )}
                     </View>

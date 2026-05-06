@@ -26,7 +26,6 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     personalDetails,
-    userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
@@ -86,7 +85,6 @@ function ChatListItem<TItem extends ListItem>({
                 shouldShowDraftMessage={false}
                 shouldShowBorder
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
             />
         </BaseListItem>
     );

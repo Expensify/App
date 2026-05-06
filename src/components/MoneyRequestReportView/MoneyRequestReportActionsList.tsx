@@ -126,7 +126,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const personalDetails = usePersonalDetails();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -579,7 +578,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
                     personalDetails={personalDetails}
-                    userBillingFundID={userBillingFundID}
                     originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -599,7 +597,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             firstVisibleReportActionID,
             linkedReportActionID,
             personalDetails,
-            userBillingFundID,
             isTryNewDotNVPDismissed,
             isReportArchived,
             reportNameValuePairs?.origin,
