@@ -1485,6 +1485,39 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getExportIntegrationActionFragments', () => {
+        function makeQBDExportAction(originalMessageOverrides: Record<string, unknown>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'qbd-export-action-1',
+                created: '2026-05-05 12:00:00.000',
+                reportID: '1234567',
+                originalMessage: {
+                    label: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
+                    automaticAction: false,
+                    markedManually: false,
+                    reimbursableUrls: [],
+                    nonReimbursableUrls: [],
+                    travelInvoicingUrls: [],
+                    ...originalMessageOverrides,
+                },
+            };
+        }
+
+        it('renders the travel card link as the only link for a QBD export with one travel invoicing URL', () => {
+            const travelUrl = 'https://example.qbd.com/travel/1';
+            const action = makeQBDExportAction({travelInvoicingUrls: [travelUrl]});
+
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+            const travelLinkText = translateLocal('report.actions.type.exportedToIntegration.travelCardLink');
+            const travelFragment = fragments.find((fragment) => fragment.text === travelLinkText);
+
+            expect(travelFragment).toEqual({text: travelLinkText, url: travelUrl});
+            // Without other URLs there should be no "and" separator before the travel fragment.
+            expect(fragments.some((fragment) => fragment.text === translateLocal('common.and'))).toBe(false);
+        });
+    });
+
     describe('getReportActionText', () => {
         it('should return the backend-provided CARDFROZEN text', () => {
             const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
