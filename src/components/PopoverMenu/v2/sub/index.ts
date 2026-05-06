@@ -1,7 +1,12 @@
-export {default as Sub} from './Sub';
+import SubBase from './Sub';
+import SubContent from './SubContent';
+import SubTrigger from './SubTrigger';
+
+// Compound members so consumers write `<Sub.Trigger>` / `<Sub.Content>` rather than flat `<SubTrigger>` exports.
+const Sub = Object.assign(SubBase, {Trigger: SubTrigger, Content: SubContent});
+
+export {Sub};
 export type {SubProps} from './Sub';
-export {default as SubTrigger} from './SubTrigger';
 export type {SubTriggerProps} from './SubTrigger';
-export {default as SubContent} from './SubContent';
 export type {SubContentProps} from './SubContent';
 export {useIsAtActiveLevel} from './SubContext';

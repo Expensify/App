@@ -47,11 +47,11 @@ function VideoPopoverMenu({isPopoverVisible = false, hidePopover = () => {}, anc
                     />
                 )}
                 <PopoverMenu.Sub>
-                    <PopoverMenu.SubTrigger
+                    <PopoverMenu.Sub.Trigger
                         text={playbackSpeedLabel}
                         icon={icons.Meter}
                     />
-                    <PopoverMenu.SubContent backButtonText={playbackSpeedLabel}>
+                    <PopoverMenu.Sub.Content backButtonText={playbackSpeedLabel}>
                         {CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => (
                             <PopoverMenu.CheckmarkItem
                                 key={speed}
@@ -61,7 +61,7 @@ function VideoPopoverMenu({isPopoverVisible = false, hidePopover = () => {}, anc
                                 onSelect={() => updatePlaybackSpeed(speed)}
                             />
                         ))}
-                    </PopoverMenu.SubContent>
+                    </PopoverMenu.Sub.Content>
                 </PopoverMenu.Sub>
             </PopoverMenu.Content>
         </PopoverMenu.Root>

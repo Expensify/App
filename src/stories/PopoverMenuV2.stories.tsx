@@ -122,11 +122,11 @@ function WithSubmenu() {
                         onSelect={() => {}}
                     />
                     <PopoverMenu.Sub>
-                        <PopoverMenu.SubTrigger
+                        <PopoverMenu.Sub.Trigger
                             text="Cards"
                             icon={icons.CreditCard}
                         />
-                        <PopoverMenu.SubContent backButtonText="Cards">
+                        <PopoverMenu.Sub.Content backButtonText="Cards">
                             <PopoverMenu.Item
                                 text="Debit card"
                                 icon={icons.CreditCard}
@@ -137,7 +137,7 @@ function WithSubmenu() {
                                 icon={icons.CreditCard}
                                 onSelect={() => {}}
                             />
-                        </PopoverMenu.SubContent>
+                        </PopoverMenu.Sub.Content>
                     </PopoverMenu.Sub>
                     <PopoverMenu.Item
                         text="Wallet"
