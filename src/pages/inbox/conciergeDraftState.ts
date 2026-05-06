@@ -20,36 +20,93 @@ type BuildConciergeDraftReportActionParams = {
     reportID: string;
 };
 
-/**
- * Count non-overlapping occurrences of `needle` in `haystack`.
- */
-function countOccurrences(haystack: string, needle: string): number {
-    let count = 0;
-    let pos = 0;
-    while (true) {
-        const idx = haystack.indexOf(needle, pos);
-        if (idx === -1) {
-            break;
-        }
-        count++;
-        pos = idx + needle.length;
+type MarkdownRange = {
+    start: number;
+    end: number;
+};
+
+const CODE_BLOCK_DELIMITER = '```';
+const INLINE_CODE_DELIMITER = '`';
+
+function isEscaped(text: string, index: number): boolean {
+    let slashCount = 0;
+    let pos = index - 1;
+
+    while (pos >= 0 && text[pos] === '\\') {
+        slashCount++;
+        pos--;
     }
-    return count;
+
+    return slashCount % 2 !== 0;
 }
 
-/**
- * If the last line of `text` contains an odd number of `delimiter` occurrences,
- * the final one opened a construct that was never closed. Strip from that
- * opening delimiter to the end of the string.
- */
-function stripUnpairedLastLineDelimiter(text: string, delimiter: string): string {
-    const lastNewline = text.lastIndexOf('\n');
-    const lastLine = text.substring(lastNewline + 1);
-    const count = countOccurrences(lastLine, delimiter);
+function getCodeRanges(text: string): {ranges: MarkdownRange[]; unclosedCodeBlockStart: number | null} {
+    const ranges: MarkdownRange[] = [];
+    let unclosedCodeBlockStart: number | null = null;
 
-    if (count > 0 && count % 2 !== 0) {
-        return text.substring(0, text.lastIndexOf(delimiter));
+    for (let pos = 0; pos <= text.length - CODE_BLOCK_DELIMITER.length; pos++) {
+        if (!text.startsWith(CODE_BLOCK_DELIMITER, pos) || isEscaped(text, pos)) {
+            continue;
+        }
+
+        if (unclosedCodeBlockStart === null) {
+            unclosedCodeBlockStart = pos;
+        } else {
+            ranges.push({start: unclosedCodeBlockStart, end: pos + CODE_BLOCK_DELIMITER.length});
+            unclosedCodeBlockStart = null;
+        }
+        pos += CODE_BLOCK_DELIMITER.length - 1;
     }
+
+    let lineStart = 0;
+
+    while (lineStart <= text.length) {
+        const nextNewline = text.indexOf('\n', lineStart);
+        const lineEnd = nextNewline === -1 ? text.length : nextNewline;
+        let openingDelimiterIndex: number | null = null;
+
+        for (let pos = lineStart; pos < lineEnd; pos++) {
+            const isInCodeRange = ranges.some((range) => pos >= range.start && pos < range.end);
+            if (text[pos] !== INLINE_CODE_DELIMITER || isEscaped(text, pos) || isInCodeRange) {
+                continue;
+            }
+
+            if (openingDelimiterIndex === null) {
+                openingDelimiterIndex = pos;
+            } else {
+                ranges.push({start: openingDelimiterIndex, end: pos + INLINE_CODE_DELIMITER.length});
+                openingDelimiterIndex = null;
+            }
+        }
+
+        if (nextNewline === -1) {
+            break;
+        }
+        lineStart = nextNewline + 1;
+    }
+
+    return {ranges, unclosedCodeBlockStart};
+}
+
+function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignoredRanges: MarkdownRange[] = []): string {
+    const lastNewline = text.lastIndexOf('\n');
+    const lastLineStart = lastNewline + 1;
+    const delimiterIndexes: number[] = [];
+
+    for (let pos = lastLineStart; pos <= text.length - delimiter.length; pos++) {
+        const isInIgnoredRange = ignoredRanges.some((range) => pos >= range.start && pos < range.end);
+        if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInIgnoredRange) {
+            continue;
+        }
+
+        delimiterIndexes.push(pos);
+        pos += delimiter.length - 1;
+    }
+
+    if (delimiterIndexes.length > 0 && delimiterIndexes.length % 2 !== 0) {
+        return text.substring(0, delimiterIndexes.at(-1));
+    }
+
     return text;
 }
 
@@ -63,33 +120,36 @@ function stripIncompleteMarkdown(markdown: string): string {
         return markdown;
     }
 
-    let result = markdown;
+    const initialCodeState = getCodeRanges(markdown);
+    let codeRanges = initialCodeState.ranges;
+    let result = initialCodeState.unclosedCodeBlockStart === null ? markdown : markdown.substring(0, initialCodeState.unclosedCodeBlockStart);
 
-    // 1. Incomplete link/image: find the last '[' and check whether a
-    //    complete [text](url) follows it. If not, strip from '[' (or '![').
-    const lastOpenBracket = result.lastIndexOf('[');
-    if (lastOpenBracket !== -1) {
-        const tail = result.substring(lastOpenBracket);
-        if (!/^\[[^\]]*\]\([^)]*\)/.test(tail)) {
-            const stripFrom = lastOpenBracket > 0 && result[lastOpenBracket - 1] === '!' ? lastOpenBracket - 1 : lastOpenBracket;
+    // Strip incomplete inline code before looking for other markdown so code
+    // contents don't look like unfinished links or emphasis.
+    codeRanges = codeRanges.filter((range) => range.end <= result.length);
+    result = stripUnpairedLastLineDelimiter(result, INLINE_CODE_DELIMITER, codeRanges);
+
+    codeRanges = getCodeRanges(result).ranges;
+    for (let openBracketIndex = result.length - 1; openBracketIndex >= 0; openBracketIndex--) {
+        const isInCodeRange = codeRanges.some((range) => openBracketIndex >= range.start && openBracketIndex < range.end);
+        if (result[openBracketIndex] !== '[' || isEscaped(result, openBracketIndex) || isInCodeRange) {
+            continue;
+        }
+
+        const closeBracketIndex = result.indexOf(']', openBracketIndex + 1);
+        const stripFrom = openBracketIndex > 0 && result[openBracketIndex - 1] === '!' && !isEscaped(result, openBracketIndex - 1) ? openBracketIndex - 1 : openBracketIndex;
+
+        if (closeBracketIndex === -1) {
+            result = result.substring(0, stripFrom);
+        } else if (result[closeBracketIndex + 1] === '(' && result.indexOf(')', closeBracketIndex + 2) === -1) {
             result = result.substring(0, stripFrom);
         }
+        break;
     }
 
-    // 2. Unclosed bold (**) on the last line.
-    result = stripUnpairedLastLineDelimiter(result, '**');
-
-    // 3. Unclosed strikethrough (~~) on the last line.
-    result = stripUnpairedLastLineDelimiter(result, '~~');
-
-    // 4. Unclosed code block (``` spans multiple lines).
-    const codeBlockCount = countOccurrences(result, '```');
-    if (codeBlockCount % 2 !== 0) {
-        result = result.substring(0, result.lastIndexOf('```'));
-    }
-
-    // 5. Unclosed inline code (`) on the last line (after code-block handling).
-    result = stripUnpairedLastLineDelimiter(result, '`');
+    codeRanges = getCodeRanges(result).ranges;
+    result = stripUnpairedLastLineDelimiter(result, '**', codeRanges);
+    result = stripUnpairedLastLineDelimiter(result, '~~', codeRanges);
 
     return result;
 }

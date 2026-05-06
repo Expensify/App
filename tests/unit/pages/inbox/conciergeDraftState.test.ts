@@ -163,6 +163,11 @@ describe('conciergeDraftState', () => {
             expect(stripIncompleteMarkdown('[done](https://a.com) and [broken')).toBe('[done](https://a.com) and ');
         });
 
+        it('preserves bracketed text that is not a link', () => {
+            const complete = 'The accepted values are [yes/no] for this setting';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
         it('strips an incomplete image syntax', () => {
             expect(stripIncompleteMarkdown('Here is ![alt')).toBe('Here is ');
         });
@@ -195,6 +200,11 @@ describe('conciergeDraftState', () => {
             expect(stripIncompleteMarkdown(complete)).toBe(complete);
         });
 
+        it('preserves a complete code block ending at the closing fence', () => {
+            const complete = 'Before\n```\ncode\n```';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
         // --- Inline code (`) ---
         it('strips trailing unclosed inline code', () => {
             expect(stripIncompleteMarkdown('Run `command')).toBe('Run ');
@@ -202,6 +212,11 @@ describe('conciergeDraftState', () => {
 
         it('preserves complete inline code', () => {
             const complete = 'Run `command` now';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        it('preserves markdown-looking text inside complete inline code', () => {
+            const complete = 'Use `[accountID]` and `**not bold` in the payload';
             expect(stripIncompleteMarkdown(complete)).toBe(complete);
         });
 
