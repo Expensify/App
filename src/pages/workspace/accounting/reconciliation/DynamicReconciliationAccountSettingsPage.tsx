@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -100,7 +100,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
             <SelectionList
                 data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={reconciliationBankAccountID}
             />
         </ConnectionLayout>

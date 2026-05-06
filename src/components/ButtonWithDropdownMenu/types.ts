@@ -133,8 +133,8 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
-    /** Whether selected items should be marked as selected */
-    shouldShowSelectedItemCheck?: boolean;
+    /** Whether to show a radio button on each item to indicate which one is currently selected */
+    shouldShowRadioButton?: boolean;
 
     /** Used to locate the component in the tests */
     testID?: string;

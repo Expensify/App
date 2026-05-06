@@ -52,16 +52,15 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    dismissModalAndOpenReportInInboxTab,
     getAllPersonalDetails,
     getAllReports,
     getPolicyTags,
     getReportPreviewAction,
-    highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
 import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
+import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
@@ -451,6 +450,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             payeeEmail,
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -731,6 +731,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
         participants: [participant],
         transactionID: optimisticTransaction.transactionID,
         isPersonalTrackingExpense: true,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     onyxData.optimisticData?.push(

@@ -412,8 +412,8 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport);
-            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport);
+            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport, RORY_ACCOUNT_ID);
+            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport, RORY_ACCOUNT_ID);
 
             expect(transactionThreadReport1.participants).toEqual({
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
