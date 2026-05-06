@@ -91,7 +91,6 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
-import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
@@ -596,18 +595,6 @@ type GetSectionsParams = {
  * sortBy/sortOrder to match the menu item's defaults for it to be active.
  */
 const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
-
-const SKIPPED_SEARCH_FILTERS = new Set<SearchAdvancedFiltersKey>([
-    FILTER_KEYS.GROUP_BY,
-    FILTER_KEYS.GROUP_CURRENCY,
-    FILTER_KEYS.LIMIT,
-    FILTER_KEYS.TYPE,
-    FILTER_KEYS.VIEW,
-    FILTER_KEYS.PAYER,
-    FILTER_KEYS.ACTION,
-    FILTER_KEYS.COLUMNS,
-    FILTER_KEYS.KEYWORD,
-]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
@@ -2342,8 +2329,19 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
-    const canOnlyBePaidElsewhere = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canOnlyBePaidElsewhere = canIOUBePaid(
+        report,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin,
+        currentUserAccountID,
+        allReportTransactions,
+        true,
+        chatReportRNVP,
+        invoiceReceiverPolicy,
+    );
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
@@ -2446,7 +2444,6 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -2587,7 +2584,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     ...reportAction,
                     reportID,
                     from,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
@@ -4189,10 +4185,6 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function isTransactionSearchType(type: string | undefined): boolean {
-    return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
-}
-
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
@@ -4207,25 +4199,13 @@ type TypeMenuSectionsParams = {
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
     isOffline: boolean;
     defaultExpensifyCard: CardFeedForDisplay | undefined;
-    shouldRedirectToExpensifyClassic: boolean;
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
-    const {
-        currentUserEmail,
-        currentUserAccountID,
-        cardFeedsByPolicy,
-        defaultCardFeed,
-        policies,
-        savedSearches,
-        isOffline,
-        defaultExpensifyCard,
-        shouldRedirectToExpensifyClassic,
-        draftTransactionIDs,
-        isTrackIntentUser,
-    } = params;
+    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs, isTrackIntentUser} =
+        params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const {
@@ -4263,11 +4243,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                       buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              if (shouldRedirectToExpensifyClassic) {
-                                                  setIsOpenConfirmNavigateExpensifyClassicModalOpen(true);
-                                                  return;
-                                              }
-
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
                                           });
                                       },
@@ -5855,8 +5830,6 @@ export {
     FILTER_LABEL_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
-    isTransactionSearchType,
-    SKIPPED_SEARCH_FILTERS,
 };
 export type {
     SavedSearchMenuItem,

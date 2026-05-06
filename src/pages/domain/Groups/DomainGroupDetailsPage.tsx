@@ -21,6 +21,7 @@ import type SCREENS from '@src/SCREENS';
 import DefaultGroupToggle from './DefaultGroupToggle';
 import DeleteGroupRow from './DeleteGroupRow';
 import PreferredWorkspaceToggle from './PreferredWorkspaceToggle';
+import RestrictDefaultLoginSelectionToggle from './RestrictDefaultLoginSelectionToggle';
 import RestrictExpenseWorkspaceCreationToggle from './RestrictExpenseWorkspaceCreationToggle';
 import StrictlyEnforceWorkspaceRulesToggle from './StrictlyEnforceWorkspaceRulesToggle';
 
@@ -71,6 +72,10 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <Text style={[styles.textNormal, styles.textStrong, styles.ph5]}>{translate('domain.groups.permissions')}</Text>
                     <StrictlyEnforceWorkspaceRulesToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <RestrictDefaultLoginSelectionToggle
                         domainAccountID={domainAccountID}
                         groupID={groupID}
                     />
