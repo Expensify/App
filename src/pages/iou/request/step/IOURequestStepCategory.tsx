@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +31,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -59,7 +60,7 @@ function IOURequestStepCategory({
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const report = reportReal ?? reportDraft ?? transactionReport;
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
@@ -211,7 +212,6 @@ function IOURequestStepCategory({
                                     if (!policy?.areCategoriesEnabled) {
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(

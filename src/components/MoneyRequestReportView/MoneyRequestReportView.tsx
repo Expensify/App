@@ -144,7 +144,6 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [reportID]);
 

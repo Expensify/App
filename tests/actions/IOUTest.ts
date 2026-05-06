@@ -8,8 +8,6 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {
-    calculateDiffAmount,
-    handleNavigateAfterExpenseCreate,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
@@ -24,7 +22,10 @@ import {
     shouldOptimisticallyUpdateSearch,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
+import {completeSplitBill, splitBill, startSplitBill} from '@libs/actions/IOU/Split';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -484,6 +485,7 @@ describe('actions/IOU', () => {
                 transaction: transactionToCategorize,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -534,6 +536,7 @@ describe('actions/IOU', () => {
                 transaction: originalTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -573,6 +576,7 @@ describe('actions/IOU', () => {
                 transaction: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -607,6 +611,7 @@ describe('actions/IOU', () => {
                 amountOwed: 0,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -1731,7 +1736,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1800,7 +1804,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -2325,7 +2328,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -4897,7 +4899,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -5371,7 +5372,6 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -5501,6 +5501,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5678,6 +5679,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5859,6 +5861,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6049,6 +6052,7 @@ describe('actions/IOU', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    activePolicy: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -6760,7 +6764,6 @@ describe('actions/IOU', () => {
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
         beforeEach(() => {
             jest.mock('@libs/OdometerImageUtils', () => ({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __esModule: true,
                 default: jest.fn(),
             }));

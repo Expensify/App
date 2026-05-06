@@ -209,7 +209,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -271,6 +270,7 @@ describe('actions/IOU/TrackExpense', () => {
                 transaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -315,7 +315,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -404,7 +403,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -460,7 +458,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -544,7 +541,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -600,7 +596,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -687,7 +682,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -741,7 +735,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -825,7 +819,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -879,7 +873,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -935,7 +929,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
@@ -1114,6 +1107,7 @@ describe('actions/IOU/TrackExpense', () => {
                 transaction: createdTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -1157,7 +1151,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 draftTransactionIDs: [],
@@ -1249,7 +1242,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
@@ -1581,7 +1573,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
@@ -1627,7 +1618,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
@@ -1675,7 +1665,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
@@ -1714,7 +1703,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
@@ -1794,7 +1782,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1878,7 +1865,10 @@ describe('actions/IOU/TrackExpense', () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
@@ -1986,7 +1976,10 @@ describe('actions/IOU/TrackExpense', () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
@@ -2093,7 +2086,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
