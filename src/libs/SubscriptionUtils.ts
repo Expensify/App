@@ -539,7 +539,7 @@ function getSubscriptionPrice(
     privateSubscriptionType: SubscriptionType | undefined,
     hasTeam2025Pricing: boolean,
 ): number {
-    if (!privateSubscriptionType || !plan || plan === CONST.POLICY.TYPE.SUBMIT) {
+    if (!privateSubscriptionType || !plan) {
         return 0;
     }
 
