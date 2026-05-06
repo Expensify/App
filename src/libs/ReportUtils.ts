@@ -5812,6 +5812,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         reportPolicy,
         parentReport,
         personalDetails as PersonalDetailsList,
+        attributes,
     );
 
     if (parentReportActionBasedName) {
@@ -6941,7 +6942,7 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction) {
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
@@ -6950,7 +6951,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     const report = fromReport ?? toReport;
 
-    const reportName = Parser.htmlToText(getReportNameFromNameUtils(report, reportAttributesDerivedValue) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportNameFromNameUtils(report, reportAttributes) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', reportUrl, reportName);
@@ -6958,13 +6959,13 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
-function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction) {
+function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, reportAttributes?: ReportAttributesDerivedValue['reports']) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
     const fromReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = Parser.htmlToText(getReportNameFromNameUtils(fromReport, reportAttributesDerivedValue) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportNameFromNameUtils(fromReport, reportAttributes) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 

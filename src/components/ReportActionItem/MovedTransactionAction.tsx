@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
@@ -33,6 +34,7 @@ function MovedTransactionAction({action, emptyHTML, originalReport}: MovedTransa
     const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
+    const reportAttributes = useReportAttributes();
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
@@ -45,7 +47,7 @@ function MovedTransactionAction({action, emptyHTML, originalReport}: MovedTransa
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action);
+    const message = getMovedTransactionMessage(translate, action, reportAttributes);
 
     if (hasReasoning(action)) {
         return (
