@@ -18,7 +18,6 @@ import {
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
-    getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
     getTagApproverRule,
@@ -33,7 +32,6 @@ import {
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
-    isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -779,31 +777,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getPolicyNameByID', () => {
-        it('should return the policy name for a given policyID', async () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                name: 'testName',
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            expect(getPolicyNameByID('1')).toBe('testName');
-        });
-
-        it('should return the empty if the name is not set', async () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                name: null!,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            expect(getPolicyNameByID('1')).toBe('');
-        });
-    });
-
     describe('getManagerAccountID', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -978,79 +951,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('isCurrentUserMemberOfAnyPolicy', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should return false if user has no policies', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeFalsy();
-        });
-
-        it('should return true if user owns a workspace', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeTruthy();
-        });
-
-        it('should return false if expense chat is not enabled', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeFalsy();
-        });
-
-        it('should return false if its a fake policy id', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeFalsy();
-        });
-
-        it('should return true if user is invited to a workspace', async () => {
-            const currentUserLogin = approverEmail;
-            const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
-
-            const result = isCurrentUserMemberOfAnyPolicy();
-
-            expect(result).toBeTruthy();
-        });
-    });
     describe('getTagList', () => {
         it.each([
             ['when index is 0', 0, policyTags.TagListTest0.name],

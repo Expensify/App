@@ -233,11 +233,10 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                             listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
                         }}
                         onSelectAll={listData.length > 0 ? toggleSelectAll : undefined}
-                        onCheckboxPress={toggleCard}
+                        onSelectionButtonPress={toggleCard}
                         onSelectRow={toggleCard}
                         selectedItems={selectedCardIDs}
                         ListItem={CardListItem}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={

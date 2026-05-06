@@ -465,11 +465,10 @@ function WorkspaceTaxesPage({
                     onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     shouldShowListEmptyContent={false}
-                    onCheckboxPress={toggleTax}
+                    onSelectionButtonPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
                     shouldHeaderBeInsideList

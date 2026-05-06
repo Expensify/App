@@ -404,11 +404,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
     }, [isQuickSettingsFlow, policyId, backTo]);
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
 
     const dismissError = (item: ListItem) => {
@@ -763,14 +763,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <SelectionListWithModal
                         data={filteredCategoryList}
                         ListItem={TableListItem}
-                        onCheckboxPress={toggleCategory}
+                        onSelectionButtonPress={toggleCategory}
                         selectedItems={selectedCategories}
                         onSelectRow={navigateToCategorySettings}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}

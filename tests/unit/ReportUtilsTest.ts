@@ -44,6 +44,7 @@ import {
     buildOptimisticGroupChatReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
     buildOptimisticWorkspaceChats,
     buildParticipantsFromAccountIDs,
@@ -4447,7 +4448,7 @@ describe('ReportUtils', () => {
         const reportID = '1';
 
         it('should disable on thread-disabled actions', () => {
-            const reportAction = buildOptimisticCreatedReportAction('email1@test.com');
+            const reportAction = buildOptimisticCreatedReportAction({emailCreatingAction: 'email1@test.com'});
             expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
@@ -4861,7 +4862,7 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -5227,7 +5228,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return undefined for non-money-request actions', () => {
-            const action = buildOptimisticCreatedReportAction('user@test.com');
+            const action = buildOptimisticCreatedReportAction({emailCreatingAction: 'user@test.com'});
             const transaction = {
                 ...createRandomTransaction(100),
                 transactionID: 'txn-123',
@@ -6095,7 +6096,7 @@ describe('ReportUtils', () => {
 
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport, currentUserAccountID);
             const currentReportId = '1';
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -6400,7 +6401,7 @@ describe('ReportUtils', () => {
 
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
             const currentReportId = '1';
             const isInFocusMode = false;
@@ -6924,7 +6925,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
             const transactionThreadReport: Report = {
-                ...buildTransactionThread(expenseCreatedAction1, expenseReport),
+                ...buildTransactionThread(expenseCreatedAction1, expenseReport, currentUserAccountID),
                 // The settled check uses report.statusNum on the thread report itself
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
@@ -17337,6 +17338,160 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions)).toBe(false);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions)).toBeUndefined();
+        });
+    });
+
+    describe('buildTransactionThread', () => {
+        const chatReportID = '7001';
+        const expenseReportID = '7002';
+        const actorAccountID = 42;
+
+        const buildIOUAction = (overrides?: Partial<ReportAction>) =>
+            ({
+                ...buildOptimisticIOUReportAction({
+                    type: 'create',
+                    amount: 100,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID: '9001',
+                    iouReportID: expenseReportID,
+                }),
+                actorAccountID,
+                ...overrides,
+            }) as ReportAction;
+
+        const buildExpenseReport = () =>
+            buildOptimisticExpenseReport({
+                chatReportID,
+                policyID: '123',
+                payeeAccountID: actorAccountID,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+        it('uses the passed currentUserAccountID for the thread participants when it differs from the actor', () => {
+            const iouAction = buildIOUAction();
+            const expenseReport = buildExpenseReport();
+
+            const thread = buildTransactionThread(iouAction, expenseReport, currentUserAccountID);
+
+            // The passed currentUserAccountID gets the ADMIN role; the actor gets MEMBER.
+            expect(thread.participants).toEqual({
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [actorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
+        });
+
+        it('deduplicates participants when the actor is the same as currentUserAccountID', () => {
+            const iouAction = buildIOUAction({actorAccountID: currentUserAccountID});
+            const expenseReport = buildExpenseReport();
+
+            const thread = buildTransactionThread(iouAction, expenseReport, currentUserAccountID);
+
+            expect(thread.participants).toEqual({
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+            });
+        });
+
+        it('falls back to the actor account ID alone when currentUserAccountID is 0 (filtered by Boolean)', () => {
+            const iouAction = buildIOUAction();
+            const expenseReport = buildExpenseReport();
+
+            const thread = buildTransactionThread(iouAction, expenseReport, 0);
+
+            // 0 is filtered by Boolean, so only the actor remains and gets MEMBER role since it does not match the passed 0.
+            expect(thread.participants).toEqual({
+                [actorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
+        });
+
+        it('ignores currentUserAccountID and reuses the existing thread when one is provided', async () => {
+            const existingThreadReportID = '7777';
+            const existingThread: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: existingThreadReportID,
+                participants: {
+                    [actorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingThreadReportID}`, existingThread);
+
+            const iouAction = buildIOUAction();
+            const expenseReport = buildExpenseReport();
+            const thread = buildTransactionThread(iouAction, expenseReport, currentUserAccountID, existingThreadReportID);
+
+            expect(thread.reportID).toBe(existingThreadReportID);
+            // The existing thread is returned untouched so currentUserAccountID is NOT injected.
+            expect(thread.participants).toEqual(existingThread.participants);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingThreadReportID}`, null);
+        });
+    });
+
+    describe('buildOptimisticMoneyRequestEntities', () => {
+        it('forwards currentUserAccountID to the optimistic transaction thread participants', () => {
+            const chatReport: Report = {reportID: '8001'};
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 200,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+            const otherActorAccountID = 99;
+
+            const [, , iouAction, transactionThread] = buildOptimisticMoneyRequestEntities({
+                iouReport: expenseReport,
+                type: 'create',
+                amount: 200,
+                currency: 'USD',
+                comment: '',
+                payeeEmail: currentUserEmail,
+                participants: [{accountID: otherActorAccountID}],
+                transactionID: '8501',
+                currentUserAccountID,
+            });
+
+            expect(transactionThread).toBeDefined();
+            // The IOU action's actorAccountID defaults to the deprecated current user; the explicit currentUserAccountID
+            // we pass should always be present in the thread participants regardless.
+            expect(transactionThread?.participants?.[currentUserAccountID]).toEqual({
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                role: CONST.REPORT.ROLE.ADMIN,
+            });
+            // The IOU action child report should match the optimistic transaction thread report ID.
+            expect(iouAction.childReportID).toBe(transactionThread?.reportID);
+        });
+
+        it('skips creating a transaction thread when shouldGenerateTransactionThreadReport is false', () => {
+            const chatReport: Report = {reportID: '8002'};
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 50,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+            const [, , , transactionThread, createdActionForThread] = buildOptimisticMoneyRequestEntities({
+                iouReport: expenseReport,
+                type: 'create',
+                amount: 50,
+                currency: 'USD',
+                comment: '',
+                payeeEmail: currentUserEmail,
+                participants: [{accountID: 88}],
+                transactionID: '8601',
+                shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID,
+            });
+
+            expect(transactionThread).toBeUndefined();
+            expect(createdActionForThread).toBeNull();
         });
     });
 });
