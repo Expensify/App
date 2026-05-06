@@ -25,40 +25,36 @@ import StaticSearchActionsBar from './StaticSearchActionsBar';
 import StaticSearchPageInput from './StaticSearchPageInput';
 import StaticSearchTypeMenu from './StaticSearchTypeMenu';
 
-const SearchTypeMenuSwitch = React.memo(({showStatic, ...props}: SearchTypeMenuNarrowProps & {showStatic: boolean}) => {
+function SearchTypeMenuSwitch({showStatic, ...props}: SearchTypeMenuNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
         return props.queryJSON ? <StaticSearchTypeMenu queryJSON={props.queryJSON} /> : null;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageTabSelectorProps
     return <SearchTypeMenuNarrow {...props} />;
-});
-SearchTypeMenuSwitch.displayName = 'SearchTypeMenuSwitch';
+}
 
-const SearchPageInputSwitch = React.memo(({showStatic, ...props}: SearchPageInputNarrowProps & {showStatic: boolean}) => {
+function SearchPageInputSwitch({showStatic, ...props}: SearchPageInputNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
         return <StaticSearchPageInput />;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
     return <SearchPageInputNarrow {...props} />;
-});
-SearchPageInputSwitch.displayName = 'SearchPageInputSwitch';
+}
 
-const SearchFiltersBarSwitch = React.memo(({showStatic, ...props}: SearchFiltersBarNarrowProps & {showStatic: boolean}) => {
+function SearchFiltersBarSwitch({showStatic, ...props}: SearchFiltersBarNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
         return null;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchFiltersBarProps
     return <SearchFiltersBarNarrow {...props} />;
-});
-SearchFiltersBarSwitch.displayName = 'SearchFiltersBarSwitch';
+}
 
-const SearchActionsBarSwitch = React.memo(({showStatic, ...props}: SearchActionsBarNarrowProps & {showStatic: boolean}) => {
+function SearchActionsBarSwitch({showStatic, ...props}: SearchActionsBarNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
         return <StaticSearchActionsBar />;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
     return <SearchActionsBarNarrow {...props} />;
-});
-SearchActionsBarSwitch.displayName = 'SearchActionsBarSwitch';
+}
 
 export {SearchTypeMenuSwitch, SearchPageInputSwitch, SearchFiltersBarSwitch, SearchActionsBarSwitch};

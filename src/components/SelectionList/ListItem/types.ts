@@ -1,7 +1,8 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {HoldMenuCallback} from '@components/Search';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -14,11 +15,12 @@ import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type BareUserListItem from './BareUserListItem';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
-import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
+import type SingleSelectWithAvatarListItem from './SingleSelectWithAvatarListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 import type SplitListItem from './SplitListItem';
 import type TableListItem from './TableListItem';
@@ -160,9 +162,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
-
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -196,17 +195,18 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
 
-    /** Whether to show the default right hand side component */
-    shouldUseDefaultRightHandSideComponent?: boolean;
-
     /** Handles what to do when the item is focused */
     onFocus?: ListItemFocusEventHandler;
 
+    /**
+     * Whether the focus indicator should be visually shown.
+     * Pass explicitly to decouple the visual highlight from logical focus,
+     * e.g. to suppress the initial highlight until the user starts keyboard navigation.
+     */
+    isFocusVisible?: boolean;
+
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
-    accessibilityState?: AccessibilityState;
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
@@ -228,21 +228,24 @@ type ExtendedTargetedEvent = TargetedEvent & {
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactNode | null | undefined) | ReactNode | null;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
 
+    /** Callback to fire when the selection button is pressed */
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+
+    /** Which side of the row to render the selection button on */
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
 
     /** Is item hovered */
     isHovered?: boolean;
-
-    /** Whether the default focus should be prevented on row selection */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Prevent the submission of the list item when enter key is pressed */
     shouldPreventEnterKeySubmit?: boolean;
@@ -268,9 +271,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 
@@ -282,6 +282,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Callback when the input inside the item is blurred (if input exists) */
     onInputBlur?: (e: BlurEvent) => void;
+
+    /** Callback when the hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
@@ -300,20 +303,20 @@ type ValidListItem =
     | typeof BaseListItem
     | typeof InviteMemberListItem
     | typeof MultiSelectListItem
-    | typeof RadioListItem
     | typeof SearchRouterItem
     | typeof SingleSelectListItem
+    | typeof SingleSelectWithAvatarListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
     | typeof TableListItem
     | typeof TravelDomainListItem
+    | typeof BareUserListItem
     | typeof UserListItem
     | typeof UserSelectionListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
-        shouldPreventDefaultFocusOnSelectRow?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;
@@ -329,8 +332,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldDisplayRBR?: boolean;
         /** Test ID of the component. Used to locate this view in end-to-end tests. */
         testID?: string;
-        /** Whether to show the default right hand side checkmark */
-        shouldUseDefaultRightHandSideCheckmark?: boolean;
         /** Whether to show the right caret icon */
         shouldShowRightCaret?: boolean;
         /** Whether to highlight the selected item */
@@ -345,6 +346,17 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
          */
         accessible?: boolean;
     };
+
+/**
+ * Props for SelectableListItem, which extends BaseListItem with selection button support.
+ */
+type SelectableListItemProps<TItem extends ListItem> = BaseListItemProps<TItem> & {
+    /** Callback to fire when the selection button is pressed */
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+
+    /** Which side of the row to render the selection button on */
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+};
 
 type SplitListItemType = ListItem &
     SplitExpense & {
@@ -385,7 +397,7 @@ type SplitListItemType = ListItem &
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -406,7 +418,7 @@ type WorkspaceListItemType = {
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
 
-type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
+type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps<
     TItem & {
         /** Value of the domain */
         value?: string;
@@ -424,8 +436,9 @@ export type {
     ListItem,
     ListItemProps,
     ListItemFocusEventHandler,
-    RadioListItemProps,
+    BaseSelectListItemProps,
     ValidListItem,
+    SelectableListItemProps,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
     TravelDomainListItemProps,

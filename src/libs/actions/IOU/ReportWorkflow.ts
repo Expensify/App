@@ -110,6 +110,7 @@ function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
     // Only expense reports can be approved
@@ -128,7 +129,7 @@ function canApproveIOU(
     }
 
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === getUserAccountID();
+    const isCurrentUserManager = managerID === currentUserAccountID;
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
@@ -275,7 +276,7 @@ function getBadgeFromIOUReport(
     ) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
-    if (canApproveIOU(iouReport, policy, reportMetadata)) {
+    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
     }
     const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
@@ -382,8 +383,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
-        : // eslint-disable-next-line @typescript-eslint/no-deprecated
-          buildNextStepNew({
+        : buildNextStepNew({
               report: expenseReport,
               policy,
               currentUserAccountIDParam,
@@ -733,7 +733,6 @@ function reopenReport(
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -917,7 +916,6 @@ function retractReport(
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -1089,7 +1087,6 @@ function unapproveExpenseReport(
     const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1277,8 +1274,7 @@ function submitReport({
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
-        : // eslint-disable-next-line @typescript-eslint/no-deprecated
-          buildNextStepNew({
+        : buildNextStepNew({
               report: expenseReport,
               predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
               policy,
@@ -1527,7 +1523,6 @@ function assignReportToMe(
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: {...report, managerID: accountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1643,7 +1638,6 @@ function addReportApprover(
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: {...report, managerID: newApproverAccountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,

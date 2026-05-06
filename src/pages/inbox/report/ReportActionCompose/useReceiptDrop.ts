@@ -88,7 +88,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
 
     const onReceiptDropped = (e: DragEvent) => {
-        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }

@@ -40,6 +40,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
@@ -64,6 +65,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             transactionViolations: allTransactionViolations,
             translate,
             recentWaypoints,
+            conciergeReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,
         });

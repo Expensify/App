@@ -482,6 +482,7 @@ const WRITE_COMMANDS = {
     REMOVE_DELEGATE: 'RemoveDelegate',
     UPDATE_DELEGATE_ROLE: 'UpdateDelegateRole',
     TOGGLE_CARD_CONTINUOUS_RECONCILIATION: 'ToggleCardContinuousReconciliation',
+    TOGGLE_CARD_CASHBACK_TO_BILL: 'ToggleCardCashbackToBill',
     SET_CARD_RECONCILIATION_BANK_ACCOUNT: 'SetCardReconciliationBankAccount',
     SET_POLICY_TAG_APPROVER: 'SetPolicyTagApprover',
     SAVE_SEARCH: 'SaveSearch',
@@ -584,6 +585,7 @@ const WRITE_COMMANDS = {
     CHANGE_DOMAIN_SECURITY_GROUP: 'ChangeDomainSecurityGroup',
     UPDATE_DOMAIN_SECURITY_GROUP: 'UpdateDomainSecurityGroupForNewDot',
     SET_DEFAULT_DOMAIN_SECURITY_GROUP: 'SetDefaultDomainSecurityGroup',
+    DELETE_DOMAIN_SECURITY_GROUP: 'DeleteDomainSecurityGroup',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1102,6 +1104,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
     [WRITE_COMMANDS.REMOVE_DELEGATE]: Parameters.RemoveDelegateParams;
     [WRITE_COMMANDS.TOGGLE_CARD_CONTINUOUS_RECONCILIATION]: Parameters.ToggleCardContinuousReconciliationParams;
+    [WRITE_COMMANDS.TOGGLE_CARD_CASHBACK_TO_BILL]: Parameters.ToggleCardCashbackToBillParams;
     [WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetCardReconciliationBankAccountParams;
     [WRITE_COMMANDS.SAVE_SEARCH]: Parameters.SaveSearchParams;
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
@@ -1185,6 +1188,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CHANGE_DOMAIN_SECURITY_GROUP]: Parameters.ChangeDomainSecurityGroupParams;
     [WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP]: Parameters.UpdateDomainSecurityGroupParams;
     [WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP]: Parameters.SetDefaultDomainSecurityGroupParams;
+    [WRITE_COMMANDS.DELETE_DOMAIN_SECURITY_GROUP]: Parameters.DeleteDomainSecurityGroupParams;
 };
 
 const READ_COMMANDS = {
@@ -1197,7 +1201,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
     SYNC_POLICY_TO_SAGE_INTACCT: 'SyncPolicyToSageIntacct',
     SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
-    SYNC_GUSTO: 'SyncGusto',
+    SYNC_POLICY_TO_GUSTO: 'SyncPolicyToGusto',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
@@ -1279,6 +1283,7 @@ const READ_COMMANDS = {
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
+    OPEN_AGENTS_PAGE: 'OpenAgentsPage',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1292,7 +1297,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_NETSUITE]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
-    [READ_COMMANDS.SYNC_GUSTO]: Parameters.SyncGustoParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_GUSTO]: Parameters.SyncPolicyToGustoParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
@@ -1375,6 +1380,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
+    [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
