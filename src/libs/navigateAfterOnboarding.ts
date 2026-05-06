@@ -141,10 +141,8 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, isSmallScre
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
     Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-        SidePanelActions.openSidePanel(!isSmallScreenWidth);
-    });
+    Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    SidePanelActions.openSidePanel(!isSmallScreenWidth);
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, isSmallScreenWidth = false) {
