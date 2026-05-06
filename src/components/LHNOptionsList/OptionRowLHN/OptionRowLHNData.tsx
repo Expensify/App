@@ -1,11 +1,15 @@
 import React, {useCallback, useMemo} from 'react';
+import type {ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
@@ -16,8 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import OptionRowLHN from './OptionRowLHN';
-import type {OptionRowLHNDataProps} from './types';
+import OptionRowLHN from './OptionRowLHNCore';
 
 /*
  * This component gets the data from onyx for the actual
@@ -34,9 +37,10 @@ function OptionRowLHNData({
     personalDetails = {},
     policy,
     invoiceReceiverPolicy,
-    conciergeReportID,
+    viewMode = 'default',
     ...propsToForward
 }: OptionRowLHNDataProps) {
+    const styles = useThemeStyles();
     const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
@@ -44,6 +48,7 @@ function OptionRowLHNData({
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Per-item report actions subscriptions (scoped by specific report ID)
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -168,15 +173,32 @@ function OptionRowLHNData({
         return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
     }, [optionItem, isIOUReport, reportPreviewSenderID]);
 
+    const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
+    const placeholderRowStyle = StyleSheet.flatten<ViewStyle>(
+        isInFocusMode
+            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
+    );
+
+    // rendering null as a render item causes the FlashList to render all
+    // its children and consume significant memory on the first render. We can avoid this by
+    // rendering a placeholder view instead. This behaviour is only observed when we
+    // first sign in to the App.
+    // For the focused-but-null case (e.g. submit an expense in offline mode and click on the
+    // generated expense report), we render null so we only see the Report Details but no item in LHN.
+    if (!finalOptionItem) {
+        return isReportFocused ? null : <View style={placeholderRowStyle} />;
+    }
+
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
+            viewMode={viewMode}
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             report={fullReport}
             hasDraftComment={hasDraftComment}
-            conciergeReportID={conciergeReportID}
         />
     );
 }

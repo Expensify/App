@@ -18,6 +18,7 @@ import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/Vi
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
@@ -59,6 +60,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
         usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenState();
+    const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
     const [isVideoOffline, setIsVideoOffline] = useState(false);
@@ -171,7 +173,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
-            updateCurrentURLAndReportID(url, reportID);
+            updateCurrentURLAndReportID(url, report, reportID);
             return;
         }
 
@@ -193,7 +195,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
+    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {
@@ -483,8 +485,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         if (!shouldPlay) {
             return;
         }
-        updateCurrentURLAndReportID(url, reportID);
-    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
+        updateCurrentURLAndReportID(url, report, reportID);
+    }, [report, reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {

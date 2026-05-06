@@ -3,7 +3,7 @@ import useAnchorOpener from './useAnchorOpener';
 
 type UsePopoverTriggerResult = {
     ref: AnchorRef;
-    /** Parameterless to stay assignable to any pressable's `onPress` signature. */
+    /** Takes no arguments, so it stays assignable to any pressable's `onPress` signature. */
     onPress: () => void;
 };
 

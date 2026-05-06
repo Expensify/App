@@ -1,11 +1,10 @@
-import React, {useMemo, useRef} from 'react';
-import type {GestureResponderEvent, ViewStyle} from 'react-native';
+import React, {useRef} from 'react';
+import type {ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import Badge from '@components/Badge';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxListItemProvider';
+import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
+import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
@@ -14,26 +13,25 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+import {isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {useLHNTooltipContext} from './LHNTooltipContext';
+import OptionRowAlternateText from './OptionRowAlternateText';
 import OptionRowAvatar from './OptionRowAvatar';
+import OptionRowErrorBadge from './OptionRowErrorBadge';
+import OptionRowInfoBadge from './OptionRowInfoBadge';
 import OptionRowPressable from './OptionRowPressable';
 import OptionRowTooltipLayer from './OptionRowTooltipLayer';
-import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({
     reportID,
@@ -46,26 +44,17 @@ function OptionRowLHN({
     onLayout = () => {},
     hasDraftComment,
     testID,
-    conciergeReportID,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'Pin']);
 
-    const {onboardingPurpose, onboarding, firstReportIDWithGBRorRBR, isScreenFocused} = useLHNTooltipContext();
-    const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
-
-    const session = useSession();
-    const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
+    const {onboardingPurpose, onboarding, isScreenFocused} = useLHNTooltipContext();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
-    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
-
-    // When neither tooltip qualifies, skip mounting the tooltip layer so the row avoids
-    // useProductTrainingContext, the tooltip-config useMemo, and the EducationalTooltip wrapper.
-    const shouldEvaluateTooltip = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;
 
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -76,30 +65,7 @@ function OptionRowLHN({
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
 
-    const alternateTextContainsCustomEmojiWithText = useMemo(
-        () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
-        [optionItem?.alternateText],
-    );
-
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
-
-    if (!optionItem && !isOptionFocused) {
-        // rendering null as a render item causes the FlashList to render all
-        // its children and consume significant memory on the first render. We can avoid this by
-        // rendering a placeholder view instead. This behaviour is only observed when we
-        // first sign in to the App.
-        // We can fix this by checking if the optionItem is null and the component is not focused.
-        // Which means that the currentReportID is not the same as the reportID. The currentReportID
-        // in this case is empty and hence the component is not focused.
-        return <View style={sidebarInnerRowStyle} />;
-    }
-
-    if (!optionItem) {
-        // This is the case when the component is focused and the optionItem is null.
-        // For example, when you submit an expense in offline mode and click on the
-        // generated expense report, we would only see the Report Details but no item in LHN.
-        return null;
-    }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
@@ -112,9 +78,6 @@ function OptionRowLHN({
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
-    const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
 
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
@@ -132,19 +95,7 @@ function OptionRowLHN({
 
     // This is used to ensure that we display the text exactly as the user entered it when displaying LHN title, instead of parsing their text to HTML.
     const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(report);
-    const alternateTextFSClass = FS.getChatFSClass(report);
 
-    const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
-            name: 'OptionRowLHN',
-            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-        });
-
-        event?.preventDefault();
-        // Enable Composer to focus on clicking the same chat after opening the context menu.
-        ReportActionComposeFocusManager.focus();
-        onSelectRow(optionItem, popoverAnchor);
-    };
     const accessibilityLabel = [
         `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
         optionItem.isUnread ? translate('common.unread') : '',
@@ -160,14 +111,14 @@ function OptionRowLHN({
         contextMenuHint,
     });
 
-    const renderRow = (onPress: typeof onOptionPress) => (
+    const renderPressableRow = () => (
         <OptionRowPressable
             reportID={reportID}
             optionItem={optionItem}
             isOptionFocused={isOptionFocused}
             isScreenFocused={isScreenFocused}
             popoverAnchor={popoverAnchor}
-            onPress={onPress}
+            onSelectRow={onSelectRow}
             onLayout={onLayout}
             accessibilityLabel={accessibilityLabelWithContextMenuHint}
             accessibilityHint={accessibilityHint}
@@ -226,69 +177,33 @@ function OptionRowLHN({
                                             </Tooltip>
                                         )}
                                     </View>
-                                    {!!optionItem.alternateText && (
-                                        <Text
-                                            style={alternateTextStyle}
-                                            numberOfLines={1}
-                                            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                            fsClass={alternateTextFSClass}
-                                        >
-                                            {alternateTextContainsCustomEmojiWithText ? (
-                                                <TextWithEmojiFragment
-                                                    message={optionItem.alternateText}
-                                                    style={[alternateTextStyle, styles.mh0]}
-                                                    alignCustomEmoji
-                                                />
-                                            ) : (
-                                                optionItem.alternateText
-                                            )}
-                                        </Text>
-                                    )}
+                                    <OptionRowAlternateText
+                                        alternateText={optionItem.alternateText}
+                                        report={report}
+                                        viewMode={viewMode}
+                                        isOptionFocused={isOptionFocused}
+                                        style={style}
+                                    />
                                 </View>
                                 {optionItem?.descriptiveText ? (
                                     <View
                                         style={[styles.flexWrap]}
-                                        fsClass={alternateTextFSClass}
+                                        fsClass={FS.getChatFSClass(report)}
                                     >
                                         <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                        {actionBadgeText ? (
-                                            <Badge
-                                                text={actionBadgeText}
-                                                error
-                                                isStrong
-                                            />
-                                        ) : (
-                                            <Icon
-                                                testID="RBR Icon"
-                                                src={expensifyIcons.DotIndicator}
-                                                fill={theme.danger}
-                                            />
-                                        )}
-                                    </View>
-                                )}
+                                <OptionRowErrorBadge
+                                    brickRoadIndicator={brickRoadIndicator}
+                                    actionBadgeText={actionBadgeText}
+                                />
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO &&
-                                (actionBadgeText ? (
-                                    <Badge
-                                        text={actionBadgeText}
-                                        success
-                                        isStrong
-                                    />
-                                ) : (
-                                    <View style={styles.ml2}>
-                                        <Icon
-                                            testID="GBR Icon"
-                                            src={expensifyIcons.DotIndicator}
-                                            fill={theme.success}
-                                        />
-                                    </View>
-                                ))}
+                            <OptionRowInfoBadge
+                                brickRoadIndicator={brickRoadIndicator}
+                                actionBadgeText={actionBadgeText}
+                            />
                             {hasDraftComment && !!optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
@@ -325,23 +240,12 @@ function OptionRowLHN({
     );
 
     return (
-        <OfflineWithFeedback
-            pendingAction={optionItem.pendingAction}
-            errors={optionItem.allReportErrors}
-            shouldShowErrorMessages={false}
-            needsOffscreenAlphaCompositing
-        >
-            {shouldEvaluateTooltip ? (
-                <OptionRowTooltipLayer
-                    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
-                    shouldShowGetStartedTooltip={shouldShowGetStartedTooltip}
-                    onOptionPress={onOptionPress}
-                    renderChildren={renderRow}
-                />
-            ) : (
-                renderRow(onOptionPress)
-            )}
-        </OfflineWithFeedback>
+        <OptionRowTooltipLayer
+            reportID={reportID}
+            report={report}
+            optionItem={optionItem}
+            renderChildren={renderPressableRow}
+        />
     );
 }
 

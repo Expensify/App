@@ -917,10 +917,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'Lista de chats',
         saveTheWorld: 'Salvar o mundo',
         tooltip: 'Comece aqui!',
-        redirectToExpensifyClassicModal: {
-            title: 'Em breve',
-            description: 'Estamos ajustando mais alguns detalhes do New Expensify para acomodar sua configuração específica. Enquanto isso, vá para o Expensify Classic.',
-        },
     },
     homePage: {
         forYou: 'Para você',
@@ -6421,7 +6417,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             updateToUSD: 'Atualizar para USD',
             updateWorkspaceCurrency: 'Atualizar moeda do espaço de trabalho',
             workspaceCurrencyNotSupported: 'Moeda do workspace não suportada',
-            yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de moedas compatíveis</a>.`,
+            yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de moedas compatíveis</a>.`,
             chooseAnExisting: 'Escolha uma conta bancária existente para pagar despesas ou adicione uma nova.',
         },
         changeOwner: {

@@ -13,6 +13,7 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ProgressBar from './ProgressBar';
@@ -104,6 +105,7 @@ function VideoPlayerControls({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
@@ -112,9 +114,9 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
-        updateCurrentURLAndReportID(url, reportID);
+        updateCurrentURLAndReportID(url, report, reportID);
         videoViewRef.current?.enterFullscreen();
-    }, [reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+    }, [report, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {

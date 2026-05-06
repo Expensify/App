@@ -267,7 +267,6 @@ function putOnHold(
 
     if (iouReport) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -491,7 +490,6 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
 
     if (iouReport) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: iouReport,
             policy,

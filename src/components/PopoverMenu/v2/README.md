@@ -57,7 +57,7 @@ const handlePress = (e) => { myWork(e); trigger.onPress(); };
 
 ### Visibility observation — `useIsPopoverVisible()`
 
-Reads `Root`'s `isVisible` for descendants that want to render trigger affordances (active-state icon color, video controls staying visible while menu is open, etc.). Throws if called outside `<Root>`.
+Reads `Root`'s `isVisible` for descendants that want to render trigger UI based on popover state (active-state icon color, video controls staying visible while menu is open, etc.). Throws if called outside `<Root>`.
 
 ### Lifecycle closes (built into `<Root>`)
 

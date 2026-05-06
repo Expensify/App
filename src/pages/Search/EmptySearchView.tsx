@@ -9,12 +9,10 @@ import Animated from 'react-native-reanimated';
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
@@ -26,12 +24,11 @@ import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -133,7 +130,6 @@ function EmptySearchViewContent({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
-    const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -152,8 +148,6 @@ function EmptySearchViewContent({
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: hasExpenseReportsSelector,
     });
-
-    const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
 
@@ -209,26 +203,8 @@ function EmptySearchViewContent({
         }
     };
 
-    const handleRedirectToExpensifyClassic = () => {
-        showConfirmModal({
-            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
-            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
-            confirmText: translate('exitSurvey.goToExpensifyClassic'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        });
-    };
-
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
-            if (shouldRedirectToExpensifyClassic) {
-                handleRedirectToExpensifyClassic();
-                return;
-            }
             startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
         });
     };

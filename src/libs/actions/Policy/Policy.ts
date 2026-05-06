@@ -93,7 +93,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
-import type {PolicySelector} from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -103,6 +102,7 @@ import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcom
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicySelector} from '@src/selectors/Policy';
 import type {
     BankAccountList,
     Beta,
@@ -921,7 +921,6 @@ function setWorkspaceApprovalMode(
             const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
             const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
             const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Next step generation uses deprecated "ReportNextStepDeprecated" types (still in active use).
             const optimisticNextStep = buildNextStepNew({
                 report,
                 policy: updatedPolicy,
@@ -2193,7 +2192,6 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
     if (isSMSDomain) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspace.new.myGroupWorkspace', {});
     }
 
@@ -3114,7 +3112,10 @@ function createDraftWorkspace({
     return params;
 }
 
-function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string}) {
+function buildOptimisticDuplicatePolicy(
+    sourcePolicy: Policy,
+    policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string; customUnitRateID: string},
+) {
     const {
         policyName: duplicatedPolicyName = '',
         targetPolicyID: duplicatedPolicyID,
@@ -3123,6 +3124,7 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
         localCurrency: duplicatedLocalCurrency,
         distanceCustomUnitID: duplicatedDistanceCustomUnitID,
         perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+        customUnitRateID: duplicatedCustomUnitRateID,
     } = policyOptions;
 
     const isMemberFeatureSelected = duplicatedParts?.people;
@@ -3184,6 +3186,7 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
         customUnits: getCustomUnitsForDuplication(sourcePolicy, isDistanceRatesFeatureSelected, isPerDiemFeatureSelected, {
             distanceCustomUnitID: duplicatedDistanceCustomUnitID,
             perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+            customUnitRateID: duplicatedCustomUnitRateID,
         }),
         taxRates: isTaxesFeatureSelected ? taxRatesWithoutPendingDelete : undefined,
         rules: isCodingRulesFeatureSelected ? {codingRules: codingRulesWithoutPendingDelete} : undefined,
@@ -3266,7 +3269,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID}),
+            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID}),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

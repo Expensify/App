@@ -3,7 +3,7 @@ import useAnchorOpener from './useAnchorOpener';
 
 type UseSecondaryInteractionTriggerResult = {
     ref: AnchorRef;
-    /** Parameterless to stay assignable to any pressable's `onSecondaryInteraction` signature. */
+    /** Takes no arguments, so it stays assignable to any pressable's `onSecondaryInteraction` signature. */
     onSecondaryInteraction: () => void;
 };
 
