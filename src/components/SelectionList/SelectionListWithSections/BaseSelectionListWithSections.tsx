@@ -189,6 +189,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+            if (indexToFocus !== focusedIndex) {
+                suppressNextFocusScrollRef.current = true;
+            }
             setFocusedIndex(indexToFocus);
         }
         onSelectRow(item);
@@ -288,6 +291,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = () => {
+        suppressNextFocusScrollRef.current = true;
+    };
+
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
         data: flattenedData,
@@ -297,7 +304,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
         firstFocusableIndex,
+        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {

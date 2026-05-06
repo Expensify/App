@@ -144,6 +144,14 @@ function putOnHold(
                 pendingAction: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: {pendingAction: null},
+                [createdReportActionComment.reportActionID]: {pendingAction: null},
+            },
+        },
     ];
 
     const failureData: Array<
@@ -420,7 +428,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -429,6 +437,13 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
                 comment: {
                     hold: null,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: {pendingAction: null},
             },
         },
     ];

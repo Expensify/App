@@ -222,7 +222,6 @@
 "../../src/libs/OptionsListUtils/index.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/Parser.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
-"../../src/libs/PolicyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	2
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	17
@@ -348,7 +347,6 @@
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/TransactionDuplicate/Confirmation.tsx"	"react-hooks/refs"	12
 "../../src/pages/Travel/TravelUpgrade.tsx"	"react-hooks/set-state-in-effect"	1

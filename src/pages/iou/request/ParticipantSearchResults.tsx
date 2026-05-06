@@ -164,7 +164,8 @@ function ParticipantSearchResults({
 
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
     const hasMultipleTransactions = optimisticTransactions.length > 1;
-    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions;
+    const isCurrentUserMemberOfAnyPolicy = Object.values(allPolicies ?? {}).some((pol) => pol?.isPolicyExpenseChatEnabled && pol?.id && pol.id !== CONST.POLICY.ID_FAKE);
+    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions && !isCurrentUserMemberOfAnyPolicy;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
