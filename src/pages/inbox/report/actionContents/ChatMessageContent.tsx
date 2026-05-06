@@ -59,7 +59,6 @@ type ChatMessageContentProps = {
         onShowContextMenu: (callback: () => void) => void;
     };
     userBillingFundID: number | undefined;
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
 };
 
 function ChatMessageContent({
@@ -81,7 +80,6 @@ function ChatMessageContent({
     contextMenuStateValue,
     contextMenuActionsValue,
     userBillingFundID,
-    introSelected,
 }: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -139,7 +137,6 @@ function ChatMessageContent({
                                         reportID={reportID}
                                         originalReportID={originalReportID}
                                         userBillingFundID={userBillingFundID}
-                                        introSelected={introSelected}
                                     />
                                 )}
                             </View>

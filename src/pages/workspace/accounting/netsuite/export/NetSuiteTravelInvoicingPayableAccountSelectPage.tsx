@@ -1,6 +1,5 @@
 import React from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -62,9 +61,8 @@ function NetSuiteTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCon
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteTravelInvoicingPayableAccountSelectPage"
-            title="workspace.netsuite.travelInvoicingPayableAccount"
+            title="workspace.common.travelInvoicingPayableAccount"
             data={data}
-            listItem={RadioListItem}
             onSelectRow={selectAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((option) => option.isSelected)?.keyForList}

@@ -188,12 +188,21 @@ type UberReceiptPartner = {
     errorFields?: OnyxCommon.ErrorFields;
 };
 
+/** Receipt partner data keyed by partner name */
+type ReceiptPartnerDataByName = {
+    /** uber partner */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy Receipt partners */
 type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
-    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+    } & {
+        /** Per receipt partner integration data */
+        [K in keyof ReceiptPartnerDataByName]?: OnyxCommon.OnyxValueWithOfflineFeedback<ReceiptPartnerDataByName[K]>;
+    }
 >;
 
 /** Policy disabled fields */
@@ -1073,9 +1082,6 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
-
-        /** The vendor to use for Expensify Travel expenses when exporting to NetSuite */
-        travelInvoicingVendorID?: string;
 
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;

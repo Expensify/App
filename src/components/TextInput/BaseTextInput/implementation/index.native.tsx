@@ -80,6 +80,7 @@ function BaseTextInput({
     placeholderTextColor,
     onClearInput,
     iconContainerStyle,
+    clearButtonStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
@@ -264,7 +265,7 @@ function BaseTextInput({
     const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
@@ -452,7 +453,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (

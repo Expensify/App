@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -38,8 +37,6 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
-    SageIntacctDataElement,
-    SageIntacctDataElementWithValue,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -73,14 +70,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
@@ -325,10 +314,27 @@ function getCustomUnitsForDuplication(
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined, customUnitID: string) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            customUnitID,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        distanceCustomUnitID,
+    );
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL),
+        perDiemCustomUnitID,
+    );
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
@@ -337,14 +343,12 @@ function getCustomUnitsForDuplication(
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
         return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
@@ -405,10 +409,6 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     }
 
     return policy?.employeeList?.[currentUserLogin]?.role;
-}
-
-function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**
@@ -881,6 +881,32 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
+    return policy?.role === CONST.POLICY.ROLE.EDITOR;
+}
+
+/**
+ * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
+ */
+function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) || isPolicyEditor(policy);
+}
+
+/**
+ * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ *
+ * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
+ * which excludes Submit. Use this helper when Submit workspaces should be treated
+ * like paid workspaces (e.g. access gating for shared workspace pages).
+ */
+function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+}
+
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
@@ -1009,14 +1035,6 @@ function hasAccountingConnections(policy: OnyxEntry<Policy>) {
 
 function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
-}
-
-function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    return Object.values(policyMemberEmailsToAccountIDs)
-        .map((policyMemberAccountID) => Number(policyMemberAccountID))
-        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
 }
 
 function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
@@ -1286,11 +1304,6 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
-/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
-function getPersonalPolicy() {
-    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
-}
-
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     if (!policy?.employeeList) {
         return [];
@@ -1316,7 +1329,7 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
  * Checks whether the current user has a policy with admin access
  */
 function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
-    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
 }
 
 /**
@@ -1404,11 +1417,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
-    return selectedVendor ?? vendors?.[0] ?? undefined;
-}
-
-function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
-    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
@@ -2069,24 +2077,6 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
 }
 
 /**
- * Checks if the current user is a member of any policyExpenseChatEnabled policy
- */
-function isCurrentUserMemberOfAnyPolicy(): boolean {
-    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
-}
-
-/**
- * Whether the given policy member is an admin of the given policy
- */
-function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
-    if (!policy || !memberEmail) {
-        return false;
-    }
-    const admins = getAdminEmployees(policy);
-    return admins.some((admin) => admin.email === memberEmail);
-}
-
-/**
  * Determines which travel step should be shown based on policy state
  */
 function getTravelStep(
@@ -2158,7 +2148,6 @@ export {
     escapeTagName,
     getActivePolicies,
     getAdminEmployees,
-    getAccountingConnectionNames,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
@@ -2168,17 +2157,11 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
-    getHRConnectionNames,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
-    getNumericValue,
     isMultiLevelTags,
-    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPersonalPolicy,
     getPolicyBrickRoadIndicatorStatus,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
     getTagListByOrderWeight,
@@ -2199,9 +2182,7 @@ export {
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     shouldShowPolicyError,
-    shouldShowPolicyErrorFields,
     shouldShowTaxRateError,
-    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
     isDeletedPolicyEmployee,
@@ -2209,6 +2190,10 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    isSubmitPolicy,
+    isPolicyEditor,
+    canEditWorkspaceSettings,
+    isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,
@@ -2240,7 +2225,6 @@ export {
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
-    findSelectedSageVendorWithDefaultSelect,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -2278,7 +2262,6 @@ export {
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,
-    isGustoConnected,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
@@ -2296,7 +2279,6 @@ export {
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
-    hasUnsupportedIntegration,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
@@ -2308,7 +2290,6 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
-    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
@@ -2317,14 +2298,12 @@ export {
     areAllGroupPoliciesExpenseChatDisabled,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
-    isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
@@ -2335,6 +2314,8 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getHRConnectionNames,
+    isGustoConnected,
 };
 
 export type {MemberEmailsToAccountIDs};

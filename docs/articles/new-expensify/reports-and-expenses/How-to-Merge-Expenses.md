@@ -54,7 +54,7 @@ Create new page describing expense icons and what they mean. WIP here: https://g
 
 Use this method when you already see both duplicate expenses on the Expenses page. 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**.
 2. Select two expenses to merge.
 3. Choose **Selected**, then select **Merge**.
 4. If both expenses have receipts, select the one you want to keep.
@@ -67,7 +67,7 @@ Use this method when you already see both duplicate expenses on the Expenses pag
 
 Use this method when both expenses are inside the same report.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports** 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Reports** 
 2. Click the report to open it. 
 3. Select the two expenses you want to merge
 4. Choose **Selected**, then select **Merge**.
@@ -83,7 +83,7 @@ Use this method when both expenses are inside the same report.
 
 ## How to merge duplicate expenses from an individual expense
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Expenses**
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend > Expenses**
 2. Click on the expense you want to merge to open it. 
 3. Choose **More**, then select **Merge**.
 4. Choose one eligible expense to merge with, then select **Continue**. 

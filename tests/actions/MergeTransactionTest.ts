@@ -958,7 +958,7 @@ describe('mergeTransactionRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[previewAction.reportActionID]: previewAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
-            const thread = buildTransactionThread(sourceIOUAction, sourceReport);
+            const thread = buildTransactionThread(sourceIOUAction, sourceReport, TEST_ACCOUNT_ID);
 
             expect(thread.participants).toEqual({
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
@@ -1015,6 +1015,7 @@ describe('mergeTransactionRequest', () => {
                 text: 'test comment',
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: TEST_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1140,7 +1141,7 @@ describe('mergeTransactionRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
-            const thread = buildTransactionThread(sourceIOUAction, selfDMReport);
+            const thread = buildTransactionThread(sourceIOUAction, selfDMReport, TEST_ACCOUNT_ID);
 
             expect(thread.participants).toEqual({
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
