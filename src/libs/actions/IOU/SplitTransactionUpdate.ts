@@ -107,9 +107,9 @@ function buildPolicyTagListByReportID({
             return acc;
         }
         const iouReportPolicyID =
-            (splitExpense.reportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID : undefined) ??
+            allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense.reportID}`]?.policyID ??
             fallbackPolicyParentChatReport?.policyID ??
-            allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID ?? undefined}`]?.policyID;
+            allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${participants.at(0)?.reportID}`]?.policyID;
         acc[splitExpense.reportID] = allPolicyTagsList?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`] ?? {};
         return acc;
     }, {});
