@@ -3242,6 +3242,7 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Invita membri',
             subtitle: 'Aggiungi il tuo team o invita il tuo commercialista. Più siamo, meglio è!',
         },
+        workEmail2FAError: 'Questo login è associato a un account esistente con l’Autenticazione a Due Fattori (2FA) abilitata.',
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarmelo più',
