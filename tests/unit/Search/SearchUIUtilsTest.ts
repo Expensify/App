@@ -8130,8 +8130,9 @@ describe('SearchUIUtils', () => {
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
-            // COMMENTS should be at the end
-            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 1);
+            // TOTAL should be at the end, COMMENTS should be right before it
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 2);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL)).toBe(columns.length - 1);
         });
 
         test('Should not duplicate COMMENTS column when already in visible columns', () => {
