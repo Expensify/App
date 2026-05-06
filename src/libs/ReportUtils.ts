@@ -11633,28 +11633,18 @@ type PrepareOnboardingOnyxDataParams = {
     betas?: OnyxEntry<Beta[]>;
 };
 
-function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined): string {
+function getBespokeWelcomeMessage(): string {
     // Optimistic placeholder painted while CompleteGuidedSetup is in flight. The server's
     // `UserAPI::buildBespokeWelcomeMessage` reconciles via `optimisticConciergeReportActionID`
-    // and replaces this with the final body — including the guide block on TEAM 11+. Mirror
-    // the server's per-tier skeleton (header + Concierge intro + per-tier hint) here so the
-    // hand-off is visually continuous; the only change on reconciliation is the guide block
-    // appearing for non-MICRO cohorts.
+    // and replaces this with the final body — adding the guide block for 5+ users when an
+    // eligible guide is assigned. Both tiers share the same visible copy in this placeholder;
+    // the only change on reconciliation is the guide block appearing between the intro and the
+    // closing CTA for non-MICRO_SMALL cohorts.
     //
     // Markdown, not HTML: buildOptimisticAddCommentReportAction → getParsedComment escapes
     // entities, so raw HTML tags would render as literal text.
     const header = "# Your free trial has started! Let's get you set up.\n";
-    switch (companySize) {
-        case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
-        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
-            return `${header}\nI'm Concierge, here for quick questions any time.\n\nMost teams your size start by connecting accounting, setting up approvals, and inviting everyone.`;
-        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
-            return `${header}\nI'm Concierge, here for quick questions any time.\n\nMost teams your size start by connecting accounting, setting up multi-level approvals, and rolling out the Expensify Card.`;
-        case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
-            return `${header}\nI'm Concierge, here for quick questions while your rollout gets planned.`;
-        default:
-            return `${header}\nFor a team your size, the fastest path is adding a few expense categories, inviting everyone, and having them snap receipts.\n\nTry one of the suggestions, or reply with any questions.`;
-    }
+    return `${header}\nHey! I'm Concierge, your AI assistant. Feel free to ask me any questions as they come up.\n\nIf you're ready to get started now, here are some recommended next steps based on your selections:`;
 }
 
 function prepareOnboardingOnyxData({
@@ -11765,7 +11755,7 @@ function prepareOnboardingOnyxData({
     let bespokeAction: OptimisticReportAction | undefined;
 
     if (shouldUseFollowupsInsteadOfTasks) {
-        const bespokeMarkdown = getBespokeWelcomeMessage(companySize);
+        const bespokeMarkdown = getBespokeWelcomeMessage();
         optimisticConciergeReportActionID = rand64();
         // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         bespokeAction = buildOptimisticAddCommentReportAction({
