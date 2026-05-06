@@ -1036,6 +1036,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Dostosuj kategorie księgowe',
             linkCompanyCards: 'Połącz firmowe karty',
             setupRules: 'Skonfiguruj zasady wydatków',
+            inviteAccountant: 'Zaproś swojego księgowego',
         },
     },
     allSettingsScreen: {
@@ -2712,6 +2713,19 @@ ${amount} dla ${merchant} - ${date}`,
         subtitle: 'Twórz agentów do obsługi swojego przepływu pracy. Pomiń ręczną pracę i odzyskaj godziny w ciągu dnia.',
         newAgent: 'Nowy agent',
         emptyAgents: {title: 'Nie utworzono agentów', subtitle: 'Przestań robić wszystko ręcznie. Zamiast tego wydaj polecenia agentowi i zaoszczędź mnóstwo czasu.'},
+        error: {
+            genericAdd: 'Wystąpił problem podczas dodawania tego agenta',
+        },
+    },
+    addAgentPage: {
+        title: 'Nowy agent',
+        agentName: 'Nazwa agenta',
+        instructions: 'Napisz własne instrukcje',
+        createAgent: 'Utwórz agenta',
+        switchAvatar: 'Zmień awatar',
+        defaultAgentName: (displayName: string) => `Agent ${displayName}`,
+        defaultPrompt:
+            'Odrzucaj wydatki związane z hazardem, filmami lub innymi oczywistymi celami niezwiązanymi z działalnością biznesową.\n\nPrzypominaj użytkownikowi, aby zawsze dołączał zdjęcie paragonu, na którym wysokość napiwku jest wyraźnie widoczna.\n\nZatwierdź raport, jeśli jest bardzo podobny do wcześniejszych raportów tego samego użytkownika.\n\nOdrzucaj raporty zawierające więcej niż 500 USD wydatków na podróże.',
     },
     expenseRulesPage: {
         title: 'Reguły wydatków',
@@ -4282,6 +4296,10 @@ ${amount} dla ${merchant} - ${date}`,
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
+        },
+        createdForClient: {
+            title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
+            description: 'Świetna wiadomość 🎉. Skontaktuj się z nami, jeśli potrzebują pomocy przy konfiguracji.',
         },
         receiptPartners: {
             uber: {
@@ -7725,6 +7743,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Karta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Centralne fakturowanie',
             },
             is: 'Jest',
             action: {

@@ -7591,6 +7591,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+            CENTRAL_TRAVEL_INVOICING: 'central-travel-invoicing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -9538,6 +9539,9 @@ const CONST = {
             SAVE_THE_WORLD: 'SettingsGeneral-SaveTheWorld',
             SIGN_OUT: 'SettingsGeneral-SignOut',
             GO_TO_CLASSIC: 'SettingsGeneral-GoToExpensifyClassic',
+        },
+        ADD_AGENT_PAGE: {
+            AVATAR: 'AddAgentPage-Avatar',
         },
         SETTINGS_PROFILE: {
             AVATAR: 'SettingsProfile-Avatar',

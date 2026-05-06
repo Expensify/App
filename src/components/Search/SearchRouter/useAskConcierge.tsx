@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 /**
  * Returns a callback that opens the side panel (or Concierge chat on native)
  * and sends the provided search query as a message.
+ * Also returns a flag indicating whether the Ask Concierge item is ready to be displayed.
  */
 function useAskConcierge() {
     const sidePanelReportID = useSidePanelReportID();
@@ -20,13 +21,14 @@ function useAskConcierge() {
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const {timezone, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
-    return (searchQuery: string) => {
-        openConciergeAnywhere();
+    const askConcierge = (searchQuery: string) => {
         const trimmedQuery = searchQuery.trim();
-        if (!trimmedQuery || !targetReport || !targetReportID) {
+        if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
         }
+        openConciergeAnywhere();
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
@@ -39,6 +41,8 @@ function useAskConcierge() {
             delegateAccountID,
         });
     };
+
+    return {askConcierge, shouldShowAskConcierge};
 }
 
 export default useAskConcierge;

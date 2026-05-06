@@ -1019,6 +1019,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
+            inviteAccountant: '会計士を招待',
         },
     },
     allSettingsScreen: {
@@ -2694,6 +2695,19 @@ ${date} の ${merchant} への ${amount}`,
         subtitle: 'ワークフローを処理するエージェントを作成しましょう。手作業を省いて、1日の時間を何時間も取り戻せます。',
         newAgent: '新しいエージェント',
         emptyAgents: {title: 'エージェントは作成されていません', subtitle: '手作業はやめて、代わりにエージェントに指示を出して、時間を大幅に節約しましょう。'},
+        error: {
+            genericAdd: 'このエージェントの追加中に問題が発生しました',
+        },
+    },
+    addAgentPage: {
+        title: '新しいエージェント',
+        agentName: 'エージェント名',
+        instructions: 'カスタム指示を作成',
+        createAgent: 'エージェントを作成',
+        switchAvatar: 'アバターを切り替え',
+        defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
+        defaultPrompt:
+            'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
     },
     expenseRulesPage: {
         title: '経費ルール',
@@ -4262,6 +4276,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
+        },
+        createdForClient: {
+            title: 'クライアントのワークスペースを作成しました！',
+            description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
         },
         receiptPartners: {
             uber: {
@@ -7667,8 +7685,9 @@ ${reportName}
             },
             feed: 'フィード',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '一括請求',
             },
             is: 'は',
             action: {

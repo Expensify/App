@@ -75,7 +75,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
-    const askConcierge = useAskConcierge();
+    const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -211,15 +211,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
-              {
-                  text: translate('search.askConcierge', textInputValue),
-                  singleIcon: expensifyIcons.ConciergeAvatar,
-                  shouldIconApplyFill: false,
-                  searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
-                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-              },
+              ...(shouldShowAskConcierge
+                  ? [
+                        {
+                            text: translate('search.askConcierge', textInputValue),
+                            singleIcon: expensifyIcons.ConciergeAvatar,
+                            shouldIconApplyFill: false,
+                            searchQuery: textInputValue,
+                            itemStyle: styles.activeComponentBG,
+                            keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                        },
+                    ]
+                  : []),
           ]
         : undefined;
 

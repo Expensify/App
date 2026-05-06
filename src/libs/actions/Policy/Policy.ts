@@ -2372,6 +2372,17 @@ function getRoleForNewWorkspaceMember(isSubmitWorkspace: boolean, makeMeAdmin: b
     return makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER;
 }
 
+function getRoleForCallerOnNewPolicy(isSubmitWorkspace: boolean, makeMeAdmin: boolean, policyOwnerEmail: string, currentUserEmail: string): ValueOf<typeof CONST.POLICY.ROLE> | undefined {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.ROLE.EDITOR;
+    }
+    // Caller is not on the workspace when creating it for a different owner without keeping admin.
+    if (policyOwnerEmail && policyOwnerEmail !== currentUserEmail && !makeMeAdmin) {
+        return undefined;
+    }
+    return CONST.POLICY.ROLE.ADMIN;
+}
+
 function getApprovalModeForNewWorkspace(
     isSubmitWorkspace: boolean,
     shouldEnableWorkflowsByDefault: boolean,
@@ -2445,6 +2456,10 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         pendingChatMembers,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName, currentUserAccountIDParam, currentUserEmailParam, expenseReportId);
 
+    // When creating a workspace for a different owner without keeping admin, the caller is not added to the workspace.
+    // Skip writing the admins/expense chat reports into the caller's Onyx so they don't appear in the LHN.
+    const shouldOptimisticallyAddChatsForCaller = !(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam && !makeMeAdmin);
+
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
@@ -2490,7 +2505,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 id: policyID,
                 type: workspaceType,
                 name: policyName,
-                role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.ADMIN,
+                role: getRoleForCallerOnNewPolicy(isSubmitWorkspace, makeMeAdmin, policyOwnerEmail, currentUserEmailParam),
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
                 isPolicyExpenseChatEnabled: true,
@@ -2538,7 +2553,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               },
                           }
                         : {}),
-                    ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
+                    ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam && makeMeAdmin
                         ? {
                               [currentUserEmailParam]: {
                                   submitsTo: policyOwnerEmail,
@@ -2601,43 +2616,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...adminsChatData,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
-            value: {
-                pendingChatMembers,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: adminsReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...expenseChatData,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: expenseReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: null,
         },
@@ -2652,6 +2630,48 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             value: null,
         },
     ];
+
+    if (shouldOptimisticallyAddChatsForCaller) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...adminsChatData,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+                value: {
+                    pendingChatMembers,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                value: adminsReportActionData,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...expenseChatData,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                value: expenseReportActionData,
+            },
+        );
+    }
 
     if (shouldSetCreatedPolicyAsActive) {
         optimisticData.push({
@@ -2702,60 +2722,65 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
-                },
-                pendingAction: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
-            value: {
-                isOptimisticReport: false,
-                pendingChatMembers: [],
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: {
-                [adminsCreatedReportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: null,
-                },
-                pendingAction: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
-            value: {
-                isOptimisticReport: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: {
-                [expenseCreatedReportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
     ];
+
+    if (shouldOptimisticallyAddChatsForCaller) {
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
+                    pendingAction: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+                value: {
+                    isOptimisticReport: false,
+                    pendingChatMembers: [],
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+                value: {
+                    [adminsCreatedReportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+                value: {
+                    pendingFields: {
+                        addWorkspaceRoom: null,
+                    },
+                    pendingAction: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+                value: {
+                    [expenseCreatedReportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        );
+    }
 
     const failureData: Array<
         OnyxUpdate<

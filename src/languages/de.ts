@@ -1022,6 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Buchhaltungskategorien anpassen',
             linkCompanyCards: 'Firmenkarten verknüpfen',
             setupRules: 'Ausgabelimits einrichten',
+            inviteAccountant: 'Lade deine:n Steuerberater:in ein',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -2725,6 +2726,19 @@ ${amount} für ${merchant} – ${date}`,
         subtitle: 'Erstelle Agents, die deinen Workflow übernehmen. Spare dir die manuelle Arbeit und gewinne stundenweise Zeit im Alltag zurück.',
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen eine:n Agent:in an und spare dir eine Menge Zeit.'},
+        error: {
+            genericAdd: 'Beim Hinzufügen dieses Agenten ist ein Problem aufgetreten',
+        },
+    },
+    addAgentPage: {
+        title: 'Neue Kontaktperson',
+        agentName: 'Name der Ansprechperson',
+        instructions: 'Eigene Anweisungen schreiben',
+        createAgent: 'Agent erstellen',
+        switchAvatar: 'Profilbild wechseln',
+        defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
+        defaultPrompt:
+            'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
     },
     expenseRulesPage: {
         title: 'Ausgabenregeln',
@@ -4307,6 +4321,10 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
+        },
+        createdForClient: {
+            title: 'Du hast einen Workspace für deinen Kunden erstellt!',
+            description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
         },
         receiptPartners: {
             uber: {
@@ -7768,8 +7786,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             feed: 'Feed',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Karte',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rückerstattung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Zentrale Rechnungsstellung',
             },
             is: 'Ist',
             action: {

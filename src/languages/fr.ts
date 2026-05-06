@@ -1038,6 +1038,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Personnaliser les catégories comptables',
             linkCompanyCards: 'Lier des cartes d’entreprise',
             setupRules: 'Configurer les règles de dépense',
+            inviteAccountant: 'Inviter votre comptable',
         },
     },
     allSettingsScreen: {
@@ -2731,6 +2732,19 @@ ${amount} pour ${merchant} - ${date}`,
         subtitle: 'Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures dans votre journée.',
         newAgent: 'Nouvel agent',
         emptyAgents: {title: 'Aucun agent créé', subtitle: 'Arrêtez de faire les choses manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps.'},
+        error: {
+            genericAdd: "Un problème est survenu lors de l'ajout de cet agent",
+        },
+    },
+    addAgentPage: {
+        title: 'Nouvel agent',
+        agentName: 'Nom de l’agent',
+        instructions: 'Rédiger des instructions personnalisées',
+        createAgent: 'Créer un agent',
+        switchAvatar: "Changer d'avatar",
+        defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
+        defaultPrompt:
+            'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
     },
     expenseRulesPage: {
         title: 'Règles de dépenses',
@@ -4316,6 +4330,10 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
+        },
+        createdForClient: {
+            title: 'Vous avez créé un espace de travail pour votre client !',
+            description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
         },
         receiptPartners: {
             uber: {
@@ -7792,6 +7810,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation centralisée',
             },
             is: 'Est',
             action: {

@@ -285,6 +285,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
 const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<WorkspaceConfirmationNavigatorParamList>({
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationPage').default,
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationOwnerSelectorPage').default,
+    [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationSuccessPage').default,
     [SCREENS.CURRENCY.SELECTION]: () => require<ReactComponentModule>('../../../../pages/CurrencySelectionPage').default,
 });
 
@@ -466,6 +467,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
+    [SCREENS.SETTINGS.AGENTS.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default,
     [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
