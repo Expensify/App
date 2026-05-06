@@ -195,14 +195,14 @@ function OptionRowLHN({
                                 ) : null}
                                 <OptionRowErrorBadge
                                     brickRoadIndicator={brickRoadIndicator}
-                                    actionBadgeText={actionBadgeText}
+                                    actionBadge={optionItem.actionBadge}
                                 />
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <OptionRowInfoBadge
                                 brickRoadIndicator={brickRoadIndicator}
-                                actionBadgeText={actionBadgeText}
+                                actionBadge={optionItem.actionBadge}
                             />
                             {hasDraftComment && !!optionItem.isAllowedToComment && (
                                 <View
