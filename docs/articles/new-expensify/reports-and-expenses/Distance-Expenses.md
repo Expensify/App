@@ -1,8 +1,8 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading]
-internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
+keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, edit distance, edit mileage, change distance, update route, edit route]
+internalScope: Audience is all members. Covers creating and editing Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
@@ -87,6 +87,26 @@ Once a Distance expense is created, it can be submitted on a report. To learn ho
 
 ---
 
+## How to edit the distance on an existing Distance expense
+
+After creating a Distance expense, you can update its distance before it is approved. Open the expense and select the **Distance** field to choose one of the following options:
+
+**Map** — Edit the route by changing the start, stop, or any additional waypoints. The distance and amount recalculate automatically based on the updated route.
+
+1. Select the **Distance** field on the expense.
+2. Select **Map** from the top row.
+3. Update the **Start**, **Stop**, or additional waypoint locations.
+4. Select **Save**.
+
+**Manual** — Type in a new distance value directly.
+
+1. Select the **Distance** field on the expense.
+2. Select **Manual** from the top row.
+3. Enter the updated distance in miles or kilometers.
+4. Select **Save**.
+
+---
+
 ## How reimbursement rates are set for Distance expenses
 
 ### Distance expenses created on a Workspace
@@ -129,7 +149,7 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit any field on the expense — including the distance itself — before it is approved. Select the **Distance** field to update the route using the **Map** tab or enter a new value using the **Manual** tab.
 
 ## Can I update the Distance expense unit or rate?
 
