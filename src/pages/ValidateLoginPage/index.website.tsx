@@ -85,7 +85,7 @@ function ValidateLoginPage({
             {(autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED) && is2FARequired && !isSignedIn && !!login && (
                 <JustSignedInModal is2FARequired />
             )}
-            {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && !!login && <JustSignedInModal is2FARequired={false} />}
+            {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && <JustSignedInModal is2FARequired={false} />}
             {/* If session.autoAuthState isn't available yet, we use shouldStartSignInWithValidateCode to conditionally render the component instead of local autoAuthState which contains a default value of NOT_STARTED */}
             {(!effectiveAutoAuthState ? !shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isNavigatingToExitTo) && (
                 <ValidateCodeModal
