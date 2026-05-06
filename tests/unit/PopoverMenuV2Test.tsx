@@ -4,9 +4,8 @@ import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
-// Reaches for an internal hook so the harness can publish `activeAnchor` without rendering a
-// real `<Trigger>` button in every test. Production code never imports this.
-import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
+// Test-only: harness publishes `activeAnchor` synthetically; multi-trigger test probes it directly.
+import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 
 const {useIsAtActiveLevel} = PopoverMenu;
@@ -56,6 +55,29 @@ jest.mock('@components/OfflineWithFeedback', () => {
         return children;
     }
     return MockOfflineWithFeedback;
+});
+
+// Mock renders rows synchronously so VirtualizedContent items reach `<MenuItem>` capture.
+jest.mock('@shopify/flash-list', () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
+    const ReactLocal = jest.requireActual('react');
+    const RN = jest.requireActual('react-native');
+    function FlashList<T>({
+        data,
+        renderItem,
+        keyExtractor,
+    }: {
+        data: T[];
+        renderItem: (info: {item: T; index: number; target: string}) => ReactNode;
+        keyExtractor: (item: T, index: number) => string;
+    }) {
+        return ReactLocal.createElement(
+            RN.View,
+            null,
+            ...data.map((item, index) => ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor(item, index)}, renderItem({item, index, target: 'Cell'}))),
+        );
+    }
+    return {FlashList};
 });
 
 jest.mock('@components/CompactMenuContext', () => {
@@ -301,6 +323,49 @@ describe('PopoverMenu V2', () => {
             expect(result).toBeDefined();
             expect(typeof result?.onPress).toBe('function');
             expect(result?.ref).toMatchObject({current: null});
+        });
+
+        it('overwrites activeAnchor when a second trigger is pressed', () => {
+            const refSnapshots: Array<AnchorRef | null> = [];
+            function StateProbe() {
+                const {meta} = useRootState('StateProbe');
+                refSnapshots.push(meta.activeAnchor?.ref ?? null);
+                return null;
+            }
+            // `useImperativeHandle` keeps the trigger reachable from test code without RC-rejected outer-let reassignment.
+            const firstHandle = React.createRef<PopoverMenu.UsePopoverTriggerResult>();
+            const secondHandle = React.createRef<PopoverMenu.UsePopoverTriggerResult>();
+            function makeStubbedTrigger(handle: React.RefObject<PopoverMenu.UsePopoverTriggerResult | null>, rect: {x: number; y: number; width: number; height: number}) {
+                return function StubbedTrigger() {
+                    const trigger = PopoverMenu.usePopoverTrigger();
+                    React.useImperativeHandle(handle, () => trigger, [trigger]);
+                    // Stub a measurable shape — the test renderer exposes neither `getBoundingClientRect` nor `measureInWindow`.
+                    useEffect(() => {
+                        Object.defineProperty(trigger.ref, 'current', {
+                            value: {getBoundingClientRect: () => rect},
+                            configurable: true,
+                            writable: true,
+                        });
+                    }, [trigger.ref]);
+                    return null;
+                };
+            }
+            const FirstTrigger = makeStubbedTrigger(firstHandle, {x: 10, y: 10, width: 20, height: 20});
+            const SecondTrigger = makeStubbedTrigger(secondHandle, {x: 50, y: 50, width: 30, height: 30});
+            render(
+                <PopoverMenu.Root>
+                    <FirstTrigger />
+                    <SecondTrigger />
+                    <StateProbe />
+                </PopoverMenu.Root>,
+            );
+            expect(firstHandle.current?.ref).not.toBe(secondHandle.current?.ref);
+
+            act(() => firstHandle.current?.onPress());
+            expect(refSnapshots.at(-1)).toBe(firstHandle.current?.ref);
+
+            act(() => secondHandle.current?.onPress());
+            expect(refSnapshots.at(-1)).toBe(secondHandle.current?.ref);
         });
     });
 
@@ -1181,6 +1246,34 @@ describe('PopoverMenu V2', () => {
             press('More');
             expect(findItemByTitle('USD')).toBeUndefined();
             expect(findItemByTitle('Inner')).toBeDefined();
+        });
+    });
+
+    describe('VirtualizedContent', () => {
+        it('renders rows from `data` via FlashList', () => {
+            const data = [
+                {id: '1', label: 'Alpha'},
+                {id: '2', label: 'Beta'},
+                {id: '3', label: 'Gamma'},
+            ];
+            render(
+                <PopoverMenu.Root defaultOpen>
+                    <PopoverMenu.VirtualizedContent
+                        anchorPosition={{horizontal: 0, vertical: 0}}
+                        data={data}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({item}) => (
+                            <PopoverMenu.Item
+                                text={item.label}
+                                onSelect={() => {}}
+                            />
+                        )}
+                    />
+                </PopoverMenu.Root>,
+            );
+            expect(findItemByTitle('Alpha')).toBeDefined();
+            expect(findItemByTitle('Beta')).toBeDefined();
+            expect(findItemByTitle('Gamma')).toBeDefined();
         });
     });
 
