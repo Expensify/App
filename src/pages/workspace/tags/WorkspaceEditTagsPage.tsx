@@ -11,6 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, isMultiLevelTags} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -55,11 +57,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(
-            isMultiLevelTagsEnabled
-                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
-                : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
-        );
+        Navigation.goBack(isMultiLevelTagsEnabled ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight) : useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
     };
 
     const updateTagListName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
