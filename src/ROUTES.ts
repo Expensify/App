@@ -355,6 +355,10 @@ const DYNAMIC_ROUTES = {
         path: 'tags/settings',
         entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
     },
+    WORKSPACE_TAG_CREATE: {
+        path: 'tag-new',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
         entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
@@ -2447,10 +2451,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/tags` as const;
         },
-    },
-    WORKSPACE_TAG_CREATE: {
-        route: 'workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
     },
     WORKSPACE_EDIT_TAGS: {
         route: 'workspaces/:policyID/tags/:orderWeight/edit',

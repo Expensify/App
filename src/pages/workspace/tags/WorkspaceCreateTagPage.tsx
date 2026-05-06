@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
@@ -22,16 +23,17 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {createPolicyTag} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
 type WorkspaceCreateTagPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE>;
 
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {policyID, backTo} = route.params;
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path);
     const policyData = usePolicyData(policyID);
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
@@ -96,7 +98,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             policyHasCustomCategories,
         });
         Keyboard.dismiss();
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : dynamicBackPath);
     };
 
     return (
@@ -113,7 +115,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : dynamicBackPath)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
