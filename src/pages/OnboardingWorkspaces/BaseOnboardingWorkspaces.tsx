@@ -91,13 +91,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             askToJoinPolicy(policy.policyID);
         }
 
-        const engagementChoice = shouldUseSubmitFlow ? CONST.ONBOARDING_CHOICES.EMPLOYER : CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
         completeOnboarding({
-            engagementChoice,
-            onboardingMessage: onboardingMessages[engagementChoice],
+            engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
-            onboardingPolicyID: shouldUseSubmitFlow && policy.automaticJoiningEnabled ? policy.policyID : undefined,
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,

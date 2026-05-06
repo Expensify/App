@@ -270,7 +270,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should complete onboarding with the joined Submit workspace policyID and open Categories in the admins room', async () => {
+    it('should complete onboarding without passing the joined workspace policyID and open Categories in the admins room', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -314,8 +314,8 @@ describe('OnboardingWorkspaces Page', () => {
         await waitFor(() => {
             expect(mockCompleteOnboarding).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
-                    onboardingPolicyID: 'submit-policy-id',
+                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                    onboardingPolicyID: undefined,
                 }),
             );
         });
