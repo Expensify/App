@@ -63,9 +63,6 @@ type ReportActionItemParentActionProps = {
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed: boolean | undefined;
 
@@ -84,7 +81,6 @@ function ReportActionItemParentAction({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     personalDetails,
-    userBillingFundID,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
@@ -229,7 +225,6 @@ function ReportActionItemParentAction({
                                 personalDetails={personalDetails}
                                 draftMessage={matchingDraftMessageString}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
-                                userBillingFundID={userBillingFundID}
                                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                             />
                         </OfflineWithFeedback>

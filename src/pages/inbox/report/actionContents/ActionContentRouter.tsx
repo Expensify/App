@@ -127,9 +127,6 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** User payment card ID */
-    userBillingFundID?: number;
-
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -159,7 +156,6 @@ function ActionContentRouter({
     isTryNewDotNVPDismissed,
     shouldShowBorder,
     isOnSearch,
-    userBillingFundID,
     index,
     setIsPaymentMethodPopoverActive,
 }: ActionContentRouterProps): React.JSX.Element | null {
@@ -497,7 +493,6 @@ function ActionContentRouter({
             updateHiddenState={updateHiddenState}
             isArchivedRoom={isArchivedRoom}
             isOnSearch={isOnSearch}
-            userBillingFundID={userBillingFundID}
         />
     );
 }

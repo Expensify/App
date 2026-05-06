@@ -27,6 +27,7 @@ import {
 import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
+import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,10 +40,9 @@ type ChatActionableButtonsProps = {
     originalReport: OnyxEntry<OnyxTypes.Report>;
     reportID: string | undefined;
     originalReportID: string;
-    userBillingFundID: number | undefined;
 };
 
-function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, report, originalReport, reportID, originalReportID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -50,6 +50,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -58,7 +59,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
-        if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
+        if (isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded(userBillingFundID) && shouldRenderAddPaymentCard()) {
             return [
                 {
                     text: 'subscription.cardSection.addCardButton',

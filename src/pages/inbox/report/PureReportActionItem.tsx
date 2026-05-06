@@ -162,9 +162,6 @@ type PureReportActionItemProps = {
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
-    /** User payment card ID */
-    userBillingFundID?: number;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
@@ -206,7 +203,6 @@ function PureReportActionItem({
     isArchivedRoom,
     isChronosReport,
     isClosedExpenseReportWithNoExpenses,
-    userBillingFundID,
     shouldShowBorder,
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
@@ -635,7 +631,6 @@ function PureReportActionItem({
                                                             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                                             shouldShowBorder={shouldShowBorder}
                                                             isOnSearch={isOnSearch}
-                                                            userBillingFundID={userBillingFundID}
                                                             index={index}
                                                             setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
                                                         />
@@ -724,7 +719,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
         prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
