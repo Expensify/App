@@ -426,6 +426,7 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             };
+            requestMoneyInformation.existingTransaction = undefined;
         }
 
         const {participantParams, policyParams, transactionParams, parentChatReport, existingTransaction} = requestMoneyInformation;
