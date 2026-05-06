@@ -160,6 +160,7 @@ function putOnHold(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
         >
     > = [
@@ -189,7 +190,23 @@ function putOnHold(
                 lastVisibleActionCreated: transactionThreadReport.lastVisibleActionCreated,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations,
+        },
     ];
+
+    if (iouReport && iouReport.currency === transaction?.currency) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                unheldTotal: iouReport.unheldTotal ?? null,
+                unheldNonReimbursableTotal: iouReport.unheldNonReimbursableTotal ?? null,
+            },
+        });
+    }
 
     // If the transaction thread report wasn't created before, we create it optimistically
     if (!initialReportID) {
