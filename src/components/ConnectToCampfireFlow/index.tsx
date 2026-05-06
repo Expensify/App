@@ -7,7 +7,6 @@ import type {ConnectToCampfireFlowProps} from './types';
 function ConnectToCampfireFlow(_props: ConnectToCampfireFlowProps) {
     useEffect(() => {
         openExternalLink(CONST.CAMPFIRE_INTEGRATION_URL);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;

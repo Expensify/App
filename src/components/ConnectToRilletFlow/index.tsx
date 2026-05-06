@@ -7,7 +7,6 @@ import type {ConnectToRilletFlowProps} from './types';
 function ConnectToRilletFlow(_props: ConnectToRilletFlowProps) {
     useEffect(() => {
         openExternalLink(CONST.RILLET_INTEGRATION_URL);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;
