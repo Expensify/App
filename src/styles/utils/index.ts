@@ -1861,7 +1861,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
