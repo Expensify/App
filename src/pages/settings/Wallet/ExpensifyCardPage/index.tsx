@@ -206,6 +206,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         ),
         [spendRulesSummary],
     );
+    const shouldShowReportVirtualCardFraudRows = !isSignedInAsDelegate && virtualCards.length > 0;
+    const shouldShowReportTravelCardFraudRows = !isSignedInAsDelegate && isTravelCard(cardList?.[cardID]) && travelCards.length > 0;
+    const shouldShowSpendRulesSummary = !isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0;
+    const shouldShowEditSpendRules = !isProduction && isWorkspaceAdmin;
+    const shouldShowActionRows =
+        shouldShowReportVirtualCardFraudRows || shouldShowReportTravelCardFraudRows || shouldShowReportLostCardButton || shouldShowSpendRulesSummary || shouldShowEditSpendRules;
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
@@ -480,25 +486,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         />
                                     </>
                                 )}
-                                {!isSignedInAsDelegate && (
-                                    <MenuItemWithTopDescription
-                                        title={translate('cardPage.reportFraud')}
-                                        titleStyle={styles.walletCardMenuItem}
-                                        icon={expensifyIcons.Flag}
-                                        shouldShowRightIcon
-                                        onPress={() => {
-                                            if (isAccountLocked) {
-                                                showLockedAccountModal();
-                                                return;
-                                            }
-                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
-                                                return;
-                                            }
-                                            Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
-                                        }}
-                                    />
-                                )}
                             </React.Fragment>
                         ))}
                         {isTravelCard(cardList?.[cardID]) &&
@@ -533,48 +520,75 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             />
                                         </>
                                     )}
-                                    {!isSignedInAsDelegate && (
+                                </React.Fragment>
+                            ))}
+                        {shouldShowActionRows && (
+                            <View style={styles.mt6}>
+                                {shouldShowReportVirtualCardFraudRows &&
+                                    virtualCards.map((card) => (
                                         <MenuItemWithTopDescription
+                                            key={`virtual-fraud-${card.cardID}`}
+                                            title={translate('cardPage.reportFraud')}
+                                            titleStyle={styles.walletCardMenuItem}
+                                            icon={expensifyIcons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => {
+                                                if (isAccountLocked) {
+                                                    showLockedAccountModal();
+                                                    return;
+                                                }
+                                                if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                    Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                    return;
+                                                }
+                                                Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                            }}
+                                        />
+                                    ))}
+                                {shouldShowReportTravelCardFraudRows &&
+                                    travelCards.map((card) => (
+                                        <MenuItemWithTopDescription
+                                            key={`travel-fraud-${card.cardID}`}
                                             title={translate('cardPage.reportTravelFraud')}
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={expensifyIcons.Flag}
                                             shouldShowRightIcon
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        {shouldShowReportLostCardButton && (
-                            <MenuItem
-                                title={translate('reportCardLostOrDamaged.screenTitle')}
-                                icon={expensifyIcons.Flag}
-                                shouldShowRightIcon
-                                onPress={() => {
-                                    if (isAccountLocked) {
-                                        showLockedAccountModal();
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
-                                }}
-                            />
-                        )}
+                                    ))}
+                                {shouldShowReportLostCardButton && (
+                                    <MenuItem
+                                        title={translate('reportCardLostOrDamaged.screenTitle')}
+                                        icon={expensifyIcons.Flag}
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                        }}
+                                    />
+                                )}
 
-                        {!isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0 && (
-                            <MenuItemWithTopDescription
-                                description={translate('cardPage.spendRules')}
-                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                titleComponent={spendRulesTitleComponent}
-                                onPress={navigateToSpendRulesPage}
-                                accessibilityLabel={spendRulesSummary.join('. ')}
-                            />
-                        )}
+                                {shouldShowSpendRulesSummary && (
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.spendRules')}
+                                        descriptionTextStyle={[styles.fontSizeLabel]}
+                                        titleComponent={spendRulesTitleComponent}
+                                        onPress={navigateToSpendRulesPage}
+                                        accessibilityLabel={spendRulesSummary.join('. ')}
+                                    />
+                                )}
 
-                        {!isProduction && isWorkspaceAdmin && (
-                            <MenuItem
-                                icon={expensifyIcons.CreditCardLock}
-                                title={translate('cardPage.editSpendRules')}
-                                onPress={navigateToSpendRulesPage}
-                            />
+                                {shouldShowEditSpendRules && (
+                                    <MenuItem
+                                        icon={expensifyIcons.CreditCardLock}
+                                        title={translate('cardPage.editSpendRules')}
+                                        onPress={navigateToSpendRulesPage}
+                                    />
+                                )}
+                            </View>
                         )}
                     </>
                 )}
