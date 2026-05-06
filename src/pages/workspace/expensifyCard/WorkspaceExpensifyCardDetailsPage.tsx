@@ -3,6 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import {cardByIdSelector} from '@selectors/Card';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
@@ -21,6 +22,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -54,6 +56,7 @@ type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
 >;
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
+    const {isProduction} = useEnvironment();
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
     const {policyID, cardID, backTo} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
@@ -64,7 +67,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -122,7 +125,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
         shouldGoBack.current = true;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             deactivateCardAction(defaultFundID, card);
         });
@@ -256,17 +258,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
                     )}
 
-                    {!cardholder?.validated && (
-                        <MenuItem
-                            icon={expensifyIcons.Hourglass}
-                            iconStyles={styles.mln2}
-                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
-                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                            numberOfLinesDescription={0}
-                            interactive={false}
-                        />
-                    )}
-
                     <MenuItem
                         label={translate('workspace.card.issueNewCard.cardholder')}
                         title={displayName}
@@ -332,7 +323,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {spendRulesSummary.length > 0 && (
+                    {!isProduction && spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             description={translate('cardPage.spendRules')}
                             descriptionTextStyle={[styles.fontSizeLabel]}
@@ -357,7 +348,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             );
                         }}
                     />
-                    {isAdmin && (
+                    {!isProduction && isAdmin && (
                         <MenuItem
                             icon={expensifyIcons.CreditCardLock}
                             title={translate('cardPage.editSpendRules')}

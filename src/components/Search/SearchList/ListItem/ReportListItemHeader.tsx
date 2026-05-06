@@ -108,7 +108,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
 
     let total = reportItem.total ?? 0;
     if (total) {
@@ -128,11 +128,11 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled), styles.m0]}
+                        containerStyle={styles.m0}
                         disabled={!!isDisabled || reportItem.isDisabledCheckbox}
                         accessibilityLabel={reportItem.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, reportItem.isDisabledCheckbox && styles.cursorDisabled]}
                     />
                 )}
                 <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
@@ -210,7 +210,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const snapshotReport = useMemo(() => {
@@ -247,10 +247,11 @@ function ReportListItemHeader<TItem extends ListItem>({
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow
                 item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
                 containerStyles={[styles.pr3, styles.mb2]}
-                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                stateNum={reportItem.stateNum}
+                statusNum={reportItem.statusNum}
+                isSelected={!!reportItem.isSelected}
             />
             <HeaderFirstRow
                 report={reportItem}
