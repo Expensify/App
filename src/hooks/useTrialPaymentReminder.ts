@@ -54,6 +54,21 @@ const TRIAL_REMINDER_VARIATIONS = [
 ] as const;
 
 /**
+ * Returns the remaining time (ms) of the 5-minute startup grace window relative to the trial's start time.
+ * Returns 0 when the trial is missing/unparseable or the grace window has already elapsed.
+ */
+function getTrialStartupGraceRemainingMs(firstDayFreeTrial: string | undefined): number {
+    if (!firstDayFreeTrial) {
+        return 0;
+    }
+    const trialStartMs = new Date(`${firstDayFreeTrial}Z`).getTime();
+    if (!Number.isFinite(trialStartMs)) {
+        return 0;
+    }
+    return Math.max(trialStartMs + FIVE_MINUTES_MS - Date.now(), 0);
+}
+
+/**
  * Returns the timestamp (ms) when the current variation's window started. A dismissal whose timestamp
  * is at or after this is considered to apply to the current variation.
  */
@@ -130,10 +145,17 @@ function useTrialPaymentReminder() {
         }
 
         if (readinessState === READINESS_STATE.LOADING) {
-            // Onyx resolves asynchronously after mount, so the initial LOADING → READY/PRE_TRIAL transition
+            // Onyx resolves asynchronously after mount, so the initial LOADING → READY/PRE_TRIAL/GRACE transition
             // must be driven by an effect once the Onyx value settles.
+            if (!firstDayFreeTrial) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setReadinessState(READINESS_STATE.PRE_TRIAL);
+                return;
+            }
+            // Trial is already present on first observation — apply the grace window if it just started
+            // (e.g., the modal manager mounted right after first-workspace creation), otherwise it's safe to show.
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setReadinessState(firstDayFreeTrial ? READINESS_STATE.READY : READINESS_STATE.PRE_TRIAL);
+            setReadinessState(getTrialStartupGraceRemainingMs(firstDayFreeTrial) > 0 ? READINESS_STATE.TRIAL_STARTUP_GRACE : READINESS_STATE.READY);
             return;
         }
 
@@ -146,14 +168,15 @@ function useTrialPaymentReminder() {
         }
     }, [readinessState, firstDayFreeTrial, firstDayFreeTrialResult]);
 
-    // Run the 5-minute grace timer after a trial is created
+    // Run the grace timer after a trial is created. Use the trial's actual start time so a late mount
+    // only waits out the remainder of the 5-minute window, not a fresh 5 minutes from mount.
     useEffect(() => {
         if (readinessState !== READINESS_STATE.TRIAL_STARTUP_GRACE) {
             return;
         }
-        const timer = setTimeout(() => setReadinessState(READINESS_STATE.READY), FIVE_MINUTES_MS);
+        const timer = setTimeout(() => setReadinessState(READINESS_STATE.READY), getTrialStartupGraceRemainingMs(firstDayFreeTrial));
         return () => clearTimeout(timer);
-    }, [readinessState]);
+    }, [readinessState, firstDayFreeTrial]);
 
     const remainingSecondsRef = useRef(0);
 
