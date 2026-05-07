@@ -314,7 +314,20 @@ function MoneyRequestReceiptView({
         }
 
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, isActionTakenByCurrentUser, isEditable, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit, receiptState, transactionToCheck]);
+    }, [
+        transactionViolations,
+        translate,
+        isActionTakenByCurrentUser,
+        isEditable,
+        companyCardPageURL,
+        connectionLink,
+        cardList,
+        isMarkAsCash,
+        routeDistanceMeters,
+        distanceUnit,
+        receiptState,
+        transactionToCheck,
+    ]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
