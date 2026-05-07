@@ -4250,8 +4250,8 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     }
 
     if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
-        const oldValue = spendRuleFormatAmountValue(amountDiff.removed.at(0) ?? {}, currency);
-        const newValue = spendRuleFormatAmountValue(amountDiff.added.at(0) ?? {}, currency);
+        const oldValue = spendRuleFormatAmountValue(amountDiff.removed.at(0) ?? {value: []}, currency);
+        const newValue = spendRuleFormatAmountValue(amountDiff.added.at(0) ?? {value: []}, currency);
         const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountChange', {oldValue, newValue});
         phrases.push({verb: 'changed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
     } else {
