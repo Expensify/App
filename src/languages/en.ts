@@ -1022,7 +1022,7 @@ const translations = {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
             repaidLast30Days: 'Repaid in the last 30 days',
-            recentTransactions: ({last4}: {last4: string}) => `Recent transactions • ${last4}`,
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         announcements: 'Announcements',
         discoverSection: {

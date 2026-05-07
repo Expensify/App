@@ -145,7 +145,7 @@ function YourSpendSection() {
                             {(isHovered) => (
                                 <View testID={`your-spend-card-row-${cardRow.cardID}`}>
                                     <MenuItemWithTopDescription
-                                        title={translate('homePage.yourSpend.recentTransactions', {last4: cardRow.lastFour})}
+                                        title={translate('homePage.yourSpend.recentTransactions', {lastFour: cardRow.lastFour})}
                                         titleStyle={styles.textBold}
                                         description={description}
                                         onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: cardRow.query}))}
