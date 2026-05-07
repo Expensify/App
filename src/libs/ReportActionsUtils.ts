@@ -15,6 +15,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {
     Card,
     CompanyCardFeed,
@@ -3903,7 +3904,6 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
     return getReportActionText(reportAction);
 }
 
-/** Mirrors Web-Expensify `Report_Action_PolicyChangeLog_SpendRuleMessage::preformattedText` */
 function getSpendRulePreformattedText(message: OriginalMessagePolicyChangeLog): string | undefined {
     for (const key of ['changeLogText', 'text', 'displayMessage'] as const) {
         const value = message?.[key];
@@ -4005,7 +4005,6 @@ function spendRuleFallbackAddOrUpdate(message: OriginalMessagePolicyChangeLog, i
     return `${verb} spend rule`;
 }
 
-/** Mirrors Web-Expensify `Report_Action_PolicyChangeLog_SpendRuleMessage::buildAddOrUpdate` (structured path only; caller handles preformatted text). */
 function spendRuleBuildAddOrUpdate(message: OriginalMessagePolicyChangeLog, isAdd: boolean): string {
     const effect = normalizeSpendRuleEffect(String(message?.effect ?? message?.ruleEffect ?? ''));
     if (effect === '') {
@@ -4079,7 +4078,67 @@ function spendRuleBuildRemove(message: OriginalMessagePolicyChangeLog): string {
     return 'removed spend rule';
 }
 
-function getAddExpensifyCardRuleMessage(_translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+function spendRuleActionVerb(translate: LocalizedTranslate, action: string): string {
+    if (action === CONST.SPEND_RULES.ACTION.BLOCK) {
+        return translate('workspaceActions.expensifyCardRule.actionVerb.block');
+    }
+    if (action === CONST.SPEND_RULES.ACTION.ALLOW) {
+        return translate('workspaceActions.expensifyCardRule.actionVerb.allow');
+    }
+    return '';
+}
+
+function spendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: string): string {
+    if (operator === 'lte') {
+        return translate('workspaceActions.expensifyCardRule.amountOperator.under');
+    }
+    if (operator === 'gte') {
+        return translate('workspaceActions.expensifyCardRule.amountOperator.over');
+    }
+    return '';
+}
+
+function spendRuleFormatAmountFilter(translate: LocalizedTranslate, amount: {operator?: unknown; value?: unknown}, currency: string): string {
+    const operator = typeof amount?.operator === 'string' ? amount.operator : '';
+    const operatorWord = spendRuleAmountOperatorWord(translate, operator);
+    if (operatorWord === '') {
+        return '';
+    }
+    const valueArray: unknown[] = Array.isArray(amount?.value) ? (amount.value as unknown[]) : [];
+    const firstValue = valueArray.at(0);
+    let cents = 0;
+    if (typeof firstValue === 'string' && firstValue !== '' && Number.isFinite(Number(firstValue))) {
+        cents = Number.parseInt(firstValue, 10);
+    } else if (typeof firstValue === 'number' && Number.isFinite(firstValue)) {
+        cents = firstValue;
+    }
+    return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: convertToShortDisplayString(cents, currency)});
+}
+
+function spendRuleCardsSummary(translate: LocalizedTranslate, cards: ReadonlyArray<{displayName?: string}> | undefined): string {
+    if (!cards || cards.length === 0) {
+        return translate('workspaceActions.expensifyCardRule.theCard');
+    }
+    if (cards.length === 1) {
+        const displayName = cards.at(0)?.displayName ?? '';
+        return displayName !== '' ? translate('workspaceActions.expensifyCardRule.namedCard', {name: displayName}) : translate('workspaceActions.expensifyCardRule.theCard');
+    }
+    return translate('workspaceActions.expensifyCardRule.multipleCards', {count: cards.length});
+}
+
+function spendRuleJoinFilters(translate: LocalizedTranslate, items: readonly string[]): string {
+    const filtered = items.filter((value) => typeof value === 'string' && value !== '');
+    return translate('workspaceActions.expensifyCardRule.joinFilters', {items: filtered});
+}
+
+function spendRuleCategoryDisplayName(translate: LocalizedTranslate, slug: string): string {
+    if (isSpendRuleCategory(slug)) {
+        return translate(`workspace.rules.spendRules.categoryOptions.${slug}`);
+    }
+    return slug;
+}
+
+function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
         return '';
     }
@@ -4088,7 +4147,37 @@ function getAddExpensifyCardRuleMessage(_translate: LocalizedTranslate, reportAc
     if (pre) {
         return pre;
     }
-    return spendRuleBuildAddOrUpdate(message, true);
+
+    const action = typeof message?.action === 'string' ? message.action : '';
+    const currency = typeof message?.currency === 'string' && message.currency !== '' ? message.currency : CONST.CURRENCY.USD;
+    const merchants = (message?.merchants ?? []).filter((value) => typeof value === 'string' && value !== '');
+    const categories = (message?.categories ?? []).filter((value) => typeof value === 'string' && value !== '');
+    const amounts = message?.amounts ?? [];
+    const cards = message?.cards ?? [];
+
+    const items: string[] = [];
+    for (const merchant of merchants) {
+        items.push(merchant);
+    }
+    for (const category of categories) {
+        items.push(spendRuleCategoryDisplayName(translate, category));
+    }
+    for (const amount of amounts) {
+        const formatted = spendRuleFormatAmountFilter(translate, amount, currency);
+        if (formatted !== '') {
+            items.push(formatted);
+        }
+    }
+
+    const verb = spendRuleActionVerb(translate, action);
+    const filtersDesc = spendRuleJoinFilters(translate, items);
+    const cardsSummary = spendRuleCardsSummary(translate, cards);
+
+    if (verb === '' && filtersDesc === '' && cardsSummary === '') {
+        return spendRuleFallbackAddOrUpdate(message, true);
+    }
+
+    return translate('workspaceActions.expensifyCardRule.addRule', {verb, filters: filtersDesc, cards: cardsSummary});
 }
 
 function getUpdateExpensifyCardRuleMessage(_translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {

@@ -7126,6 +7126,42 @@ ${amount} para ${merchant} - ${date}`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        expensifyCardRule: {
+            actionVerb: {
+                block: 'bloqueó',
+                allow: 'permitió',
+            },
+            amountOperator: {
+                over: 'mayores a',
+                under: 'menores a',
+            },
+            amountFilter: ({operator, amount}) => `montos ${operator} ${amount}`,
+            theCard: 'la tarjeta',
+            namedCard: ({name}) => `'${name}'`,
+            multipleCards: ({count}) => `${count} tarjetas`,
+            joinFilters: ({items}) => {
+                if (items.length === 0) {
+                    return '';
+                }
+                if (items.length === 1) {
+                    return items.at(0) ?? '';
+                }
+                if (items.length === 2) {
+                    return `${items.at(0)} y ${items.at(1)}`;
+                }
+                return `${items.slice(0, -1).join(', ')} y ${items.at(-1)}`;
+            },
+            addRule: ({verb, filters, cards}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += `${text === '' ? '' : ' '}${filters}`;
+                }
+                if (cards !== '') {
+                    text += `${text === '' ? '' : ' '}en ${cards}`;
+                }
+                return text;
+            },
+        },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
