@@ -21,9 +21,11 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
     const parentLinks = useRef<Map<string, string | null>>(new Map());
     const mountedSubs = useRef<Set<string>>(new Set());
 
+    // Mirror so `unregisterSub`'s cascade-pop check reads the committed level synchronously, not a stale closure from when the cleanup effect captured the action.
+    const currentSubIDRef = useRef(currentSubID);
     useLayoutEffect(() => {
-        onLevelChange();
-    }, [currentSubID, onLevelChange]);
+        currentSubIDRef.current = currentSubID;
+    });
 
     const isAncestorOfCurrent = (subID: string): boolean => {
         if (currentSubID === null) {
@@ -42,9 +44,11 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
     const actions: SubNavigationActions = {
         enterSub: (id) => {
             setCurrentSubID(id);
+            onLevelChange();
         },
         exitSub: (target = null) => {
             setCurrentSubID(target);
+            onLevelChange();
         },
         registerSub: (subID, parentSubID) => {
             parentLinks.current.set(subID, parentSubID);
@@ -52,16 +56,15 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
         },
         unregisterSub: (subID) => {
             mountedSubs.current.delete(subID);
-            setCurrentSubID((prev) => {
-                if (prev !== subID) {
-                    return prev;
-                }
-                let cursor = parentLinks.current.get(subID) ?? null;
-                while (cursor !== null && !mountedSubs.current.has(cursor)) {
-                    cursor = parentLinks.current.get(cursor) ?? null;
-                }
-                return cursor;
-            });
+            if (currentSubIDRef.current !== subID) {
+                return;
+            }
+            let cursor = parentLinks.current.get(subID) ?? null;
+            while (cursor !== null && !mountedSubs.current.has(cursor)) {
+                cursor = parentLinks.current.get(cursor) ?? null;
+            }
+            setCurrentSubID(cursor);
+            onLevelChange();
         },
     };
 
