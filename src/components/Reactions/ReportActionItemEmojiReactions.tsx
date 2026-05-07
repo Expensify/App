@@ -33,6 +33,9 @@ type ReportActionItemEmojiReactionsProps = {
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
+
+    /** Whether the action has a draft message — controls reaction-row alignment when the row is in edit mode */
+    hasDraft: boolean;
 };
 
 type FormattedReaction = {
@@ -61,7 +64,7 @@ type FormattedReaction = {
     pendingAction?: PendingAction;
 };
 
-function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive, hasDraft}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -118,8 +121,14 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
 
     const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
+    if (totalReactionCount === 0) {
+        return null;
+    }
+
+    const wrapperStyle = hasDraft ? styles.chatItemReactionsDraftRight : {};
+
     return (
-        totalReactionCount > 0 && (
+        <View style={wrapperStyle}>
             <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {formattedReactions.map((reaction) => {
                     if (reaction === null) {
@@ -151,7 +160,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                     />
                 )}
             </View>
-        )
+        </View>
     );
 }
 

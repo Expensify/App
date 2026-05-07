@@ -590,14 +590,8 @@ function ActionContentRouter({
         return <RenderHTML html="" />;
     }
 
-    const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
-    const oldestFourAccountIDs =
-        action.childOldestFourAccountIDs
-            ?.split(',')
-            .map((accountID) => Number(accountID))
-            .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
-    const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
+    const hasDraft = draftMessage !== undefined;
 
     return (
         <ReportActionItemFrame
@@ -614,34 +608,29 @@ function ActionContentRouter({
         >
             {children}
             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
-                <View style={draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {}}>
+                <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
                     <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                 </View>
             )}
             {!isOnSearch && !isMessageDeleted(action) && (
-                <View style={draftMessageRightAlign}>
-                    <ReportActionItemEmojiReactions
-                        reportAction={action}
-                        reportID={reportID}
-                        shouldBlockReactions={hasErrors}
-                        setIsEmojiPickerActive={setIsEmojiPickerActive}
-                    />
-                </View>
+                <ReportActionItemEmojiReactions
+                    reportAction={action}
+                    reportID={reportID}
+                    shouldBlockReactions={hasErrors}
+                    setIsEmojiPickerActive={setIsEmojiPickerActive}
+                    hasDraft={hasDraft}
+                />
             )}
 
             {shouldDisplayThreadReplies && (
-                <View style={draftMessageRightAlign}>
-                    <ReportActionItemThread
-                        reportAction={action}
-                        report={report}
-                        numberOfReplies={numberOfThreadReplies}
-                        mostRecentReply={`${action.childLastVisibleActionCreated}`}
-                        isHovered={hovered}
-                        accountIDs={oldestFourAccountIDs}
-                        onSecondaryInteraction={showPopover}
-                        isActive={isActive}
-                    />
-                </View>
+                <ReportActionItemThread
+                    reportAction={action}
+                    report={report}
+                    isHovered={hovered}
+                    onSecondaryInteraction={showPopover}
+                    isActive={isActive}
+                    hasDraft={hasDraft}
+                />
             )}
         </ReportActionItemFrame>
     );
