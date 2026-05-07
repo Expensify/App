@@ -4,8 +4,8 @@ import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
+import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -172,7 +172,7 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
-const isLocalVideoSource =
+    const isLocalVideoSource =
         typeof source === 'string' && (source.startsWith('blob:') || source.startsWith('file:') || CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix)));
     const shouldShowOfflineVideoIndicator = isOffline && !!isVideo && typeof source === 'string' && !isLocalVideoSource;
 
@@ -372,7 +372,7 @@ const isLocalVideoSource =
         );
     }
 
-     if (shouldShowOfflineVideoIndicator) {
+    if (shouldShowOfflineVideoIndicator) {
         return <AttachmentOfflineIndicator />;
     }
 
