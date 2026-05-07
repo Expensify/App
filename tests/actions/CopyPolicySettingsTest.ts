@@ -225,13 +225,13 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
         describe('customUnits preservation', () => {
             const sourceDistanceUnit: CustomUnit = {
-                customUnitID: 'SOURCEDISTID',
+                customUnitID: '1000000000001',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                 attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
                 rates: {SRC_RATE: {customUnitRateID: 'SRC_RATE', name: 'IRS', rate: 67, enabled: true, currency: 'USD'}},
             };
             const sourcePerDiemUnit: CustomUnit = {
-                customUnitID: 'SOURCEPERDIEM',
+                customUnitID: '1000000000002',
                 name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                 attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
                 rates: {SRC_PD_RATE: {customUnitRateID: 'SRC_PD_RATE', name: 'NYC', rate: 100, enabled: true, currency: 'USD'}},
@@ -239,7 +239,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
             it("uses target's existing distance unit ID when target already has one", () => {
                 const sourcePolicy = makeSourcePolicy({customUnits: {[sourceDistanceUnit.customUnitID]: sourceDistanceUnit}});
-                const targetExistingDistanceID = 'TARGETDISTID';
+                const targetExistingDistanceID = '2000000000001';
                 const targetPolicy = makeTargetPolicy({
                     customUnits: {
                         [targetExistingDistanceID]: {
@@ -280,8 +280,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const sourcePolicy = makeSourcePolicy({
                     customUnits: {[sourceDistanceUnit.customUnitID]: sourceDistanceUnit, [sourcePerDiemUnit.customUnitID]: sourcePerDiemUnit},
                 });
-                const targetExistingDistanceID = 'TARGETDISTID';
-                const targetExistingPerDiemID = 'TARGETPERDIEMID';
+                const targetExistingDistanceID = '2000000000001';
+                const targetExistingPerDiemID = '2000000000002';
                 const targetPolicy = makeTargetPolicy({
                     customUnits: {
                         [targetExistingDistanceID]: {
