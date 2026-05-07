@@ -27,14 +27,16 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
     const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
     const [prevShouldActivate, setPrevShouldActivate] = useState(false);
 
-    // When this is not the Concierge report, immediately clear the persisted state.
+    // Clear persisted state only when a focused, non-side-panel view navigates
+    // away from Concierge. Without the isFocused guard, an RHP report mounting
+    // in the background would wipe the active Concierge session.
     useEffect(() => {
-        if (isConciergeChat) {
+        if (isConciergeChat || !isFocused || isInSidePanel) {
             return;
         }
         setConciergeSessionStartTime(null);
         setConciergeShowFullHistory(false);
-    }, [isConciergeChat]);
+    }, [isConciergeChat, isFocused, isInSidePanel]);
 
     if (!shouldActivate || prevShouldActivate) {
         return isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
