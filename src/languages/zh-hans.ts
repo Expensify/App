@@ -8192,7 +8192,14 @@ ${reportName}
             if (missingFields.length > 0) {
                 const fieldNames: Record<string, string> = {merchant: '商家', date: '日期', amount: '金额'};
                 const translated = missingFields.map((f) => fieldNames[f] ?? f);
-                const fieldList = translated.join('、');
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join('和');
+                } else {
+                    fieldList = translated.join('、');
+                }
                 return `收据扫描失败 — 缺少${fieldList}。${canEdit ? '手动输入详细信息。' : ''}`;
             }
             return `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`;
