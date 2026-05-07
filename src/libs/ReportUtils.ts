@@ -9474,7 +9474,13 @@ function hasReportErrorsOtherThanFailedReceipt(
     transactions: OnyxCollection<Transaction>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    const allReportErrors = getEffectiveReportErrors(reportAttributes?.[report?.reportID]);
+    // Use raw reportErrors here (not getEffectiveReportErrors) so the child stays force-shown in
+    // LHN when it has errors. Removing it from the LHN data while Android Fabric/FlashList holds
+    // a stale layout index during back navigation crashes the app with "index out of bounds, not
+    // enough layouts" (see #89933). brickRoadStatus/actionBadge are still suppressed at the source
+    // in reportAttributes.ts, so the child appears with no badge while the parent workspace chat
+    // carries the Fix indicator.
+    const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
     const transactionReportActions = getAllReportActions(report.reportID);
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, transactionReportActions, undefined);
     let doesTransactionThreadReportHasViolations = false;
