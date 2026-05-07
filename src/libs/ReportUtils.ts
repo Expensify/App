@@ -4813,11 +4813,6 @@ function canEditMultipleTransactions(
             continue;
         }
 
-        // Do not allow editing split expenses in bulk
-        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
-            return false;
-        }
-
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
         const actionsForReport = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
         const reportAction = getIOUActionForTransactionID(Object.values(actionsForReport), transaction.transactionID);

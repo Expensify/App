@@ -2669,6 +2669,14 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
     return !originalTransaction?.comment?.splits;
 }
 
+function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+    return transaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
+}
+
+function hasSplitExpenseInSelection(transactions: Transaction[]): boolean {
+    return transactions.some(isSplitChildTransaction);
+}
+
 const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>) => {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
@@ -2951,6 +2959,8 @@ export {
     shouldShowViolation,
     hasTransactionBeenRejected,
     isExpenseSplit,
+    hasSplitExpenseInSelection,
+    isSplitChildTransaction,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,
