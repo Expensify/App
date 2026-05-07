@@ -17,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 // Configurable per-test: simulates which tab is currently focused inside TAB_NAVIGATOR.
 jest.mock('@hooks/useRootNavigationState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
