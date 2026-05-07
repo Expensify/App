@@ -55,17 +55,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     }, [policy?.type]);
 
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => {
-            if (type === CONST.POLICY.TYPE.PERSONAL) {
-                return false;
-            }
-            // Guard: don't leak the SUBMIT plan type into the plan-type list for paid workspaces.
-            // Submit-specific plan-type UX (exposing SUBMIT for Submit policies) ships in #87263.
-            if (type === CONST.POLICY.TYPE.SUBMIT) {
-                return false;
-            }
-            return true;
-        })
+        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
             text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
@@ -91,14 +81,6 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
-        // Submit policies don't expose SUBMIT in the option list, but the editor can
-        // still pick Team/Corporate. Route any selection from a Submit policy to the
-        // upgrade screen — the polished Submit-specific upgrade UX ships in #87263.
-        if (policyID && policy?.type === CONST.POLICY.TYPE.SUBMIT && (currentPlan === CONST.POLICY.TYPE.TEAM || currentPlan === CONST.POLICY.TYPE.CORPORATE)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
-            return;
-        }
-
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;

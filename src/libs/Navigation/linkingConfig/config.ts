@@ -373,6 +373,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.AGENTS.ADD]: {
+                            path: ROUTES.SETTINGS_AGENTS_ADD,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.RULES.ADD]: {
                             path: ROUTES.SETTINGS_RULES_ADD.route,
                             exact: true,
@@ -1244,6 +1248,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
                             path: ROUTES.RULES_REIMBURSABLE_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
+                            path: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.route,
                         },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,

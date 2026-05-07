@@ -5,6 +5,7 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -171,6 +172,9 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
+const isLocalVideoSource =
+        typeof source === 'string' && (source.startsWith('blob:') || source.startsWith('file:') || CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix)));
+    const shouldShowOfflineVideoIndicator = isOffline && !!isVideo && typeof source === 'string' && !isLocalVideoSource;
 
     useEffect(() => {
         getFileResolution(file).then((resolution) => {
@@ -366,6 +370,10 @@ function AttachmentView({
                 )}
             </>
         );
+    }
+
+     if (shouldShowOfflineVideoIndicator) {
+        return <AttachmentOfflineIndicator />;
     }
 
     if ((isVideo ?? (file?.name && Str.isVideo(file.name))) && typeof source === 'string') {

@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
@@ -7,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {openReport} from '@libs/actions/Report';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -96,10 +96,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     // Skip API root normalization for search attachments because this route is only opened from preview,
     // which already passes a resolved source. Keep normalization for other types to support email entry points.
     const source = getValidatedImageSource(sourceParam, type !== CONST.ATTACHMENT_TYPE.SEARCH);
+    const fileName = originalFileName ?? (typeof source === 'string' ? getFileName(source) : '');
     const modalType = useReportAttachmentModalType(source);
-    const isRemoteSource = typeof source === 'string' && !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
-    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (!!originalFileName && Str.isVideo(originalFileName));
-    const shouldShowOfflineBlockingView = isOffline && isRemoteSource && isVideo;
 
     const shouldShowNotFoundPage = !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID;
 
@@ -108,10 +106,9 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         type,
         report,
         shouldShowNotFoundPage,
-        shouldShowOfflineBlockingView,
         isAuthTokenRequired: !!isAuthTokenRequired,
         attachmentLink: attachmentLink ?? '',
-        originalFileName: originalFileName ?? '',
+        originalFileName: fileName,
         isLoading,
         source,
         attachmentID,

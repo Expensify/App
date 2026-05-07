@@ -85,9 +85,6 @@ type AttachmentModalBaseContentProps = {
     /** Whether to display not found page */
     shouldShowNotFoundPage?: boolean;
 
-    /** Whether to display an offline blocking view instead of the attachment */
-    shouldShowOfflineBlockingView?: boolean;
-
     /** Whether to show an attachment carousel */
     shouldShowCarousel?: boolean;
 

@@ -3,7 +3,6 @@ import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
-import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
@@ -53,7 +52,6 @@ function AttachmentModalBaseContent({
     threeDotsMenuItems: threeDotsMenuItemsProp,
     isLoading = false,
     shouldShowNotFoundPage = false,
-    shouldShowOfflineBlockingView = false,
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = false,
@@ -143,17 +141,10 @@ function AttachmentModalBaseContent({
         [onCarouselAttachmentChange, setFile],
     );
 
-    const threeDotsMenuItems = useMemo(() => {
-        if (shouldShowOfflineBlockingView) {
-            return [];
-        }
-
-        if (typeof threeDotsMenuItemsProp === 'function') {
-            return threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource});
-        }
-
-        return threeDotsMenuItemsProp ?? [];
-    }, [fileToDisplay, isLocalSource, shouldShowOfflineBlockingView, source, threeDotsMenuItemsProp]);
+    const threeDotsMenuItems = useMemo(
+        () => (typeof threeDotsMenuItemsProp === 'function' ? threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource}) : (threeDotsMenuItemsProp ?? [])),
+        [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp],
+    );
 
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = useState(true);
     const setDownloadButtonVisibility = useCallback(
@@ -197,26 +188,13 @@ function AttachmentModalBaseContent({
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || !!onDownloadAttachment;
-        if (!isValidContext || isErrorInAttachment(source) || isEReceipt || shouldShowOfflineBlockingView) {
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
+        if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
-    }, [
-        isAttachmentLoaded,
-        isDownloadButtonReadyToBeShown,
-        isErrorInAttachment,
-        isLocalSource,
-        isOffline,
-        onDownloadAttachment,
-        report,
-        shouldShowNotFoundPage,
-        shouldShowOfflineBlockingView,
-        source,
-        type,
-        isEReceipt,
-    ]);
+    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type, isEReceipt]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -241,7 +219,7 @@ function AttachmentModalBaseContent({
         [setAttachmentError, shouldCloseOnSwipeDown, onClose],
     );
 
-    const shouldDisplayContent = !shouldShowNotFoundPage && !shouldShowOfflineBlockingView && !isLoading;
+    const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
     const Content = useMemo(() => {
         if (AttachmentContent) {
             return (
@@ -361,11 +339,6 @@ function AttachmentModalBaseContent({
                         linkTranslationKey="notFound.goBackHome"
                         onLinkPress={onClose}
                     />
-                )}
-                {shouldShowOfflineBlockingView && !isLoading && (
-                    <View style={StyleSheet.absoluteFill}>
-                        <AttachmentOfflineIndicator />
-                    </View>
                 )}
                 {shouldDisplayContent && (customAttachmentContent ?? Content)}
             </View>
