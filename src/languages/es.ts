@@ -7137,7 +7137,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             amountFilter: ({operator, amount}) => `montos ${operator} ${amount}`,
             theCard: 'la tarjeta',
-            namedCard: ({name}) => `'${name}'`,
             multipleCards: ({count}) => `${count} tarjetas`,
             joinFilters: ({items}) => {
                 if (items.length === 0) {

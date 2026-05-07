@@ -7284,7 +7284,6 @@ const translations = {
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
             theCard: 'the card',
-            namedCard: ({name}: {name: string}) => `'${name}'`,
             multipleCards: ({count}: {count: number}) => `${count} cards`,
             joinFilters: ({items}: {items: string[]}) => {
                 if (items.length === 0) {
