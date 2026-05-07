@@ -55,7 +55,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                         shouldNavigateBack.current = false;
                     });
             } else {
-                shouldIgnoreNextBeforeRemove.current = true;
+                shouldIgnoreNextBeforeRemove.current = (window.history.state as {shouldGoBack?: boolean} | null)?.shouldGoBack === true;
                 blockedNavigationAction.current = undefined;
                 shouldNavigateBack.current = false;
                 onCancel?.();
@@ -64,15 +64,17 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
     }, [showConfirmModal, translate, navigateBack, onCancel, onConfirm, onVisibilityChange]);
 
     useBeforeRemove((e) => {
+        if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
+            shouldIgnoreNextBeforeRemove.current = false;
+            return;
+        }
+
         if (shouldIgnoreNextBeforeRemove.current) {
             shouldIgnoreNextBeforeRemove.current = false;
             e.preventDefault();
             return;
         }
 
-        if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
-            return;
-        }
         e.preventDefault();
         blockedNavigationAction.current = e.data.action;
         navigateAfterInteraction(showDiscardModal);
