@@ -2890,18 +2890,10 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
-        const {
-            guidedSetupData,
-            optimisticData: taskOptimisticData,
-            successData: taskSuccessData,
-            failureData: taskFailureData,
-            bespokeWelcomeMessage,
-            optimisticConciergeReportActionID,
-        } = onboardingData;
+        const {guidedSetupData, optimisticData: taskOptimisticData, successData: taskSuccessData, failureData: taskFailureData, optimisticConciergeReportActionID} = onboardingData;
 
         params.guidedSetupData = JSON.stringify(guidedSetupData);
         params.engagementChoice = engagementChoice;
-        params.bespokeWelcomeMessage = bespokeWelcomeMessage;
         params.optimisticConciergeReportActionID = optimisticConciergeReportActionID;
 
         optimisticData.push(...taskOptimisticData);
