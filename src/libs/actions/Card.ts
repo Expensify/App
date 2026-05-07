@@ -31,6 +31,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
@@ -1417,6 +1418,7 @@ function issueExpensifyCard(
     }
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
+    const normalizedAssigneeEmail = addSMSDomainIfPhoneNumber(assigneeEmail);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
@@ -1453,7 +1455,7 @@ function issueExpensifyCard(
     ];
 
     const parameters = {
-        assigneeEmail,
+        assigneeEmail: normalizedAssigneeEmail,
         limit,
         limitType,
         cardTitle,
