@@ -30,6 +30,7 @@ export default {
     componentBorderRadiusXLarge: 28,
     componentBorderRadiusCard: 20,
     componentBorderRadiusRounded: 24,
+    componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,

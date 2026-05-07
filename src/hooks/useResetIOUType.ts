@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePrevious from './usePrevious';
@@ -67,6 +68,13 @@ function useResetIOUType({
     const personalPolicy = usePersonalPolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
+    const hydrateOdometerOnLanding = useOdometerDraftHydrator({
+        transaction,
+        transactionRequestType,
+        isLoadingTransaction,
+        isLoadingSelectedTab,
+    });
+
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
         if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
             Keyboard.dismiss();
@@ -95,6 +103,10 @@ function useResetIOUType({
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
         });
+
+        // Layer odometer draft fields onto the freshly-rebuilt transaction. The merge queues after
+        // initMoneyRequest's Onyx.set, so the odometer fields land on top.
+        hydrateOdometerOnLanding(newIOUType);
     };
 
     const tabSelectedTypeRef = useRef<IOURequestType | null>(null);

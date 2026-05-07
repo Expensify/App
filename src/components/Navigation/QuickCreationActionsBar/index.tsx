@@ -5,8 +5,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
@@ -17,14 +15,13 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -60,8 +57,6 @@ function QuickCreationActionsBar() {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
-    const {showConfirmModal} = useConfirmModal();
-
     const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [email]);
 
@@ -74,8 +69,6 @@ function QuickCreationActionsBar() {
     const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
-
-    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}), [allPolicies]);
 
     const travelEnabledPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPolicies]);
 
@@ -92,18 +85,6 @@ function QuickCreationActionsBar() {
 
         return travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
     }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
-
-    const showRedirectToExpensifyClassicModal = useCallback(async () => {
-        const {action} = await showConfirmModal({
-            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
-            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
-            confirmText: translate('exitSurvey.goToExpensifyClassic'),
-            cancelText: translate('common.cancel'),
-        });
-        if (action === ModalActions.CONFIRM) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        }
-    }, [showConfirmModal, translate]);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -141,23 +122,14 @@ function QuickCreationActionsBar() {
     const handleExpense = useCallback(
         () =>
             interceptAnonymousUser(() => {
-                if (shouldRedirectToExpensifyClassic) {
-                    showRedirectToExpensifyClassicModal();
-                    return;
-                }
                 startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
             }),
-        [draftTransactionIDs, shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal],
+        [draftTransactionIDs],
     );
 
     const handleReport = useCallback(
         () =>
             interceptAnonymousUser(() => {
-                if (shouldRedirectToExpensifyClassic) {
-                    showRedirectToExpensifyClassicModal();
-                    return;
-                }
-
                 if (shouldNavigateToUpgradePath) {
                     const freshReportID = generateReportID();
                     const freshTransactionID = generateReportID();
@@ -196,8 +168,6 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
             }),
         [
-            shouldRedirectToExpensifyClassic,
-            showRedirectToExpensifyClassicModal,
             shouldNavigateToUpgradePath,
             defaultChatEnabledPolicyID,
             userBillingGracePeriodEnds,
@@ -215,13 +185,9 @@ function QuickCreationActionsBar() {
     const handleDistance = useCallback(
         () =>
             interceptAnonymousUser(() => {
-                if (shouldRedirectToExpensifyClassic) {
-                    showRedirectToExpensifyClassicModal();
-                    return;
-                }
                 startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
             }),
-        [draftTransactionIDs, lastDistanceExpenseType, shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal],
+        [draftTransactionIDs, lastDistanceExpenseType],
     );
 
     const handleBookTravel = useCallback(

@@ -75,15 +75,17 @@ function AddPaymentMethodMenu({
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
+    const isLoadingIntroSelected = isLoadingOnyxValue(introSelectedStatus);
+
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
-        if (!isVisible || !isPersonalOnlyOption || isLoadingOnyxValue(introSelectedStatus)) {
+        if (!isVisible || !isPersonalOnlyOption || isLoadingIntroSelected) {
             return;
         }
 
         completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [betas, introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed]);
+    }, [betas, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed]);
 
     if (isPersonalOnlyOption) {
         return null;

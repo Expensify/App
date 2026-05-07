@@ -1126,9 +1126,9 @@ function getColorStyle(color: string): TextColorStyle {
 }
 
 /**
- * Returns the checkbox pressable style
+ * Returns the selection button pressable style
  */
-function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
+function getSelectionButtonPressableStyle(borderRadius = 6): ViewStyle {
     return {
         justifyContent: 'center',
         alignItems: 'center',
@@ -1383,7 +1383,7 @@ const staticStyleUtils = {
     getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
-    getCheckboxPressableStyle,
+    getSelectionButtonPressableStyle,
     getComposeTextAreaPadding,
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
@@ -1608,9 +1608,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
-     * Returns the checkbox container style
+     * Returns the selection button container style
      */
-    getCheckboxContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
+    getSelectionButtonContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
@@ -2036,13 +2036,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * Returns the styles for the Tools modal
      */
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
-
-    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...(isSelected && styles.checkedContainer),
-        ...(isSelected && styles.borderColorFocus),
-        ...(isDisabled && styles.cursorDisabled),
-        ...(isDisabled && styles.buttonOpacityDisabled),
-    }),
 
     /**
      * When adding a new prefix character, adjust this method to add expected character width.

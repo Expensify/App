@@ -25,9 +25,10 @@ To edit expenses in Approved or Paid reports, a workspace admin will need to una
 2. Click **More** > **Add expense** > **Create expense**
 3. Enter the details and click **Create expense**.
 
-**Option 2: Add existing unreported expenses**
+**Option 2: Add existing expenses**
 1. Open the draft report.
-2. Click **More** > **Add expense** > **Add unreported expense**.
+2. Click **More** > **Add expense** > **Add existing expense**.
+3. (Optional) Use the **Status** filter to show only **Unreported** or **Draft** expenses.
 3. Click one or more expenses.
 4. Click **Add to report**.
 
