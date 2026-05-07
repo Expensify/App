@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
@@ -148,7 +148,7 @@ function CardTypeStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.yourCardProvider')}</Text>
             <SelectionList
                 data={data}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setLocalTypeSelected(value);
                     setIsError(false);

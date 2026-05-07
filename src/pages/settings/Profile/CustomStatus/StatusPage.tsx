@@ -93,13 +93,9 @@ function StatusPage() {
 
     const navigateBackToPreviousScreenTask = useRef<{
         then: (
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             onrejected?: () => typeof InteractionManager.runAfterInteractions,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
         ) => Promise<typeof InteractionManager.runAfterInteractions>;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
         cancel: () => void;
     } | null>(null);
@@ -128,18 +124,17 @@ function StatusPage() {
                 setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
-            updateCustomStatus({
+            updateCustomStatus(currentUserPersonalDetails.accountID, {
                 text: statusText,
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
             });
         },
-        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, navigateBackToPreviousScreen],
+        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, navigateBackToPreviousScreen, currentUserPersonalDetails.accountID],
     );
 
     const clearStatus = () => {
@@ -154,7 +149,6 @@ function StatusPage() {
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });

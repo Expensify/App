@@ -223,8 +223,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, false, undefined, invoiceReceiverPolicy);
+    const onlyShowPayElsewhere =
+        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, undefined, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {

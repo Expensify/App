@@ -24,7 +24,7 @@ export type {default as ConnectPolicyToAccountingIntegrationParams} from './Conn
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
-export type {default as SyncGustoParams} from './SyncGustoParams';
+export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
@@ -374,6 +374,7 @@ export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTax
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
 export type {default as EnablePolicyCompanyCardsParams} from './EnablePolicyCompanyCardsParams';
 export type {default as ToggleCardContinuousReconciliationParams} from './ToggleCardContinuousReconciliationParams';
+export type {default as ToggleCardCashbackToBillParams} from './ToggleCardCashbackToBillParams';
 export type {default as SetCardReconciliationBankAccountParams} from './SetCardReconciliationBankAccountParams';
 export type {default as CardDeactivateParams} from './CardDeactivateParams';
 export type {default as UpdateExpensifyCardLimitTypeParams} from './UpdateExpensifyCardLimitTypeParams';
@@ -520,3 +521,4 @@ export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAcc
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
 export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';
+export type {default as CreateAgentParams} from './CreateAgentParams';

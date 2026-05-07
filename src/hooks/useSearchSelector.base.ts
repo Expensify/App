@@ -79,6 +79,9 @@ type UseSearchSelectorConfig = {
 
     /** Whether to allow name-only options */
     shouldAllowNameOnlyOptions?: boolean;
+
+    /** Whether to keep selected options in availableOptions instead of filtering them out */
+    shouldKeepSelectedInAvailableOptions?: boolean;
 };
 
 type ContactState = {
@@ -170,6 +173,7 @@ function useSearchSelectorBase({
     includeSelfDM = false,
     recentAttendees,
     shouldAllowNameOnlyOptions = false,
+    shouldKeepSelectedInAvailableOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -352,17 +356,17 @@ function useSearchSelectorBase({
             : null,
     };
 
-    const unselectedRecentReports = searchOptions.recentReports.filter((option) => !option.isSelected);
+    const filteredRecentReports = shouldKeepSelectedInAvailableOptions ? searchOptions.recentReports : searchOptions.recentReports.filter((option) => !option.isSelected);
 
     // Filter out people who appear in recent reports from personal details (recents take priority)
-    const recentReportLogins = new Set(unselectedRecentReports.map((option) => option.login).filter(Boolean));
-    const unselectedPersonalDetails = searchOptions.personalDetails.filter((option) => !option.isSelected && !recentReportLogins.has(option.login));
+    const recentReportLogins = new Set(filteredRecentReports.map((option) => option.login).filter(Boolean));
+    const filteredPersonalDetails = searchOptions.personalDetails.filter((option) => (shouldKeepSelectedInAvailableOptions || !option.isSelected) && !recentReportLogins.has(option.login));
 
     const availableOptions = {
         ...searchOptions,
-        personalDetails: unselectedPersonalDetails,
-        recentReports: unselectedRecentReports,
-        userToInvite: searchOptions.userToInvite?.isSelected ? null : searchOptions.userToInvite,
+        personalDetails: filteredPersonalDetails,
+        recentReports: filteredRecentReports,
+        userToInvite: !shouldKeepSelectedInAvailableOptions && searchOptions.userToInvite?.isSelected ? null : searchOptions.userToInvite,
     };
 
     /**

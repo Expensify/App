@@ -429,7 +429,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedCategories([]);
         });
@@ -763,14 +762,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <SelectionListWithModal
                         data={filteredCategoryList}
                         ListItem={TableListItem}
-                        onCheckboxPress={toggleCategory}
+                        onSelectionButtonPress={toggleCategory}
                         selectedItems={selectedCategories}
                         onSelectRow={navigateToCategorySettings}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
