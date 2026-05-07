@@ -1,8 +1,7 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {setConciergeShowFullHistory} from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
-import Log from '@libs/Log';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,21 +40,9 @@ function useConciergeReportActions({
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
 
-    useEffect(() => {
-        Log.info('[ConciergeHistory] render', false, {
-            isConciergeChat,
-            sessionStartTime,
-            persistedShowFullHistory,
-            showFullHistory,
-            prevSessionStartTime,
-            prevHasUserSentMessage,
-        });
-    }, [isConciergeChat, sessionStartTime, persistedShowFullHistory, showFullHistory, prevSessionStartTime, prevHasUserSentMessage]);
-
     if (prevPersistedShowFullHistory !== persistedShowFullHistory) {
         setPrevPersistedShowFullHistory(persistedShowFullHistory);
         setShowFullHistoryState(persistedShowFullHistory);
-        Log.info('[ConciergeHistory] sync from persisted', false, {persistedShowFullHistory});
     }
 
     const hasSessionChanged = sessionStartTime && prevSessionStartTime && prevSessionStartTime !== sessionStartTime;
@@ -64,12 +51,10 @@ function useConciergeReportActions({
         setPrevSessionStartTime(sessionStartTime);
         setShowFullHistoryState(false);
         setConciergeShowFullHistory(false);
-        Log.info('[ConciergeHistory] reset on session change', false, {sessionStartTime});
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
         setShowFullHistoryState(false);
         setConciergeShowFullHistory(false);
-        Log.info('[ConciergeHistory] reset on user message cleared', false);
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
