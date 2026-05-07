@@ -5,7 +5,7 @@ import {canEditFieldOfMoneyRequest, canEditMoneyRequest} from '@libs/ReportUtils
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -289,19 +289,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
             };
 
-            const seedWaitingOnForwardedManagerMoveFixture = async ({
-                nextStep = {
-                    actorAccountID: FORWARDED_MANAGER_ACCOUNT_ID,
-                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                },
+            const seedForwardingRelationshipMoveFixture = async ({
                 submitToEmployee = {
                     email: FORWARDED_APPROVER_EMAIL,
                     forwardsTo: FORWARDED_MANAGER_EMAIL,
                     role: CONST.POLICY.ROLE.ADMIN,
                 },
             }: {
-                nextStep?: Report['nextStep'] | null;
                 submitToEmployee?: NonNullable<Policy['employeeList']>[string];
             } = {}) => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -340,7 +334,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                     ...expenseReport,
                     managerID: FORWARDED_MANAGER_ACCOUNT_ID,
                     submitted: '2026-04-03 10:00:00',
-                    nextStep: nextStep ?? undefined,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
@@ -479,15 +472,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
-            it('should hide move when the report is waiting on the forwarded manager', async () => {
-                await seedWaitingOnForwardedManagerMoveFixture();
+            it('should hide move when the submit-to approver forwards to the current manager', async () => {
+                await seedForwardingRelationshipMoveFixture();
                 const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
                 const submitToAccountID = getSubmitToAccountID(currentPolicy, currentReport);
 
                 expect(submitToAccountID).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
                 expect(currentReport?.managerID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
-                expect(currentReport?.nextStep?.actorAccountID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
-                expect(currentReport?.nextStep?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE);
 
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
                 const canEditReportField = canEditFieldOfMoneyRequest({
@@ -503,8 +494,35 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
-            it('should use the caller-provided policy for the forwarded manager fallback when global policy data is stale', async () => {
-                await seedWaitingOnForwardedManagerMoveFixture();
+            it('should hide move when the submit-to approver has overLimitForwardsTo pointing to the current manager', async () => {
+                await seedForwardingRelationshipMoveFixture({
+                    submitToEmployee: {
+                        email: FORWARDED_APPROVER_EMAIL,
+                        overLimitForwardsTo: FORWARDED_MANAGER_EMAIL,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                });
+                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
+
+                expect(getSubmitToAccountID(currentPolicy, currentReport)).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
+                expect(currentReport?.managerID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                    reportActions: {},
+                });
+
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should use the caller-provided policy for the forwarding relationship fallback when global policy data is stale', async () => {
+                await seedForwardingRelationshipMoveFixture();
                 const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
                 if (!currentPolicy) {
                     throw new Error('Expected policy fixture');
@@ -536,47 +554,8 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(canEditReportField).toBe(false);
             });
 
-            it.each([
-                ['missing nextStep', null],
-                [
-                    'nextStep is not waiting to approve',
-                    {
-                        actorAccountID: FORWARDED_MANAGER_ACCOUNT_ID,
-                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
-                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    },
-                ],
-                [
-                    'nextStep points to the submit-to approver instead of the manager',
-                    {
-                        actorAccountID: FORWARDED_APPROVER_ACCOUNT_ID,
-                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
-                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    },
-                ],
-            ] satisfies Array<[string, Report['nextStep'] | null]>)('should keep move enabled when the forwarded manager guard is incomplete because %s', async (_caseName, nextStep) => {
-                await seedWaitingOnForwardedManagerMoveFixture({nextStep});
-                const {currentPolicy, currentReport, currentTransaction} = await getCurrentMoveFixture();
-
-                expect(getSubmitToAccountID(currentPolicy, currentReport)).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
-                expect(currentReport?.managerID).toBe(FORWARDED_MANAGER_ACCOUNT_ID);
-
-                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditReportField = canEditFieldOfMoneyRequest({
-                    reportAction,
-                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
-                    outstandingReportsByPolicyID,
-                    transaction: currentTransaction,
-                    report: currentReport,
-                    policy: currentPolicy,
-                    reportActions: {},
-                });
-
-                expect(canEditReportField).toBe(true);
-            });
-
             it('should keep move enabled when submit-to differs from manager but the policy does not forward to that manager', async () => {
-                await seedWaitingOnForwardedManagerMoveFixture({
+                await seedForwardingRelationshipMoveFixture({
                     submitToEmployee: {
                         email: FORWARDED_APPROVER_EMAIL,
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -602,8 +581,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             it('should hide move when passed report actions contain FORWARDED even if the global report action cache is empty', async () => {
-                await seedWaitingOnForwardedManagerMoveFixture({
-                    nextStep: undefined,
+                await seedForwardingRelationshipMoveFixture({
                     submitToEmployee: {
                         email: FORWARDED_APPROVER_EMAIL,
                         role: CONST.POLICY.ROLE.ADMIN,

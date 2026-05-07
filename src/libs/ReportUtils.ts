@@ -11474,16 +11474,11 @@ function hasForwardedAction(reportID: string, reportActions?: MoveExpenseReportA
 }
 
 /**
- * Search can know the report is waiting on a forwarded-to manager
+ * Search can know the submit-to approver forwards to the current manager
  * before the FORWARDED report action is loaded locally.
  */
-function isWaitingOnForwardedManager(iouReport: OnyxInputOrEntry<Report>, policy: OnyxEntry<Policy>, submitToAccountID: number): boolean {
+function hasSubmitToApproverForwardingToManager(iouReport: OnyxInputOrEntry<Report>, policy: OnyxEntry<Policy>, submitToAccountID: number): boolean {
     if (!iouReport || !policy || !isExpenseReport(iouReport) || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID) || !iouReport.submitted) {
-        return false;
-    }
-
-    const nextStep = iouReport.nextStep;
-    if (nextStep?.messageKey !== CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE || nextStep.actorAccountID !== iouReport.managerID) {
         return false;
     }
 
@@ -11499,7 +11494,7 @@ function isWaitingOnForwardedManager(iouReport: OnyxInputOrEntry<Report>, policy
 
 /**
  * Move-expense fallback for when the FORWARDED report action is missing locally.
- * We require the report to be waiting on the forwarded-to manager, not only submitToAccountID !== managerID,
+ * We require a forwarding relationship, not only submitToAccountID !== managerID,
  * because policy approver changes can create the same mismatch for reports that were never forwarded.
  */
 function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
@@ -11515,7 +11510,7 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>, policy
         return false;
     }
 
-    return isWaitingOnForwardedManager(iouReport, reportPolicy, submitToAccountID);
+    return hasSubmitToApproverForwardingToManager(iouReport, reportPolicy, submitToAccountID);
 }
 
 function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>, reportActions?: MoveExpenseReportActions, policy?: OnyxEntry<Policy>): boolean {
