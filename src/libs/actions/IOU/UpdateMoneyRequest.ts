@@ -926,15 +926,15 @@ function addOptimisticSmartScanModifiedAmountViolation({
     transactionViolations: OnyxTypes.TransactionViolation[];
     hasModifiedAmount: boolean;
 }): OnyxTypes.TransactionViolation[] {
+    const isSmartScanModifiedAmount = (v: OnyxTypes.TransactionViolation) =>
+        v.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (!v.data?.type || v.data.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.SMARTSCAN);
+
     const scannedAmount = Math.abs(Number(transaction?.modifiedAmount));
     const editedAmount = Math.abs(Number(updatedTransaction.modifiedAmount));
 
     if (!transaction || !didReceiptScanSucceed(transaction) || !hasModifiedAmount || !scannedAmount || !Number.isFinite(editedAmount) || editedAmount <= scannedAmount) {
-        return transactionViolations;
+        return transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
     }
-
-    const isSmartScanModifiedAmount = (v: OnyxTypes.TransactionViolation) =>
-        v.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (!v.data?.type || v.data.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.SMARTSCAN);
 
     const withoutSmartScanModifiedAmount = transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
 

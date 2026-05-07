@@ -51,7 +51,7 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
         expect(result).toContainEqual(expectedSmartScanViolation);
     });
 
-    it('should return original violations when edited amount is less than or equal to scanned amount', () => {
+    it('should return non-smartscan violations when edited amount is less than scanned amount', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 2000});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 1000});
         const violations = [existingViolation];
@@ -63,10 +63,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when edited amount equals scanned amount', () => {
+    it('should return non-smartscan violations when edited amount equals scanned amount', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 1000});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 1000});
         const violations = [existingViolation];
@@ -78,10 +78,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when hasModifiedAmount is false', () => {
+    it('should return non-smartscan violations when hasModifiedAmount is false', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 1000});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
@@ -93,10 +93,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: false,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when receipt scan did not succeed', () => {
+    it('should return non-smartscan violations when receipt scan did not succeed', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
@@ -108,10 +108,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when receipt is still being scanned', () => {
+    it('should return non-smartscan violations when receipt is still being scanned', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
@@ -123,10 +123,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when receipt is in SCAN_READY state', () => {
+    it('should return non-smartscan violations when receipt is in SCAN_READY state', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 1000, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY}});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
@@ -138,10 +138,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when transaction is undefined', () => {
+    it('should return non-smartscan violations when transaction is undefined', () => {
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
 
@@ -152,10 +152,10 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
     });
 
-    it('should return original violations when scanned amount is zero', () => {
+    it('should return non-smartscan violations when scanned amount is zero', () => {
         const transaction = buildScannedTransaction({modifiedAmount: 0});
         const updatedTransaction = buildScannedTransaction({modifiedAmount: 2000});
         const violations = [existingViolation];
@@ -167,7 +167,29 @@ describe('addOptimisticSmartScanModifiedAmountViolation', () => {
             hasModifiedAmount: true,
         });
 
-        expect(result).toBe(violations);
+        expect(result).toEqual(violations);
+    });
+
+    it('should remove stale smartscan modifiedAmount violation when edited amount is corrected back down', () => {
+        const transaction = buildScannedTransaction({modifiedAmount: 1000});
+        const updatedTransaction = buildScannedTransaction({modifiedAmount: 500});
+        const staleSmartScanViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+            type: CONST.VIOLATION_TYPES.NOTICE,
+            showInReview: true,
+            data: {type: CONST.MODIFIED_AMOUNT_VIOLATION_DATA.SMARTSCAN},
+        };
+
+        const result = addOptimisticSmartScanModifiedAmountViolation({
+            transaction,
+            updatedTransaction,
+            transactionViolations: [existingViolation, staleSmartScanViolation],
+            hasModifiedAmount: true,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result).toContainEqual(existingViolation);
+        expect(result).not.toContainEqual(staleSmartScanViolation);
     });
 
     it('should replace existing smartscan modifiedAmount violation instead of duplicating', () => {
