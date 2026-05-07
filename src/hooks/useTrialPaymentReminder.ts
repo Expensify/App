@@ -55,7 +55,7 @@ const TRIAL_REMINDER_VARIATIONS = [
 
 /**
  * Returns the remaining time (ms) of the 5-minute startup grace window relative to the trial's start time.
- * Returns 0 when the trial is missing/unparseable or the grace window has already elapsed.
+ * Returns 0 when the trial is missing/invalid or the grace window has already elapsed.
  */
 function getTrialStartupGraceRemainingMs(firstDayFreeTrial: string | undefined): number {
     if (!firstDayFreeTrial) {
@@ -154,7 +154,6 @@ function useTrialPaymentReminder() {
             }
             // Trial is already present on first observation — apply the grace window if it just started
             // (e.g., the modal manager mounted right after first-workspace creation), otherwise it's safe to show.
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setReadinessState(getTrialStartupGraceRemainingMs(firstDayFreeTrial) > 0 ? READINESS_STATE.TRIAL_STARTUP_GRACE : READINESS_STATE.READY);
             return;
         }
@@ -163,7 +162,6 @@ function useTrialPaymentReminder() {
             // PRE_TRIAL → TRIAL_STARTUP_GRACE fires when firstDayFreeTrial appears mid-session
             // (trial was just created); this can only be detected by reacting to the Onyx change,
             // hence setState inside the effect.
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setReadinessState(READINESS_STATE.TRIAL_STARTUP_GRACE);
         }
     }, [readinessState, firstDayFreeTrial, firstDayFreeTrialResult]);
