@@ -1,10 +1,13 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
+    getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -19,6 +22,7 @@ import {
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type SimpleMessageContentProps = {
@@ -49,6 +53,15 @@ const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
 
 function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
     return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
+}
+
+function ReceiptScanFailedContent({iouAction}: {iouAction: OnyxTypes.ReportAction | undefined}) {
+    const {translate} = useLocalize();
+    const transactionID = getLinkedTransactionID(iouAction);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const smartscanFailedViolation = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+    const missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
+    return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields})} />;
 }
 
 function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
@@ -96,7 +109,7 @@ function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)})} />;
+        return <ReceiptScanFailedContent iouAction={iouAction} />;
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
