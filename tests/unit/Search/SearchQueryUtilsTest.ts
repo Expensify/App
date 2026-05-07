@@ -1844,6 +1844,29 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('sortOrder:desc');
         });
 
+        test('from filter on grouped chart insight returns to expenses table', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, view: CONST.SEARCH.VIEW.PIE, from: ['12345']},
+                {view: CONST.SEARCH.VIEW.PIE, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(queryJSON?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(queryJSON?.groupBy).toBeUndefined();
+            expect(queryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+            expect(queryJSON?.flatFilters).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                        filters: expect.arrayContaining([expect.objectContaining({value: '12345'})]),
+                    }),
+                ]),
+            );
+        });
+
         test('view switches between table and bar/pie preserve sort for non-time groupBy', () => {
             // Bar → Table
             let result = buildFilterQueryWithSortDefaults(

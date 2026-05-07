@@ -1980,20 +1980,33 @@ function buildFilterQueryWithSortDefaults(
     previousState: {view?: string; groupBy?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string},
 ): string | undefined {
+    const shouldShowPersonalExpensesFromGroupedInsight =
+        previousState.view === CONST.SEARCH.VIEW.PIE &&
+        previousState.groupBy === CONST.SEARCH.GROUP_BY.MERCHANT &&
+        filterValues.groupBy === CONST.SEARCH.GROUP_BY.MERCHANT &&
+        Array.isArray(filterValues[CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]) &&
+        filterValues[CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM].length > 0;
+    const normalizedFilterValues = shouldShowPersonalExpensesFromGroupedInsight
+        ? {
+              ...filterValues,
+              groupBy: undefined,
+              view: CONST.SEARCH.VIEW.TABLE,
+          }
+        : filterValues;
     const resetSort = shouldResetSort({
-        newGroupBy: filterValues.groupBy,
+        newGroupBy: normalizedFilterValues.groupBy,
         oldGroupBy: previousState.groupBy,
     });
 
     const resetSortForViewChange =
         !resetSort &&
         shouldResetSortForViewChange({
-            newView: filterValues.view,
+            newView: normalizedFilterValues.view,
             oldView: previousState.view,
-            groupBy: filterValues.groupBy,
+            groupBy: normalizedFilterValues.groupBy,
         });
 
-    const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+    const queryString = buildQueryStringFromFilterFormValues(normalizedFilterValues, {
         sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
         sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
     });
