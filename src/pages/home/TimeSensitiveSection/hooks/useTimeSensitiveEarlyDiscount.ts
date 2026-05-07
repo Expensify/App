@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
@@ -26,23 +26,27 @@ function useTimeSensitiveEarlyDiscount(): TimeSensitiveEarlyDiscountState {
 
     const isEligibleForDiscount = shouldShowDiscountBanner(accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
 
-    const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(() => (isEligibleForDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null));
+    const [tick, setTick] = useState(0);
 
     // Tick once per second so the countdown stays in sync with wall-clock time
     // while the user is viewing the Home page.
     useEffect(() => {
         if (!isEligibleForDiscount) {
-            setDiscountInfo(null);
             return;
         }
-
-        setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
-        const intervalID = setInterval(() => {
-            setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
-        }, CONST.MILLISECONDS_PER_SECOND);
+        const intervalID = setInterval(() => setTick((previousTick) => previousTick + 1), CONST.MILLISECONDS_PER_SECOND);
 
         return () => clearInterval(intervalID);
-    }, [firstDayFreeTrial, isEligibleForDiscount]);
+    }, [isEligibleForDiscount]);
+
+    const discountInfo = useMemo(() => {
+        if (!isEligibleForDiscount) {
+            return null;
+        }
+        // Keep tick in-use so this memo recomputes once per second.
+        const currentTick = tick;
+        return currentTick >= 0 ? getEarlyDiscountInfo(firstDayFreeTrial) : null;
+    }, [firstDayFreeTrial, isEligibleForDiscount, tick]);
 
     const shouldShowEarlyDiscount = isEligibleForDiscount && discountInfo?.discountType === EARLY_DISCOUNT_HALF_OFF;
 
