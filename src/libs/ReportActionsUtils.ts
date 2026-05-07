@@ -3904,16 +3904,6 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
     return getReportActionText(reportAction);
 }
 
-function getSpendRulePreformattedText(message: OriginalMessagePolicyChangeLog): string | undefined {
-    for (const key of ['changeLogText', 'text', 'displayMessage'] as const) {
-        const value = message?.[key];
-        if (typeof value === 'string' && value !== '') {
-            return value;
-        }
-    }
-    return undefined;
-}
-
 function spendRuleActionVerb(translate: LocalizedTranslate, action: string): string {
     if (action === CONST.SPEND_RULES.ACTION.BLOCK) {
         return translate('workspaceActions.expensifyCardRule.actionVerb.block');
@@ -4142,11 +4132,6 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
         return '';
     }
     const message = getOriginalMessage(reportAction) ?? {};
-    const pre = getSpendRulePreformattedText(message);
-    if (pre) {
-        return pre;
-    }
-
     const action = typeof message?.action === 'string' ? message.action : '';
     const currency = typeof message?.currency === 'string' && message.currency !== '' ? message.currency : CONST.CURRENCY.USD;
     const merchants = (message?.merchants ?? []).filter((value) => typeof value === 'string' && value !== '');
@@ -4184,11 +4169,6 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
         return '';
     }
     const message = getOriginalMessage(reportAction) ?? {};
-    const pre = getSpendRulePreformattedText(message);
-    if (pre) {
-        return pre;
-    }
-
     const oldAction = typeof message?.oldAction === 'string' ? message.oldAction : '';
     const newAction = typeof message?.action === 'string' ? message.action : '';
     const actionChanged = oldAction !== '' && oldAction !== newAction;
@@ -4344,10 +4324,6 @@ function getRemoveExpensifyCardRuleMessage(translate: LocalizedTranslate, report
         return '';
     }
     const message = getOriginalMessage(reportAction) ?? {};
-    const pre = getSpendRulePreformattedText(message);
-    if (pre) {
-        return pre;
-    }
     const cards = message?.cards ?? [];
     const cardsSummary = spendRuleCardsSummary(translate, cards);
     return translate('workspaceActions.expensifyCardRule.removeRule', {cards: cardsSummary});
