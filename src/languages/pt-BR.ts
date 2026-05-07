@@ -9190,6 +9190,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             restrictDefaultLoginSelection: 'Restringir seleção de login padrão',
             restrictDefaultLoginSelectionDescription:
                 'Impede que os membros alterem o e-mail de login para um endereço fora do domínio da empresa, evitando que burlem restrições de políticas.',
+            findGroup: 'Encontrar grupo',
         },
     },
     proactiveAppReview: {

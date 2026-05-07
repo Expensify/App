@@ -8958,6 +8958,7 @@ ${reportName}
             noWorkspacesMessage: '此域上没有工作区。启用此限制需要一个工作区。',
             restrictDefaultLoginSelection: '限制默认登录选择',
             restrictDefaultLoginSelectionDescription: '防止成员将登录邮箱更改为公司域名以外的地址，以规避政策限制。',
+            findGroup: '查找群组',
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},

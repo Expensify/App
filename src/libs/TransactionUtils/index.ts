@@ -1669,6 +1669,7 @@ function mergeProhibitedViolations(transactionViolations: TransactionViolations)
             prohibitedExpenseRule: prohibitedExpenses,
         },
         type: CONST.VIOLATION_TYPES.VIOLATION,
+        showInReview: prohibitedViolations.some((v) => v.showInReview),
     };
 
     return [...transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];

@@ -9112,6 +9112,7 @@ ${reportName}
             noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
             restrictDefaultLoginSelection: 'デフォルトのログイン選択を制限する',
             restrictDefaultLoginSelectionDescription: 'メンバーがポリシー制限を回避するために、ログイン用のメールアドレスを会社のドメイン以外に変更することを防ぎます。',
+            findGroup: 'グループを検索',
         },
     },
     proactiveAppReview: {

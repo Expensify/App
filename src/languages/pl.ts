@@ -9180,6 +9180,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             noWorkspacesMessage: 'W tej domenie nie ma żadnych obszarów roboczych. Obszar roboczy jest wymagany, aby włączyć to ograniczenie.',
             restrictDefaultLoginSelection: 'Ogranicz wybór domyślnego logowania',
             restrictDefaultLoginSelectionDescription: 'Zapobiega zmianie adresu e-mail do logowania przez członków na adres spoza domeny firmowej, aby obejść ograniczenia zasad.',
+            findGroup: 'Znajdź grupę',
         },
     },
     proactiveAppReview: {

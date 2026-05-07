@@ -9199,6 +9199,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             noWorkspacesMessage: 'Er zijn geen werkruimtes op dit domein. Een werkruimte is vereist om deze beperking in te schakelen.',
             restrictDefaultLoginSelection: 'Standaard login-selectie beperken',
             restrictDefaultLoginSelectionDescription: 'Voorkomt dat leden hun login-e-mail wijzigen naar een adres buiten het bedrijfsdomein om beleidsbeperkingen te omzeilen.',
+            findGroup: 'Groep zoeken',
         },
     },
     proactiveAppReview: {

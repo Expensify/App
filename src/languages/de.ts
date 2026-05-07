@@ -9236,6 +9236,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             restrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
             restrictDefaultLoginSelectionDescription:
                 'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
+            findGroup: 'Gruppe suchen',
         },
     },
     proactiveAppReview: {

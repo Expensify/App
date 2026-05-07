@@ -9476,6 +9476,7 @@ ${amount} para ${merchant} - ${date}`,
             noWorkspacesMessage: 'No hay espacios de trabajo en este dominio. Se requiere un espacio de trabajo para habilitar esta restricción.',
             restrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
             restrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
+            findGroup: 'Encontrar grupo',
         },
     },
     gps: {

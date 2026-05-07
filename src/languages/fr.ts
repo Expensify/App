@@ -9261,6 +9261,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
+            findGroup: 'Trouver un groupe',
         },
     },
     proactiveAppReview: {

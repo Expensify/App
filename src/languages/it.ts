@@ -9228,6 +9228,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             noWorkspacesMessage: 'Non ci sono spazi di lavoro su questo dominio. È necessario uno spazio di lavoro per abilitare questa restrizione.',
             restrictDefaultLoginSelection: 'Limita la selezione di accesso predefinita',
             restrictDefaultLoginSelectionDescription: 'Impedisce ai membri di modificare l’email di accesso al di fuori del dominio aziendale per eludere le restrizioni delle policy.',
+            findGroup: 'Trova gruppo',
         },
     },
     proactiveAppReview: {
