@@ -51,7 +51,7 @@ import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {clearCachedAttachments} from '@userActions/Attachment';
-import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
+import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
@@ -718,7 +718,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             }
 
             Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
-            return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS)
+            return clearOnyxForDelegateTransition()
                 .then(() =>
                     Onyx.multiSet({
                         ...stashedData,
@@ -1408,7 +1408,6 @@ function waitForUserSignIn(): Promise<boolean> {
 }
 
 function handleExitToNavigation(exitTo: Route) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {

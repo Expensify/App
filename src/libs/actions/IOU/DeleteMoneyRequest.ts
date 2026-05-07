@@ -34,7 +34,8 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations, getReportPreviewAction} from '.';
+import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getReportPreviewAction} from './MoneyRequestBuilder';
 
 type DeleteMoneyRequestFunctionParams = {
     transactionID: string | undefined;
@@ -203,7 +204,6 @@ function prepareToCleanUpMoneyRequest(
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const messageText = Localize.translateLocal(
         hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
         convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
@@ -387,19 +387,23 @@ function cleanUpMoneyRequest(
             value: updatedReportAction,
         });
     }
-    onyxUpdates.push(
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedIOUReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: getOutstandingChildRequest(updatedIOUReport),
-        },
-    );
+
+    if (updatedIOUReport) {
+        if (iouReport?.reportID) {
+            onyxUpdates.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: updatedIOUReport,
+            });
+        }
+        if (chatReport?.reportID) {
+            onyxUpdates.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: getOutstandingChildRequest(updatedIOUReport),
+            });
+        }
+    }
 
     if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
         onyxUpdates.push({
@@ -454,7 +458,6 @@ function cleanUpMoneyRequest(
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
         Navigation.goBack(urlToNavigateBack);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldDeleteIOUReport) {
                 clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
@@ -695,24 +698,28 @@ function deleteMoneyRequest({
 
     removeTransactionFromDuplicateTransactionViolation({optimisticData, failureData}, transactionID, transactions, violations);
 
-    optimisticData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: updatedReportAction,
-        },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedIOUReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: getOutstandingChildRequest(updatedIOUReport),
-        },
-    );
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: updatedReportAction,
+    });
+
+    if (updatedIOUReport) {
+        if (iouReport?.reportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: updatedIOUReport,
+            });
+        }
+        if (chatReport?.reportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: getOutstandingChildRequest(updatedIOUReport),
+            });
+        }
+    }
 
     if (reportPreviewAction?.reportActionID) {
         optimisticData.push({
@@ -844,10 +851,11 @@ function deleteMoneyRequest({
             };
         }
     }
-    failureData.push(
-        {
+
+    if (iouReport?.reportID) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 ...originalReportActionsUpdate,
                 [reportAction.reportActionID]: {
@@ -856,20 +864,22 @@ function deleteMoneyRequest({
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage', errorKey),
                 },
             },
-        },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        shouldDeleteIOUReport
-            ? {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport,
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport,
-              },
-    );
+        });
+
+        failureData.push(
+            shouldDeleteIOUReport
+                ? {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: iouReport,
+                  }
+                : {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: iouReport,
+                  },
+        );
+    }
 
     if (reportPreviewAction?.reportActionID) {
         failureData.push({

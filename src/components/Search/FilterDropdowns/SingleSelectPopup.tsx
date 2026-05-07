@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BasePopup from './BasePopup';
 
@@ -150,6 +151,7 @@ function SingleSelectPopup<T extends string>({
                 style={[
                     styles.getSelectionListPopoverHeight({
                         itemCount: options.length || 1,
+                        itemHeight: variables.optionRowHeight,
                         windowHeight,
                         isInLandscapeMode,
                         hasTitle,

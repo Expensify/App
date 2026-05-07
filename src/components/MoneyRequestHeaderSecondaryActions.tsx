@@ -135,12 +135,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -221,7 +221,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 optimisticIOUReportID,
                 isASAPSubmitBetaEnabled,
                 introSelected,
-                activePolicyID,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
@@ -235,6 +234,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
             });
@@ -245,7 +245,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline);
+            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
         }
     };
 
@@ -253,7 +253,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
             }
         } else {
             dismissRejectUseExplanation();
@@ -302,7 +302,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed || isParentChatReportDM) {
-                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -324,7 +324,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
@@ -439,7 +439,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserEmail: currentUserLogin ?? '',
                         });
                     } else {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, true);
                             removeTransaction(transaction.transactionID);

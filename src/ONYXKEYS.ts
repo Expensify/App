@@ -87,6 +87,9 @@ const ONYXKEYS = {
     /** GPS points stored for the GPS distance expense before they're accepted by the user */
     GPS_DRAFT_DETAILS: 'gpsDraftDetails',
 
+    /** Odometer draft stored for the Save for later flow */
+    ODOMETER_DRAFT: 'odometerDraft',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -509,6 +512,9 @@ const ONYXKEYS = {
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
+    /** Indicates whether the git branch name should be shown in the browser tab title */
+    SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
+
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
     IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
 
@@ -703,9 +709,6 @@ const ONYXKEYS = {
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
-    /** Keeps track of whether the "Confirm Navigate to Expensify Classic" modal is opened */
-    IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN: 'IsOpenConfirmNavigateExpensifyClassicModalOpen',
-
     /** The transaction IDs to be highlighted when opening the Expenses search route page */
     TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
 
@@ -780,6 +783,9 @@ const ONYXKEYS = {
         SNAPSHOT: 'snapshot_',
 
         // Shared NVPs
+        /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
+        SHARED_NVP_AGENT_PROMPT: 'sharedNVP_agentPrompt_',
+
         /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
         SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
 
@@ -1101,6 +1107,8 @@ const ONYXKEYS = {
         ADD_WORK_EMAIL_FORM_DRAFT: 'addWorkEmailFormDraft',
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
+        ADD_AGENT_FORM: 'addAgentForm',
+        ADD_AGENT_FORM_DRAFT: 'addAgentFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1246,6 +1254,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
+    [ONYXKEYS.FORMS.ADD_AGENT_FORM]: FormTypes.AddAgentForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1302,6 +1311,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
@@ -1347,6 +1357,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
+    [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -1480,6 +1491,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
+    [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];
@@ -1556,7 +1568,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
-    [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
 };

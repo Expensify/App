@@ -1,5 +1,6 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -635,6 +636,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The card transaction's posted date */
         posted?: string;
+
+        /** The withdrawal ID associated with the transaction */
+        withdrawalID?: string;
 
         /** The inserted time of the transaction */
         inserted?: string;

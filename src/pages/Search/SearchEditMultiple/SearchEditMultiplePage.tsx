@@ -8,11 +8,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
@@ -37,9 +38,11 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
@@ -171,6 +174,8 @@ function SearchEditMultiplePage() {
             allPolicies: policies,
             introSelected,
             betas,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
         });
         // Bulk edit can start from report (ID-based selection) or search (map-based selection),
         // so clear both stores to keep deselection behavior consistent.

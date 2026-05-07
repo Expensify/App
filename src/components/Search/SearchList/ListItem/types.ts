@@ -53,12 +53,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The report data */
     report?: Report;
 
-    /** The user wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
@@ -456,7 +450,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
     | 'showTooltip'
     | 'canSelectMultiple'
-    | 'onCheckboxPress'
+    | 'onSelectionButtonPress'
     | 'columns'
     | 'groupBy'
     | 'accountID'
