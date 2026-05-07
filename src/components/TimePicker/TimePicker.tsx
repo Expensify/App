@@ -688,7 +688,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 focusSecondInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [
             selectionMinute.start,
             selectionMinute.end,

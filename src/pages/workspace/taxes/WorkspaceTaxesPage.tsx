@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -249,7 +250,6 @@ function WorkspaceTaxesPage({
         }
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
@@ -464,11 +464,10 @@ function WorkspaceTaxesPage({
                     onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     shouldShowListEmptyContent={false}
-                    onCheckboxPress={toggleTax}
+                    onSelectionButtonPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
                     shouldHeaderBeInsideList

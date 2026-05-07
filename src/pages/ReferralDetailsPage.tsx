@@ -77,6 +77,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                     successIcon={icons.Checkmark}
                     successText={translate('qrCodes.copied')}
                     onPress={() => Clipboard.setString(referralLink)}
+                    shouldLimitWidth={false}
                 />
             )}
 
