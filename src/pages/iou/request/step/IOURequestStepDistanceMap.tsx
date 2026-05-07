@@ -107,6 +107,7 @@ function IOURequestStepDistanceMap({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -336,6 +337,7 @@ function IOURequestStepDistanceMap({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            reportDrafts,
         });
     }, [
         iouType,
@@ -373,6 +375,7 @@ function IOURequestStepDistanceMap({
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         conciergeReportID,
+        reportDrafts,
     ]);
 
     const getError = () => {

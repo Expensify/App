@@ -174,6 +174,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
 
@@ -344,6 +345,7 @@ function IOURequestStepDistance({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            reportDrafts,
         });
     }, [
         iouType,
@@ -381,6 +383,7 @@ function IOURequestStepDistance({
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         conciergeReportID,
+        reportDrafts,
     ]);
 
     const getError = () => {

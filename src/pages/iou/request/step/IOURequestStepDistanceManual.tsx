@@ -92,7 +92,7 @@ function IOURequestStepDistanceManual({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -234,6 +234,7 @@ function IOURequestStepDistanceManual({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            reportDrafts,
         });
     };
 

@@ -63,6 +63,7 @@ function useReceiptScan({
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -92,8 +93,8 @@ function useReceiptScan({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived],
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDrafts),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDrafts],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);

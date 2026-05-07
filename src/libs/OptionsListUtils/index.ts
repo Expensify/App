@@ -1203,7 +1203,7 @@ function getReportOption(
             }
         }
     }
-    option.isDisabled = isDraftReport(participant.reportID);
+    option.isDisabled = reportDrafts ? !!reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] : isDraftReport(participant.reportID);
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     option.brickRoadIndicator = null;

@@ -175,6 +175,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
+    reportDrafts?: OnyxCollection<Report>;
 };
 
 function createTransaction({
@@ -297,13 +298,14 @@ function getMoneyRequestParticipantOptions(
     conciergeReportID: string | undefined,
     privateIsArchived?: boolean,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    reportDrafts?: OnyxCollection<Report>,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDrafts);
     });
 }
 
@@ -601,6 +603,7 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
+    reportDrafts,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -623,7 +626,16 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, conciergeReportID, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            personalDetails,
+            conciergeReportID,
+            privateIsArchived,
+            reportAttributesDerived,
+            reportDrafts,
+        );
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
