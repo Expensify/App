@@ -5801,6 +5801,24 @@ function applySelectionToItem(
     return {originalItem: item, itemWithSelection: {...item, isSelected, transactions}, isSelected};
 }
 
+const FLEX_COLUMNS = new Set<string>([
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+    CONST.SEARCH.TABLE_COLUMNS.CARD,
+    CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+]);
+
+/**
+ * Returns true when another flex column exists that can fill the remaining space,
+ * making it safe to remove flex from total columns.
+ */
+function hasFlexColumn(columns?: SearchColumnType[]): boolean {
+    return !!columns?.some((col) => FLEX_COLUMNS.has(col));
+}
+
 export {
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
@@ -5880,6 +5898,7 @@ export {
     FILTER_LABEL_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
+    hasFlexColumn,
 };
 export type {
     SavedSearchMenuItem,
