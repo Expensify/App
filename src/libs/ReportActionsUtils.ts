@@ -3956,7 +3956,7 @@ function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category
     return category;
 }
 
-function spendRuleRestrictionVerb(translate: LocalizedTranslate, action: string): string {
+function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: string): string {
     if (action === CONST.SPEND_RULES.ACTION.BLOCK) {
         return translate('workspaceActions.expensifyCardRule.restrictionVerb.block');
     }
@@ -3982,14 +3982,9 @@ function spendRuleFormatAmountValue(amount: {value?: unknown}, currency: string)
     return convertToShortDisplayString(spendRuleAmountToCents(amount?.value), currency);
 }
 
-function spendRuleAmountKey(amount: {operator?: unknown; value?: unknown}): string {
-    const operator = typeof amount?.operator === 'string' ? amount.operator : '';
-    return `${operator}:${spendRuleAmountToCents(amount?.value)}`;
-}
-
 type SpendRuleStringDiff = {added: string[]; removed: string[]};
 
-function spendRuleStringDiff(oldValues: readonly string[], newValues: readonly string[]): SpendRuleStringDiff {
+function computeSpendRuleStringDiff(oldValues: string[], newValues: string[]): SpendRuleStringDiff {
     const oldSet = Array.from(new Set(oldValues));
     const newSet = Array.from(new Set(newValues));
     const added = newSet.filter((value) => !oldSet.includes(value)).sort();
@@ -4000,28 +3995,19 @@ function spendRuleStringDiff(oldValues: readonly string[], newValues: readonly s
 type SpendRuleAmount = {operator?: unknown; value?: unknown};
 type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]};
 
-function spendRuleAmountDiff(oldAmounts: readonly SpendRuleAmount[], newAmounts: readonly SpendRuleAmount[]): SpendRuleAmountDiff {
-    const oldByKey = new Map<string, SpendRuleAmount>();
-    for (const amount of oldAmounts) {
-        oldByKey.set(spendRuleAmountKey(amount), amount);
+function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: SpendRuleAmount[]): SpendRuleAmountDiff {
+    const oldAmount = oldAmounts.at(0);
+    const newAmount = newAmounts.at(0);
+    const sameAmount =
+        oldAmount?.operator === newAmount?.operator &&
+        spendRuleAmountToCents(oldAmount?.value) === spendRuleAmountToCents(newAmount?.value);
+    if (sameAmount) {
+        return {added: [], removed: []};
     }
-    const newByKey = new Map<string, SpendRuleAmount>();
-    for (const amount of newAmounts) {
-        newByKey.set(spendRuleAmountKey(amount), amount);
-    }
-    const added: SpendRuleAmount[] = [];
-    for (const [key, amount] of newByKey) {
-        if (!oldByKey.has(key)) {
-            added.push(amount);
-        }
-    }
-    const removed: SpendRuleAmount[] = [];
-    for (const [key, amount] of oldByKey) {
-        if (!newByKey.has(key)) {
-            removed.push(amount);
-        }
-    }
-    return {added, removed};
+    return {
+        added: newAmount ? [newAmount] : [],
+        removed: oldAmount ? [oldAmount] : [],
+    };
 }
 
 type SpendRuleCard = {cardID?: number | string; displayName?: string};
@@ -4038,7 +4024,7 @@ function spendRuleCardID(card: SpendRuleCard): number | undefined {
     return undefined;
 }
 
-function spendRuleCardDiff(oldCards: readonly SpendRuleCard[], newCards: readonly SpendRuleCard[]): SpendRuleCardDiff {
+function computeSpendRuleCardDiff(oldCards: SpendRuleCard[], newCards: SpendRuleCard[]): SpendRuleCardDiff {
     const oldByID = new Map<number, SpendRuleCard>();
     for (const card of oldCards) {
         const id = spendRuleCardID(card);
@@ -4161,24 +4147,24 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
         return '';
     }
     const message = getOriginalMessage(reportAction) ?? {};
-    const oldAction = typeof message?.oldAction === 'string' ? message.oldAction : '';
-    const newAction = typeof message?.action === 'string' ? message.action : '';
+    const oldAction = message.oldAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
+    const newAction = message.action ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const actionChanged = oldAction !== '' && oldAction !== newAction;
-    const currency = typeof message?.currency === 'string' && message.currency !== '' ? message.currency : CONST.CURRENCY.USD;
+    const currency = message.currency ?? CONST.CURRENCY.USD;
 
-    const oldMerchants = (message?.oldMerchants ?? []).filter((value) => value !== '');
-    const newMerchants = (message?.merchants ?? []).filter((value) => value !== '');
-    const oldCategories = (message?.oldCategories ?? []).filter((value) => value !== '');
-    const newCategories = (message?.categories ?? []).filter((value) => value !== '');
-    const oldAmounts = message?.oldAmounts ?? [];
-    const newAmounts = message?.amounts ?? [];
-    const oldCards = message?.oldCards ?? [];
-    const newCards = message?.cards ?? [];
+    const oldMerchants = message.oldMerchants ?? [];
+    const newMerchants = message.merchants ?? [];
+    const oldCategories = message.oldCategories ?? [];
+    const newCategories = message.categories ?? [];
+    const oldAmounts = message.oldAmounts ?? [];
+    const newAmounts = message.amounts ?? [];
+    const oldCards = message.oldCards ?? [];
+    const newCards = message.cards ?? [];
 
-    const merchantDiff = spendRuleStringDiff(oldMerchants, newMerchants);
-    const categoryDiff = spendRuleStringDiff(oldCategories, newCategories);
-    const amountDiff = spendRuleAmountDiff(oldAmounts, newAmounts);
-    const cardDiff = spendRuleCardDiff(oldCards, newCards);
+    const merchantDiff = computeSpendRuleStringDiff(oldMerchants, newMerchants);
+    const categoryDiff = computeSpendRuleStringDiff(oldCategories, newCategories);
+    const amountDiff = computeSpendRuleAmountDiff(oldAmounts, newAmounts);
+    const cardDiff = computeSpendRuleCardDiff(oldCards, newCards);
 
     const merchantsChanged = merchantDiff.added.length > 0 || merchantDiff.removed.length > 0;
     const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
@@ -4190,8 +4176,8 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
 
     if (actionChanged && filtersAndCardsUnchanged) {
         return translate('workspaceActions.expensifyCardRule.update.modeChange', {
-            fromMode: spendRuleRestrictionVerb(translate, oldAction),
-            toMode: spendRuleRestrictionVerb(translate, newAction),
+            fromAction: getSpendRuleRestrictionVerb(translate, oldAction),
+            toAction: getSpendRuleRestrictionVerb(translate, newAction),
             cards: newCardsSummary,
         });
     }

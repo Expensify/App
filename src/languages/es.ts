@@ -7167,8 +7167,8 @@ ${amount} para ${merchant} - ${date}`,
                 allow: 'solo permitir',
             },
             update: {
-                modeChange: ({fromMode, toMode, cards}) =>
-                    cards !== '' ? `cambió la regla de gasto de ${fromMode} a ${toMode} en ${cards}` : `cambió la regla de gasto de ${fromMode} a ${toMode}`,
+                modeChange: ({fromAction, toAction, cards}) =>
+                    cards !== '' ? `cambió la regla de gasto de ${fromAction} a ${toAction} en ${cards}` : `cambió la regla de gasto de ${fromAction} a ${toAction}`,
                 appliedToAdditionalCards: ({count}) => `aplicó la regla de gasto a ${count} tarjetas adicionales`,
                 phraseVerb: {
                     added: 'agregó',

@@ -7314,8 +7314,8 @@ const translations = {
                 allow: 'only allow',
             },
             update: {
-                modeChange: ({fromMode, toMode, cards}: {fromMode: string; toMode: string; cards: string}) =>
-                    cards !== '' ? `changed spend rule from ${fromMode} to ${toMode} on ${cards}` : `changed spend rule from ${fromMode} to ${toMode}`,
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    cards !== '' ? `changed spend rule from ${fromAction} to ${toAction} on ${cards}` : `changed spend rule from ${fromAction} to ${toAction}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `applied spend rule to ${count} additional cards`,
                 phraseVerb: {
                     added: 'added',
