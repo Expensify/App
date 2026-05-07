@@ -61,19 +61,15 @@ import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
-function buildPolicyTagListByReportID({
-    splitExpenses,
+function getExpenseReportChatContext({
     allReportsList,
     expenseReport,
     currentUserPersonalDetails,
-    allPolicyTagsList,
 }: {
-    splitExpenses: SplitExpense[];
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
-    allPolicyTagsList: OnyxCollection<OnyxTypes.PolicyTagLists>;
-}): Record<string, OnyxTypes.PolicyTagLists> {
+}) {
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
     const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const fallbackPolicyParticipant =
@@ -103,6 +99,23 @@ function buildPolicyTagListByReportID({
         } as OnyxTypes.Report;
     }
 
+    return {chatReport, participants, fallbackPolicyParentChatReport};
+}
+
+function buildPolicyTagListByReportID({
+    splitExpenses,
+    allReportsList,
+    expenseReport,
+    currentUserPersonalDetails,
+    allPolicyTagsList,
+}: {
+    splitExpenses: SplitExpense[];
+    allReportsList: OnyxCollection<OnyxTypes.Report>;
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    allPolicyTagsList: OnyxCollection<OnyxTypes.PolicyTagLists>;
+}): Record<string, OnyxTypes.PolicyTagLists> {
+    const {fallbackPolicyParentChatReport, participants} = getExpenseReportChatContext({allReportsList, expenseReport, currentUserPersonalDetails});
     return splitExpenses.reduce<Record<string, OnyxTypes.PolicyTagLists>>((acc, splitExpense) => {
         if (!splitExpense.reportID) {
             return acc;
@@ -176,37 +189,15 @@ function updateSplitTransactions({
     isOffline,
     policyTagListByReportID,
 }: UpdateSplitTransactionsParams) {
-    const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
-    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
+    const {chatReport, fallbackPolicyParentChatReport, participants} = getExpenseReportChatContext({
+        allReportsList,
+        expenseReport,
+        currentUserPersonalDetails,
+    });
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
-    // Delegate split edit can reach this flow without the workspace expense chat in Onyx.
-    const fallbackPolicyParticipant =
-        autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
-            ? {
-                  accountID: 0,
-                  reportID: expenseReport.chatReportID,
-                  isPolicyExpenseChat: true,
-                  selected: true,
-                  policyID: expenseReport.policyID,
-              }
-            : undefined;
-    const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
-    let fallbackPolicyParentChatReport = expenseReportParentChat;
-    if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
-        fallbackPolicyParentChatReport = chatReport;
-    }
-    if (!fallbackPolicyParentChatReport && fallbackPolicyParticipant) {
-        fallbackPolicyParentChatReport = {
-            reportID: fallbackPolicyParticipant.reportID,
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID: fallbackPolicyParticipant.policyID,
-            ownerAccountID: expenseReport?.ownerAccountID,
-        } as OnyxTypes.Report;
-    }
+
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
