@@ -1,7 +1,21 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import getFocusedLeafScreenName from './getFocusedLeafScreenName';
+
+/**
+ * Leaf screen names that represent the root/landing view of each tab.
+ * Used to decide tab-bar visibility.
+ */
+const SCREENS_WITH_TAB_BAR = new Set<string>([
+    SCREENS.HOME,
+    SCREENS.INBOX,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.WORKSPACE.INITIAL,
+    SCREENS.DOMAIN.INITIAL,
+]);
 
 // Count as tab-root when they surface as the resolved leaf.
 const TAB_WRAPPER_NAVIGATORS = new Set<string>([
@@ -11,7 +25,7 @@ const TAB_WRAPPER_NAVIGATORS = new Set<string>([
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ]);
 
-const isAtTabRootLevel = (name: string | undefined): boolean => !name || ROOT_TAB_SCREENS.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
+const isAtTabRootLevel = (name: string | undefined): boolean => !name || SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
 
 // Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
 const getPushTargetLeaf = (params: unknown): string | undefined => {
