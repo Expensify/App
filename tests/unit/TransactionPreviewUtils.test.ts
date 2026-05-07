@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
     createTransactionPreviewConditionals,
@@ -49,6 +49,7 @@ const basicProps = {
     currentUserEmail: '',
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
     reportViolations: undefined,
+    convertToDisplayString,
 };
 
 describe('TransactionPreviewUtils', () => {

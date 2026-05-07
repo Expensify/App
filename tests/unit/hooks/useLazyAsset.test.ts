@@ -33,7 +33,6 @@ jest.mock('@hooks/useLazyAsset', () => {
     const actual = jest.requireActual('@hooks/useLazyAsset');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
 
         ...actual,

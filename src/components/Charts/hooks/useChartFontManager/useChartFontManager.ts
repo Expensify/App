@@ -6,7 +6,6 @@ function webFont(url: string): DataModule {
     // a DataModule (i.e. the result of a dynamic `require()` call), which always has the shape
     // `{ __esModule: true, default: <url> }`. The `__esModule` property uses a double-underscore prefix
     // that violates the naming-convention rule, but it is mandated by the library's internal contract.
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     return {__esModule: true, default: url} as unknown as DataModule;
 }
 
