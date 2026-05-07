@@ -7,8 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
-// eslint-disable-next-line import/no-cycle
-import {validateAndApplyDeferredUpdates} from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let missingOnyxUpdatesQueryPromise: Promise<Response<any> | Array<Response<any>> | void> | undefined;
@@ -57,17 +55,6 @@ function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
  */
 function isEmpty() {
     return Object.keys(deferredUpdates).length === 0;
-}
-
-/**
- * Manually processes and applies the updates from the deferred updates queue. (used e.g. for push notifications)
- */
-function process() {
-    if (missingOnyxUpdatesQueryPromise) {
-        missingOnyxUpdatesQueryPromise.finally(() => validateAndApplyDeferredUpdates);
-    }
-
-    missingOnyxUpdatesQueryPromise = validateAndApplyDeferredUpdates();
 }
 
 type EnqueueDeferredOnyxUpdatesOptions = {
@@ -129,4 +116,4 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, clear};
+export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, enqueue, clear};

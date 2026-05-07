@@ -49,7 +49,7 @@ function NetSuiteImportCustomFieldView({
 
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldList =

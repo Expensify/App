@@ -1,12 +1,8 @@
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-// eslint-disable-next-line no-restricted-syntax
-import * as lastVisitedTabPathUtils from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
-// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -14,19 +10,23 @@ import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/Navigation/navigationRef');
 jest.mock('@libs/Navigation/Navigation');
-jest.mock('@libs/Navigation/helpers/lastVisitedTabPathUtils');
 jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState');
 jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/interceptAnonymousUser');
+jest.mock('@libs/Navigation/helpers/getPathFromState', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+const mockedGetPathFromState = getPathFromState as jest.MockedFunction<typeof getPathFromState>;
 
 const fakePolicyID = '344559B2CCF2B6C1';
 const mockPolicy = {...createRandomPolicy(0), id: fakePolicyID};
-const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy};
+const baseParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy};
 
 describe('navigateToWorkspacesPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        (navigationRef.isReady as jest.Mock).mockReturnValue(true);
     });
 
     function mockIntercept() {
@@ -34,155 +34,158 @@ describe('navigateToWorkspacesPage', () => {
             callback();
         });
     }
-    it('does nothing if no full screen route', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({routes: []});
-        navigateToWorkspacesPage(mockParams);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
-    });
-
-    it('calls goBack if top route is WORKSPACE_SPLIT_NAVIGATOR', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}],
+    it('calls goBack if WORKSPACE_NAVIGATOR is topmost and a split navigator is inside', () => {
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    index: 4,
+                    routes: [
+                        {name: 'Home'},
+                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                    ],
+                },
+            },
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
         });
-        navigateToWorkspacesPage(mockParams);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
     it('navigates to WORKSPACES_LIST if no valid workspace route exists', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
-        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
         mockIntercept();
-        navigateToWorkspacesPage(mockParams);
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: undefined,
+        });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
-    it('dispatches OPEN_WORKSPACE_SPLIT if valid policy and screen exist', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
+    it('navigates to the workspace initial URL when no workspacesTabState is provided', () => {
+        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
+        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+
+        mockIntercept();
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, key: 'someKey'},
         });
 
-        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
+        expect(mockedGetPathFromState).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_INITIAL.getRoute(fakePolicyID));
+    });
+
+    it('navigates to the URL produced by getPathFromState when workspacesTabState is provided on wide layouts', () => {
+        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
+        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+        const restoredPath = `/workspaces/${fakePolicyID}/workflows` as const;
+        mockedGetPathFromState.mockReturnValue(restoredPath);
+
+        mockIntercept();
+        const workspacesTabState = {
+            index: 1,
+            routes: [
+                {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
+                {name: SCREENS.WORKSPACE.WORKFLOWS, params: {policyID: fakePolicyID}},
+            ],
+        };
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, key: 'someKey'},
+            workspacesTabState,
+        });
+
+        // Wrapped with the full TAB_NAVIGATOR > WORKSPACE_NAVIGATOR > WORKSPACE_SPLIT_NAVIGATOR ancestor chain
+        // so getPathFromState can match the linking-config hierarchy.
+        expect(mockedGetPathFromState).toHaveBeenCalledWith({
             routes: [
                 {
-                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    name: NAVIGATORS.TAB_NAVIGATOR,
                     state: {
                         routes: [
                             {
-                                name: SCREENS.WORKSPACE.INITIAL,
-                                params: {policyID: fakePolicyID},
+                                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                state: {
+                                    routes: [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: workspacesTabState}],
+                                    index: 0,
+                                },
                             },
                         ],
+                        index: 0,
                     },
-                    key: 'someKey',
                 },
             ],
+            index: 0,
         });
+        expect(Navigation.navigate).toHaveBeenCalledWith(restoredPath);
+    });
 
+    it('falls back to the workspace initial URL on narrow layouts even when workspacesTabState is provided', () => {
         (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
         (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
-        (lastVisitedTabPathUtils.getLastVisitedWorkspaceTabScreen as jest.Mock).mockReturnValue('Workspace_Overview');
 
         mockIntercept();
-        navigateToWorkspacesPage(mockParams);
-
-        const dispatch = jest.spyOn(navigationRef, 'dispatch');
-        expect(dispatch).toHaveBeenCalledWith({
-            type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
-            payload: {policyID: fakePolicyID, screenName: 'Workspace_Overview'},
+        navigateToWorkspacesPage({
+            ...baseParams,
+            shouldUseNarrowLayout: true,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, key: 'someKey'},
+            workspacesTabState: {
+                index: 1,
+                routes: [
+                    {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
+                    {name: SCREENS.WORKSPACE.WORKFLOWS, params: {policyID: fakePolicyID}},
+                ],
+            },
         });
+
+        expect(mockedGetPathFromState).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_INITIAL.getRoute(fakePolicyID));
     });
 
     it('navigates to WORKSPACES_LIST if policy is pending delete', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
-        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: SCREENS.WORKSPACE.INITIAL,
-                                params: {policyID: fakePolicyID},
-                            },
-                        ],
-                    },
-                },
-            ],
-        });
-
         (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
         (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(true);
 
         mockIntercept();
-        navigateToWorkspacesPage(mockParams);
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
+        });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
     it('navigates to WORKSPACES_LIST if shouldShowPolicy is false for the user', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
-        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: SCREENS.WORKSPACE.INITIAL,
-                                params: {policyID: fakePolicyID},
-                            },
-                        ],
-                    },
-                },
-            ],
-        });
-
         (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(false);
         (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
 
         mockIntercept();
-        navigateToWorkspacesPage(mockParams);
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
+        });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
     it('navigates to WORKSPACES_LIST if policyID is missing', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
-        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: SCREENS.WORKSPACE.INITIAL,
-                                params: {},
-                            },
-                        ],
-                    },
-                },
-            ],
-        });
-
         mockIntercept();
-        navigateToWorkspacesPage(mockParams);
+        navigateToWorkspacesPage({
+            ...baseParams,
+            policy: undefined,
+            topmostFullScreenRoute: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
+        });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });

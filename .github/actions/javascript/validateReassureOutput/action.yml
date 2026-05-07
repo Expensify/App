@@ -8,5 +8,5 @@ inputs:
     description: Allowable deviation for the mean count in regression test results.
     required: true
 runs:
-  using: 'node20'
+  using: 'node24'
   main: './index.js'

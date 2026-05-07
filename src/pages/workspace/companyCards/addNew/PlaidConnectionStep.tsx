@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
@@ -13,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
@@ -27,23 +29,20 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({
-    feed,
-    policyID,
-    onExit,
-    isRefreshConnectionFlow,
-}: {
+type PlaidConnectionStepProps = {
     feed?: CompanyCardFeedWithDomainID;
     policyID?: string;
     onExit?: () => void;
-    isRefreshConnectionFlow?: boolean;
-}) {
+    title?: string;
+};
+
+function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
@@ -124,6 +123,7 @@ function PlaidConnectionStep({
             return (
                 <PlaidLink
                     token={plaidLinkToken}
+                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     onSuccess={({publicToken, metadata}) => {
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
@@ -142,11 +142,8 @@ function PlaidConnectionStep({
                                     addNewCard.data.selectedCountry,
                                     getDomainNameForPolicy(policyID),
                                     JSON.stringify(metadata?.accounts),
-                                    addNewCard.data.statementPeriodEnd,
-                                    addNewCard.data.statementPeriodEndDay,
                                     '',
                                 );
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
                                         cardToAssign: {
@@ -173,7 +170,7 @@ function PlaidConnectionStep({
                         }
 
                         setAddNewCompanyCardStepAndData({
-                            step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE,
+                            step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
                                 plaidConnectedFeed,
@@ -191,7 +188,7 @@ function PlaidConnectionStep({
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
                     onExit={() => {
                         onExit?.();
                         handleBackButtonPress();
@@ -228,7 +225,7 @@ function PlaidConnectionStep({
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.addCards')}
+                title={title ?? translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             {isPlaidDisabled ? (

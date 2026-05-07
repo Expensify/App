@@ -22,7 +22,7 @@ type OptionData = {
     isDisabled?: boolean | null;
     reportID?: string;
     icons?: Icon[];
-    private_isArchived?: string;
+    private_isArchived?: boolean;
     lastVisibleActionCreated?: string;
 };
 
@@ -66,6 +66,6 @@ type Options = {
     userToInvite: OptionData | null;
 };
 
-type PrivateIsArchivedMap = Record<string, string | undefined>;
+type PrivateIsArchivedMap = Record<string, boolean>;
 
 export type {OptionData, GetOptionsConfig, GetUserToInviteConfig, Options, PreviewConfig, PrivateIsArchivedMap};

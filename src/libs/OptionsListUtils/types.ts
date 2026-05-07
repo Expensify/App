@@ -10,6 +10,7 @@ import type {
     PersonalDetailsList,
     PolicyTagLists,
     Report,
+    ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
     TransactionViolation,
@@ -210,7 +211,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
+    excludeHidden?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
     searchInputValue?: string;
@@ -221,6 +222,7 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -239,7 +241,6 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
-    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
@@ -97,6 +98,23 @@ type NumberWithSymbolFormProps = {
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
+
+    /** Whether to show the flip (+/-) button */
+    shouldShowFlipButton?: boolean;
+
+    /** Whether to show the currency selection button */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Callback when currency button is pressed */
+    onCurrencyButtonPress?: () => void;
+
+    /**
+     * Label on the trailing dropdown button (e.g. currency code). When set, used instead of `currency` so the same control can show a unit or other suffix.
+     */
+    currencyButtonLabel?: string;
+
+    /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
+    currencyButtonAccessibilityLabel?: string;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -161,9 +179,15 @@ function NumberWithSymbolForm({
     ref,
     disabled,
     onSubmitEditing,
+    shouldShowFlipButton = false,
+    shouldShowCurrencyButton = false,
+    onCurrencyButtonPress,
+    currencyButtonLabel,
+    currencyButtonAccessibilityLabel,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -186,6 +210,9 @@ function NumberWithSymbolForm({
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
+
+    const currencyOrUnitButtonText = currencyButtonLabel ?? currency;
+    const onTrailingDropdownPress = onCurrencyButtonPress ?? onSymbolButtonPress;
 
     const {setMouseDown, setMouseUp} = useMouseActions();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -388,6 +415,64 @@ function NumberWithSymbolForm({
         return StyleUtils.getAmountInputFontSize(totalLength);
     }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
 
+    /**
+     * Handles pressing the flip button (+/-) to toggle negative sign
+     * Only available in displayAsTextInput mode for manual expense flow
+     */
+    const handleFlipPress = useCallback(() => {
+        // Toggle the minus sign prefix in the value
+        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        setCurrentNumber(newValue);
+        onInputChange?.(newValue);
+    }, [currentNumber, onInputChange]);
+
+    /**
+     * Creates the right-hand side component for text input mode
+     * Renders flip (+/-) button and/or currency selection button when enabled
+     * Only shown when clear button is not visible (see TextInput conditional rendering)
+     */
+    const textInputRightHandSideComponent = useMemo(() => {
+        return (
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
+                    <Button
+                        small
+                        icon={icons.PlusMinus}
+                        onPress={handleFlipPress}
+                        onMouseDown={(e) => e.preventDefault()}
+                        isContentCentered
+                        accessibilityLabel={translate('iou.flip')}
+                        isDisabled={disabled}
+                    />
+                )}
+                {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={icons.DownArrow}
+                        onPress={onTrailingDropdownPress}
+                        isContentCentered
+                        text={currencyOrUnitButtonText}
+                        accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
+                        isDisabled={disabled}
+                    />
+                )}
+            </View>
+        );
+    }, [
+        shouldShowFlipButton,
+        allowNegativeInput,
+        disabled,
+        shouldShowCurrencyButton,
+        styles,
+        icons,
+        handleFlipPress,
+        onTrailingDropdownPress,
+        currencyOrUnitButtonText,
+        currencyButtonAccessibilityLabel,
+        translate,
+    ]);
+
     if (displayAsTextInput) {
         return (
             <TextInput
@@ -402,9 +487,10 @@ function NumberWithSymbolForm({
                         // eslint-disable-next-line no-param-reassign
                         ref.current = newRef;
                     }
+                    textInput.current = newRef;
                 }}
                 disabled={disabled}
-                prefixCharacter={symbol}
+                prefixCharacter={hideSymbol ? '' : symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
@@ -418,6 +504,7 @@ function NumberWithSymbolForm({
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
     }
@@ -486,8 +573,74 @@ function NumberWithSymbolForm({
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
             keyboardType={props.keyboardType}
+            shouldAllowFocusInLandscapeMode
         />
     );
+
+    if (isInLandscapeMode) {
+        return (
+            <>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
+                    style={[styles.flex1, styles.ph5]}
+                >
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.numberWithSymbolFormInputContainerLandscape]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
+                            {isSymbolPressable && (
+                                <Button
+                                    shouldShowRightIcon
+                                    small
+                                    iconRight={icons.DownArrow}
+                                    onPress={onSymbolButtonPress}
+                                    style={styles.minWidth18}
+                                    isContentCentered
+                                    text={currency}
+                                    accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                                />
+                            )}
+                            {allowFlippingAmount && (
+                                <Button
+                                    shouldShowRightIcon
+                                    small
+                                    iconRight={icons.PlusMinus}
+                                    onPress={toggleNegative}
+                                    style={styles.minWidth18}
+                                    isContentCentered
+                                    text={translate('iou.flip')}
+                                    accessibilityLabel={translate('iou.flip')}
+                                />
+                            )}
+                        </View>
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
+                    </View>
+
+                    {shouldShowBigNumberPad ? (
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            id={NUM_PAD_CONTAINER_VIEW_ID}
+                        >
+                            {shouldShowBigNumberPad ? (
+                                <BigNumberPad
+                                    id={NUM_PAD_VIEW_ID}
+                                    numberPressed={updateValueNumberPad}
+                                    longPressHandlerStateChanged={updateLongPressHandlerState}
+                                />
+                            ) : null}
+                        </View>
+                    ) : null}
+                </ScrollView>
+
+                {!!footer && <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}>{footer}</View>}
+            </>
+        );
+    }
 
     return (
         <ScrollView

@@ -19,8 +19,10 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
+import BankLock from '@assets/images/bank-lock.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
+import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -28,6 +30,7 @@ import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
+import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
@@ -35,6 +38,7 @@ import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
+import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
@@ -81,6 +85,7 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -127,6 +132,7 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -180,6 +186,7 @@ import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
+import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
@@ -220,6 +227,7 @@ import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
+import TablePencil from '@assets/images/table-pencil.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -227,6 +235,7 @@ import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
@@ -270,6 +279,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    BankLock,
     Basket,
     CircularArrowBackwards,
     Bill,
@@ -277,6 +287,7 @@ const Expensicons = {
     Bell,
     Binoculars,
     Bolt,
+    Bot,
     Box,
     Bug,
     Building,
@@ -320,6 +331,7 @@ const Expensicons = {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     EmptyStateRoutePending,
     ExpenseCopy,
     Exclamation,
@@ -449,6 +461,7 @@ const Expensicons = {
     Workflows,
     Workspace,
     XeroSquare,
+    GustoSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -463,7 +476,10 @@ const Expensicons = {
     ChatBubbleCounter,
     Lightbulb,
     Plane,
+    PlaneCircleSlash,
     Bed,
+    BedCircleSlash,
+    CarCircleSlash,
     CarWithKey,
     Clear,
     CheckCircle,
@@ -482,6 +498,7 @@ const Expensicons = {
     UserPlus,
     Feed,
     Table,
+    TablePencil,
     SpreadsheetComputer,
     Bookmark,
     Sparkles,
@@ -489,6 +506,7 @@ const Expensicons = {
     QBDSquare,
     GalleryNotFound,
     Train,
+    TrainCircleSlash,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import Icon from '@components/Icon';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
-import {CreditCardExclamation} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -34,7 +33,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody']);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody', 'CreditCardExclamation']);
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1);
     const transactionPreviewWidth = reportPreviewStyles.transactionPreviewStandaloneStyle.width;
@@ -72,7 +71,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         primaryColor: colorStyles?.backgroundColor,
         secondaryColor: colorStyles?.color,
         titleColor: colorStyles?.titleColor,
-        MCCIcon: CreditCardExclamation,
+        MCCIcon: icons.CreditCardExclamation,
         backgroundImage: eReceiptBGs.EReceiptBG_Green,
         titleText: translate('multifactorAuthentication.reviewTransaction.attemptedTransaction'),
     };

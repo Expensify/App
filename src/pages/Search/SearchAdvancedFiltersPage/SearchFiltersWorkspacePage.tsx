@@ -120,7 +120,6 @@ function SearchFiltersWorkspacePage() {
                             onSelectRow={selectWorkspace}
                             textInputOptions={textInputOptions}
                             canSelectMultiple
-                            shouldUseDefaultRightHandSideCheckmark
                             shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             footerContent={

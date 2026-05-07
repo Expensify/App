@@ -16,16 +16,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isUsingStagingApi} from '@libs/ApiUtils';
 import {getCardFeedIcon, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
 import {clearCardErrorField, syncCard, unassignCard} from '@userActions/Card';
-import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +39,7 @@ type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
@@ -57,7 +56,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const cardBank = card?.bank ?? '';
     const isCardBroken = card ? isCardConnectionBroken(card) : false;
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const displayName = getDisplayNameOrDefault(cardholder);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
@@ -86,10 +84,10 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         syncCard(card.cardID, card.lastScrapeResult, true);
     };
 
-    // Show "Break connection" option only for Mock Bank cards when the backend API is non-production
+    // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = cardBank.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isNonProductionBackend = CONFIG.EXPENSIFY.EXPENSIFY_URL.includes('.dev') || CONFIG.EXPENSIFY.EXPENSIFY_URL.includes('staging') || !!shouldUseStagingServer;
-    const shouldShowBreakConnection = isMockBank && isNonProductionBackend;
+    const isUsingNonProductionAPI = shouldUseStagingServer || CONFIG.IS_USING_LOCAL_WEB;
+    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = card?.lastScrape
         ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
@@ -149,7 +147,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             />
                             <Button
                                 text={translate('personalCard.fixCard')}
-                                onPress={() => openOldDotLink(CONST.OLDDOT_URLS.SETTINGS_WALLET_URL)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(cardID))}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 style={styles.mb0}
                             />
@@ -161,7 +159,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         card={card}
                         cardID={cardID}
                         cardholder={cardholder}
-                        displayName={displayName}
                         customCardNames={customCardNames}
                         expensifyIcons={expensifyIcons}
                         isCSVImportedPersonalCard={isCSVImportedPersonalCard}

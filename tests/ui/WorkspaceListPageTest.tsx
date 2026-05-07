@@ -6,13 +6,13 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const Stack = createPlatformStackNavigator<AuthScreensParamList>();
+const Stack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACES_LIST = SCREENS.WORKSPACES_LIST) => {
     return render(
