@@ -1,5 +1,4 @@
-import {useEffect} from 'react';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
 
 type CarouselActionsProps = {
@@ -8,40 +7,29 @@ type CarouselActionsProps = {
 };
 
 function CarouselActions({onCycleThroughAttachments}: CarouselActionsProps) {
-    useEffect(() => {
-        const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
-        const unsubscribeLeftKey = KeyboardShortcut.subscribe(
-            shortcutLeftConfig.shortcutKey,
-            (event) => {
-                if (event?.target instanceof HTMLElement) {
-                    // prevents focus from highlighting around the modal
-                    event.target.blur();
-                }
-                onCycleThroughAttachments(-1);
-            },
-            shortcutLeftConfig.descriptionKey,
-            shortcutLeftConfig.modifiers,
-        );
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
+        (event) => {
+            if (event?.target instanceof HTMLElement) {
+                // prevents focus from highlighting around the modal
+                event.target.blur();
+            }
+            onCycleThroughAttachments(-1);
+        },
+        {captureOnInputs: false},
+    );
 
-        const shortcutRightConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT;
-        const unsubscribeRightKey = KeyboardShortcut.subscribe(
-            shortcutRightConfig.shortcutKey,
-            (event) => {
-                if (event?.target instanceof HTMLElement) {
-                    // prevents focus from highlighting around the modal
-                    event.target.blur();
-                }
-                onCycleThroughAttachments(1);
-            },
-            shortcutRightConfig.descriptionKey,
-            shortcutRightConfig.modifiers,
-        );
-
-        return () => {
-            unsubscribeLeftKey();
-            unsubscribeRightKey();
-        };
-    }, [onCycleThroughAttachments]);
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
+        (event) => {
+            if (event?.target instanceof HTMLElement) {
+                // prevents focus from highlighting around the modal
+                event.target.blur();
+            }
+            onCycleThroughAttachments(1);
+        },
+        {captureOnInputs: false},
+    );
 
     return null;
 }

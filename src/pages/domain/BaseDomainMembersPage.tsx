@@ -292,10 +292,10 @@ function BaseDomainMembersPage({
                     showScrollIndicator={false}
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
-                    customListHeaderContent={listHeaderContent}
                     canSelectMultiple={canSelectMultiple}
+                    customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
-                    onCheckboxPress={toggleUser}
+                    onSelectionButtonPress={toggleUser}
                     selectedItems={selectedMembers}
                     turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
                     onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}

@@ -9,17 +9,19 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-import {getAddExpenseDropdownOptions, getReportTransactions} from '@libs/ReportUtils';
+import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU';
+import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ApproveActionButton from './ApproveActionButton';
 import PayActionButton from './PayActionButton';
@@ -37,7 +39,6 @@ type ReportPreviewActionButtonProps = {
     startSubmittingAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onNonReimbursablePaymentError?: () => void;
     openReportFromPreview: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     transactionPreviewCarouselWidth: number;
@@ -55,7 +56,6 @@ function ReportPreviewActionButton({
     startSubmittingAnimation,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    onNonReimbursablePaymentError,
     openReportFromPreview,
     onHoldMenuOpen,
     transactionPreviewCarouselWidth,
@@ -72,7 +72,10 @@ function ReportPreviewActionButton({
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const {isOffline} = useNetwork();
-    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
+        (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReportID);
@@ -90,8 +93,32 @@ function ReportPreviewActionButton({
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidIOUActions(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserDetails.login ?? '',
+        currentUserDetails.accountID,
+        transactions,
+        false,
+        undefined,
+        invoiceReceiverPolicy,
+    );
+    const onlyShowPayElsewhere =
+        !canIOUBePaid &&
+        canIOUBePaidIOUActions(
+            iouReport,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserDetails.accountID,
+            transactions,
+            true,
+            undefined,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const buttonMaxWidth =
@@ -151,7 +178,6 @@ function ReportPreviewActionButton({
                     onPaymentOptionsShow={onPaymentOptionsShow}
                     onPaymentOptionsHide={onPaymentOptionsHide}
                     onHoldMenuOpen={onHoldMenuOpen}
-                    onNonReimbursablePaymentError={onNonReimbursablePaymentError}
                     buttonMaxWidth={buttonMaxWidth}
                     reportPreviewAction={reportPreviewAction}
                 />

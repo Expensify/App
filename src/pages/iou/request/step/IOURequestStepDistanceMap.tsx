@@ -15,6 +15,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,13 +25,15 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaypointItems from '@hooks/useWaypointItems';
-import {setMoneyRequestAmount, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestAmount} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction, setSplitShares} from '@libs/actions/IOU/Split';
+import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
 import {openReport} from '@libs/actions/Report';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
@@ -41,7 +44,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, hasRoute, isCustomUnitRateIDForP2P, isWaypointNullIsland} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,12 +78,12 @@ function IOURequestStepDistanceMap({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceMapProps) {
     const styles = useThemeStyles();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
@@ -103,6 +106,7 @@ function IOURequestStepDistanceMap({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -164,12 +168,11 @@ function IOURequestStepDistanceMap({
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -185,8 +188,7 @@ function IOURequestStepDistanceMap({
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                : (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = getDistanceInMeters(transaction, unit);
@@ -301,13 +303,13 @@ function IOURequestStepDistanceMap({
             iouType,
             report,
             policy,
+            policyForMovingExpenses,
             transaction,
             reportID,
             transactionID,
             reportAttributesDerived,
             personalDetails,
             waypoints,
-            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backTo,
@@ -324,10 +326,8 @@ function IOURequestStepDistanceMap({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
+            privateIsArchived: isArchived,
             selfDMReport,
-            policyForMovingExpenses,
             betas,
             recentWaypoints,
             draftTransactionIDs,
@@ -335,6 +335,7 @@ function IOURequestStepDistanceMap({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            conciergeReportID,
         });
     }, [
         iouType,
@@ -346,7 +347,6 @@ function IOURequestStepDistanceMap({
         reportAttributesDerived,
         personalDetails,
         waypoints,
-        customUnitRateID,
         currentUserEmailParam,
         currentUserAccountIDParam,
         backTo,
@@ -363,8 +363,6 @@ function IOURequestStepDistanceMap({
         quickAction,
         policyRecentlyUsedCurrencies,
         introSelected,
-        activePolicyID,
-        reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
         selfDMReport,
         betas,
@@ -374,6 +372,7 @@ function IOURequestStepDistanceMap({
         amountOwed,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
+        conciergeReportID,
     ]);
 
     const getError = () => {
@@ -534,8 +533,19 @@ function IOURequestStepDistanceMap({
             shouldShowNotFoundPage={(isEditing && !currentTransaction?.comment?.waypoints) || shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <>
-                <View style={styles.flex1}>
+            <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
+                {isInLandscapeMode && (
+                    <View style={styles.flex1}>
+                        <DistanceRequestFooter
+                            waypoints={waypoints}
+                            navigateToWaypointEditPage={navigateToWaypointEditPage}
+                            transaction={transaction}
+                            policy={policy}
+                            mapContainerStyle={{minHeight: undefined}}
+                        />
+                    </View>
+                )}
+                <View style={[styles.flex1, isInLandscapeMode && styles.pl2]}>
                     <DraggableList
                         data={waypointItems}
                         keyExtractor={extractKey}
@@ -543,45 +553,47 @@ function IOURequestStepDistanceMap({
                         ref={scrollViewRef}
                         renderItem={renderItem}
                         ListFooterComponent={
-                            <DistanceRequestFooter
-                                waypoints={waypoints}
-                                navigateToWaypointEditPage={navigateToWaypointEditPage}
-                                transaction={transaction}
-                                policy={policy}
-                            />
+                            !isInLandscapeMode ? (
+                                <DistanceRequestFooter
+                                    waypoints={waypoints}
+                                    navigateToWaypointEditPage={navigateToWaypointEditPage}
+                                    transaction={transaction}
+                                    policy={policy}
+                                />
+                            ) : undefined
                         }
                     />
-                </View>
-                <View style={[styles.w100, styles.pt2]}>
-                    {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
-                        <DotIndicatorMessage
-                            style={[styles.mh4, styles.mv3]}
-                            messages={getError()}
-                            type="error"
+                    <View style={[styles.w100, styles.pt2]}>
+                        {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
+                        {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
+                            <DotIndicatorMessage
+                                style={[styles.mh4, styles.mv3]}
+                                messages={getError()}
+                                type="error"
+                            />
+                        )}
+                        <Button
+                            success
+                            allowBubble
+                            pressOnEnter
+                            large
+                            style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
+                            onPress={submitWaypoints}
+                            text={buttonText}
+                            isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
                         />
-                    )}
-                    <Button
-                        success
-                        allowBubble
-                        pressOnEnter
-                        large
-                        style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
-                        onPress={submitWaypoints}
-                        text={buttonText}
-                        isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
-                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
-                    />
+                    </View>
                 </View>
-            </>
+            </View>
         </StepScreenWrapper>
     );
 }
 
 const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMap);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceMapWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceMapWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceMapWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceMapWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceMapWithFullTransactionOrNotFound;

@@ -3,7 +3,6 @@ import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -32,14 +31,9 @@ type ProductTrainingContextType = {
 
 type ProductTrainingContextConfig = {
     /**
-     * Callback to be called when the tooltip is dismissed
+     * Callback to be called when the tooltip is shown
      */
-    onDismiss?: () => void;
-
-    /**
-     * Callback to be called when the tooltip is confirmed
-     */
-    onConfirm?: () => void;
+    onShown?: () => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
@@ -49,7 +43,7 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -146,9 +140,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
             // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
@@ -267,19 +258,13 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+
         return (
-            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
-                <View
-                    style={[
-                        styles.alignItemsCenter,
-                        styles.flexRow,
-                        tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.textAlignCenter,
-                        styles.gap3,
-                        styles.pv2,
-                        styles.ph2,
-                    ]}
-                >
+            <View
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                onLayout={config.onShown}
+            >
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.textAlignCenter, styles.gap3, styles.pv2, styles.ph2]}>
                     <Icon
                         src={expensifyIcons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -288,61 +273,39 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
                         <RenderHTML html={translate(tooltip.content)} />
                     </View>
-                    {!tooltip?.shouldRenderActionButtons && (
-                        <PressableWithoutFeedback
-                            sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
-                            shouldUseAutoHitSlop
-                            accessibilityLabel={translate('common.noThanks')}
-                            role={CONST.ROLE.BUTTON}
-                            onPress={() => hideTooltip(true)}
-                        >
-                            <Icon
-                                src={expensifyIcons.Close}
-                                fill={theme.icon}
-                                width={variables.iconSizeSemiSmall}
-                                height={variables.iconSizeSemiSmall}
-                            />
-                        </PressableWithoutFeedback>
-                    )}
+                    <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
+                        shouldUseAutoHitSlop
+                        accessibilityLabel={translate('common.noThanks')}
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => hideTooltip(true)}
+                    >
+                        <Icon
+                            src={expensifyIcons.Close}
+                            fill={theme.icon}
+                            width={variables.iconSizeSemiSmall}
+                            height={variables.iconSizeSemiSmall}
+                        />
+                    </PressableWithoutFeedback>
                 </View>
-                {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
-                        <Button
-                            success
-                            text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
-                            style={[styles.flex1]}
-                            onPress={config.onConfirm}
-                        />
-                        <Button
-                            text={translate('common.noThanks')}
-                            style={[styles.flex1]}
-                            onPress={config.onDismiss}
-                        />
-                    </View>
-                )}
             </View>
         );
     }, [
         tooltipName,
         styles.alignItemsCenter,
         styles.flexRow,
-        styles.justifyContentStart,
         styles.justifyContentCenter,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.flex1,
-        styles.justifyContentBetween,
         styles.ph2,
-        styles.gap2,
         styles.renderHTML,
         styles.dFlex,
         styles.flexShrink1,
         theme.tooltipHighlightText,
         theme.icon,
         translate,
-        config.onConfirm,
-        config.onDismiss,
+        config.onShown,
         hideTooltip,
         expensifyIcons.Close,
         expensifyIcons.Lightbulb,

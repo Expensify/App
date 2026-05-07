@@ -13,6 +13,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -70,6 +70,7 @@ function AttachmentModalBaseContent({
     footerActionButtons,
     customAttachmentContent,
     attachmentViewContainerStyles,
+    pdfRotation,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -166,29 +167,16 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        if (onConfirm) {
-            onConfirm(Object.assign(files ?? {}, {source} as FileObject));
-        }
-
         onClose?.();
+
+        // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
+        requestAnimationFrame(() => {
+            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                onClose?.();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
-        return unsubscribeEscapeKey;
-    }, [onClose]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
 
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {
@@ -272,6 +260,7 @@ function AttachmentModalBaseContent({
                             transaction={transaction}
                             isUploaded={!isEmptyObject(report)}
                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                            rotation={pdfRotation}
                         />
                     </AttachmentCarouselPagerActionsContext.Provider>
                 </AttachmentCarouselPagerStateContext.Provider>
@@ -291,6 +280,7 @@ function AttachmentModalBaseContent({
         isWorkspaceAvatar,
         maybeIcon,
         onNavigate,
+        pdfRotation,
         report,
         reportID,
         setAttachmentError,

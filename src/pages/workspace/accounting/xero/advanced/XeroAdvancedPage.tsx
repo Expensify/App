@@ -8,6 +8,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -17,7 +18,7 @@ import {updateXeroSyncSyncReimbursedReports} from '@userActions/connections/Xero
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -66,7 +67,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.accounting.autoSync')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path))}
                     brickRoadIndicator={
                         areSettingsInErrorFields([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.errorFields)
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR

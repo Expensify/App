@@ -25,14 +25,14 @@ import HangTight from './HangTight';
 import SignerDetailsFormPages from './SignerDetailsFormPages';
 
 const {PAGE_NAME, SIGNER_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
 const SUB_PAGE_NAMES = SIGNER_INFO_STEP.SUB_PAGE_NAMES;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isProduction} = useEnvironment();
+    const {isProduction, environmentURL} = useEnvironment();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -74,7 +74,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     }, [bankAccountID, isUserOwner, reimbursementAccountDraft, signerEmail]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation || !reimbursementAccount?.isSuccess) {
             return;
         }
@@ -96,7 +95,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID, backTo]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
             return;
         }
@@ -128,7 +126,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
 
     const handleIsDirectorSelected = useCallback(
         (value: boolean) => {
-            if (!policyID && (!value || currency === CONST.CURRENCY.AUD)) {
+            if (!policyID && !value) {
                 setShowNoPolicyError(true);
                 return;
             }
@@ -140,7 +138,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
             }
         },
-        [policyID, currency, isUserOwner, backTo],
+        [policyID, isUserOwner, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -195,7 +193,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                                 style={styles.mt3}
                                 isError
                                 shouldRenderMessageAsHTML
-                                message={translate('signerInfoStep.error.connectToWorkspace', ROUTES.WORKSPACES_LIST.getRoute())}
+                                message={translate('signerInfoStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
                             />
                         </View>
                     )}

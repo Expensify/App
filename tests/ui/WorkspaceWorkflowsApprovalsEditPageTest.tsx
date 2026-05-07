@@ -20,7 +20,7 @@ const ALICE_EMAIL = 'alice@example.com';
 const ALICE_ACCOUNT_ID = 1;
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -96,7 +96,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 
             const policy = buildPolicy();
             const personalDetails = buildPersonalDetailsList();

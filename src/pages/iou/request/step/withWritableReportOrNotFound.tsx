@@ -67,11 +67,10 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     WrappedComponent: ComponentType<TProps>,
     shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>> {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
-        const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
         const [betas] = useOnyx(ONYXKEYS.BETAS);

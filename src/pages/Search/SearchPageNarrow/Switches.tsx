@@ -6,66 +6,55 @@
  * the `showStatic` prop.
  *
  * IMPORTANT - keeping visual parity:
- *  • If you change the UI of an interactive component (SearchPageTabSelector,
- *    SearchPageHeader, SearchFiltersBar), verify the matching Static* version
+ *  • If you change the UI of an interactive component (SearchTypeMenuNarrow,
+ *    SearchPageInputNarrow, SearchActionsBarNarrow), verify the matching Static* version
  *    still looks visually identical.
  *  • Static components intentionally avoid expensive hooks and Onyx reads.
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
  */
 import React from 'react';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchQueryJSON} from '@components/Search/types';
-import SearchPageTabSelector from '@pages/Search/SearchPageTabSelector';
-import StaticFiltersBar from './StaticFiltersBar';
-import StaticSearchPageHeader from './StaticSearchPageHeader';
-import StaticTabSelector from './StaticTabSelector';
+import SearchActionsBarNarrow from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
+import type {SearchActionsBarNarrowProps} from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
+import SearchFiltersBarNarrow from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
+import type {SearchFiltersBarNarrowProps} from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
+import SearchPageInputNarrow from '@components/Search/SearchPageHeader/SearchPageInputNarrow';
+import type {SearchPageInputNarrowProps} from '@components/Search/SearchPageHeader/SearchPageInputNarrow';
+import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
+import type {SearchTypeMenuNarrowProps} from '@pages/Search/SearchTypeMenuNarrow';
+import StaticSearchActionsBar from './StaticSearchActionsBar';
+import StaticSearchPageInput from './StaticSearchPageInput';
+import StaticSearchTypeMenu from './StaticSearchTypeMenu';
 
-type SearchPageTabSelectorProps = {
-    queryJSON?: SearchQueryJSON;
-    onTabPress?: () => void;
-};
-
-type SearchPageHeaderProps = {
-    queryJSON: SearchQueryJSON;
-    searchRouterListVisible?: boolean;
-    hideSearchRouterList?: () => void;
-    onSearchRouterFocus?: () => void;
-    handleSearch: (value: string) => void;
-    isMobileSelectionModeEnabled: boolean;
-    skipInputSkeleton?: boolean;
-};
-
-type SearchFiltersBarProps = {
-    queryJSON: SearchQueryJSON;
-    isMobileSelectionModeEnabled: boolean;
-};
-
-const TabSelectorSwitch = React.memo(({showStatic, ...props}: SearchPageTabSelectorProps & {showStatic: boolean}) => {
+function SearchTypeMenuSwitch({showStatic, ...props}: SearchTypeMenuNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
-        return props.queryJSON ? <StaticTabSelector queryJSON={props.queryJSON} /> : null;
+        return props.queryJSON ? <StaticSearchTypeMenu queryJSON={props.queryJSON} /> : null;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageTabSelectorProps
-    return <SearchPageTabSelector {...props} />;
-});
-TabSelectorSwitch.displayName = 'TabSelectorSwitch';
+    return <SearchTypeMenuNarrow {...props} />;
+}
 
-const SearchPageHeaderSwitch = React.memo(({showStatic, ...props}: SearchPageHeaderProps & {showStatic: boolean}) => {
+function SearchPageInputSwitch({showStatic, ...props}: SearchPageInputNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
-        return <StaticSearchPageHeader />;
+        return <StaticSearchPageInput />;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
-    return <SearchPageHeader {...props} />;
-});
-SearchPageHeaderSwitch.displayName = 'SearchPageHeaderSwitch';
+    return <SearchPageInputNarrow {...props} />;
+}
 
-const FiltersBarSwitch = React.memo(({showStatic, ...props}: SearchFiltersBarProps & {showStatic: boolean}) => {
+function SearchFiltersBarSwitch({showStatic, ...props}: SearchFiltersBarNarrowProps & {showStatic: boolean}) {
     if (showStatic) {
-        return <StaticFiltersBar queryJSON={props.queryJSON} />;
+        return null;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchFiltersBarProps
-    return <SearchFiltersBar {...props} />;
-});
-FiltersBarSwitch.displayName = 'FiltersBarSwitch';
+    return <SearchFiltersBarNarrow {...props} />;
+}
 
-export {TabSelectorSwitch, SearchPageHeaderSwitch, FiltersBarSwitch};
+function SearchActionsBarSwitch({showStatic, ...props}: SearchActionsBarNarrowProps & {showStatic: boolean}) {
+    if (showStatic) {
+        return <StaticSearchActionsBar />;
+    }
+    // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
+    return <SearchActionsBarNarrow {...props} />;
+}
+
+export {SearchTypeMenuSwitch, SearchPageInputSwitch, SearchFiltersBarSwitch, SearchActionsBarSwitch};
