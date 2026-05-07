@@ -298,21 +298,41 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
+/**
+ * Pick the rate that the expense flow will treat as default for a distance custom unit's rates
+ * dictionary: filter enabled rates, sort by `index` (treating missing index as CONST.DEFAULT_NUMBER_ID),
+ * and take the first. Mirrors `getDefaultMileageRate`'s selection so optimistic state stays aligned
+ * with the rate the expense flow later picks.
+ */
+function getDefaultDistanceRate(rates: Record<string, Rate> | undefined): Rate | undefined {
+    if (!rates) {
+        return undefined;
+    }
+    return Object.values(rates)
+        .filter((rate) => rate.enabled !== false)
+        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+        .at(0);
+}
+
 function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newDefaultRateID?: string): CustomUnit {
     if (newDefaultRateID) {
-        // The server-side DUPLICATE_POLICY assigns newDefaultRateID to the source's default rate.
-        // Mirror getDefaultMileageRate's selection (enabled rates, sorted by index with
-        // CONST.DEFAULT_NUMBER_ID for missing indexes) so the optimistic clone aligns with the
-        // rate the expense flow will later treat as default. Other source rates get fresh server
-        // IDs, so we drop them from the optimistic state to avoid stale duplicates.
-        const defaultRate = Object.values(unit.rates)
-            .filter((rate) => rate.enabled !== false)
-            .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-            .at(0);
+        // Mirror DUPLICATE_POLICY: rebind the source default to newDefaultRateID, keep other rates
+        // under their source IDs (the server preserves them). Preserve source iteration order so
+        // getDefaultMileageRate's stable sort still picks the original default when rates tie on
+        // index (e.g. a rate with no index falls back to CONST.DEFAULT_NUMBER_ID).
+        const defaultRate = getDefaultDistanceRate(unit.rates);
+        const rates: Record<string, Rate> = {};
+        for (const rate of Object.values(unit.rates)) {
+            if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
+                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+            } else {
+                rates[rate.customUnitRateID] = rate;
+            }
+        }
         return {
             ...unit,
             customUnitID: newCustomUnitID,
-            rates: defaultRate ? {[newDefaultRateID]: {...defaultRate, customUnitRateID: newDefaultRateID}} : {},
+            rates,
         };
     }
 
@@ -2268,6 +2288,7 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
+    getDefaultDistanceRate,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     getPolicyRole,
