@@ -15,9 +15,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {arePaymentsEnabled, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
@@ -30,7 +28,6 @@ import {
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getApprovalChain,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReportOrDraftReport,
@@ -73,7 +70,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
+import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 
 type ApproveMoneyRequestFunctionParams = {
@@ -113,6 +110,7 @@ function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
     // Only expense reports can be approved
@@ -131,7 +129,7 @@ function canApproveIOU(
     }
 
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === getUserAccountID();
+    const isCurrentUserManager = managerID === currentUserAccountID;
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
@@ -164,6 +162,8 @@ function canIOUBePaid(
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     transactions?: OnyxTypes.Transaction[],
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
@@ -191,12 +191,12 @@ function canIOUBePaid(
             return false;
         }
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-            return chatReport?.invoiceReceiver?.accountID === getUserAccountID();
+            return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
         }
         return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
-    const isPayer = isPayerReportUtils(getUserAccountID(), getCurrentUserEmail(), iouReport, bankAccountList, policy, onlyShowPayElsewhere);
+    const isPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
@@ -262,44 +262,60 @@ function canSubmitReport(
     );
 }
 
+function getBadgeFromIOUReport(
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
+    if (
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy) ||
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy)
+    ) {
+        return CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID)) {
+        return CONST.REPORT.ACTION_BADGE.APPROVE;
+    }
+    const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
+        iouReport,
+        chatReport,
+        policy,
+        getReportTransactions(iouReport?.reportID),
+        getAllTransactionViolations(),
+        currentUserLogin,
+        currentUserAccountID,
+        getAllReportActions(iouReport?.reportID),
+    );
+    if (isWaitingSubmitFromCurrentUser) {
+        return CONST.REPORT.ACTION_BADGE.SUBMIT;
+    }
+    return undefined;
+}
+
 function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
     const chatReportActions = getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     const reportAction = Object.values(chatReportActions).find((action) => {
-        if (!action || action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+        if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
-        // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
-        if (
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
-        ) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
-            return true;
-        }
-        if (canApproveIOU(iouReport, policy, reportMetadata)) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
-            return true;
-        }
-        const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
-            iouReport,
-            chatReport,
-            policy,
-            getReportTransactions(iouReport?.reportID),
-            getAllTransactionViolations(),
-            getCurrentUserEmail(),
-            getUserAccountID(),
-            getAllReportActions(iouReport?.reportID),
-        );
-        if (isWaitingSubmitFromCurrentUser) {
-            actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+        if (badge) {
+            actionBadge = badge;
             return true;
         }
         return false;
@@ -344,7 +360,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, expenseReportPolicy)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -368,8 +384,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
-        : // eslint-disable-next-line @typescript-eslint/no-deprecated
-          buildNextStepNew({
+        : buildNextStepNew({
               report: expenseReport,
               policy,
               currentUserAccountIDParam,
@@ -719,7 +734,6 @@ function reopenReport(
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -903,7 +917,6 @@ function retractReport(
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -1075,7 +1088,6 @@ function unapproveExpenseReport(
     const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1263,8 +1275,7 @@ function submitReport({
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
-        : // eslint-disable-next-line @typescript-eslint/no-deprecated
-          buildNextStepNew({
+        : buildNextStepNew({
               report: expenseReport,
               predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
               policy,
@@ -1286,8 +1297,8 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
           });
-    const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    const managerID = submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1493,7 +1504,7 @@ function submitReport({
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
+        managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
@@ -1513,7 +1524,6 @@ function assignReportToMe(
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: {...report, managerID: accountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1629,7 +1639,6 @@ function addReportApprover(
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: {...report, managerID: newApproverAccountID},
         predictedNextStatus: report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1739,7 +1748,7 @@ export {
     canIOUBePaid,
     canSubmitReport,
     canUnapproveIOU,
-    determineIouReportID,
+    getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
     reopenReport,

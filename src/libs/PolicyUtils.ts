@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -38,8 +37,6 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
-    SageIntacctDataElement,
-    SageIntacctDataElementWithValue,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -73,14 +70,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
@@ -309,6 +298,50 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
+/**
+ * Pick the rate that the expense flow will treat as default for a distance custom unit's rates
+ * dictionary: filter enabled rates, sort by `index` (treating missing index as CONST.DEFAULT_NUMBER_ID),
+ * and take the first. Mirrors `getDefaultMileageRate`'s selection so optimistic state stays aligned
+ * with the rate the expense flow later picks.
+ */
+function getDefaultDistanceRate(rates: Record<string, Rate> | undefined): Rate | undefined {
+    if (!rates) {
+        return undefined;
+    }
+    return Object.values(rates)
+        .filter((rate) => rate.enabled !== false)
+        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+        .at(0);
+}
+
+function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newDefaultRateID?: string): CustomUnit {
+    if (newDefaultRateID) {
+        // Mirror DUPLICATE_POLICY: rebind the source default to newDefaultRateID, keep other rates
+        // under their source IDs (the server preserves them). Preserve source iteration order so
+        // getDefaultMileageRate's stable sort still picks the original default when rates tie on
+        // index (e.g. a rate with no index falls back to CONST.DEFAULT_NUMBER_ID).
+        const defaultRate = getDefaultDistanceRate(unit.rates);
+        const rates: Record<string, Rate> = {};
+        for (const rate of Object.values(unit.rates)) {
+            if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
+                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+            } else {
+                rates[rate.customUnitRateID] = rate;
+            }
+        }
+        return {
+            ...unit,
+            customUnitID: newCustomUnitID,
+            rates,
+        };
+    }
+
+    return {
+        ...unit,
+        customUnitID: newCustomUnitID,
+    };
+}
+
 function getCustomUnitsForDuplication(
     policy: Policy,
     isDistanceRatesOptionSelected: boolean,
@@ -316,39 +349,58 @@ function getCustomUnitsForDuplication(
     customUnitIDs: {
         distanceCustomUnitID: string;
         perDiemCustomUnitID: string;
+        customUnitRateID?: string;
     },
 ): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
-    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnitIDs ?? {};
+    const {distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID} = customUnitIDs ?? {};
 
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined, customUnitID: string) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            customUnitID,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        distanceCustomUnitID,
+    );
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL),
+        perDiemCustomUnitID,
+    );
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
 
-        return {[distanceCustomUnitID]: distanceCustomUnit, [perDiemCustomUnitID]: perDiemUnit};
+        return {
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
+            [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+        };
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnitID]: distanceCustomUnit};
+        return {[distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID)};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemCustomUnitID]: perDiemUnit};
+    return {[perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID)};
 }
 
 /**
@@ -405,10 +457,6 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     }
 
     return policy?.employeeList?.[currentUserLogin]?.role;
-}
-
-function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**
@@ -905,7 +953,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1007,14 +1059,6 @@ function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
     return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
 
-function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-    return Object.values(policyMemberEmailsToAccountIDs)
-        .map((policyMemberAccountID) => Number(policyMemberAccountID))
-        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
-}
-
 function getPolicyEmployeeAccountIDs(policy: OnyxEntry<Pick<Policy, 'employeeList'>>, currentUserAccountID?: number) {
     if (!policy) {
         return [];
@@ -1096,6 +1140,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
+        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
     }
@@ -1160,7 +1207,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
         }
         for (let j = 0; j < rule.applyWhen.length; j++) {
             const applyWhen = rule.applyWhen.at(j);
-            if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+            if (applyWhen?.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
                 continue;
             }
             if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
@@ -1279,13 +1326,8 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
-/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
-function getPersonalPolicy() {
-    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
-}
-
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    if (!policy || !policy.employeeList) {
+    if (!policy?.employeeList) {
         return [];
     }
     return Object.keys(policy.employeeList)
@@ -1309,7 +1351,7 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
  * Checks whether the current user has a policy with admin access
  */
 function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
-    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
 }
 
 /**
@@ -1352,12 +1394,7 @@ function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<
 
 /** Get the Xero organizations connected to the policy */
 function getXeroTenants(policy: Policy | undefined): Tenant[] {
-    // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-    if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
-        return [];
-    }
-    return policy.connections.xero.data.tenants ?? [];
+    return policy?.connections?.xero?.data?.tenants ?? [];
 }
 
 function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
@@ -1402,11 +1439,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
-    return selectedVendor ?? vendors?.[0] ?? undefined;
-}
-
-function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
-    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
@@ -1635,8 +1667,7 @@ function getIntegrationLastSuccessfulDate(
     const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
 
     if (
-        connectionSyncProgress &&
-        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
         connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
     ) {
@@ -1873,31 +1904,6 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
-    let foundGroupPolicy = false;
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        if (policy.isJoinRequestPending || !shouldShowPolicy(policy, false, undefined)) {
-            continue;
-        }
-
-        foundGroupPolicy = true;
-
-        if (policy.isPolicyExpenseChatEnabled) {
-            return false;
-        }
-    }
-
-    if (!foundGroupPolicy) {
-        return false;
-    }
-
-    return true;
-}
-
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
@@ -2068,24 +2074,6 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
 }
 
 /**
- * Checks if the current user is a member of any policyExpenseChatEnabled policy
- */
-function isCurrentUserMemberOfAnyPolicy(): boolean {
-    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
-}
-
-/**
- * Whether the given policy member is an admin of the given policy
- */
-function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
-    if (!policy || !memberEmail) {
-        return false;
-    }
-    const admins = getAdminEmployees(policy);
-    return admins.some((admin) => admin.email === memberEmail);
-}
-
-/**
  * Determines which travel step should be shown based on policy state
  */
 function getTravelStep(
@@ -2157,7 +2145,6 @@ export {
     escapeTagName,
     getActivePolicies,
     getAdminEmployees,
-    getAccountingConnectionNames,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
@@ -2167,17 +2154,11 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
-    getHRConnectionNames,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
-    getNumericValue,
     isMultiLevelTags,
-    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPersonalPolicy,
     getPolicyBrickRoadIndicatorStatus,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
     getTagListByOrderWeight,
@@ -2198,9 +2179,7 @@ export {
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     shouldShowPolicyError,
-    shouldShowPolicyErrorFields,
     shouldShowTaxRateError,
-    isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
     isDeletedPolicyEmployee,
@@ -2239,7 +2218,6 @@ export {
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
-    findSelectedSageVendorWithDefaultSelect,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -2277,7 +2255,6 @@ export {
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,
-    isGustoConnected,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
@@ -2295,7 +2272,6 @@ export {
     getTagNamesFromTagsLists,
     getTagApproverRule,
     getDomainNameForPolicy,
-    hasUnsupportedIntegration,
     hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
@@ -2307,23 +2283,20 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
-    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
-    areAllGroupPoliciesExpenseChatDisabled,
+    getDefaultDistanceRate,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getPolicyEmployeeAccountIDs,
-    isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
@@ -2334,6 +2307,8 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getHRConnectionNames,
+    isGustoConnected,
 };
 
 export type {MemberEmailsToAccountIDs};

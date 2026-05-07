@@ -138,7 +138,7 @@ function TransferBalancePage() {
 
     const selectedAccount = getSelectedPaymentMethodAccount();
     const selectedPaymentType =
-        selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
+        selectedAccount?.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
     const calculatedFee = calculateWalletTransferBalanceFee(userWallet?.currentBalance ?? 0, selectedPaymentType);
     const transferAmount = userWallet?.currentBalance ?? 0 - calculatedFee;

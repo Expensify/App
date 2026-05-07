@@ -149,6 +149,7 @@ type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
+type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
 
 type SearchCustomColumnIds =
@@ -169,7 +170,7 @@ type SearchContextData = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
-    currentSearchQueryJSON: SearchQueryJSON | undefined;
+    currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
     currentSearchResults: SearchResults | undefined;
     currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
@@ -326,7 +327,7 @@ type SearchAutocompleteQueryRange = {
 };
 
 type SearchParams = {
-    queryJSON: SearchQueryJSON;
+    queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
     offset: number;
     prevReportsLength?: number;
@@ -419,6 +420,7 @@ export type {
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,
+    SearchWithdrawalStatus,
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,

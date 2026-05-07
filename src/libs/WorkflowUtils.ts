@@ -1,8 +1,8 @@
 import {Str} from 'expensify-common';
-import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -13,7 +13,6 @@ import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {convertToDisplayString} from './CurrencyUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -148,7 +147,10 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
-    const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
+    const personalDetailsByEmail: PersonalDetailsList = {};
+    for (const [key, value] of Object.entries(personalDetails)) {
+        personalDetailsByEmail[value?.login ?? key] = value;
+    }
     const availableMembers: Member[] = [];
 
     for (const employee of Object.values(employees)) {
@@ -625,13 +627,14 @@ type GetApprovalLimitDescriptionParams = {
     approver: Approver | undefined;
     currency: string;
     translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     personalDetailsByEmail: PersonalDetailsList | undefined;
 };
 
 /**
  * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
  */
-function getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail}: GetApprovalLimitDescriptionParams): string | undefined {
+function getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail}: GetApprovalLimitDescriptionParams): string | undefined {
     if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
         return undefined;
     }

@@ -13,6 +13,7 @@ type ResolveDuplicatesParams = {
     billable: boolean;
     reimbursable: boolean;
     tag: string;
+    taxCode?: string;
 
     /** The reportActionID of the dismissed violation action in the kept transaction thread report */
     dismissedViolationReportActionID: string;

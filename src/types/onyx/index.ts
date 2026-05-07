@@ -2,6 +2,7 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
@@ -68,7 +69,7 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
-import type {ExpensifyCardSettingsBase} from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -96,6 +97,7 @@ import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
@@ -134,11 +136,14 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type ReportLastVisitTimes from './ReportLastVisitTimes';
 import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
+import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
+import type ReportPaginationState from './ReportPaginationState';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -157,6 +162,7 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
+import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
@@ -219,6 +225,7 @@ export type {
     ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
+    NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
@@ -252,6 +259,7 @@ export type {
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,
+    OdometerDraft,
     Pages,
     PendingConciergeResponse,
     PersonalBankAccount,
@@ -287,8 +295,11 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    ReportLastVisitTimes,
+    ReportLoadingState,
     ReportMetadata,
     ReportNextStepDeprecated,
+    ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
     GroupedTransactions,
@@ -364,6 +375,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     SidePanel,
+    SidePanelContext,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,
@@ -393,4 +405,5 @@ export type {
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
+    AgentPrompt,
 };

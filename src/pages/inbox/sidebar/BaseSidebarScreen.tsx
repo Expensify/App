@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,11 +36,8 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
-
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
-
     // Must be called unconditionally so openApp() can proceed even when
     // the skeleton is shown and SidebarLinksData has not mounted yet.
     useConfirmReadyToOpenApp();
@@ -50,7 +47,8 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID="BaseSidebarScreen"
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />}
+            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INBOX} />}
+            bottomContentStyle={styles.overflowVisible}
         >
             {({insets}) => (
                 <>
@@ -69,7 +67,6 @@ function BaseSidebarScreen() {
                             <SidebarLinksData insets={insets} />
                         )}
                     </View>
-                    {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />}
                 </>
             )}
         </ScreenWrapper>

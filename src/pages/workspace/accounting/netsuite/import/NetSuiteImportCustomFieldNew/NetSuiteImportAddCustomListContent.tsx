@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -50,7 +51,6 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomLists = customLists.concat([
                 {

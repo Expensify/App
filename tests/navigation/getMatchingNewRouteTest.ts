@@ -44,6 +44,25 @@ describe('getBestMatchingPath', () => {
         );
     });
 
+    it('redirects old NetSuite invoice item preference path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/connections/netsuite/export/invoice-item-preference/invoice-item/select')).toBe(
+            '/workspaces/abc/connections/netsuite/export/invoice-item-preference/select/invoice-item/select',
+        );
+    });
+
+    it('preserves query params when redirecting old NetSuite invoice item preference path', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/connections/netsuite/export/invoice-item-preference/invoice-item/select?backTo=/home')).toBe(
+            '/workspaces/abc/connections/netsuite/export/invoice-item-preference/select/invoice-item/select?backTo=/home',
+        );
+    });
+    it('redirects old settings category edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/category/Meals/category-edit');
+    });
+
+    it('preserves query params when redirecting old settings category edit path', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
@@ -63,5 +82,30 @@ describe('getBestMatchingPath', () => {
 
     it('preserves fragment when redirecting', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
+    });
+
+    it('redirects legacy workspace tag routes to new settings dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/tag-list-edit/10');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-gl-code');
+    });
+
+    it('preserves query params when redirecting legacy workspace tag routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/tag-list-edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
+    });
+
+    it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync')).toBe(
+            '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync/accounting-method')).toBe(
+            '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync/quickbooks-online-accounting-method',
+        );
+        expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync?backTo=/x')).toBe(
+            '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync?backTo=/x',
+        );
     });
 });
