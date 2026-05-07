@@ -504,7 +504,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: {
         policyID: string;
-        // Will be removed after migrating SETTINGS_TAGS_SETTINGS
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };

@@ -95,4 +95,12 @@ describe('getBestMatchingPath', () => {
             '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync?backTo=/x',
         );
     });
+
+    it('redirects old workspace tags new path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/tags/new')).toBe('/workspaces/abc/tags/tag-new');
+    });
+
+    it('preserves query params when redirecting old workspace tags new path', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/tags/new?backTo=/home')).toBe('/workspaces/abc/tags/tag-new?backTo=/home');
+    });
 });
