@@ -22,6 +22,19 @@ let isPoorConnectionSimulated: boolean | undefined;
 let networkTimeSkew = 0;
 let suppressNextReachabilityRestored = false;
 
+// Tracks the last time a real API call succeeded (not a Reachability Ping).
+// Used to suppress false offline detection on Safari, where background tab
+// throttling causes Ping requests to time out even when the network is healthy.
+let lastSuccessfulApiCall: number = Date.now();
+
+/**
+ * Called by HttpUtils after a successful HTTP response.
+ * Resets the timer so the next Ping failure within 10s is suppressed.
+ */
+function reportSuccessfulApiCall(): void {
+    lastSuccessfulApiCall = Date.now();
+}
+
 // Subscriber sets
 const listeners = new Set<() => void>();
 const reconnectListeners = new Set<() => void>();
@@ -319,8 +332,14 @@ function configureAndSubscribe() {
         // Fire on any non-false→false transition (true→false, null→false, undefined→false)
         // to catch cold start with no internet and post-recovery resets where prev is null.
         // Only skip false→false (redundant, already offline).
+        // Suppress false offline on Safari: if a real API call succeeded recently, the
+        // Ping timeout is likely due to background tab throttling, not actual network loss.
         if (state.isInternetReachable === false && prevIsInternetReachable !== false) {
-            setInternetUnreachable(true);
+            if (Date.now() - lastSuccessfulApiCall <= CONST.NETWORK.MAX_PENDING_TIME_MS) {
+                Log.info('[NetworkState] Suppressing false offline detection — recent API call was successful');
+            } else {
+                setInternetUnreachable(true);
+            }
         }
 
         // Treat false→true and null→true as genuine recovery. Both mean NetInfo previously
@@ -418,4 +437,5 @@ export {
     getDBTimeWithSkew,
     refresh,
     simulatePoorConnection,
+    reportSuccessfulApiCall,
 };

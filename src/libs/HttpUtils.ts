@@ -9,6 +9,7 @@ import type Response from '@src/types/onyx/Response';
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
+import {reportSuccessfulApiCall} from './NetworkState';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import prepareRequestPayload from './prepareRequestPayload';
@@ -123,6 +124,10 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     status: response.status.toString(),
                 });
             }
+
+            // A real API call succeeded — reset the Ping suppression timer
+            // so Safari background-tab throttling doesn't trigger false offline.
+            reportSuccessfulApiCall();
 
             return response.json() as Promise<Response<TKey>>;
         })
