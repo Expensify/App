@@ -15,8 +15,8 @@ on:
       - .github/**
       - contributingGuides/**
       - tests/**
-      - '**.md'
-      - '**.sh'
+      - "**.md"
+      - "**.sh"
   workflow_dispatch:
 
 # Newer pushes to the same PR cancel older smoke runs; protects the runner
@@ -32,7 +32,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 35
     env:
-      AGENT_DEVICE_VERSION: '0.14.7'
+      AGENT_DEVICE_VERSION: "0.14.7"
 
     steps:
       - name: Checkout
@@ -59,12 +59,12 @@ jobs:
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
         with:
-          IS_HYBRID_BUILD: 'false'
+          IS_HYBRID_BUILD: "false"
 
       - name: Install agent-device CLI
         # Pin — never @latest. A breaking selector/flag change in a
@@ -85,13 +85,24 @@ jobs:
         # by the same token via the existing setup script.
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
+      - name: Install Android CMake 3.30.5 (Hermes pins this exact version)
+        # Defensive: if the Rock S3 fingerprint misses and Rock falls
+        # back to a local Gradle build, hermes-engine's
+        # configureCMakeRelease[x86_64] task fails with [CXX1300] when
+        # CMake 3.30.5 isn't on the runner. Install before Rock so we
+        # surface the real fingerprint-drift signal rather than a
+        # confusing CMake-not-found error.
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "cmake;3.30.5" 2>&1 | tail -5
+
       - name: Build / fetch developmentDebug APK via Rock
         # If fingerprint matches main, pulls the prebuilt APK from S3 in
         # ~30s. If it misses (e.g. native deps shifted on this branch),
         # Rock falls back to a local Gradle build — slower but still
         # produces the same APK at the path the smoke script expects.
         env:
-          STANDALONE_NEW_DOT: 'true'
+          STANDALONE_NEW_DOT: "true"
         run: npx rock build:android --variant developmentDebug
 
       - name: AVD cache
